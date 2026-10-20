@@ -57,6 +57,10 @@ const BILL_FIELDS: int = 4
 const LAYOUT_F40: int = 0
 const LAYOUT_M5: int = 1
 const M5_MODULES: int = 5
+## Decision 2044 (P-2044-15, "Land M2 now"): the interim layout, M5's first two modules, ending on module 1's floor
+## 2,048 u down. M5 stays the target.
+const LAYOUT_M2: int = 2
+const M2_MODULES: int = 2
 const MODULE_ROWS: int = 5 # A module's pitch: 3,584 u of treads and 1,536 u of run-out, 5,120 u.
 const MODULE_DROP: int = 1024
 
@@ -270,14 +274,24 @@ static func total_bill_into(steps: int, out: PackedInt64Array) -> bool:
 
 
 static func layout_valid(layout: int) -> bool:
-	"""M5 (ruled, P-2043-1 (a)) or F40 (the record of P-DF-2 (a))."""
-	return layout == LAYOUT_M5 or layout == LAYOUT_F40
+	"""M5 (ruled, P-2043-1 (a)), its M2 interim (2044 P-2044-15) or F40 (the record of P-DF-2 (a))."""
+	return _modular(layout) or layout == LAYOUT_F40
+
+
+static func _modular(layout: int) -> bool:
+	"""M5 or M2: the 1 m module repeated, module j translated by (0, -1024j, -5120j)."""
+	return layout == LAYOUT_M5 or layout == LAYOUT_M2
+
+
+static func _modules(layout: int) -> int:
+	"""Modules of a modular layout: five for M5, two for M2."""
+	return M5_MODULES if layout == LAYOUT_M5 else M2_MODULES
 
 
 static func module_count(layout: int) -> int:
 	"""Five modules for M5; F40 is one continuous flight; -1 for no layout."""
 	if not layout_valid(layout): return -1
-	return M5_MODULES if layout == LAYOUT_M5 else 1
+	return _modules(layout) if _modular(layout) else 1
 
 
 static func module_translation(layout: int, module: int) -> Vector3i:
@@ -290,14 +304,14 @@ static func module_translation(layout: int, module: int) -> Vector3i:
 static func layout_row_count(layout: int) -> int:
 	"""M5: L0's two rows and five modules of five rows (27); F40: 23; -1 for no layout."""
 	if layout == LAYOUT_F40: return row_count(F40_STEPS)
-	return LANDING_ROWS + M5_MODULES * MODULE_ROWS if layout == LAYOUT_M5 else -1
+	return LANDING_ROWS + _modules(layout) * MODULE_ROWS if _modular(layout) else -1
 
 
 static func layout_floor_depth(layout: int, row: int) -> int:
 	"""Cubes cut per column in `row`, open to the sky: M5's module j cuts its five rows to depth j + 1, L0's rows one;
 	-1 outside the flight."""
 	if layout == LAYOUT_F40: return floor_depth(F40_STEPS, row)
-	if layout != LAYOUT_M5 or row < 0 or row >= layout_row_count(layout): return -1
+	if not _modular(layout) or row < 0 or row >= layout_row_count(layout): return -1
 	if row < LANDING_ROWS: return 1
 	@warning_ignore("integer_division") var module: int = (row - LANDING_ROWS) / MODULE_ROWS
 	return module + 1
@@ -306,25 +320,25 @@ static func layout_floor_depth(layout: int, row: int) -> int:
 static func layout_tread_count(layout: int) -> int:
 	"""M5: seven treads (T0-T5 and the sill) a module, 35; F40: 39; -1 for no layout."""
 	if layout == LAYOUT_F40: return tread_count(F40_STEPS)
-	return M5_MODULES * tread_count(FIRST_ENTRY_STEPS) if layout == LAYOUT_M5 else -1
+	return _modules(layout) * tread_count(FIRST_ENTRY_STEPS) if _modular(layout) else -1
 
 
 static func tread_module(layout: int, tread: int) -> int:
 	"""The module holding the layout's tread `tread` (0-based along the flight); -1 for no tread."""
 	if tread < 0 or tread >= layout_tread_count(layout): return -1
 	@warning_ignore("integer_division") var module: int = tread / tread_count(FIRST_ENTRY_STEPS)
-	return module if layout == LAYOUT_M5 else 0
+	return module if _modular(layout) else 0
 
 
 static func tread_k(layout: int, tread: int) -> int:
 	"""The tread's index inside its module (T_k of `tread_geometry.gd`); -1 for no tread."""
 	if tread_module(layout, tread) < 0: return -1
-	return tread % tread_count(FIRST_ENTRY_STEPS) if layout == LAYOUT_M5 else tread
+	return tread % tread_count(FIRST_ENTRY_STEPS) if _modular(layout) else tread
 
 
 static func _module_steps(layout: int) -> int:
 	"""The `steps` of one module's geometry: 8 for M5, 40 for F40."""
-	return FIRST_ENTRY_STEPS if layout == LAYOUT_M5 else F40_STEPS
+	return FIRST_ENTRY_STEPS if _modular(layout) else F40_STEPS
 
 
 static func layout_is_sill(layout: int, tread: int) -> bool:
@@ -375,7 +389,7 @@ static func layout_floor_stop_into(layout: int, beyond: int, out: PackedInt32Arr
 static func landing_stop_into(layout: int, module: int, behind: int, out: PackedInt32Array) -> bool:
 	"""A stop on module `module`'s natural landing (module >= 1: the previous module's run-out), `behind` u behind
 	its T0's near edge, as [x, y, z]; the landing is RUN_OUT long. False, `out` untouched, otherwise."""
-	if layout != LAYOUT_M5 or module < 1 or module >= M5_MODULES or out.size() != 3: return false
+	if not _modular(layout) or module < 1 or module >= _modules(layout) or out.size() != 3: return false
 	if behind <= 0 or behind >= RUN_OUT: return false
 	var at: Vector3i = stop(-1, behind) + module_translation(layout, module)
 	for axis: int in 3:
@@ -414,8 +428,8 @@ static func layout_cubes_into(layout: int, out: PackedInt32Array) -> bool:
 static func layout_part_count(layout: int) -> int:
 	"""L0's seven parts, seven a tread and three a sill: M5 7 + 5 x (6 x 7 + 3) = 232; F40 276; -1 for no layout."""
 	if layout == LAYOUT_F40: return part_count(F40_STEPS)
-	if layout != LAYOUT_M5: return -1
-	return PARTS_PER_ASSEMBLY + M5_MODULES * (PARTS_PER_ASSEMBLY * (tread_count(FIRST_ENTRY_STEPS) - 1) + SILL_PARTS)
+	if not _modular(layout): return -1
+	return PARTS_PER_ASSEMBLY + _modules(layout) * (PARTS_PER_ASSEMBLY * (tread_count(FIRST_ENTRY_STEPS) - 1) + SILL_PARTS)
 
 
 static func layout_fixture_bill_into(layout: int, out: PackedInt64Array) -> bool:

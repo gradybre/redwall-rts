@@ -4226,7 +4226,7 @@
         "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
         "godot/scripts/core/underground_profiles.gd": "4684fce53085b62f4fea85a26a862bd6a99b881dec10827a4802f8d5d0119bdc",
         "godot/scripts/core/underground_routes.gd": "0fde2c69d853462a375dd6dd025368c9bf47b14fccb87dd6b27b5775688f5f15",
-        "godot/scripts/core/underground_world_routes.gd": "8bf8971d30f127a9a212eea331f60cd7ecbfbce5fe8a706b66359bd8fef588b7"
+        "godot/scripts/core/underground_world_routes.gd": "0c004f9fc8beb9403787521208d542782d53b8473510a3b5c9f1a737fce01c04"
       }
     },
     "current_profile_control": {
@@ -41247,6 +41247,7 @@
       "godot/scripts/core/underground_connector_contacts.gd",
       "godot/scripts/core/underground_connector_placements.gd",
       "godot/scripts/core/underground_connector_source_facts.gd",
+      "godot/scripts/core/underground_entry_structure.gd",
       "godot/scripts/core/underground_entry_world_bindings.gd",
       "godot/scripts/core/underground_final_facts.gd",
       "godot/scripts/core/underground_locations.gd",
@@ -42310,6 +42311,11 @@
             "bytes": 0,
             "carried_by": "none",
             "store": "ADR1229 increment 6b: the tread-station stair reach (StairPath.Stops, one per resolution, and the leg list), the per-region tread body proof and the step-forward retreat; cold-path caller allocations only, inside the existing Contacts control and fragment banks, no retained member"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "decision 2044 (P-2044-16): the M5 landing and deep-hub reach (walk-off, hub D) and the row path helper; cold-path caller logic only, fewer allocation sites, no retained member"
           }
         ],
         "delta": {
@@ -42349,11 +42355,11 @@
             ]
           ],
           "allocation_sites": {
-            "([": 4,
+            "([": 3,
             ".new(": 2,
             "=[": 2,
-            "PackedInt32Array(": 3,
-            "range(": 3,
+            "PackedInt32Array(": 1,
+            "range(": 2,
             "return[": 1
           }
         }
@@ -42423,6 +42429,11 @@
             "bytes": 6201,
             "carried_by": "new contribution",
             "store": "ADR1229 increment 6b: the installed-witness pass's prism cache (_prism_boxes, 6 x Catalog.MAX_PARTS int32 = 6,144 B; _prism_key, 5 int64) and its counters (_witness_pass, _sources_pass, _in_witness_pass): within one synchronous pass the paid prefix's prisms and the source verdict are derived once and shared by every record; nothing survives a pass; never saved"
+          },
+          {
+            "bytes": 3896,
+            "carried_by": "new contribution",
+            "store": "decision 2044 (P-2044-15/16, M2): the witness pass's landing cache (_landing_boxes, 7 x PASS_LANDINGS 64 int32 = 1,792 B; _landing_key, 4 int64 = 32 B), the prism cache key widened to its eight inputs (_prism_key 5 -> 8 int64, +24 B) and the prisms' height order (_prism_tops, Catalog.MAX_PARTS 256 int64 = 2,048 B); runtime only, rebuilt per pass, never saved; with the cache checks on, a kept prism set is re-derived and compared (_cached_prisms_hold), unspent, no storage"
           }
         ],
         "delta": {
@@ -42456,6 +42467,14 @@
               "bool"
             ],
             [
+              "_landing_boxes",
+              "PackedInt32Array"
+            ],
+            [
+              "_landing_key",
+              "PackedInt64Array"
+            ],
+            [
               "_loading_rows",
               "bool"
             ],
@@ -42465,6 +42484,10 @@
             ],
             [
               "_prism_key",
+              "PackedInt64Array"
+            ],
+            [
+              "_prism_tops",
               "PackedInt64Array"
             ],
             [
@@ -42478,8 +42501,11 @@
           ],
           "resizes_added": [
             "_air_box.resize(6)",
+            "_landing_boxes.resize(7 * PASS_LANDINGS)",
+            "_landing_key.resize(4)",
             "_prism_boxes.resize(6 * ConnectorCatalog.MAX_PARTS)",
-            "_prism_key.resize(5)",
+            "_prism_key.resize(8)",
+            "_prism_tops.resize(ConnectorCatalog.MAX_PARTS)",
             "air.resize(6 * MAX_AIR_EXTRA)",
             "air.resize(AIR_FIELDS * air_slots)"
           ],
@@ -42505,8 +42531,16 @@
               "256"
             ],
             [
+              "PASS_LANDINGS",
+              "64"
+            ],
+            [
               "SCHEMA",
               "2"
+            ],
+            [
+              "TOP_BIAS",
+              "1 << 30"
             ]
           ],
           "int_constants_removed": [
@@ -42810,10 +42844,10 @@
             ".duplicate(": 1,
             ".new(": 1,
             "=[": 1,
-            "PackedInt32Array(": 4,
-            "PackedInt64Array(": 1,
+            "PackedInt32Array(": 5,
+            "PackedInt64Array(": 3,
             "in[": -1,
-            "range(": 2
+            "range(": 4
           }
         }
       },
@@ -43994,6 +44028,11 @@
             "bytes": 24,
             "carried_by": "none (new)",
             "store": "decision 1953: three int64 runtime tokens (_observe_serial, _observe_next, _pace_serial); never saved"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "decision 2044 (P-2044-16, Slice C clearance): the carried stair form and _carry_hull_clean, whose hull is held in the existing _support stance scratch; no retained member, packet or allocation site"
           }
         ],
         "delta": {
@@ -44886,6 +44925,16 @@
           }
         ],
         "delta": {}
+      },
+      "godot/scripts/core/underground_entry_structure.gd": {
+        "charges": [
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "decision 2044 (P-2044-12 (a)): the BRACE-start hook that stages a retired M5 floor strip's removal (_retired_strip, _retire_strip); no member, packet, resize or allocation site"
+          }
+        ],
+        "delta": {}
       }
     },
     "charged_by_carrier": {
@@ -44899,7 +44948,7 @@
       "joint pack (the reserve is a pack contribution)": 256,
       "BINDINGS_AND_GROWTH_BYTES (fully assigned, 524,544)": 256,
       "none (new)": 163,
-      "new contribution": 10684,
+      "new contribution": 14580,
       "Profiles CONTROL_RESERVE": 384,
       "LOCATION_AND_TOPOLOGY_BYTES unassigned remainder (recounted)": 5376,
       "Room publication CONTROL_BYTES (8,970 of 9,216) inside Budget.COLD_BYTES": 920,
@@ -44923,36 +44972,38 @@
       "bytes": 4322
     },
     "locations_controls": {
-      "carry_and_air_controls_bytes": 6250,
+      "carry_and_air_controls_bytes": 10146,
       "contact_retirement_context_numeric_bytes": 112,
-      "bytes": 6362,
+      "bytes": 10258,
       "scope": "The context exists only during one cold retirement; it is charged as retained, conservatively."
     },
     "first_entry_runtime": {
       "rows": {
         "runtime_numeric": 81,
-        "work_area_published": 160,
+        "work_area_published": 240,
         "crew": 40,
         "foreman_numeric": 365,
-        "foreman_tasks": 3600,
+        "foreman_tasks": 8424,
         "installer_numeric": 229,
         "installer_plan": 136,
-        "installer_stair_legs": 384,
+        "installer_stair_legs": 1920,
         "installer_quote": 184,
-        "haulers": 760,
-        "progress_record": 9192
+        "haulers": 1672,
+        "progress_record": 22624,
+        "confirmation_cube_index": 408
       },
-      "bytes": 15131,
+      "bytes": 36323,
       "frontier_counts": {
-        "INSTALL": 8,
-        "STATION": 22,
-        "CUT": 6,
-        "BEARING": 38,
-        "ENDPOINT": 46,
-        "EPISODE": 14
+        "INSTALL": 15,
+        "STATION": 49,
+        "CUT": 11,
+        "BEARING": 82,
+        "ENDPOINT": 97,
+        "EPISODE": 34,
+        "EPISODE_CUBES": 34
       },
-      "planned_task_bound": 50,
-      "work_area_endpoints": 19,
+      "planned_task_bound": 117,
+      "work_area_endpoints": 29,
       "scope": "Numeric and packed payload only. Object, Array and Variant headers (about 30 RefCounted packets and the task and endpoint arrays) are native overhead, unmeasured, as in every other row."
     },
     "world_routes_controls": {
@@ -44977,7 +45028,7 @@
       "shared_cold_bytes": 1048960
     },
     "contact_retirement_cold": {
-      "private_packet_bytes": 13764,
+      "private_packet_bytes": 21460,
       "lease_bytes": 1048960,
       "scope": "Cold, exclusive and released; the graph/Locations candidate images it publishes through are the owners' existing paired banks. Coexistence inside one lease is runtime-enforced, not re-proved here."
     },
@@ -45023,10 +45074,10 @@
         "foremen_numeric": 49664,
         "orders_and_marks": 369545,
         "row_extents": 6144,
-        "builders": 3706624,
-        "progress_record": 1215442
+        "builders": 3839744,
+        "progress_record": 1345490
       },
-      "bytes": 5383814,
+      "bytes": 5646982,
       "wire": {
         "HEADER_BYTES": 12,
         "CODE_BYTES": 64,
@@ -45037,13 +45088,13 @@
         "BUILDER_FIXED_BYTES": 278,
         "LEG_LIST_BYTES": 196,
         "TRIP_LIST_BYTES": 388,
-        "HAUL_PLAN_BYTES": 68,
-        "HAULER_BYTES": 220,
-        "BUILDER_BYTES": 1738,
+        "HAUL_PLAN_BYTES": 132,
+        "HAULER_BYTES": 664,
+        "BUILDER_BYTES": 2246,
         "MAX_KEPT": 512,
         "MAX_SITES": 73909,
         "MAX_BUILDERS": 256,
-        "MAX_WIRE_BYTES": 1215432
+        "MAX_WIRE_BYTES": 1345480
       },
       "bounds": {
         "rooms": 16384,
@@ -45079,15 +45130,15 @@
     },
     "new_retained_bytes": {
       "geometry_journals": 4322,
-      "locations_carry_and_retirement_controls": 6362,
-      "first_entry_runtime_chain": 15131,
+      "locations_carry_and_retirement_controls": 10258,
+      "first_entry_runtime_chain": 36323,
       "cold_load_images": 196694,
       "claw_stair_tables": 43364,
-      "room_dig_runtime": 5383814,
+      "room_dig_runtime": 5646982,
       "world_routes_endpoint_memo": 140872,
       "world_routes_compile_memos": 19048
     },
-    "new_contribution_bytes": 5809607,
+    "new_contribution_bytes": 6097863,
     "runtime_qualified": false,
     "native_measured": false
   },
@@ -45099,7 +45150,7 @@
     "connector_workpieces": 29928,
     "guarded_haul_transfers": 3072,
     "connector_delivery": 4096,
-    "current_census_new_retained": 5809607,
+    "current_census_new_retained": 6097863,
     "space_banks_and_indexes": 1104160,
     "phase_proof_cache_and_candidate": 17724,
     "shared_geometry_cold_peak": 1048960,
@@ -45114,12 +45165,12 @@
     "LAYOUT_COLD_BYTES": 262144,
     "BINDINGS_AND_GROWTH_BYTES": 524544
   },
-  "new_mutable_and_reserved_bytes": 10837384,
+  "new_mutable_and_reserved_bytes": 11125640,
   "declaration_bytes": 26534,
   "declaration_delta_bytes": 5349,
-  "live_with_reserve_bytes": 105833110,
+  "live_with_reserve_bytes": 106121366,
   "gate_bytes": 150000000,
-  "headroom_bytes": 44166890,
+  "headroom_bytes": 43878634,
   "source_sha256": {
     "godot/scripts/core/construction.gd": "48a6d74a8e1e26e7959ac9af9046ca6dce014f0cfe3ab177de383bc34b980fa4",
     "godot/scripts/core/entity_directory.gd": "1b1eb7ab8b145dfbfce6f2558a7e71b9cef5fc1601dcb4355f73e4dc7580ffbf",
@@ -45144,25 +45195,25 @@
     "godot/scripts/core/underground_budget.gd": "7a9b6af130e2b06427fe58ddfb7fba5d7e50057cfc2aae533f5732593fc7e12c",
     "godot/scripts/core/underground_connector_assemblies.gd": "3199049decf5b6ca95da09bb416196d82a96e89af194166b196df29f1cf7b73c",
     "godot/scripts/core/underground_connector_catalog.gd": "6bc1f91d3a79c440891fd3309ca7145f7a393b19b43b526560f21c7da77e3061",
-    "godot/scripts/core/underground_connector_contacts.gd": "cca172bdb476c4ade0ae773fa826e22b1bf2400cd7497c96ea3d78fecea197ab",
+    "godot/scripts/core/underground_connector_contacts.gd": "6e92297d747030f97e40dcd343bec7d977f8b8a5da7a4ee398ff93aeaf9d06d0",
     "godot/scripts/core/underground_connector_delivery.gd": "afbba9465f397d69edf78093dd803b775ba8745db2f1ff491a003a8741d99462",
     "godot/scripts/core/underground_connector_placements.gd": "401ad48c51225a514876bc9e1017d78a6dda96ac34ff2717e25742d1a3f7db30",
     "godot/scripts/core/underground_connector_recipes.gd": "a23c0f6087597b1c3bee978f9008824af86856dca6ddaba1b6bc41d1d03cba1a",
     "godot/scripts/core/underground_connector_work.gd": "491db9b077295a1dc4c028817d7fcf86e4cfa95544e9377e83fb7082b4fdf647",
     "godot/scripts/core/underground_connector_workpieces.gd": "4932c58d3530ece356ac7f45df624c76f536e6ebab11cecac20ddf5a0660d9bc",
-    "godot/scripts/core/underground_entry_bindings.gd": "ad843be02a23afc2870e4b0abd05b8cece1e5bc55b14cb7f4f822a12942a3cfa",
-    "godot/scripts/core/underground_entry_frontier.gd": "49315ddcda00a91910077d70fb7e5b123ca5d40f5590ca038cc0967069697c8e",
+    "godot/scripts/core/underground_entry_bindings.gd": "92aa343cfa02da2d83e51fde31c02b0cb069ae42764af62c6e00f5d7cbd76b7c",
+    "godot/scripts/core/underground_entry_frontier.gd": "78f5a3a69a7e240fa5f3343397f166fa0784eb54e09df56d3781a59185fab55d",
     "godot/scripts/core/underground_entry_plan.gd": "2103c7a93431b3bc6acfe4dc7934aaaabe557c1d978e5d2db5152ea2816aac7e",
-    "godot/scripts/core/underground_entry_structure.gd": "4965b8e314171f5c1445d816b3b2c18d87f35dee0f5129371d15a1b1d2a7cefa",
+    "godot/scripts/core/underground_entry_structure.gd": "7af358c244f576419d123ae40aaa9b7bee701df4a78afe1c25b523981c988c79",
     "godot/scripts/core/underground_entry_world_bindings.gd": "f7c89ea91adbaba9e2091ad12446019848977d4af6789be3eb9f14fb4351783c",
     "godot/scripts/core/underground_level_catalog.gd": "c067c3e052db011f5b3cc1329dd676d5f01e9db7b1a2f968f5e0ad51d96b519f",
-    "godot/scripts/core/underground_locations.gd": "605f8912f5eab8379b7bf024ee07431699998c39b97cfedd2e8bfe8715fddcc0",
+    "godot/scripts/core/underground_locations.gd": "7800ce1d67c6cabee4ca8a5284a4522fd738f732480269765f115c6ed290d589",
     "godot/scripts/core/underground_motion_catalog.gd": "315633cb8b3c12e1c5ee8f0d22d76cbad4132428c9a509721a565af1f5de7901",
     "godot/scripts/core/underground_motion_clock.gd": "3e0668d8afae1ba6bd1228078b60f9cada97ef94be3870f6db4c87cd0279a776",
     "godot/scripts/core/underground_phase_structure.gd": "8ca9a827a4002f5ceaf73869548ea5cb61bcc39d0cc618deab33773aca4e2a7c",
     "godot/scripts/core/underground_profiles.gd": "4684fce53085b62f4fea85a26a862bd6a99b881dec10827a4802f8d5d0119bdc",
     "godot/scripts/core/underground_room_world_bindings.gd": "f2cef760257d586cabf68600479e0fe3772c76c8e234d8530abdbef66e8ba513",
-    "godot/scripts/core/underground_route_composition.gd": "e98d4e5314bbeb014b704fe30a9e5482d5631e5432f61e0344786b93c2b6bb23",
+    "godot/scripts/core/underground_route_composition.gd": "f5c3f915f8266338a754c9f41fe11f2fb3f765270ebf9c21a1ca5516718113ce",
     "godot/scripts/core/underground_routes.gd": "0fde2c69d853462a375dd6dd025368c9bf47b14fccb87dd6b27b5775688f5f15",
     "godot/scripts/core/underground_session.gd": "9d7794b1a78d566d51f7ea99d5832905ebb9e47d470ab0bbbaadf07927bb88bf",
     "godot/scripts/core/underground_space_authority.gd": "d06385b658b460a38ecfcb7c5839d1e4efdead623c0223cca5a1a634857041ee",
@@ -45171,10 +45222,10 @@
     "godot/scripts/core/underground_terrain.gd": "41ef346c2aa3835d24da18b2f3ffaa15a7e523178ecdc2815369c49a65ec93b8",
     "godot/scripts/core/underground_work_face.gd": "1ad3eab1c62df90f0e41c78f0ccf484f4d04b630ca825b50dedcca2a6be4f731",
     "godot/scripts/core/underground_world_retirement.gd": "9ad293e84928ff8cd5c6c3bf4c8c534577b6afea3efc1c4adf202a7c8a80dd0f",
-    "godot/scripts/core/underground_world_routes.gd": "8bf8971d30f127a9a212eea331f60cd7ecbfbce5fe8a706b66359bd8fef588b7",
+    "godot/scripts/core/underground_world_routes.gd": "0c004f9fc8beb9403787521208d542782d53b8473510a3b5c9f1a737fce01c04",
     "godot/scripts/core/work.gd": "5fa066d25328b0c871d77c949164c5ebaec2f98fd985ddd8cd40570f866c7310"
   },
-  "registry_sha256": "c30cdf0898b170f0ed937c327d8afe2e07f2c5449614f8e1f420569d7993054a",
+  "registry_sha256": "e873eddb1957f4cb77d94e0807111a8d0223d8ae880f01ba1a78a90f9341e6fc",
   "limitations": [
     "Constructor limits alone are not joint runtime admission.",
     "Actual consumers must share the exact cold arena and charge nested coexistence before allocating.",

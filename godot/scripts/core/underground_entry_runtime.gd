@@ -30,8 +30,6 @@ const REFUSE_NO_REPLACEMENT: StringName = &"ENTRY_CREW_NO_REPLACEMENT"
 ## ADR1229 (DEC-054): the descent is built to the sill; the next room is the Kitchen, dug to reachable height, whose
 ## plan is not built yet (ADR1227's ENTRY_DESCENT_UNBUILT is retired with G9's move).
 const REFUSE_KITCHEN_UNBUILT: StringName = &"ENTRY_KITCHEN_UNBUILT"
-## ADR1229: L0, the T0 cuts and T0 (ADR1202), the descent's cuts and T1, then T2-T6 down the stair.
-const INSTALLATIONS: int = 8
 ## Decision 1940: Routes refusals of an unregistration that a later tick retries (a transaction still open).
 const TRANSIENT_ROUTE_REFUSALS: Array[StringName] = [&"ROUTE_TRANSACTION_BUSY", &"ROUTE_SPACE_TRANSACTION"]
 const STEP_NONE: int = 0
@@ -160,6 +158,7 @@ func advance(tick: int) -> StringName:
 	code = _foreman.advance(tick)
 	if code != &"": return _stop(code)
 	if not _foreman.is_done(): return &""
+	if _foreman.planned_installations() < _foreman.installations(): return _plan_stage(_foreman, _foreman._paid)
 	_step = STEP_DONE
 	return _stop(REFUSE_KITCHEN_UNBUILT) # ADR1227/1229: raised once, on the finishing tick (G9).
 
@@ -413,7 +412,7 @@ func _plan_foreman(o: RefCounted) -> StringName:
 	var code: StringName = foreman.configure(_foreman_owners(o), _crew, _entry_placement(o))
 	var paid: Foreman.Installer.Paid = Foreman.Installer.Paid.new()
 	paid.router = o.router; paid.connector = o.connector; paid.contacts = o.contacts; paid.budget = o.budget
-	for ordinal: int in INSTALLATIONS:
+	for ordinal: int in foreman.stage_last(0) + 1: # Decision 2044 (P-2044-7 (a)): the first stage; the rest follow.
 		if code == &"": code = foreman.configure_installation(paid, ordinal)
 	if code == &"": code = foreman.plan_arrival(_published.endpoints[0])
 	if code == &"": code = _begin_walk(o.locations, o.transforms, o.residents, foreman.arrival_yaw())
@@ -426,19 +425,34 @@ func _plan_foreman(o: RefCounted) -> StringName:
 	return _bind_dispatcher(o)
 
 
+func _plan_stage(foreman: Foreman, paid: Foreman.Installer.Paid) -> StringName:
+	"""Decision 2044 (P-2044-7 (a)): once a stage has settled, the foreman takes the next one, from the next
+	installation to the last before new cuts are needed (`Foreman.stage_last`); the chain keeps running."""
+	var first: int = foreman.planned_installations()
+	var code: StringName = foreman.begin_stage()
+	for ordinal: int in range(first, foreman.stage_last(first) + 1):
+		if code == &"": code = foreman.configure_installation(paid, ordinal)
+	return _halt(code) if code != &"" else &""
+
+
 func _station_paths(station: Vector2i) -> StringName:
 	"""ADR1229: the descent's cut stations get their paths (and the done T0 stations lose theirs) just before the
 	first of them is worked, and lose them once a later step starts with the crew off them; derived from the live
-	graph and the crew's Location, so a restored chain asks the same question."""
+	graph and the crew's Location, so a restored chain asks the same question. Decision 2044: per batch of eight
+	(`WorkArea.batch_of`); a batch the crew has left retires when the next step starts."""
 	var o: Foreman.Owners = _foreman._owners
-	var open: bool = WorkArea.deep_paths_open(o.routes, _published)
-	if WorkArea.is_deep_station(_published, station):
-		return &"" if open else WorkArea.open_deep_paths(o.binding, o.routes, _foreman._paid.budget, o.binding._owner(),
-			_origin, _published, o.profiles.content_revision())
 	var here: Vector2i = o.routes._resident_pair(Foreman.Routes.R_LOCATION_SLOT, _worker_row) if _worker_row >= 0 \
 		else NULL_REF
-	if not open or WorkArea.is_deep_station(_published, here): return &""
-	return WorkArea.close_deep_paths(o.binding, o.routes, _foreman._paid.budget, _published)
+	var wanted: int = WorkArea.batch_of(_published, station)
+	var code: StringName = &""
+	if wanted >= 0 and not WorkArea.batch_joined(o.routes, _published, wanted):
+		code = WorkArea.join_batch(o.binding, o.routes, _foreman._paid.budget, o.binding._owner(), _origin, _published,
+			o.profiles.content_revision(), wanted)
+	for batch: int in WorkArea.BATCHES:
+		if code != &"" or batch == wanted or WorkArea.batch_of(_published, here) == batch \
+				or not WorkArea.batch_joined(o.routes, _published, batch): continue
+		code = WorkArea.close_batch(o.binding, o.routes, _foreman._paid.budget, _published, batch)
+	return code
 
 
 func _foreman_owners(o: RefCounted) -> Foreman.Owners:

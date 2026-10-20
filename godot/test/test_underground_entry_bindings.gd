@@ -1070,22 +1070,23 @@ func test_datum_and_profile_budget_exhaustion_stays_distinct_from_physical_refus
 
 
 func test_datum_lookup_charges_every_presence_and_all_live_metadata_reads() -> void:
-	"""An empty slot costs its one actual presence read; any live candidate retains the full metadata charge."""
+	"""Decision 2044 (P-2044-15, exact cost fixes): the scan visits present rows only (one native search), so an empty
+	slot costs nothing; any live candidate retains its presence charge and the full metadata charge."""
 	var owner: Owner = _f._owner
 	var before: PackedByteArray = owner._s_r_present.duplicate()
 	var last: int = owner._region_capacity - 1
 	var role: int = owner._s_r_role[last]
 	owner._s_r_present.fill(0) # Isolated negative candidate image; no live geometry or Site is changed.
-	_bindings._entry_checks = owner._region_capacity
-	assert_equal(_bindings._timber_datum_ref(), NULL_REF, "all empty slots still scanned")
-	assert_equal(_bindings._entry_checks, 0, "one actual presence check per slot")
+	_bindings._entry_checks = 0
+	assert_equal(_bindings._timber_datum_ref(), NULL_REF, "no present slot, no datum")
+	assert_equal(_bindings._entry_checks, 0, "empty slots are not charged")
 	owner._s_r_present[last] = 1
 	owner._s_r_role[last] = Space.OBSTACLE
-	_bindings._entry_checks = owner._region_capacity + 11
+	_bindings._entry_checks = 12
 	assert_equal(_bindings._timber_datum_ref(), Vector2i(-3, 0), "live row cannot use incomplete metadata allowance")
-	_bindings._entry_checks = owner._region_capacity + 12
+	_bindings._entry_checks = 13
 	assert_equal(_bindings._timber_datum_ref(), NULL_REF, "complete live charge does not invent a matching datum")
-	assert_equal(_bindings._entry_checks, 0, "all presence and live metadata charges retained")
+	assert_equal(_bindings._entry_checks, 0, "the presence and live metadata charges retained")
 	owner._s_r_present = before
 	owner._s_r_role[last] = role
 

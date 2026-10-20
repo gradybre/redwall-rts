@@ -8829,7 +8829,7 @@
      "source_member": "capture",
      "shape": {
       "count_field": "progress_length",
-      "max_count": 1215432,
+      "max_count": 1345480,
       "order": "decision1991_v2_wire"
      },
      "scalar": false,

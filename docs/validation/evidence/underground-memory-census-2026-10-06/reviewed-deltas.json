@@ -714,6 +714,11 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "ADR1229 increment 6b: the tread-station stair reach (StairPath.Stops, one per resolution, and the leg list), the per-region tread body proof and the step-forward retreat; cold-path caller allocations only, inside the existing Contacts control and fragment banks, no retained member"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "decision 2044 (P-2044-16): the M5 landing and deep-hub reach (walk-off, hub D) and the row path helper; cold-path caller logic only, fewer allocation sites, no retained member"
     }
    ],
    "delta": {
@@ -753,11 +758,11 @@
      ]
     ],
     "allocation_sites": {
-     "([": 4,
+     "([": 3,
      ".new(": 2,
      "=[": 2,
-     "PackedInt32Array(": 3,
-     "range(": 3,
+     "PackedInt32Array(": 1,
+     "range(": 2,
      "return[": 1
     }
    }
@@ -827,6 +832,11 @@
      "bytes": 6201,
      "carried_by": "new contribution",
      "store": "ADR1229 increment 6b: the installed-witness pass's prism cache (_prism_boxes, 6 x Catalog.MAX_PARTS int32 = 6,144 B; _prism_key, 5 int64) and its counters (_witness_pass, _sources_pass, _in_witness_pass): within one synchronous pass the paid prefix's prisms and the source verdict are derived once and shared by every record; nothing survives a pass; never saved"
+    },
+    {
+     "bytes": 3896,
+     "carried_by": "new contribution",
+     "store": "decision 2044 (P-2044-15/16, M2): the witness pass's landing cache (_landing_boxes, 7 x PASS_LANDINGS 64 int32 = 1,792 B; _landing_key, 4 int64 = 32 B), the prism cache key widened to its eight inputs (_prism_key 5 -> 8 int64, +24 B) and the prisms' height order (_prism_tops, Catalog.MAX_PARTS 256 int64 = 2,048 B); runtime only, rebuilt per pass, never saved; with the cache checks on, a kept prism set is re-derived and compared (_cached_prisms_hold), unspent, no storage"
     }
    ],
    "delta": {
@@ -860,6 +870,14 @@
       "bool"
      ],
      [
+      "_landing_boxes",
+      "PackedInt32Array"
+     ],
+     [
+      "_landing_key",
+      "PackedInt64Array"
+     ],
+     [
       "_loading_rows",
       "bool"
      ],
@@ -869,6 +887,10 @@
      ],
      [
       "_prism_key",
+      "PackedInt64Array"
+     ],
+     [
+      "_prism_tops",
       "PackedInt64Array"
      ],
      [
@@ -882,8 +904,11 @@
     ],
     "resizes_added": [
      "_air_box.resize(6)",
+     "_landing_boxes.resize(7 * PASS_LANDINGS)",
+     "_landing_key.resize(4)",
      "_prism_boxes.resize(6 * ConnectorCatalog.MAX_PARTS)",
-     "_prism_key.resize(5)",
+     "_prism_key.resize(8)",
+     "_prism_tops.resize(ConnectorCatalog.MAX_PARTS)",
      "air.resize(6 * MAX_AIR_EXTRA)",
      "air.resize(AIR_FIELDS * air_slots)"
     ],
@@ -909,8 +934,16 @@
       "256"
      ],
      [
+      "PASS_LANDINGS",
+      "64"
+     ],
+     [
       "SCHEMA",
       "2"
+     ],
+     [
+      "TOP_BIAS",
+      "1 << 30"
      ]
     ],
     "int_constants_removed": [
@@ -1214,10 +1247,10 @@
      ".duplicate(": 1,
      ".new(": 1,
      "=[": 1,
-     "PackedInt32Array(": 4,
-     "PackedInt64Array(": 1,
+     "PackedInt32Array(": 5,
+     "PackedInt64Array(": 3,
      "in[": -1,
-     "range(": 2
+     "range(": 4
     }
    }
   },
@@ -2398,6 +2431,11 @@
      "bytes": 24,
      "carried_by": "none (new)",
      "store": "decision 1953: three int64 runtime tokens (_observe_serial, _observe_next, _pace_serial); never saved"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "decision 2044 (P-2044-16, Slice C clearance): the carried stair form and _carry_hull_clean, whose hull is held in the existing _support stance scratch; no retained member, packet or allocation site"
     }
    ],
    "delta": {
@@ -3287,6 +3325,16 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "decision 1951: the source and level digests compared as 64-bit words through two static helpers; no member, packet or resize"
+    }
+   ],
+   "delta": {}
+  },
+  "godot/scripts/core/underground_entry_structure.gd": {
+   "charges": [
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "decision 2044 (P-2044-12 (a)): the BRACE-start hook that stages a retired M5 floor strip's removal (_retired_strip, _retire_strip); no member, packet, resize or allocation site"
     }
    ],
    "delta": {}

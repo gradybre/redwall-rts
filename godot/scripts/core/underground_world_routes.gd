@@ -911,13 +911,46 @@ func _carry_eligible(edge: Routes.Edge) -> bool:
 			or _since <= 0 or _since > _base_revision or _since < _owner()._journal.floor_revision():
 		return false
 	_relevant = _owner()._journal.count_after(_since) + _proof.change_count
+	if _carry_hull_clean(edge): return true # Decision 2044 (P-2044-1 (a)): the edge-bound prefilter.
 	for profile: int in _profiles.profile_count(_content_revision):
 		if not _proof.spend() or _profiles.descriptor_into(profile, _content_revision, _descriptor) != &"":
 			return false
 		if edge.family < 0 and Routes.Stair.is_rooted(profile) and _stair_row(profile): continue # Decision 1972.
-		if _kind_matches(edge) and not _profile_sweeps_clean(edge):
-			return false
+		if not _kind_matches(edge): continue
+		if not _profile_sweeps_clean(edge): return false
+		# Decision 2044 (P-2044-15): a stair row's fixture decks too, so a carried stair row's volumes are unchanged.
+		var program: int = _routes()._stair_motion.program_of(profile) if _stair_row(profile) else -1
+		for ordinal: int in (_routes()._stair_motion.deck_count(program) if program >= 0 and _relevant > 0 else 0):
+			if not _proof.spend(1 + _relevant) \
+					or not _routes()._stair_motion.deck_into(program, ordinal, _point(edge, 0), _envelope) \
+					or not _owner()._journal.clean(_envelope, _since, CLEARANCE_INERT_ROLE) or _staged_change_meets(_envelope):
+				return false
 	return true
+
+
+func _carry_hull_clean(edge: Routes.Edge) -> bool:
+	"""Decision 2044 (P-2044-1 (a), the edge-bound prefilter): one box holding every serving profile's every box swept
+	along every segment, and every stair row's fixture decks; when no change since the certificate meets it, none can
+	meet any sweep it holds, so the per-profile test would carry the edge too. Its descriptor reads are charged as that
+	test charges them, and each swept box and deck one check; the change test is charged once, not once per profile,
+	segment and box. The hull is held in `_support`, the stance scratch, free while an edge's carry is decided."""
+	var hull: PackedInt32Array = _support
+	for axis: int in 6: hull[axis] = 2147483647 if axis < 3 else -2147483648
+	var motion: Routes.StairMotion = _routes()._stair_motion
+	for profile: int in _profiles.profile_count(_content_revision):
+		if not _proof.spend() or _profiles.descriptor_into(profile, _content_revision, _descriptor) != &"": return false
+		if (edge.family < 0 and Routes.Stair.is_rooted(profile) and _stair_row(profile)) or not _kind_matches(edge): continue
+		for segment: int in edge.point_count - 1:
+			for ordinal: int in _descriptor.box_count:
+				if not _proof.spend() or _profile_box_into(ordinal, _body) != &"" \
+						or _sweep_into(_body, _point(edge, segment), _point(edge, segment + 1), _envelope) != &"": return false
+				for axis: int in 6: hull[axis] = mini(hull[axis], _envelope[axis]) if axis < 3 else maxi(hull[axis], _envelope[axis])
+		var program: int = motion.program_of(profile) if _stair_row(profile) else -1
+		for ordinal: int in (motion.deck_count(program) if program >= 0 else 0):
+			if not _proof.spend() or not motion.deck_into(program, ordinal, _point(edge, 0), _envelope): return false
+			for axis: int in 6: hull[axis] = mini(hull[axis], _envelope[axis]) if axis < 3 else maxi(hull[axis], _envelope[axis])
+	if hull[0] > hull[3] or not _proof.spend(1 + _relevant): return false
+	return _owner()._journal.clean(hull, _since, CLEARANCE_INERT_ROLE) and not _staged_change_meets(hull)
 
 
 func _profile_sweeps_clean(edge: Routes.Edge) -> bool:
@@ -1092,8 +1125,8 @@ func _profile_edge_refusal(profile: int, edge: Routes.Edge) -> StringName:
 		return code
 	if not _kind_matches(edge):
 		return &"WORLD_ROUTE_PROFILE_KIND"
-	if _stair_row(profile): return _stair_edge_refusal(profile, edge)
 	_carried = _carry_edge and _live.admits(edge.ref.x, profile) and not _may_excuse_pending()
+	if _stair_row(profile): return _stair_edge_refusal(profile, edge) # Decision 2044: carried as ground rows are.
 	code = _compile_pace(profile, edge.family, edge.variant)
 	if code != &"":
 		return code
@@ -1129,7 +1162,15 @@ func _stair_edge_refusal(profile: int, edge: Routes.Edge) -> StringName:
 		return &"WORLD_ROUTE_STAIR_PACE"
 	code = _endpoint_observation_refusal(edge.from_location, first)
 	if code == &"": code = _endpoint_observation_refusal(edge.to_location, _point(edge, 1))
-	if code == &"": code = _stair_decks_refusal(motion, program, first, edge.room)
+	if code == &"" and (not _carried or Profiles.CacheChecks.enabled):
+		var spent: int = _proof.remaining
+		var decks: StringName = _stair_decks_refusal(motion, program, first, edge.room)
+		if not _carried: code = decks
+		elif decks != &"" and _proof.error == &"":
+			Profiles.CacheChecks.report("carried stair decks", "edge %d row %d" % [edge.ref.x, profile])
+		if _carried: # The checked proof is not charged: a checked run spends what an unchecked one does.
+			_proof.remaining = spent
+			_proof.error = &""
 	return _stair_bodies_refusal(first, edge.room) if code == &"" else code
 
 
@@ -1160,7 +1201,11 @@ func _subtract_room_support(room: Vector2i) -> bool:
 
 
 func _stair_bodies_refusal(first: Vector3i, room: Vector2i) -> StringName:
-	"""Each body and recovery box at the start root: no exclusion, no foreign or pending matter, and full cover."""
+	"""Each body and recovery box at the start root: no exclusion, no foreign or pending matter, and full cover.
+	Decision 2044 (P-2044-15, "Exact cost fixes"): a carried row (`_carried`) re-observes only its unjournaled terrain
+	exclusions; the Space volumes its blocked and covered proofs read are unchanged since its certificate, which
+	`_carry_eligible` proved, and its exterior remainder's natural floor is static terrain. With CacheChecks on, the
+	full proof also runs, unspent, and a carried answer it contradicts is reported."""
 	for ordinal: int in _descriptor.box_count:
 		if not _proof.spend(): return _proof.error
 		var code: StringName = _profile_box_into(ordinal, _body)
@@ -1168,9 +1213,17 @@ func _stair_bodies_refusal(first: Vector3i, room: Vector2i) -> StringName:
 		if _body.role != Profiles.BODY_HELD_LOAD and _body.role != Profiles.TURN_RECOVERY: continue
 		code = _sweep_into(_body, first, first, _bounds)
 		if code == &"": code = _terrain.exclusions_refusal(_bounds)
-		if code == &"" and _stair_blocked(room): code = _proof.error if _proof.error != &"" else &"WORLD_ROUTE_STAIR_BLOCKED"
-		if code == &"": code = _stair_covered_refusal(room)
 		if code != &"": return code
+		if _carried and not Profiles.CacheChecks.enabled: continue
+		var spent: int = _proof.remaining
+		var volumes: StringName = (_proof.error if _proof.error != &"" else &"WORLD_ROUTE_STAIR_BLOCKED") \
+			if _stair_blocked(room) else _stair_covered_refusal(room)
+		if not _carried:
+			if volumes != &"": return volumes
+			continue
+		if volumes != &"" and _proof.error == &"": Profiles.CacheChecks.report("carried stair body", "box %d" % ordinal)
+		_proof.remaining = spent # The checked proof is not charged: a checked run spends what an unchecked one does.
+		_proof.error = &""
 	return &""
 
 

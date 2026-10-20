@@ -37,9 +37,10 @@ class CurrentCensusTests(unittest.TestCase):
     def test_current_counts(self):
         result = census.build(self.index, self.projected, self.motion)
         self.assertEqual(result["new_retained_bytes"], {"geometry_journals": 4322,
-                         "locations_carry_and_retirement_controls": 6362, "first_entry_runtime_chain": 15131,
+                         # decision 2044 (M2): +3,896 Locations pass caches; +21,192 entry chain (P-2044-8 bounds, M2 Frontier)
+                         "locations_carry_and_retirement_controls": 10258, "first_entry_runtime_chain": 36323,
                          "cold_load_images": 196694, "claw_stair_tables": 43364, # ADR1229: the T1-T6 plan and tables; decision 1972: +33,784 stair-carry tables
-                         "room_dig_runtime": 5383814, # decision 1991: +34,320 (crew, release flag, filter, wider image); decision 1936: the room-dig runtime at every bound
+                         "room_dig_runtime": 5646982, # decision 1936 at every bound; decision 1991: +34,320 (crew, release flag, filter, wider image); decision 2044 P-2044-8: MAX_LEGS 24 (+263,168)
                          "world_routes_endpoint_memo": 140872, # decision 1952: the endpoint-proof memo
                          "world_routes_compile_memos": 19048}) # decision 1953: the route compile memos
         self.assertEqual(result["room_publication_controls"]["controls"], 8970)
@@ -58,10 +59,12 @@ class CurrentCensusTests(unittest.TestCase):
     def test_entry_progress_record_is_charged_at_its_wire_bound(self):
         """ADR 1218: two whole records at MAX_WIRE_BYTES plus the Writer/Reader packets; a changed bound refuses."""
         result = census.build(self.index, self.projected, self.motion)
-        self.assertEqual(result["first_entry_runtime"]["rows"]["progress_record"], 2 * 4591 + 10)
-        text = self.index["underground_entry_progress"].text.replace("const MAX_TASKS: int = 64", "const MAX_TASKS: int = 65")
+        # Decision 2044 (P-2044-8): MAX_TASKS 160, MAX_ENDPOINTS 59, MAX_LEGS 24 (was 4,591 B).
+        self.assertEqual(result["first_entry_runtime"]["rows"]["progress_record"], 2 * 11307 + 10)
+        text = self.index["underground_entry_progress"].text.replace("const MAX_TASKS: int = 160", "const MAX_TASKS: int = 161")
+        self.assertNotEqual(text, self.index["underground_entry_progress"].text)
         self.assertEqual(census.entry_progress(memory, self.changed("underground_entry_progress", text))["max_wire_bytes"],
-                         4591 + 52)
+                         11307 + 52)
         text = self.index["underground_entry_progress"].text.replace("+ HAULER_FIXED_BYTES + MAX_QUEUE", "+ 2 * HAULER_FIXED_BYTES + MAX_QUEUE")
         with self.assertRaises((AssertionError, ValueError)):
             census.build(self.changed("underground_entry_progress", text), self.projected, self.motion)
@@ -71,10 +74,11 @@ class CurrentCensusTests(unittest.TestCase):
         record image at MAX_WIRE_BYTES."""
         result = census.build(self.index, self.projected, self.motion)["room_dig_runtime"]
         self.assertEqual(result["rows"], {"runtime_record": 33792, "runtime_numeric": 2603, "foremen_numeric": 49664,
-                                          "orders_and_marks": 369545, "row_extents": 6144, "builders": 3706624,
-                                          "progress_record": 1215442}) # Decision 1937 (P-1937-1 B-E); decision 1991
-        self.assertEqual(result["wire"]["MAX_WIRE_BYTES"], 1215432)
-        self.assertEqual(result["rows"]["progress_record"], 1215432 + 10) # one image
+                                          "orders_and_marks": 369545, "row_extents": 6144, "builders": 3839744,
+                                          "progress_record": 1345490}) # Decision 1937 (P-1937-1 B-E); decision 1991
+        # Decision 2044 (P-2044-8): the shared EntryProgress.MAX_LEGS 24 widens each builder's haul legs and record.
+        self.assertEqual(result["wire"]["MAX_WIRE_BYTES"], 1345480)
+        self.assertEqual(result["rows"]["progress_record"], 1345480 + 10) # one image
         text = self.index["underground_room_footprint"].text.replace("const MAX_BOXES: int = 512", "const MAX_BOXES: int = 1024")
         grown = census.room_dig_runtime(memory, self.changed("underground_room_footprint", text))
         self.assertEqual(grown["rows"]["builders"] - result["rows"]["builders"], 256 * 512 * 24)
@@ -137,7 +141,7 @@ class CurrentCensusTests(unittest.TestCase):
     def test_joint_pack_fits_the_raised_gate(self):
         result = memory.build()
         self.assertEqual((result["live_with_reserve_bytes"], result["gate_bytes"], result["headroom_bytes"]),
-                         (105833110, 150000000, 44166890)) # decision 1991: +34,426; decision 1953: +19,048 route compile memos; ADR1229: +5,680 entry chain, +9,580 stair tables; 6b: +808 chain, +6,201 Locations witness-pass cache; DEC-059 P1: +296 chain legs; decision 1936: +5,349,494 room-dig runtime (P-1937-1 B-E), +783 declaration; decision 1952: +140,872 endpoint memo; decision 1972: +33,784 stair-carry tables, +4,096 profile reserve
+                         (106121366, 150000000, 43878634)) # decision 2044 (M2): +288,256 (room dig +263,168 and entry chain +21,192 from P-2044-8's bounds, Locations +3,896); decision 1991: +34,426; decision 1953: +19,048 route compile memos; ADR1229: +5,680 entry chain, +9,580 stair tables; 6b: +808 chain, +6,201 Locations witness-pass cache; DEC-059 P1: +296 chain legs; decision 1936: +5,349,494 room-dig runtime (P-1937-1 B-E), +783 declaration; decision 1952: +140,872 endpoint memo; decision 1972: +33,784 stair-carry tables, +4,096 profile reserve
 
     def test_publication_controls_refuse_above_their_ceiling(self):
         text = self.index["underground_room_frontier_publication"].text.replace(

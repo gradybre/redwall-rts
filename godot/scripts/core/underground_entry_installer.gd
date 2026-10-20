@@ -147,8 +147,11 @@ func haul_trips() -> int:
 
 
 func progress_marker() -> int:
-	"""Changes whenever the installation or its haul advances a stage; the foreman's stall budget reads it."""
-	return _stage * 1024 + (_hauler.trips() * 16 + _hauler.stage() if _hauler != null else 0)
+	"""Changes whenever the installation or its haul advances a stage; the foreman's stall budget reads it. Decision
+	2045: and whenever a leg of the installer's own climb or descent, or of its haul's approach, is reached, so a long
+	way down through several landings (module 3's T0 is many legs from M) is progress, not a stall."""
+	var haul: int = _hauler.trips() * 16 + _hauler.stage() + 1024 * _hauler._leg if _hauler != null else 0
+	return (_stage * 256 + _stair_leg) * 1048576 + haul
 
 
 func advance(tick: int) -> StringName:

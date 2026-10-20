@@ -1,11 +1,7 @@
 extends "res://test/room_heading_case.gd"
 ## Decision 1943's coverage matrix (the fixture: `room_heading_case.gd`): a square room larger than the Corridor is
-## wide, so its far cubes are reached over the room's own dug floor.
-
-
-func _init() -> void:
-	"""The floor band only (`matrix_height_u`, room_heading_case.gd)."""
-	matrix_height_u = Contract.QUANTUM_SIDE_U
+## wide, so its far cubes are reached over the room's own dug floor. Dug its full painted 4 m (Brendan's "Painted
+## height" ruling, decision 1971): the one large room whose turned-heading cubes have cubes above them.
 
 
 func test_a_seven_by_seven_kitchen_east_of_its_access_is_dug() -> void:

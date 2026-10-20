@@ -61,7 +61,7 @@ class SideRooms extends RetirementTests.LargeRoom:
 	func prepared() -> bool:
 		"""Owners, paths, stock (topped up while digging), the spoil pile; no room. A pick mole retreats on the pick's
 		own backward row and its first contact stands at the pick wall row's reach."""
-		location_capacity = 512; edge_capacity = 512; lot_capacity = 4096; site_capacity = 1024
+		location_capacity = 64; edge_capacity = 128; lot_capacity = 1024; site_capacity = 256
 		stocked = true
 		if pick:
 			retreat_row = PICK_BACKWARD
@@ -245,8 +245,9 @@ class Dig extends RefCounted:
 var _h: SideRooms = null
 ## The height `dig_matrix` paints. The large and room-type suites dig the floor band only (one cube a cell): the
 ## heading search, the chains and retirement are the floor cubes'; the cubes above a floor cube are dug from its
-## station (decision 1971), which the full-height rooms cover: the L-shaped Kitchen, and the multi-heading suite's
-## stopped and restored north Kitchens.
+## station (decision 1971), which the full-height rooms cover: the 7 x 7 Kitchen (Brendan's "Painted height"
+## ruling: one large room dug its full height on turned headings), the pick mole's Kitchen and the multi-heading
+## suite's restored north Kitchen.
 var matrix_height_u: int = 4096
 
 

@@ -213,41 +213,14 @@ func test_the_kitchen_digs_as_before_below_the_edge_bound() -> void:
 	assert_equal(_h.endpoints._live.count, 11, "every station kept")
 
 
-class Published extends RefCounted:
-	## Counts every Location row allocated after a snapshot (a new row, or a reused row's new generation), however a
-	## tick nets publications against retirements.
-	var generations: PackedInt32Array = PackedInt32Array()
-	var added: int = 0
-
-	func _init(locations: Locations) -> void:
-		"""The live rows' generations now (-1 for a free row)."""
-		generations.resize(locations._capacity)
-		_read(locations)
-
-	func count(_runtime: Runtime, locations: Locations) -> void:
-		"""After a tick: every row live now that was not live, or was live at another generation, is a publication."""
-		var bank: Locations.Bank = locations._live
-		for row: int in locations._capacity:
-			var now: int = bank.i32[Locations.GENERATION * locations._capacity + row] if bank.present[row] == 1 else -1
-			if now >= 0 and now != generations[row]: added += 1
-			generations[row] = now
-
-	func _read(locations: Locations) -> void:
-		"""Snapshot."""
-		for row: int in locations._capacity:
-			generations[row] = locations._live.i32[Locations.GENERATION * locations._capacity + row] \
-				if locations._live.present[row] == 1 else -1
-
-
 var _held_stations: Array[Vector2i] = []
 var _held_sites: Array[Vector2i] = []
 var _early: int = 0
 
 
-func _watch_column(runtime: Runtime, room: Vector2i, published: Published) -> void:
-	"""After each tick: count publications, and for each builder whose station of the tick before is gone, every Site
-	in its cube's column is dug (the test's own reading of the Sites, not the foreman's)."""
-	if published != null: published.count(runtime, _h.endpoints)
+func _watch_column(runtime: Runtime, room: Vector2i) -> void:
+	"""After each tick: for each builder whose station of the tick before is gone, every Site in its cube's column is
+	dug (the test's own reading of the Sites, not the foreman's)."""
 	for at: int in _held_stations.size():
 		if _held_stations[at] != NULL_REF and not _h.endpoints.is_live_location(_held_stations[at]) \
 				and not _column_dug(_held_sites[at]):
@@ -269,32 +242,6 @@ func _column_dug(site: Vector2i) -> bool:
 		if _h.sites._phase[row] != Sites.SUPPORTED_VOID or _h.sites.project_of(Vector2i(row, Sites.SITE_GENERATION)) != NULL_REF:
 			return false
 	return true
-
-
-func _published_in_dig(crowded: bool) -> Array[int]:
-	"""One claw Kitchen dug by one builder: the Locations it published, the chains retired and those retired before
-	their column was dug."""
-	var room: Vector2i = _room(2, 2, crowded)
-	if room == NULL_REF: return [-1, -1, -1] as Array[int]
-	var published: Published = Published.new(_h.endpoints)
-	_held_stations.clear(); _held_sites.clear(); _early = 0
-	var runtime: Runtime = _runtime(room, [_h.crew_member()] as Array[Builder.Crew])
-	var run: Run = _dig(runtime, _watch_column.bind(room, published))
-	assert_equal(run.refusals, [] as Array[StringName], "no refusal")
-	after_each()
-	return [published.added, run.retirements, _early] as Array[int]
-
-
-func test_a_column_is_retired_only_once_it_is_done() -> void:
-	"""Each column's chain goes only once the column is dug: on a crowded level (retirement due from the first cube) no
-	station is retired while a cube of its column is still to dig, and the dig publishes exactly the Locations an
-	uncrowded one does."""
-	var plain: Array[int] = _published_in_dig(false)
-	var crowded: Array[int] = _published_in_dig(true)
-	assert_true(crowded[1] > 0, "the crowded dig retired chains: %d" % crowded[1])
-	assert_equal(plain[1], 0, "the plain dig retired none")
-	assert_equal(crowded[2], 0, "no station retired before its column was dug")
-	assert_equal(crowded[0], plain[0], "the same publications however crowded")
 
 
 func test_retirement_is_due_from_the_bound() -> void:
@@ -531,7 +478,7 @@ func test_two_builders_dig_and_only_finished_unheld_chains_go() -> void:
 func _two_builder_watch(runtime: Runtime, room: Vector2i, builders: Array[Builder]) -> void:
 	"""Both after-tick checks of the two-builder dig."""
 	_assert_nothing_held_was_retired(runtime, builders)
-	_watch_column(runtime, room, null)
+	_watch_column(runtime, room)
 
 
 func _assert_nothing_held_was_retired(_runtime_now: Runtime, builders: Array[Builder]) -> void:

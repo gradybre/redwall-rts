@@ -2,7 +2,7 @@ extends "res://test/room_heading_case.gd"
 ## Decision 1943: rooms on every side of their access are dug (the fixture: `room_heading_case.gd`). A Kitchen of
 ## 2 x 2 cells on each side of the Corridor by the claw mole, and east by a pick mole; a dig stopped while it earns a
 ## turned-heading cube's paid phase and ordered again; a turned-heading dig saved and restored before every tick.
-## The side rooms dig the floor band (`matrix_height_u`); the pick, stopped and restored rooms dig the full 4 m.
+## The side and stopped rooms dig the floor band (`matrix_height_u`); the pick and restored rooms dig the full 4 m.
 
 
 func _init() -> void:
@@ -44,6 +44,7 @@ func test_a_dig_stopped_on_a_turned_heading_cube_and_ordered_again_is_finished()
 	decision 1938's negative-only stop); the stopped dig keeps the phase and its station, and the room ordered again
 	with another mole takes the phase over on that heading and is dug to the end, every BRACE paid once."""
 	if not _prepared(): return
+	_h.painted_height_u = matrix_height_u
 	var room: Vector2i = _h.side_room(NORTH, 2, 2)
 	if room == NULL_REF: return
 	var runtime: Runtime = _runtime(room, [_h.crew_member()] as Array[Builder.Crew])

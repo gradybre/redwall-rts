@@ -1,5 +1,10 @@
 extends "res://test/room_heading_case.gd"
-## Decision 1943's coverage matrix (the fixture: `room_heading_case.gd`): an L-shaped painted room.
+## Decision 1943's coverage matrix (the fixture: `room_heading_case.gd`): an L-shaped painted room, its floor band.
+
+
+func _init() -> void:
+	"""The floor band only (`matrix_height_u`, room_heading_case.gd)."""
+	matrix_height_u = Contract.QUANTUM_SIDE_U
 
 
 func test_an_l_shaped_kitchen_east_of_its_access_is_dug() -> void:

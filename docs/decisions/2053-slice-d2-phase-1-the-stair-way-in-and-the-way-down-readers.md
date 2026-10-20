@@ -88,8 +88,14 @@ the panel's, so the two cannot drift apart.
   a reused endpoint could be another chain's TRANSIT node, which decision 1942's retirement may later remove; phase 2
   adds parking's `_routed_elsewhere` guard (spans only to the access, the corner or the station) with the live
   probe, and lists the spans a call publishes as well as its endpoints.
-- **One heading per World for now.** The room contacts bind one retreat row (P-1936-1 (a)), and the retreat row has
-  a yaw; a Foot offers only headings whose rows go with it. More headings follow Slice C's multi-heading lane.
+- **Headings** (updated after merging #278, master `163cf5b3`). The room contacts still bind one retreat row
+  (P-1936-1 (a)), but since decision 1943 the builder walks each cube on its heading's own siblings of the bound
+  rows, and the planner walks to an existing contact on any heading's forward row. So the one-heading limit no longer
+  holds for the dig: a Foot may list every heading whose wall and forward rows the content has (content 12's claw
+  wall rows 67–70 and their forward siblings), and a room's front station on a turned heading is the existing
+  contact the planner walks to. Phase 1 proves only the bound +X heading, because the claw Kitchen's WorldRoutes
+  catalog loads only that heading's travel rows; a turned-heading front is proved on M5's foot in phase 2, where the
+  flight's own heading (down the flight, -Z) is the one a room at its end wall needs.
 - A front station stays published after its room is dug; it is reused if the same front is asked for again. Its
   retirement with the room's own stations is phase 2's, measured against Locations' capacity.
 

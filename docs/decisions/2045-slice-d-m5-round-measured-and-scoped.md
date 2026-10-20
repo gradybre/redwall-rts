@@ -1,7 +1,7 @@
 # 2045 — Slice D, the M5 round: the full flight mounted, measured and scoped (stopped for rulings)
 
-Date: 2026-10-19 · Status: Proposed. Phase 1 of the M5 round (measure and scope) is done; the lane stops here for
-the coordinator and Brendan. P-2045-1 to P-2045-6 wait for rulings.
+Date: 2026-10-19 · Status: Accepted. Phase 1 (measure and scope) stopped for rulings; Brendan ruled P-2045-1 to
+P-2045-6, all (a), on 2026-10-19 (see "Brendan's rulings"), and the build phase continues below.
 
 Number range: 2045–2049 (the D-flight lane's phase 2b). This is the M5 round's record; decision
 [2044](2044-slice-d-2b-1-m5-flight-runtime-scoping-and-claims.md) holds the lane's claims, every ruling so far
@@ -12,6 +12,21 @@ Number range: 2045–2049 (the D-flight lane's phase 2b). This is the M5 round's
   goes and measure every cold operation per module, without projecting; make exact cost fixes inside the claims
   where they keep outcomes identical under the cache checks; write this record with the measurements, the ground
   re-proof fix and how it is proved exact, every file or function outside the claims, and proposals; then stop.
+
+## Brendan's rulings (2026-10-19)
+
+Relayed by the coordinator: Brendan answered in chat through AskUserQuestion.
+
+| Proposal | Ruling | What it means |
+|---|---|---|
+| P-2045-1 to P-2045-4 | **(a), "Approve all four"** | Four items outside the claims are cleared: `underground_budget.gd` `BINDINGS_AND_GROWTH_BYTES` +22,879 B (and up to +24,576 B more if P-2045-6's scratch list needs it); `underground_geometry_journal.gd` `_row_changed` compares the owner, with a reused-slot, new-owner test; `underground_locations.gd` `restore_state_bytes` clears `_prism_key[0]`, with a mid-preparation restore-versus-fresh spend test; `underground_world_routes.gd` `_endpoint_observation_refusal` charges a memo-answered observation at its real cost, proved as §5 and Slice C's three cautions |
+| P-2045-5 and P-2045-6 | **(a), "Batch + exact fixes"** | Batch the deep floor graph's edges as the work area batches its stations; keep making exact fixes in the claims (contact air, strips, Locations landing counts); no bound raise. **If Locations or any cold operation still cannot fit after both, the lane stops and reports before (b), the Placements transaction** |
+
+Indexed in `docs/handoff/RULINGS.md`. Master moved to `e841d89e` (#276 station retirement, #277 C3 with room record
+v2 and the `bind_underground_way_in` seam); this branch merges it only after #275 (M2) lands, on the coordinator's
+word. Build order: the rulings; the four outside-claim changes with their tests; the batching; the exact fixes;
+re-measure every landing; fix the two non-budget stops (the module-0 pre-clearance applies if either is that case);
+the chain to level 1; then the census pass, the full gates and frames.
 
 ## In short
 

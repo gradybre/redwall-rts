@@ -531,6 +531,6 @@ func test_a_patch_reaching_past_its_cube_is_not_on_the_face() -> void:
 	assert_true(Front.patch_on_face(c, point, cube, cube.x), "the Kitchen's patch")
 	c.patch_high.y = 1024
 	assert_true(Front.patch_on_face(c, point, cube, cube.x), "up to the cube's top")
+	assert_false(Front.patch_on_face(c, point + Vector3i(1, 0, 0), cube, cube.x), "off the face plane")
 	c.patch_high.y = 1025
 	assert_false(Front.patch_on_face(c, point, cube, cube.x), "one unit past its top")
-	assert_false(Front.patch_on_face(c, point + Vector3i(1, 0, 0), cube, cube.x), "off the face plane")

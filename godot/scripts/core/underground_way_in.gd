@@ -13,8 +13,9 @@ extends RefCounted
 ##   points, joined to the access, made on the first order and found again by their points after a load (no save
 ##   field); the staging container is the foot's (the surface R; a level below is stair-leg Delivery's, 1941 §2);
 ## - the order's access is always the foot's, so `ROOM_DIG_OTHER_ACCESS` never fires on one foot.
-## A refusal after this call published a front station leaves it listed; the caller withdraws it with
-## `withdraw_pending` when RoomOrders refuses the room (the host does in phase 2). Nothing here pays or digs.
+## A front this call published stays listed until the caller settles it (`settle`): kept when RoomOrders admitted
+## the room, withdrawn when it refused; a later call is refused until then, so no front is ever forgotten (review
+## H2). The host settles in phase 2's `order_painted_room`. Nothing here pays or digs.
 ##
 ## Phase 1 builds and proves this on the claw Kitchen fixture; deriving the Foot from the finished M5 entry, and the
 ## host binding at completion and on load, are phase 2 (decision 2052 §2.1). No build duration is assumed anywhere
@@ -32,6 +33,8 @@ const NULL_REF: Vector2i = Vector2i(-1, 0)
 const REFUSE_FOOT: StringName = &"WAY_IN_SCOPE"
 ## The store or the spoil pile could not be made or reached at its point.
 const REFUSE_CONTAINER: StringName = &"WAY_IN_CONTAINER"
+## Review H2: the last call published a front and nobody said whether RoomOrders admitted its room (`settle`).
+const REFUSE_UNSETTLED: StringName = &"WAY_IN_UNSETTLED"
 
 
 class Foot extends RefCounted:
@@ -49,7 +52,7 @@ class Foot extends RefCounted:
 	var staging: Vector2i = NULL_REF # The staging container a short store hauls from (the surface R), or none.
 
 	func refusal() -> StringName:
-		"""REFUSE_SCOPE unless every field a room order reads is set and the heading rows pair up."""
+		"""REFUSE_FOOT unless every field a room order reads is set and the heading rows pair up."""
 		if level < 1 or access == NULL_REF or travel < 0 or ground < 0 or content <= 0 or wall_rows.is_empty() \
 				or wall_rows.size() != forward_rows.size() or store_point == pile_point: return REFUSE_FOOT
 		return &""
@@ -72,10 +75,11 @@ class StairWayIn extends Confirm.WayIn:
 		return &""
 
 	func approach_into(request: Approach.Request, order: Composer.Order) -> StringName:
-		"""The foot's level only: the room's front station, then the store and pile, then the order's way in."""
-		_pending.clear()
+		"""The foot's level only: the room's front station, then the store and pile, then the order's way in. Refused
+		REFUSE_UNSETTLED while the last call's published front is still unsettled (review H2): nothing is forgotten."""
 		if foot == null or owners == null or request == null or order == null or request.level != foot.level:
 			return Confirm.REFUSE_NO_WAY_IN
+		if not _pending.is_empty(): return REFUSE_UNSETTLED
 		var access: Locations.Record = Front.record()
 		var code: StringName = owners.locations.read_location_into(foot.access, access)
 		var front: Front.Candidate = Front.Candidate.new()
@@ -92,6 +96,14 @@ class StairWayIn extends Confirm.WayIn:
 	func pending() -> PackedInt32Array:
 		"""The endpoints (slot, generation pairs) the last call published for its front station, until withdrawn."""
 		return _pending.duplicate()
+
+	func settle(admitted: bool) -> StringName:
+		"""The caller's answer once RoomOrders has ruled on the room the last call approached (Confirm's `admitted`):
+		an admitted room keeps its front, which its approach stands on; a refused one's is withdrawn. Every caller
+		settles after every successful `approach_into` (the host's `order_painted_room` in phase 2)."""
+		if not admitted: return withdraw_pending()
+		_pending.clear()
+		return &""
 
 	func withdraw_pending() -> StringName:
 		"""Retire what the last call published for its front (a room RoomOrders then refused): the endpoints and every

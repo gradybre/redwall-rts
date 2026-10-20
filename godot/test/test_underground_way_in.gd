@@ -17,6 +17,8 @@ const Runtime := preload("res://scripts/core/underground_room_runtime.gd")
 const Foreman := preload("res://scripts/core/underground_room_foreman.gd")
 const Approach := preload("res://scripts/core/underground_room_approach.gd")
 const Locations := preload("res://scripts/core/underground_locations.gd")
+const Profiles := preload("res://scripts/core/underground_profiles.gd")
+const Budget := preload("res://scripts/core/underground_budget.gd")
 const Contract := preload("res://scripts/core/excavation_contract.gd")
 const Buildings := preload("res://scripts/core/buildings.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
@@ -214,6 +216,7 @@ func test_asking_again_for_the_same_room_publishes_nothing() -> void:
 	if _runtime == null: return
 	var first: Approach.Request = _request(NORTH_Z)
 	assert_equal(_way.approach_into(first, Composer.Order.new()), &"", "first")
+	assert_equal(_way.settle(true), &"", "its room admitted: the front is kept")
 	var endpoints: int = _endpoints()
 	var spans: int = _spans()
 	var second: Approach.Request = _request(NORTH_Z)
@@ -270,8 +273,20 @@ func test_a_heading_whose_rows_do_not_pair_is_never_used() -> void:
 	var way: WayIn.StairWayIn = WayIn.StairWayIn.new()
 	assert_equal(way.configure(_runtime.bound_owners(), foot), &"", "configured")
 	assert_equal(way.approach_into(_request(Phase.Z), Composer.Order.new()), Front.REFUSE_NO_FRONT, "not a WORK row")
-	foot.wall_rows = PackedInt32Array([KitchenTests.CLAW_WALL - 1])
+	foot.wall_rows = PackedInt32Array([_wall_at_another_yaw()])
 	assert_equal(way.approach_into(_request(Phase.Z), Composer.Order.new()), Front.REFUSE_NO_FRONT, "another yaw")
+
+
+func _wall_at_another_yaw() -> int:
+	"""One of content 12's claw wall rows (67-70) whose yaw is not the forward row's."""
+	var walk: Profiles.Descriptor = Profiles.Descriptor.new()
+	assert_equal(_h._profiles.descriptor_into(KitchenTests.CLAW_FORWARD, KitchenTests.CLAW_CONTENT, walk), &"", "walk")
+	for row: int in range(67, 71):
+		var wall: Profiles.Descriptor = Profiles.Descriptor.new()
+		assert_equal(_h._profiles.descriptor_into(row, KitchenTests.CLAW_CONTENT, wall), &"", "wall %d" % row)
+		if wall.mode == Profiles.MODE_WORK and wall.yaw != walk.yaw: return row
+	assert_true(false, "a wall row at another yaw")
+	return KitchenTests.CLAW_WALL
 
 
 func test_an_incomplete_foot_or_owners_are_refused_at_configure() -> void:
@@ -305,6 +320,7 @@ func test_the_real_confirm_route_digs_the_kitchen_through_the_way_in() -> void:
 		_h._owner.revision(), _painted(Phase.Z))
 	assert_equal(result.code, &"", "confirmed and ordered")
 	assert_true(result.admitted, "admitted")
+	assert_equal(_way.settle(result.admitted), &"", "settled")
 	var foreman: Foreman = _runtime.foreman_of(result.room)
 	assert_equal(_dig_to_the_end(result.room), [] as Array[StringName], "no refusal")
 	assert_equal(foreman.done_cubes(), StationTests.KITCHEN_SITES, "every cube dug")
@@ -319,6 +335,8 @@ func test_the_real_confirm_route_admits_and_digs_the_north_room_from_its_publish
 		_h._owner.revision(), _painted(NORTH_Z))
 	assert_equal(result.code, &"", "confirmed and ordered")
 	assert_true(result.admitted, "admitted through the published station")
+	assert_equal(_way.settle(result.admitted), &"", "settled: the front is kept")
+	assert_true(Front.occupied(_h.endpoints, NORTH_STATION), "the station stays while its room is dug")
 	var foreman: Foreman = _runtime.foreman_of(result.room)
 	assert_equal(_dig_to_the_end(result.room), [] as Array[StringName], "no refusal")
 	assert_equal(foreman.done_cubes(), StationTests.KITCHEN_SITES, "every cube dug")
@@ -427,3 +445,69 @@ func test_a_pile_point_taken_by_a_station_refuses_and_withdraws_the_front() -> v
 	assert_equal(way.approach_into(_request(NORTH_Z), Composer.Order.new()), WayIn.REFUSE_CONTAINER, "no pile")
 	assert_equal([_endpoints(), _spans(), _containers()], counts, "the front withdrawn, nothing made")
 	assert_equal(way.pending(), PackedInt32Array(), "nothing listed")
+
+
+func test_an_unsettled_front_refuses_the_next_order_until_settled() -> void:
+	"""Review H2: the north room's front waits for the caller's word; a second order is refused WAY_IN_UNSETTLED and
+	makes nothing; settle(false) withdraws the front, after which orders go on."""
+	if _runtime == null: return
+	assert_equal(_way.approach_into(_request(Phase.Z), Composer.Order.new()), &"", "the Kitchen (no front published)")
+	var counts: Array[int] = [_endpoints(), _spans(), _containers()]
+	assert_equal(_way.approach_into(_request(NORTH_Z), Composer.Order.new()), &"", "north")
+	var published: Array[int] = [_endpoints(), _spans(), _containers()]
+	assert_equal(_way.approach_into(_request(Phase.Z), Composer.Order.new()), WayIn.REFUSE_UNSETTLED, "unsettled")
+	assert_equal([_endpoints(), _spans(), _containers()], published, "nothing made")
+	assert_equal(_way.settle(false), &"", "refused: withdrawn")
+	assert_equal([_endpoints(), _spans(), _containers()], counts, "the front gone")
+	assert_equal(_way.approach_into(_request(Phase.Z), Composer.Order.new()), &"", "orders go on")
+
+
+func test_a_room_roomorders_refuses_after_the_front_is_published_leaves_nothing_once_settled() -> void:
+	"""The real route: the north room's front is published, then RoomOrders refuses its unauthored dug height; the
+	caller settles with `admitted` false and every endpoint and span the way in published is gone."""
+	if _runtime == null: return
+	assert_equal(_way.approach_into(_request(Phase.Z), Composer.Order.new()), &"", "the pile first")
+	var counts: Array[int] = [_endpoints(), _spans(), _containers()]
+	var painted: Confirm.Painted = _painted(NORTH_Z)
+	painted.height_u = 1000
+	var result: Confirm.Result = Confirm.confirm(_h.orders, _runtime, _h.placements, _way, _h._world_ref,
+		_h._owner.revision(), painted)
+	assert_true(result.code != &"", "refused by RoomOrders")
+	assert_false(result.admitted, "not admitted")
+	assert_false(_way.pending().is_empty(), "the front was published")
+	assert_equal(_way.settle(result.admitted), &"", "settled")
+	assert_equal([_endpoints(), _spans(), _containers()], counts, "nothing left")
+
+
+func test_a_station_on_its_corner_is_never_placed() -> void:
+	"""Review M1: an access level with the station on the heading's axis would put the corner on the station."""
+	if _runtime == null: return
+	var c: Front.Candidate = _kitchen_candidate()
+	var access: Locations.Record = _access()
+	access.point.x = NORTH_STATION.x
+	assert_false(Front.place(_h._profiles, _request(NORTH_Z), access, 0, c), "station on its corner")
+	access.point.x = NORTH_STATION.x + 1
+	assert_false(Front.place(_h._profiles, _request(NORTH_Z), access, 0, c), "station behind its corner")
+
+
+func test_a_held_cold_lease_publishes_nothing_and_says_unjoined() -> void:
+	"""Review M2: with the cold lease held elsewhere no endpoint can be published; the call refuses
+	WAY_IN_FRONT_UNJOINED and leaves nothing."""
+	if _runtime == null: return
+	var counts: Array[int] = [_endpoints(), _spans(), _containers()]
+	var lease: int = _h._budget.acquire(Budget.COLD_BYTES)
+	assert_true(lease != 0, "lease held")
+	assert_equal(_way.approach_into(_request(NORTH_Z), Composer.Order.new()), Front.REFUSE_UNJOINED, "unjoined")
+	assert_equal(_h._budget.release(lease), &"", "released")
+	assert_equal([_endpoints(), _spans(), _containers()], counts, "nothing made")
+
+
+func test_a_cell_whose_cube_would_wrap_int32_is_never_placed() -> void:
+	"""Review LOW: a cell index past int32's range in metres is refused before any cube is built."""
+	if _runtime == null: return
+	var c: Front.Candidate = _kitchen_candidate()
+	var request: Approach.Request = _request(Phase.Z)
+	request.cells = PackedInt32Array([1 << 21, 0])
+	assert_false(Front.cell_in_range(request, 0), "out of range")
+	assert_false(Front.place(_h._profiles, request, _access(), 0, c), "never placed")
+	assert_true(Front.cell_in_range(_request(Phase.Z), 0), "an ordinary cell")

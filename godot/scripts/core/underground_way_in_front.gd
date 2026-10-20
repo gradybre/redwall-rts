@@ -15,6 +15,7 @@ extends RefCounted
 ## listed, so a refused room's station can be withdrawn (`withdraw`, decision 1942's retirement path).
 
 const Approach := preload("res://scripts/core/underground_room_approach.gd")
+const Builder := preload("res://scripts/core/underground_room_builder.gd")
 const Locations := preload("res://scripts/core/underground_locations.gd")
 const Routes := preload("res://scripts/core/underground_routes.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
@@ -30,8 +31,6 @@ const CELL_U: int = Contract.QUANTUM_SIDE_U
 const REFUSE_NO_FRONT: StringName = &"WAY_IN_NO_FRONT"
 ## The front station or its corner was published but the travel rows do not reach it both ways.
 const REFUSE_UNJOINED: StringName = &"WAY_IN_FRONT_UNJOINED"
-## A point the way in would publish at is already taken by another kind of endpoint.
-const REFUSE_TAKEN: StringName = &"WAY_IN_POINT_TAKEN"
 const HORIZONTAL: Array[int] = [0, 2]
 
 
@@ -61,7 +60,7 @@ static func record() -> Locations.Record:
 	return out
 
 
-static func find_into(owners: RefCounted, foot: RefCounted, request: Approach.Request, access: Locations.Record,
+static func find_into(owners: Builder.Owners, foot: RefCounted, request: Approach.Request, access: Locations.Record,
 		out: Candidate) -> StringName:
 	"""The first front, heading by heading in the foot's order, then by the room cell nearest the access (ties by
 	cell order); REFUSE_NO_FRONT when none fits. Pure geometry: nothing is published."""
@@ -115,6 +114,14 @@ static func cells_by_distance(request: Approach.Request, from: Vector3i) -> Pack
 	return out
 
 
+static func cell_in_range(request: Approach.Request, at: int) -> bool:
+	"""The cell's cube, and the station a cell beyond it, stay inside int32 (review LOW: no wrapped cube)."""
+	for axis: int in [0, 2]:
+		var low: int = int(request.origin_u[axis]) + int(request.cells[at + (axis >> 1)]) * CELL_U
+		if not Space.int32(low - 2 * CELL_U) or not Space.int32(low + 3 * CELL_U): return false
+	return true
+
+
 static func cube_of(request: Approach.Request, at: int) -> Vector3i:
 	"""The floor cube of the room's cell at pair index `at`: the room's origin plus whole cells."""
 	return request.origin_u + Vector3i(request.cells[at] * CELL_U, 0, request.cells[at + 1] * CELL_U)
@@ -126,6 +133,7 @@ static func place(profiles: Profiles, request: Approach.Request, access: Locatio
 	the patch lies exactly on its face, the station and its corner stand on the access's floor in its surveyed air off
 	the room, and the station lies ahead of the corner. Fills the cube, face, station point and corner."""
 	out.ahead = 1 if out.patch_low[out.axis] > 0 else -1
+	if not cell_in_range(request, at): return false
 	var cube: Vector3i = cube_of(request, at)
 	var behind: Vector2i = Vector2i(request.cells[at], request.cells[at + 1])
 	behind[out.axis >> 1] -= out.ahead
@@ -138,7 +146,7 @@ static func place(profiles: Profiles, request: Approach.Request, access: Locatio
 	if not patch_on_face(out, point, cube, plane): return false
 	var corner: Vector3i = point
 	corner[out.axis] = access.point[out.axis]
-	if (point[out.axis] - corner[out.axis]) * out.ahead < 0: return false
+	if (point[out.axis] - corner[out.axis]) * out.ahead <= 0: return false # Review M1: never on its corner.
 	if not body_clear(profiles, out.forward, request, access, point): return false
 	if corner != access.point and not body_clear(profiles, out.forward, request, access, corner): return false
 	out.cube = cube; out.point = point; out.corner = corner
@@ -189,7 +197,7 @@ static func extent(profiles: Profiles, row: int, point: Vector3i) -> PackedInt32
 	return out
 
 
-static func publish_into(owners: RefCounted, foot: RefCounted, access: Locations.Record, c: Candidate,
+static func publish_into(owners: Builder.Owners, foot: RefCounted, access: Locations.Record, c: Candidate,
 		published: PackedInt32Array) -> Vector2i:
 	"""The station and its corner (existing or published) and the straight spans joining the access, the corner and
 	the station; the forward row must reach the station from the corner and the retreat row the corner from the
@@ -213,7 +221,7 @@ static func publish_into(owners: RefCounted, foot: RefCounted, access: Locations
 	return corner
 
 
-static func endpoint_at(owners: RefCounted, foot: RefCounted, access: Locations.Record, point: Vector3i, role: int,
+static func endpoint_at(owners: Builder.Owners, foot: RefCounted, access: Locations.Record, point: Vector3i, role: int,
 		rows: PackedInt32Array, published: PackedInt32Array) -> Vector2i:
 	"""The live endpoint of `role` at the point in the access's section, or one published there with the rows' own
 	footing; NULL_REF when another endpoint already stands there or Locations refuses."""
@@ -278,7 +286,7 @@ static func footing(profiles: Profiles, content: int, rows: PackedInt32Array, ro
 	return not first and Locations.support_covers_root(row.point, row.support)
 
 
-static func publish_location(owners: RefCounted, row: Locations.Record) -> Vector2i:
+static func publish_location(owners: Builder.Owners, row: Locations.Record) -> Vector2i:
 	"""One Locations publication under one cold lease; NULL_REF when refused (nothing changed)."""
 	var cold: int = owners.budget.acquire(Budget.COLD_BYTES)
 	if cold == 0: return NULL_REF
@@ -291,10 +299,11 @@ static func publish_location(owners: RefCounted, row: Locations.Record) -> Vecto
 	return added.location if published else NULL_REF
 
 
-static func span_pair(owners: RefCounted, foot: RefCounted, access: Locations.Record, a: Vector2i,
+static func span_pair(owners: Builder.Owners, foot: RefCounted, access: Locations.Record, a: Vector2i,
 		b: Vector2i) -> bool:
 	"""Two straight WALK spans, `a` to `b` and back, certified by WorldRoutes' own seal; a direction already spanned
 	is not published again."""
+	if span_between(owners.routes, a, b) and span_between(owners.routes, b, a): return true
 	var cold: int = owners.budget.acquire(Budget.COLD_BYTES)
 	if cold == 0: return false
 	var begun: Routes.Result = owners.binding.begin_prepare(cold)
@@ -321,7 +330,7 @@ static func span_between(routes: Routes, from: Vector2i, to: Vector2i) -> bool:
 	return false
 
 
-static func span(owners: RefCounted, foot: RefCounted, access: Locations.Record, from: Vector2i,
+static func span(owners: Builder.Owners, foot: RefCounted, access: Locations.Record, from: Vector2i,
 		to: Vector2i) -> Routes.Edge:
 	"""One straight ground span in the access's section."""
 	var first: Vector3i = point_of(owners.locations, from.x)
@@ -337,14 +346,14 @@ static func span(owners: RefCounted, foot: RefCounted, access: Locations.Record,
 	return edge
 
 
-static func joined(owners: RefCounted, foot: RefCounted, from: Vector2i, to: Vector2i, row: int) -> bool:
+static func joined(owners: Builder.Owners, foot: RefCounted, from: Vector2i, to: Vector2i, row: int) -> bool:
 	"""The row reaches `to` from `from` over the live graph (Itinerary's own search, one cold bound)."""
 	var remaining: PackedInt32Array = PackedInt32Array([0])
 	return Itinerary.reachability_refusal(owners.binding, from, to, row, owners.profiles._live.quantities[row],
 		foot.content, Space.MAX_CHECKS, remaining) == &""
 
 
-static func withdraw(owners: RefCounted, published: PackedInt32Array) -> StringName:
+static func withdraw(owners: Builder.Owners, published: PackedInt32Array) -> StringName:
 	"""Retire the endpoints one call published and every span touching them (decision 1942's two publications);
 	nothing when none was published."""
 	if published.is_empty(): return &""

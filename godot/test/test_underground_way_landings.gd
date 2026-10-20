@@ -73,6 +73,8 @@ func test_cells_west_and_north_of_the_datum_round_down() -> void:
 	var origin: Vector3i = Vector3i(-512, 512, -1)
 	var anchor: Vector2i = Landings.anchor_of(Flight.LAYOUT_M5, origin, DATUM)
 	assert_equal(anchor, Vector2i(-2, -28), "x -1,536 is cell -2; z -27,649 is cell -28")
+	assert_equal(Landings.anchor_of(Flight.LAYOUT_M5, Vector3i(0, 512, 0), DATUM), Vector2i(-1, -27),
+		"an exact negative multiple: x -1,024 is cell -1, z -27,648 is cell -27")
 	var datum: Vector3i = Vector3i(1024, 0, 2048)
 	assert_equal(Landings.anchor_of(Flight.LAYOUT_M5, ORIGIN, datum), Landings.anchor_of(Flight.LAYOUT_M5, ORIGIN,
 		DATUM) - Vector2i(1, 2), "a datum shifts the cells")

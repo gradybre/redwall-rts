@@ -521,3 +521,73 @@ Slice C cleared every function involved, with conditions.
 Then: re-measure every landing (modules 3 and 4 included), reach level 1, the census pass and regeneration after the
 merge, the full sharded suite (every suite under about 8 CI-minutes), frames; stop and report. A cold operation that
 still cannot fit stops the lane with its numbers. Indexed in `docs/handoff/RULINGS.md`.
+
+## Second build phase (2026-10-20): every cold operation fits; stopped at the U0' clearance test
+
+**Where it stands.** With P-2045-7, -8 and -10 built, **every cold operation fits `Space.MAX_CHECKS` through
+landing 2**, on a real schedule with real hauls. The chain then stops where the crew must climb up through landing 1
+(§"Non-budget stops" 2). **P-2045-9 (a) as ruled fails its clearance test**: the all-yaw walk 42's footing at U0'
+reaches 63 u past the floor that is never cut. The lane stops here and reports, as the ruling asks for a failing
+clearance test. The census pass, the full sharded suite and the frames still wait for a chain that reaches level 1.
+
+### Built
+
+| Commit | What |
+|---|---|
+| `5f263c92` | The rulings and Slice C's conditions, here and in RULINGS.md |
+| `45acb7fc` | **P-2045-7 (a), Slice C's design.** `_preparation_refusal` proves the prepared source and claim pass once per route preparation and keeps it under `_prepared_key`; while the key holds the scan itself is skipped and only `PREPARED_KEY_CHECKS` (9) is charged; `prepared_identity_refusal` still runs on every call (in `_carried_context_refusal`); with the cache checks on, a skipped pass runs in full and a refusal reports `RUNTIME_CACHE_STALE` ("prepared pass"). This is the ruled "charge once", done honestly: the work the bound charges is the work done. **The memo's key, for phase-spreading stage 2:** `[route token, Space token, SpaceOwner._stage_token, _s_header[17] (staged geometry revision), _header[17] (live geometry revision), _changed_count, _install_row, _room_row, _furniture_count]` (the last three are the pass's typed transitions). Registry row added. Test: `test_a_preparation_proves_the_prepared_pass_once_while_its_key_holds` (a repeat charges the key compare; a changed key scans again; source drift the key cannot see is reported by the cache checks) |
+| `07b33ba7` | **P-2045-8 (a).** `_installed_record_kind` and `_installed_surface_site` visit present Placement rows only (`_next_placement`: the next present row found natively when the presence column is 0/1, else every row as before), so the 255 empty slots of `MAX_PLACEMENTS` are never visited or charged; the same rows in the same order. `_record_geometry_refusal` needed no change. `_rebuild_allocation` was not touched |
+| `4c60233b` | **P-2045-10 (a).** The refusal came from inside one tick: the installer's climb off a landing, and the foreman's climb before a haul, arrive at X holding a Job and in the same tick release it for a HAUL Job, which Jobs refuses in a rest hour. The runtime already waits a crew that holds no Job (`_crew_ready`), so the wait is placed where the commitment is made: both now wait at X, still holding their Job, until the hour permits work. The entry runtime and decision 1940's walk-out are unchanged. **Deviation from the ruling's file:** the change is in the installer and foreman (both held by this lane), not `underground_entry_runtime.gd`, because the runtime never sees the refusal before the foreman has failed |
+| (this commit) | `test_underground_m5_rest_wait.gd`: on a real schedule (needs and R's stock sustained, the schedule not), the chain reaches X in a rest hour at tick 45,414, waits there holding the order's Job, and the same order goes on after the rest hour; the chain keeps running. **1 test, 0 failures, but 1,012 s in a focused run**: over CI's shard guard (about 8 minutes). It goes in the slow tier now and must start from an ADR 1240 checkpoint near tick 45,000, which the census and regeneration pass adds once the chain reaches level 1 |
+
+### Re-measured (cache checks off, today's bound, real schedule, real hauls)
+
+| Point | WorldRoutes | Locations | Bindings entry | Bindings timber |
+|---|---:|---:|---:|---:|
+| Module 0 before its sill | ≤ 573,472 | ≤ 414,000 | ≤ 542,447 | ≤ 231,669 |
+| Module 0's sill (tick 34,926) | **963,081 (91.8 %)** | 643,977 | **956,047 (91.2 %)** | 403,812 |
+| Landing 1 (40 cubes) | ≤ 590,822 | ≤ 732,888 | — | — |
+| Module 1's treads and sill (to tick 50,011) | 397,857 | 820,745 | **969,679 (92.5 %)** | 398,387 |
+| Landing 2 (to tick 51,157; M stocked: to 51,775) | ≤ 812,438 | **≤ 919,999 (87.7 %)** | — | — |
+| Modules 3 and 4 | not reached | | | |
+
+The bounded chain completes module 1 (plans stage 4 at tick 50,011) and stops at tick 51,157 on landing 2's first
+haul climb, at landing 1's U0' (`ROUTE_TURN_PROFILE`). The M-stocked run stops at the same place for module 2's T0''
+(tick 51,775). Neither is a budget refusal.
+
+### P-2045-9 (a): the clearance test, written first, fails
+
+The test (kept in `scratchpad/m5r/test_landing_clearance_u0_42.py`, not committed, since it fails) sizes U0' by the
+all-yaw walk 42 and checks it at every landing on M2 and M5:
+
+- **42's body at U0' clears every installed part**, at every landing, and holds the retreat 47's and the approach 45's
+  bodies: the turn's air is there.
+- **42's footing does not stand on floor that stays:** its stance reaches 406 u downhill, to z −7,231 on landing 1, and
+  the deck rows that are never cut end at −7,168: **63 u over module j's first row**, which layer j + 1 cuts and
+  where T0 then sits 128 u below the floor. The same 63 u at every landing.
+- **The turn cannot use a smaller footing.** Routes turns only an actor on an all-yaw selection
+  (`_turn_actor_leaf`: `ROUTE_TURN_UNCERTIFIED` otherwise), and the turn proof requires that selection's whole
+  footing inside the stop's support (`_turn_body_leaf`). Only 42 is all-yaw. U0' sits where module j's ascent ends, so
+  it cannot move.
+
+**Where a 42 turn does fit** (the same scan, every landing): on the centre line from D's point (63 u uphill of U0')
+to 418 u further uphill (landing 1: z −6,762 to −6,344), clear of every installed part, T0 and its bearer included,
+with the footing on the deck rows.
+
+### P-2045-11 — Climbing up through a landing (for the coordinator and Brendan)
+
+- **(a) A turning stop R' on each landing (an installed contact of module j's T0, published with it), at D's point,
+  sized by 42; U0' sized by the approach 45 (the heading a crew arrives with) instead of the retreat 47; the way up
+  becomes U0' → R' on 45 (63 u, facing up), a turn at R' on 42, then R' → F' on 47 and on as today (F' → F on 72,
+  F → U on 55, the ascent).** Data in the publisher (a new stop per landing, U0''s sizing, the joins), the stair path's
+  up-route and the clearance test first; no new motion. R' cannot stand while the landing's deep stage runs (D and the
+  deep stations hold that air until T0's bearer is set), so it is published with T0, as U0' is.
+- (b) A rooted half-turn from facing up to facing down on a landing floor: new motion, ruled out.
+- (c) Retain floor under module j's first row's top 63 u (a deck over the cut): it is cut for layer j + 1 and T0
+  stands in it, so there is no floor to keep.
+
+**Recommendation: (a)**, with its clearance test (R' and both joins clear of every part, every body inside its stops'
+air, every footing on the deck rows) before any runtime change. A first pass of that check with the clearance
+test's own helpers already holds on M2 and on every M5 landing: 45 at U0' and swept U0' → R', 42 at R' and 47 swept
+R' → F' meet no part; 45's footing at U0' ends 94 u inside the deck rows and 42's at R' exactly on their edge; 45's
+body lies inside 42's air.

@@ -254,8 +254,21 @@ func _face_and_travel(leg: Hauler.Leg, tick: int) -> StringName:
 	"""Turn to a yaw-exact leg's heading when the crew does not face it, then route on the leg."""
 	var code: StringName = _o.routes.read_actor_into(_crew.worker, _actor)
 	if code == &"" and not _all_yaw(leg.profile) and _actor.yaw != _yaw(leg.profile):
-		code = WorldRoutes.turn_actor(_o.binding, _crew.worker, _job_ref(), _yaw(leg.profile), Space.MAX_CHECKS)
+		if _actor.profile_id < 0 or not _all_yaw(_actor.profile_id): code = _travel_profile(WALK_ROW) # Decision 2045.
+		if code == &"":
+			code = WorldRoutes.turn_actor(_o.binding, _crew.worker, _job_ref(), _yaw(leg.profile), Space.MAX_CHECKS)
 	return _travel(leg.profile, leg.revision, leg.target, tick) if code == &"" else code
+
+
+## Decision 2045 (P-2045-11 (a)): Routes turns only an actor on an all-yaw selection; a crew that arrived on a
+## yaw-exact row (at the turning spot R', on the approach 45) first takes the all-yaw claw walk, which R' is sized by.
+const WALK_ROW: int = 42
+
+
+func _travel_profile(profile: int) -> StringName:
+	"""Decision 2045: refresh the idle crew onto one travel row where it stands, without requesting a route."""
+	var revision: int = _o.profiles._live.quantities[Profiles.L_REVISION * _o.profiles._profile_capacity + profile]
+	return _o.routes.refresh_travel_actor(_crew.worker, _job_ref(), profile, revision, _content, 0, -1, NULL_REF)
 
 
 func _open_chain(queue: PackedInt32Array, tick: int) -> StringName:

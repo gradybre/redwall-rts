@@ -1190,7 +1190,21 @@ func _face_profile(job: Vector2i, profile: int) -> StringName:
 		return &""
 	var yaw: int = profiles._live.fields[Profiles.F_YAW * profiles._profile_capacity + profile]
 	if _owners.routes.read_actor_into(_crew.worker, _actor) != &"" or _actor.yaw == yaw: return &""
-	return WorldRoutes.turn_actor(_owners.binding, _crew.worker, job, yaw, Space.MAX_CHECKS)
+	var code: StringName = _all_yaw_before_turn(job)
+	return WorldRoutes.turn_actor(_owners.binding, _crew.worker, job, yaw, Space.MAX_CHECKS) if code == &"" else code
+
+
+func _all_yaw_before_turn(job: Vector2i) -> StringName:
+	"""Decision 2045 (P-2045-11 (a)): Routes turns only an actor on an all-yaw selection. A crew that arrived on a
+	yaw-exact row (at the turning spot R', on the approach 45) first takes the all-yaw claw walk 42, which R' is sized
+	by, then turns; an actor already all-yaw turns as before."""
+	var profiles: RefCounted = _owners.profiles
+	var current: int = _actor.profile_id
+	if current >= 0 and profiles._live.fields[Profiles.F_YAW_KIND * profiles._profile_capacity + current] == Profiles.YAW_ALL:
+		return &""
+	var walk: int = StairPins.CLAW_WALK_ROW
+	return _owners.routes.refresh_travel_actor(_crew.worker, job, walk,
+		profiles._live.quantities[Profiles.L_REVISION * profiles._profile_capacity + walk], _content, 0, -1, NULL_REF)
 
 
 func _plan_stairs(plan: Installer.Plan) -> bool:

@@ -45,8 +45,9 @@ const SOURCE_REVISION: int = 31
 const SOURCE_PATH: String = "user://first-prefix-frontier.bin"
 const FIXTURE_PATH: String = "../docs/design/underground-planning/first-entry-prefix-v1.json"
 const FIXTURE_SHA: String = "edd562056b12f732fbf60f0536207ba2afd1dce650d19df552ecf1e75ff9cf81"
-## The fixture's Sites and phase authority: ADR1229's fourteen cut cubes fitted 16; decision 2044's M2 interim cuts 34.
-const SITE_CAPACITY: int = 48
+## The fixture's Sites and phase authority: ADR1229's fourteen cut cubes fitted 16; decision 2044's M2 interim cuts 34;
+## decision 2045's M5 cuts 154.
+const SITE_CAPACITY: int = 160
 const ORIGIN: Vector3i = Vector3i(WorldTests.X + 1024, 512, WorldTests.Z)
 
 class Source extends RefCounted:

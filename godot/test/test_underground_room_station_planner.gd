@@ -239,7 +239,7 @@ class StepFixture extends Phase.SourceFixture:
 		var contact: Face.Request = Face.Request.new()
 		var request: Publication.Request = Publication.Request.new()
 		var result: Publication.Result = Publication.Result.new()
-		result.locations.resize(6); result.edges.resize(12)
+		result.locations.resize(2 * Publication.MAX_STATIONS); result.edges.resize(4 * Publication.MAX_STATIONS)
 		var code: StringName = Planner.next_contact_into(provider, room, after, cold, Space.MAX_CHECKS,
 			candidate, contact, request, result)
 		last_key = candidate.key; last_site = candidate.site
@@ -406,7 +406,7 @@ func test_adr1161_v3_fixture_lateral_publishes_but_its_ground_leg_cannot_hand_of
 	assert_equal(_plan(room, cold, 2048, 0, 1024, request), &"", "lateral plan")
 	assert_equal([_point(request, 0), _point(request, 1)], [Vector3i(-1024, 0, 1530), Vector3i(1280, 0, 1530)], "turn, then FRONT root")
 	assert_equal(request.profiles.slice(0, 8), PackedInt64Array([1, 1, 1, 1, 5, 1, 9, 1]), "all-yaw ground then selected pair")
-	var result: Publication.Result = Publication.Result.new(); result.locations.resize(6); result.edges.resize(12)
+	var result: Publication.Result = Publication.Result.new(); result.locations.resize(2 * Publication.MAX_STATIONS); result.edges.resize(4 * Publication.MAX_STATIONS)
 	var candidate: Frontier.Candidate = _candidate(room, cold, 2048, 0, 1024)
 	assert_equal(Publication.publish_into(_h.provider, candidate, request, cold, Space.MAX_CHECKS, result), &"", "actual publication")
 	var contact: Face.Request = Face.Request.new()
@@ -507,7 +507,7 @@ func test_upper_cube_needs_per_motion_air_and_the_finite_step() -> void:
 	assert_equal([_point(request, 0), _point(request, 1)], [Vector3i(1280, 0, 512), Vector3i(1512, 0, 512)], "ADR1161 roots")
 	assert_equal(request.air_counts[0], 0, "the step start keeps one AABB")
 	assert_true(request.air_counts[1] > 1, "the HIGH station claims more than one air box")
-	var result: Publication.Result = Publication.Result.new(); result.locations.resize(6); result.edges.resize(12)
+	var result: Publication.Result = Publication.Result.new(); result.locations.resize(2 * Publication.MAX_STATIONS); result.edges.resize(4 * Publication.MAX_STATIONS)
 	assert_equal(Publication.publish_into(fixture.provider, _candidate(room, cold, 2048, 1024, 0), request, cold, Space.MAX_CHECKS, result),
 		&"", "actual per-motion air publication")
 	var work: Locations.Record = Locations.Record.new(); work.envelope.resize(6); work.support.resize(6)
@@ -565,8 +565,9 @@ func _assert_upper_chain_refused_by_publication(fixture: StepFixture, room: Vect
 	request.sections = PackedInt32Array([fixture._floor.x, fixture._floor.y, fixture._floor.x, fixture._floor.y, -1, 0])
 	request.points = PackedInt32Array([Phase.X + 1512 - 232, Phase.FLOOR, Phase.Z + 512, Phase.X + 1512, Phase.FLOOR, Phase.Z + 512, 0, 0, 0])
 	request.profiles = PackedInt64Array([5, 1, 9, 1, 10, 1, 11, 1, 0, 0, 0, 0])
+	PublicationTests.full_shape(request)
 	request.work_profile = 26; request.work_revision = 1; request.face = 0; request.yaw = YAW_PLUS_X
-	var result: Publication.Result = Publication.Result.new(); result.locations.resize(6); result.edges.resize(12)
+	var result: Publication.Result = Publication.Result.new(); result.locations.resize(2 * Publication.MAX_STATIONS); result.edges.resize(4 * Publication.MAX_STATIONS)
 	var before: int = fixture.endpoints._live.count
 	assert_equal(Publication.publish_into(fixture.provider, candidate, request, cold, Space.MAX_CHECKS, result),
 		&"LOCATION_ENVELOPE_BLOCKED", "HIGH26 one-AABB air enters the solid target")

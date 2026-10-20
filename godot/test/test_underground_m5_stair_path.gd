@@ -109,15 +109,16 @@ func test_module_zero_plan_is_v10s_then_the_landings() -> void:
 
 func test_landings_cross_on_71_72_and_join_at_f_prime() -> void:
 	"""P-2044-16 (a): each landing has the walk-off F -> F' and back-up F' -> F (family 0); the ground joins all start or
-	end at F' (F' -> P', F' -> H', F' -> D, H' -> F', U0' -> F', P' -> F', D -> F'); nothing on the ground touches F
-	or U."""
+	end at F' (F' -> P', F' -> H', F' -> D, H' -> F', P' -> F', D -> F'), but for decision 2045's U0' -> D (the turning
+	spot R', P-2045-11 (a)); nothing on the ground touches F or U."""
 	var plan: PackedInt32Array = StairPath.edge_plan()
 	var floor_edges: Dictionary = {}
 	var joins: Dictionary = {}
 	var at_f: Array[int] = [StairPath.KIND_F, StairPath.KIND_UF]
 	for at: int in range(0, plan.size(), StairPath.PLAN_WORDS):
 		var edge: Vector4i = Vector4i(plan[at], plan[at + 1], plan[at + 2], plan[at + 3])
-		var at_fp: bool = plan[at] == StairPath.KIND_FP or plan[at + 2] == StairPath.KIND_FP
+		var at_fp: bool = plan[at] == StairPath.KIND_FP or plan[at + 2] == StairPath.KIND_FP \
+			or (plan[at] == StairPath.KIND_U and plan[at + 2] == StairPath.KIND_D)
 		assert_false(plan[at + 4] == -1 and (plan[at] in at_f or plan[at + 2] in at_f), "no ground edge at F or U: %s" % edge)
 		if plan[at + 4] == 0 and at_fp: floor_edges[edge] = true
 		if plan[at + 4] == -1 and at_fp: joins[edge] = true
@@ -129,7 +130,7 @@ func test_landings_cross_on_71_72_and_join_at_f_prime() -> void:
 		for join: Vector4i in [Vector4i(StairPath.KIND_FP, landing, StairPath.KIND_P, foot),
 				Vector4i(StairPath.KIND_FP, landing, StairPath.KIND_H, foot),
 				Vector4i(StairPath.KIND_H, foot, StairPath.KIND_FP, landing),
-				Vector4i(StairPath.KIND_U, foot, StairPath.KIND_FP, landing),
+				Vector4i(StairPath.KIND_U, foot, StairPath.KIND_D, landing),
 				Vector4i(StairPath.KIND_P, foot, StairPath.KIND_FP, landing),
 				Vector4i(StairPath.KIND_FP, landing, StairPath.KIND_D, landing),
 				Vector4i(StairPath.KIND_D, landing, StairPath.KIND_FP, landing)]:
@@ -150,16 +151,18 @@ func test_hops_down_cross_each_landing_by_its_floor_and_p_prime() -> void:
 
 
 func test_hops_up_climb_back_through_each_landing() -> void:
-	"""Up from module 1's T3: its ascents to U0', the retreat to F', the back-up to F, the half-turn onto U, the floor
-	ascent onto module 0's sill, then up to X."""
+	"""Up from module 1's T3: its ascents to U0', on to the turning spot R' on the approach 45 and back to F' on the
+	retreat 47 (decision 2045, P-2045-11 (a)), the back-up to F, the half-turn onto U, the floor ascent onto module 0's
+	sill, then up to X."""
 	var stops: StairPath.Stops = _full_stops()
 	var hops: Array = StairPath.hops_up(stops, StairPath.global_level(1, 3))
-	assert_equal(hops[4], [stops.fp[1], StairPins.CLAW_RETREAT_ROWS[0]], "U0' -> F' on landing 1")
-	assert_equal(hops[5], [stops.f[1], StairPins.STAIR_EMPTY_FLOOR_ROWS[1]], "the back-up")
-	assert_equal(hops[6], [stops.uf[1], StairPins.CLAW_TURN_ROW], "the half-turn")
-	assert_equal(hops[7], [stops.u[StairPath.global_level(0, 6) + 1], StairPins.CLAW_ASCENT_ROW], "onto module 0's sill")
+	assert_equal(hops[4], [stops.d[1], StairPins.CLAW_APPROACH_ROWS[2]], "U0' -> R' on landing 1, facing up")
+	assert_equal(hops[5], [stops.fp[1], StairPins.CLAW_RETREAT_ROWS[0]], "R' -> F', turned to face down")
+	assert_equal(hops[6], [stops.f[1], StairPins.STAIR_EMPTY_FLOOR_ROWS[1]], "the back-up")
+	assert_equal(hops[7], [stops.uf[1], StairPins.CLAW_TURN_ROW], "the half-turn")
+	assert_equal(hops[8], [stops.u[StairPath.global_level(0, 6) + 1], StairPins.CLAW_ASCENT_ROW], "onto module 0's sill")
 	assert_equal(hops[hops.size() - 1], [stops.x, StairPins.CLAW_APPROACH_ROWS[2]], "ends at X")
-	assert_equal(hops.size(), 4 + (1 + 2 + 1 + 7) + 1, "hop count")
+	assert_equal(hops.size(), 4 + (2 + 2 + 1 + 7) + 1, "hop count")
 
 
 func test_deep_stations_classify_by_landing_row_and_column() -> void:

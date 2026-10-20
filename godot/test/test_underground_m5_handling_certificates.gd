@@ -13,7 +13,7 @@ const Tread := preload("res://data/underground/mole-worker/qualified-m5-runtime-
 const AssemblySource := preload("res://data/underground/mole-worker/qualified-m5-runtime-v1/assembly_source_program.gd")
 const AssemblyPhysical := preload("res://data/underground/mole-worker/qualified-m5-runtime-v1/assembly_physical_certificate.gd")
 const Pick := preload("res://data/underground/mole-worker/qualified-assembly-v1/source_program.gd")
-const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-m5-v1/catalog_source.gd")
+const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-m5-v2/catalog_source.gd")
 const Pins := preload("res://data/underground/mole-worker/qualified-stair-carry-v13/catalog_source.gd")
 const WIRE: String = "res://data/underground/mole-worker/qualified-stair-carry-v13/mole-worker.ugprof"
 ## The mounted bundle's assemblies: 15 for the M2 interim (P-2044-15), 36 for M5 (mounted by decision 2045).

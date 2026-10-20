@@ -225,8 +225,9 @@ static func _sill(module: int) -> PackedInt32Array:
 static func _landing(landing: int) -> PackedInt32Array:
 	"""Landing j's floor edges (decision 1972's floor plan, P-2044-16 (a)): the descent onto F, the half-turn F -> U,
 	the ascent from U, the walk-off F -> F' and the back-up F' -> F; but for the last landing, the ground joins to
-	module j and the deep hub at F': F' -> P', F' -> H' and F' -> D (narrow approach), H' -> F', U0' -> F', P' -> F'
-	and D -> F' (narrow retreat)."""
+	module j and the deep hub at F': F' -> P', F' -> H' and F' -> D (narrow approach), H' -> F', P' -> F' and
+	D -> F' (narrow retreat). Decision 2045 (P-2045-11 (a)): U0' -> D (the turning spot R' at D's point once module j's
+	T0 is in) on the approach 45, instead of U0' -> F'; D -> F' then serves R' too."""
 	var walk: int = Profiles.MODE_WALK
 	var sill: int = global_level(landing - 1, SILL_LEVEL)
 	var out: PackedInt32Array = PackedInt32Array([KIND_A, sill, KIND_F, landing, 0, walk,
@@ -235,7 +236,7 @@ static func _landing(landing: int) -> PackedInt32Array:
 	if landing == MODULES: return out
 	var foot: int = global_level(landing, -1)
 	out.append_array(PackedInt32Array([KIND_FP, landing, KIND_P, foot, -1, walk, KIND_FP, landing, KIND_H, foot, -1, walk,
-		KIND_H, foot, KIND_FP, landing, -1, walk, KIND_U, foot, KIND_FP, landing, -1, walk,
+		KIND_H, foot, KIND_FP, landing, -1, walk, KIND_U, foot, KIND_D, landing, -1, walk,
 		KIND_P, foot, KIND_FP, landing, -1, walk, KIND_FP, landing, KIND_D, landing, -1, walk,
 		KIND_D, landing, KIND_FP, landing, -1, walk]))
 	return out
@@ -462,8 +463,10 @@ static func hops_up(stops: Stops, level: int) -> Array:
 
 
 static func hops_up_from_landing(stops: Stops, landing: int) -> Array:
-	"""From module j's U0' (on landing j) up to X: the retreat back to F', then the way up from there."""
-	var out: Array = [[stops.fp[landing], StairPins.CLAW_RETREAT_ROWS[0]]]
+	"""From module j's U0' (on landing j) up to X. Decision 2045 (P-2045-11 (a)): a crew arrives at U0' facing up, so
+	it walks on to the turning spot R' (D's point) on the approach 45, turns there on the all-yaw walk, and backs to F'
+	on the retreat 47; then the way up from F'."""
+	var out: Array = [[stops.d[landing], StairPins.CLAW_APPROACH_ROWS[2]], [stops.fp[landing], StairPins.CLAW_RETREAT_ROWS[0]]]
 	out.append_array(hops_up_from_walk_off(stops, landing))
 	return out
 

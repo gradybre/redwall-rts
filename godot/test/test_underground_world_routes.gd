@@ -1781,3 +1781,126 @@ func test_cold_certificate_image_refuses_every_corrupt_field_and_keeps_live_bank
 	assert_equal(_binding.restore_state_bytes(_lease, images[1]), Binding.REFUSE_LOAD_BUSY, "open preparation")
 	_end(token)
 	assert_equal(_restore_cold_images(images), &"", "the intact images restore")
+
+
+func _indexed(boxes: Array[PackedInt32Array], roles: PackedInt32Array, on: bool, checks: int = 1048576) -> Binding.Clearance:
+	"""Decision 2045 (P-2045-12 (a)): the same fixture proof with the row index on or off."""
+	var proof: Binding.Clearance = _proof(boxes, roles, checks)
+	proof.indexed = on
+	return proof
+
+
+func _selected(proof: Binding.Clearance, bounds: PackedInt32Array) -> PackedInt32Array:
+	"""Every row the index selects for `bounds`, in the order a scan visits them."""
+	var out: PackedInt32Array = PackedInt32Array()
+	var selection: PackedInt32Array = PackedInt32Array()
+	var row: int = proof.first_row(bounds, selection)
+	while row >= 0:
+		out.append(row)
+		row = proof.next_row(selection, row)
+	return out
+
+
+func _z_rows(spans: Array) -> Array[PackedInt32Array]:
+	"""Ten-unit columns at the given half-open z spans."""
+	var boxes: Array[PackedInt32Array] = []
+	for span: Vector2i in spans:
+		boxes.append(PackedInt32Array([0, 0, span.x, 10, 10, span.y]))
+	return boxes
+
+
+func test_the_row_index_keeps_every_overlapping_row_on_its_band_boundaries() -> void:
+	"""Decision 2045 (P-2045-12 (a), Slice C's condition 2): the image spans z 0..6400, so the 64 bands are 100 wide.
+	Rows that touch a query only at a face (which `Space.overlaps` refuses) fall in the next band; a row straddling
+	a band boundary is in both. Every overlapping row is selected, and every scan answers as the full scan does."""
+	var boxes: Array[PackedInt32Array] = _z_rows([Vector2i(0, 100), Vector2i(100, 200), Vector2i(200, 300),
+		Vector2i(199, 201), Vector2i(300, 400), Vector2i(6300, 6400)])
+	var roles: PackedInt32Array = PackedInt32Array([Space.SUPPORTED_VOID, Space.OBSTACLE, Space.SUPPORTED_VOID,
+		Space.SUPPORTED_VOID, Space.OBSTACLE, Space.SUPPORTED_VOID])
+	var proof: Binding.Clearance = _indexed(boxes, roles, true)
+	assert_equal(_selected(proof, PackedInt32Array([0, 0, 200, 10, 10, 300])), PackedInt32Array([2, 3]),
+		"the band [200, 300): its own row and the straddling one, not the rows touching its faces")
+	assert_equal(_selected(proof, PackedInt32Array([0, 0, 199, 10, 10, 200])), PackedInt32Array([1, 3]),
+		"one unit under the boundary: band 1's rows only")
+	for query: PackedInt32Array in [PackedInt32Array([0, 0, 200, 10, 10, 300]), PackedInt32Array([0, 0, 100, 10, 10, 200]),
+			PackedInt32Array([0, 0, 199, 10, 10, 201]), PackedInt32Array([0, 0, 300, 10, 10, 6300]),
+			PackedInt32Array([0, 0, 0, 10, 10, 6400]), PackedInt32Array([0, 0, 6400, 10, 10, 6500]),
+			PackedInt32Array([10, 0, 0, 20, 10, 6400])]:
+		for row: int in boxes.size():
+			if Space.overlaps(query, boxes[row]):
+				assert_true(_selected(proof, query).has(row), "row %d overlaps %s and is selected" % [row, query])
+		var full: Binding.Clearance = _indexed(boxes, roles, false)
+		var fast: Binding.Clearance = _indexed(boxes, roles, true)
+		assert_equal(fast.blocked(query), full.blocked(query), "blocked %s" % query)
+		assert_equal(fast.covered(query, Space.SUPPORTED_VOID), full.covered(query, Space.SUPPORTED_VOID), "covered %s" % query)
+		assert_equal(fast.fragments.slice(0, 6 * fast.count), full.fragments.slice(0, 6 * full.count), "fragments %s" % query)
+
+
+func test_the_row_index_subtracts_overlapping_rows_in_row_order() -> void:
+	"""Decision 2045 (P-2045-12 (a), Slice C's condition 1): overlapping covers in other bands than their row order
+	leave the same fragments, count, shapes and order, as the full scan."""
+	var boxes: Array[PackedInt32Array] = [PackedInt32Array([0, 0, 2000, 6, 10, 2150]),
+		PackedInt32Array([3, 0, 100, 10, 10, 2250]), PackedInt32Array([0, 0, 50, 10, 5, 2120]),
+		PackedInt32Array([2, 2, 2100, 8, 8, 2400]), PackedInt32Array([0, 0, 6300, 10, 10, 6400]),
+		PackedInt32Array([0, 0, 0, 10, 10, 40])]
+	var roles: PackedInt32Array = PackedInt32Array([Space.SUPPORTED_VOID, Space.SUPPORTED_VOID, Space.SUPPORTED_VOID,
+		Space.SUPPORTED_VOID, Space.SUPPORTED_VOID, Space.SUPPORT])
+	for query: PackedInt32Array in [PackedInt32Array([0, 0, 1990, 10, 10, 2240]), PackedInt32Array([0, 0, 0, 10, 10, 2400])]:
+		var full: Binding.Clearance = _indexed(boxes, roles, false)
+		var fast: Binding.Clearance = _indexed(boxes, roles, true)
+		full.start(query)
+		fast.start(query)
+		assert_equal(fast.subtract_role(Space.SUPPORTED_VOID), full.subtract_role(Space.SUPPORTED_VOID), "answer")
+		assert_true(full.count > 1, "the fixture leaves several fragments")
+		assert_equal(fast.count, full.count, "fragment count")
+		assert_equal(fast.fragments.slice(0, 6 * fast.count), full.fragments.slice(0, 6 * full.count), "shapes, in order")
+		var limit: PackedInt32Array = PackedInt32Array([0, 0, 0, 10, 10, 2200])
+		assert_equal(fast.subtract_role(Space.SUPPORTED_VOID, limit), full.subtract_role(Space.SUPPORTED_VOID, limit), "limited")
+		assert_equal(fast.fragments.slice(0, 6 * fast.count), full.fragments.slice(0, 6 * full.count), "limited shapes")
+
+
+func test_the_row_index_charges_its_work_and_only_answers_where_the_full_scan_ran_out() -> void:
+	"""Decision 2045 (P-2045-12 (a), Slice C's conditions 3 and 4): the full scan charges a check a row; the index
+	charges its build once per image and each lookup's words and rows. The one outcome that changes is a scan whose
+	budget ran out row by row: with the index it reaches its real answer."""
+	var boxes: Array[PackedInt32Array] = []
+	var roles: PackedInt32Array = PackedInt32Array()
+	for index: int in 600:
+		boxes.append(PackedInt32Array([0, 0, 10000 + 10 * index, 10, 10, 10005 + 10 * index]))
+		roles.append(Space.OBSTACLE)
+	boxes.append(PackedInt32Array([0, 0, 0, 10, 10, 10]))
+	roles.append(Space.SUPPORTED_VOID)
+	var query: PackedInt32Array = PackedInt32Array([0, 0, 0, 10, 10, 10])
+	var full: Binding.Clearance = _indexed(boxes, roles, false)
+	assert_false(full.blocked(query), "nothing blocks the query")
+	assert_equal(1048576 - full.remaining, 601, "the full scan: a check a row")
+	var fast: Binding.Clearance = _indexed(boxes, roles, true)
+	assert_false(fast.blocked(query), "the same answer")
+	var built: int = 1048576 - fast.remaining
+	assert_true(built > 601, "the first lookup pays the build (%d)" % built)
+	assert_false(fast.blocked(query), "a second lookup on the same image")
+	var lookup: int = 1048576 - fast.remaining - built
+	assert_equal(lookup, 19 + 1, "no rebuild: 19 words of one band and the one row it holds")
+	full = _indexed(boxes, roles, false, 300)
+	assert_true(full.blocked(query), "the full scan runs out of budget: blocked")
+	assert_equal(full.error, &"WORLD_ROUTE_CHECK_CAPACITY", "as a budget refusal")
+	fast = _indexed(boxes, roles, true, 10)
+	assert_true(fast.blocked(query), "an index that cannot pay its build is blocked the same way")
+	assert_equal(fast.error, &"WORLD_ROUTE_CHECK_CAPACITY", "the same refusal")
+
+
+func test_an_overlapping_pending_obstacle_still_pays_its_span_proof() -> void:
+	"""Decision 2045 (P-2045-12 (a), Slice C's condition 6): `_body_blocked` reaches `_pending_span_refusal`'s 4096
+	spend for an OBSTACLE overlapping the body under an excusing profile; a face-touching one is never selected."""
+	for touching: bool in [false, true]:
+		var binding: Binding = Binding.new()
+		binding._bounds = PackedInt32Array([0, 0, 0, 10, 10, 10])
+		binding._descriptor.profile_id = 2
+		binding._installation = Locations.InstallationContext.new()
+		var z: int = 10 if touching else 5
+		binding._proof = _indexed([PackedInt32Array([0, 0, z, 10, 10, z + 10]), PackedInt32Array([0, 0, 6000, 10, 10, 6010])],
+			PackedInt32Array([Space.OBSTACLE, Space.SUPPORTED_VOID]), true)
+		var spent: int = binding._proof.remaining
+		assert_equal(binding._body_blocked(Vector3i.ZERO, Vector3i(0, 0, -1)), not touching, "touching %s" % touching)
+		spent -= binding._proof.remaining
+		assert_equal(spent >= 4096, not touching, "the span proof's 4096 checks, touching %s (%d)" % [touching, spent])

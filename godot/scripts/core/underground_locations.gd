@@ -393,6 +393,9 @@ const PASS_LANDINGS: int = 64 # M5's 41 LANDING regions; a variant with more tak
 var _landing_sorted: PackedInt64Array = PackedInt64Array() # Sized at configure.
 var _remaining: int = 0
 var _snapshot: Space.Snapshot = null
+## Decision 2045 (P-2045-13 (a)): the hull of the record whose image `_record_geometry_refusal` indexed (see
+## `_index_record_image`); fixed scratch, its rows a local of that call.
+var _near_hull: PackedInt32Array = PackedInt32Array([0, 0, 0, 0, 0, 0])
 var _region: Owner.Region = Owner.Region.new()
 var _record: Record = Record.new()
 var _math: IntMath.IntResult = IntMath.IntResult.new()
@@ -713,8 +716,9 @@ func wire_bytes() -> int:
 
 
 func cold_peak_bytes() -> int:
-	"""One complete snapshot plus two half-limit fragment arrays and bounded box scratch."""
-	return 72 * _domain._regions + 16 * _domain._regions + 384 if _domain != null else 0
+	"""One complete snapshot plus two half-limit fragment arrays and bounded box scratch, and (decision 2045,
+	P-2045-13 (a)) the record image's row index, one int32 a row."""
+	return 72 * _domain._regions + 16 * _domain._regions + 4 * _domain._regions + 384 if _domain != null else 0
 
 
 func is_live_location(location: Vector2i) -> bool:
@@ -2062,13 +2066,15 @@ func _record_geometry_refusal(record: Record) -> StringName:
 		code = _survey_for(record)
 	if code != &"" or _carry_geometry:
 		return code
-	code = _record_obstacles_refusal(record)
+	var near: PackedInt32Array = PackedInt32Array() # Decision 2045 (P-2045-13 (a)): this image's rows near the record.
+	if not _index_record_image(record, near): return &"LOCATION_OPERATION_BUDGET"
+	code = _record_obstacles_refusal(record, near)
 	if code == &"": code = _air_obstacles_refusal(record)
 	if code != &"": return code
-	if not _covered(record.envelope, Space.SUPPORTED_VOID) or not _covered(record.support, Space.SUPPORT):
+	if not _covered(record.envelope, Space.SUPPORTED_VOID, near) or not _covered(record.support, Space.SUPPORT, near):
 		return &"LOCATION_COVERAGE_MISSING" if _remaining >= 0 else &"LOCATION_OPERATION_BUDGET"
 	for index: int in record.air_count:
-		if not _covered(_air_box_at(record, index), Space.SUPPORTED_VOID):
+		if not _covered(_air_box_at(record, index), Space.SUPPORTED_VOID, near):
 			return &"LOCATION_COVERAGE_MISSING" if _remaining >= 0 else &"LOCATION_OPERATION_BUDGET"
 	return &""
 
@@ -2097,10 +2103,12 @@ func _air_obstacles_refusal(record: Record) -> StringName:
 	return &""
 
 
-func _record_obstacles_refusal(record: Record) -> StringName:
-	"""All blockers remain authoritative; only the exact original pending prism can receive its physical proof."""
+func _record_obstacles_refusal(record: Record, near: PackedInt32Array) -> StringName:
+	"""All blockers remain authoritative; only the exact original pending prism can receive its physical proof.
+	Decision 2045 (P-2045-13 (a)): only the image's rows near the record (`near`), in row order."""
 	var rows: Space.Volumes = _snapshot.volumes
-	for row: int in rows.role.size():
+	_check_near(record.envelope, near)
+	for row: int in near:
 		if not _spend():
 			return &"LOCATION_OPERATION_BUDGET"
 		if rows.role[row] in BLOCKING_ROLES and Space.overlaps(record.envelope, rows.box_at(row)) \
@@ -2108,6 +2116,38 @@ func _record_obstacles_refusal(record: Record) -> StringName:
 			var code: StringName = _pending_entry_record_refusal(record, row)
 			if code != &"": return code
 	return &""
+
+
+func _index_record_image(record: Record, near: PackedInt32Array) -> bool:
+	"""Decision 2045 (P-2045-13 (a)): one walk of the record's image, one check a row, keeping in `near`, ascending,
+	the rows that meet the hull of the record's envelope, support and air. A box inside the hull overlaps only rows
+	that meet the hull, so nothing `Space.overlaps` accepts is left out."""
+	var rows: Space.Volumes = _snapshot.volumes
+	if not _spend(rows.role.size()): return false
+	for axis: int in 3:
+		_near_hull[axis] = mini(record.envelope[axis], record.support[axis])
+		_near_hull[axis + 3] = maxi(record.envelope[axis + 3], record.support[axis + 3])
+		for index: int in record.air_count:
+			_near_hull[axis] = mini(_near_hull[axis], record.air[6 * index + axis])
+			_near_hull[axis + 3] = maxi(_near_hull[axis + 3], record.air[6 * index + axis + 3])
+	for row: int in rows.role.size():
+		if rows.lo_x[row] < _near_hull[3] and _near_hull[0] < rows.hi_x[row] and rows.lo_y[row] < _near_hull[4] \
+				and _near_hull[1] < rows.hi_y[row] and rows.lo_z[row] < _near_hull[5] and _near_hull[2] < rows.hi_z[row]:
+			near.append(row)
+	return true
+
+
+func _check_near(box: PackedInt32Array, near: PackedInt32Array) -> void:
+	"""With the cache checks on, unspent: the hull holds `box`, and every row that overlaps `box` is in `near`."""
+	if not CacheChecks.enabled: return
+	if not Space.contains_box(_near_hull, box):
+		CacheChecks.report("record image index", "a queried box leaves the record's hull")
+	var kept: int = 0
+	for row: int in _snapshot.volumes.role.size():
+		if kept < near.size() and near[kept] == row:
+			kept += 1
+		elif Space.overlaps(box, _snapshot.volumes.box_at(row)):
+			CacheChecks.report("record image index", "row %d overlaps a box it was not kept for" % row)
 
 
 func _loaded_workpiece_volume(rows: Space.Volumes, row: int) -> bool:
@@ -2228,11 +2268,14 @@ func _installation_snapshot_into(record: Record, physical: Sites, site: Vector2i
 	return _owner.prepared_snapshot_leased_into(_owner_token, image, _cold, _cold_token)
 
 
-func _covered(box: PackedInt32Array, role: int) -> bool:
-	"""Exact disjoint subtraction detects interior holes; sampled corners are insufficient."""
+func _covered(box: PackedInt32Array, role: int, near: PackedInt32Array) -> bool:
+	"""Exact disjoint subtraction detects interior holes; sampled corners are insufficient.
+	Decision 2045 (P-2045-13 (a)): only the image's rows near the record (`near`, which holds every row meeting
+	`box`), in row order. Every fragment lies inside `box`; a row that misses `box` re-emits each fragment unchanged."""
 	var pending: Array[PackedInt32Array] = [box]
 	var rows: Space.Volumes = _snapshot.volumes
-	for row: int in rows.role.size():
+	_check_near(box, near)
+	for row: int in near:
 		if not _spend():
 			return false
 		if rows.role[row] != role:

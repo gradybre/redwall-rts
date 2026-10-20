@@ -2005,3 +2005,45 @@ func test_world_refresh_carries_or_reproves_extra_air_like_the_envelope() -> voi
 	assert_equal(_air_world_round(scope, [100, 0, 100, 200, 100, 200], location), &"LOCATION_ENVELOPE_BLOCKED", "blocker in extra air")
 	assert_equal(_locations._carried_locations, 0, "a change meeting only the extra box is never carried")
 	assert_true(_locations.is_live_location(location), "refused refresh keeps the live row")
+
+
+func test_the_record_image_index_keeps_every_row_its_boxes_overlap_and_covers_as_the_full_scan() -> void:
+	"""Decision 2045 (P-2045-13 (a)): `_index_record_image` walks the image once and keeps, in row order, the rows that
+	meet the hull of the record's envelope, support and air; a row touching the hull only at a face is left out, as
+	`Space.overlaps` refuses it. `_covered` over the kept rows answers and spends as master's scan of every row would,
+	less the rows that cannot meet the box."""
+	var image: Space.Snapshot = Space.Snapshot.new()
+	var boxes: Array = [[0, 0, 0, 10, 10, 10], [0, -4, 0, 10, 0, 10], [10, 0, 0, 20, 10, 10], [0, 10, 0, 10, 20, 10],
+		[0, 0, 6, 10, 10, 30], [500, 0, 0, 510, 10, 10], [0, 12, 0, 4, 18, 10]]
+	var roles: Array = [Space.SUPPORTED_VOID, Space.SUPPORT, Space.SUPPORTED_VOID, Space.OBSTACLE, Space.SUPPORTED_VOID,
+		Space.SUPPORT, Space.SUPPORTED_VOID]
+	for row: int in boxes.size():
+		assert_true(image.volumes.append(PackedInt32Array(boxes[row]), roles[row], 1, Vector2i(6, 3), 2), "row %d" % row)
+	var locations: Locations = Locations.new()
+	locations._snapshot = image
+	locations._domain = Space.Domain.new()
+	locations._domain._regions = 64
+	var record: Locations.Record = Locations.Record.new()
+	record.envelope = PackedInt32Array([0, 0, 0, 10, 8, 10])
+	record.support = PackedInt32Array([0, -2, 0, 10, 0, 10])
+	record.air = PackedInt32Array()
+	record.air.resize(6 * Locations.MAX_AIR_EXTRA)
+	record.air_count = 1
+	for axis: int in 6: record.air[axis] = [2, 8, 2, 8, 14, 8][axis]
+	locations._remaining = 1000
+	var near: PackedInt32Array = PackedInt32Array()
+	assert_true(locations._index_record_image(record, near), "one walk")
+	assert_equal(1000 - locations._remaining, boxes.size(), "one check a row")
+	assert_equal(locations._near_hull, PackedInt32Array([0, -2, 0, 10, 14, 10]), "the record's hull")
+	assert_equal(near, PackedInt32Array([0, 1, 3, 4, 6]), "rows meeting the hull, not those touching its faces")
+	var every: PackedInt32Array = PackedInt32Array(range(boxes.size()))
+	for probe: Array in [[record.envelope, Space.SUPPORTED_VOID], [record.support, Space.SUPPORT],
+			[record.air.slice(0, 6), Space.SUPPORTED_VOID], [record.envelope, Space.SUPPORT]]:
+		locations._remaining = 1000
+		var fast: bool = locations._covered(probe[0], probe[1], near)
+		var fast_spent: int = 1000 - locations._remaining
+		locations._remaining = 1000
+		assert_equal(fast, locations._covered(probe[0], probe[1], every), "the same answer for %s" % [probe[0]])
+		var full_spent: int = 1000 - locations._remaining
+		assert_true(fast_spent <= full_spent, "no more checks for %s" % [probe[0]])
+		if not fast: assert_true(fast_spent < full_spent, "an uncovered box skips the far rows: %s" % [probe[0]])

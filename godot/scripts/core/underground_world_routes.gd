@@ -371,6 +371,10 @@ var _endpoint: Locations.Record = Locations.Record.new()
 ## on a repeat, with the same spend. Runtime only, never saved; reset by every compile.
 var _observed: Array[Locations.Record] = [Locations.Record.new(), Locations.Record.new()]
 var _observed_key: PackedInt64Array = PackedInt64Array()
+## Decision 2045 (P-2045-7 (a)): the key of the one prepared source and claim pass this preparation proved (all zero =
+## none): the route token, the Space token, the owner's stage token, staged and live geometry revisions, changed-row
+## count, and its install row, Room row and furniture count (the pass's typed transitions). Runtime only; never saved.
+var _prepared_key: PackedInt64Array = PackedInt64Array([0, 0, 0, 0, 0, 0, 0, 0, 0])
 var _observe_serial: int = 1
 var _observe_next: int = 0
 ## Decision 1953: `_catalog.pace_into` as last answered in this preparation (`_pace_serial` moves per `_begin_proof`).
@@ -984,13 +988,55 @@ func _staged_change_meets(box: PackedInt32Array) -> bool:
 
 
 func _preparation_refusal() -> StringName:
-	"""Lease expiry, content reload and physical preparation drift invalidate the complete candidate."""
+	"""Lease expiry, content reload and physical preparation drift invalidate the complete candidate.
+	Decision 2045 (P-2045-7 (a), Slice C's design): the prepared source and claim pass is proved once per preparation;
+	while its key holds (`_prepared_key`) it is not scanned again and only the key compare is charged. The identity
+	check (`prepared_identity_refusal`, in `_carried_context_refusal`) still runs on every call. With the cache checks
+	on, a skipped pass also runs in full, unspent, and a different answer is reported."""
 	var code: StringName = _carried_context_refusal()
 	if code != &"" or _space_token == 0:
 		return code
+	if _proof != null and _prepared_pass_held():
+		return &"" if _proof.spend(PREPARED_KEY_CHECKS) else _proof.error
 	if _proof != null and not _proof.spend(SOURCE_PASS_CHECKS):
 		return _proof.error
-	return _owner().prepared_refusal(_space_token)
+	code = _owner().prepared_refusal(_space_token)
+	if code == &"" and _proof != null: _prepared_key_into(_prepared_key)
+	return code
+
+
+## Decision 2045 (P-2045-7 (a)): the words `_prepared_key` compares.
+const PREPARED_KEY_CHECKS: int = 9
+
+
+func _prepared_pass_held() -> bool:
+	"""Decision 2045: whether this preparation already proved the prepared pass at the current key."""
+	if _prepared_key[0] == 0: return false
+	for at: int in PREPARED_KEY_CHECKS:
+		if _prepared_key[at] != _prepared_key_word(at): return false
+	if Profiles.CacheChecks.enabled and _owner().prepared_refusal(_space_token) != &"":
+		Profiles.CacheChecks.report("prepared pass", "route token %d: the skipped pass refuses" % _route_token)
+	return true
+
+
+func _prepared_key_into(out: PackedInt64Array) -> void:
+	"""Decision 2045: record the current key."""
+	for at: int in PREPARED_KEY_CHECKS: out[at] = _prepared_key_word(at)
+
+
+func _prepared_key_word(at: int) -> int:
+	"""Decision 2045: one word of the prepared pass's key."""
+	var owner: Owner = _owner()
+	match at:
+		0: return _route_token
+		1: return _space_token
+		2: return owner._stage_token
+		3: return owner._s_header[17]
+		4: return owner._header[17]
+		5: return owner._changed_count
+		6: return owner._install_row
+		7: return owner._room_row
+	return owner._furniture_count
 
 
 func _carried_context_refusal() -> StringName:

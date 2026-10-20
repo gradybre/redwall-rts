@@ -1512,6 +1512,40 @@ func test_staged_change_meeting_the_path_is_rechecked_and_refused() -> void:
 	assert_equal(_binding._carried_edges, 1, "staged far change misses every sweep")
 
 
+func test_a_preparation_proves_the_prepared_pass_once_while_its_key_holds() -> void:
+	"""Decision 2045 (P-2045-7 (a)): inside one route preparation over a sealed Space stage, the prepared source and
+	claim pass is scanned once; a repeat while the key holds charges the key compare only, and a changed key (here the
+	owner's changed-row count) scans it again."""
+	_actual_fixture()
+	_publish_route()
+	var token: int = _stage_distant_geometry()
+	_lease = _budget.acquire(Budget.COLD_BYTES)
+	var begun: Routes.Result = _binding.begin_prepare(_lease, token)
+	assert_equal(begun.error, &"", "a real preparation over the staged candidate")
+	var before: int = _binding._proof.remaining
+	assert_equal(_binding._preparation_refusal(), &"", "the first pass")
+	var first: int = before - _binding._proof.remaining
+	assert_true(first >= Binding.SOURCE_PASS_CHECKS, "the first pass is scanned and charged in full")
+	before = _binding._proof.remaining
+	assert_equal(_binding._preparation_refusal(), &"", "a repeat")
+	assert_equal(before - _binding._proof.remaining, first - Binding.SOURCE_PASS_CHECKS + Binding.PREPARED_KEY_CHECKS,
+		"a repeat charges the key compare, not the scan")
+	_owner._changed_count += 1
+	before = _binding._proof.remaining
+	_binding._preparation_refusal()
+	assert_equal(before - _binding._proof.remaining, first, "a changed key scans again")
+	_owner._changed_count -= 1
+	_binding._preparation_refusal()
+	var row: int = _owner._s_o_present.find(1)
+	var fact: int = _owner._s_o_a[row]
+	_owner._s_o_a[row] = fact + 1 # Source drift the key cannot see: the cache checks' full pass reports it.
+	expect_diagnostic("prepared pass")
+	assert_equal(_binding._preparation_refusal(), &"", "the memo answers")
+	_owner._s_o_a[row] = fact
+	_end(begun.token)
+	assert_true(_owner.abort(token), "candidate discarded")
+
+
 func test_journal_overflow_falls_back_to_a_full_recheck() -> void:
 	"""ADR1205: evicted history raises the floor above the certificate, which is then proved in full."""
 	_actual_fixture()

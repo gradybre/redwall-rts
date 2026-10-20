@@ -4,7 +4,7 @@
 #
 #     ./tools/run_tests_parallel.sh                          # CI's shard count, 4 shards at a time
 #     ./tools/run_tests_parallel.sh --jobs 5                 # 5 at a time on an otherwise idle machine
-#     ./tools/run_tests_parallel.sh --shards 10 --jobs 4 --output-dir /tmp/shards
+#     ./tools/run_tests_parallel.sh --shards 12 --jobs 4 --output-dir /tmp/shards
 #
 # Every shard is `./tools/run_tests.sh --shard N/COUNT --output-dir DIR`, unchanged: its own private HOME and
 # user:// (ADR 1204), the same zero allowances, its own report. When all have finished this prints each shard's

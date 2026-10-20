@@ -37,10 +37,21 @@ Relayed by the coordinator: Brendan answered in chat through AskUserQuestion, sa
 - **P-2052-8.** No D2 code, test or recipe assumes how many ticks the stair takes. Tests wait on the entry's state,
   never on a tick count derived from today's chain; the checkpoint recipe's cost (§2.5, F12) is today's and may shrink
   with decision 2081.
-- **P-2052-10 with P-2052-4 (b), for the coordinator.** P-2052-10 (a) locks the demo's Mound hatch "with the Hatch";
-  under P-2052-4 (b) the other Hatches stay placeable as proof of concept. As ruled, the Mound hatch is locked and the
-  other Hatches are not. The phase 3 lane builds that unless the coordinator confirms otherwise with Brendan; it does
-  not affect phase 1.
+- **P-2052-10 with P-2052-4 (b), for the coordinator.** P-2052-10 (a) locked the demo's Mound hatch "with the Hatch",
+  while under P-2052-4 (b) the other Hatches stay placeable as proof of concept. Raised by phase 1's report and
+  **resolved by Brendan on 2026-10-20 (relayed by the coordinator): "Mound hatch stays PoC too."** P-2052-10 is
+  amended: the demo's Mound hatch stays placeable as a labelled proof of concept until MOUND-REAL, as every other
+  family but the Stair-head does. In the real route a Stair-head on a Mound floor is still BUILD-MOUND-021's "does
+  not fit" refusal.
+- **Pacing (decision 2081, Brendan, 2026-10-20, relayed).** A later lane builds the entry as one batched build with
+  one entry time scale, after M5 merges. D2 depends on no per-cube timing of the entry: phase 2 binds on the entry's
+  state (`STEP_DONE`), never on a tick count.
+
+**Phase 3, as amended.** The switchover moves rooms on level 1 reached through the real Stair-head and the Stair-head
+itself to the real route. The Burrow mouth, the Hatch with ladder, the Mound hatch and every way on levels 1–3 stay
+the proof of concept's, placeable, dug free and labelled "Proof of concept: free; not yet a qualified descent". No
+family is locked "Not yet". So `demo_build_works.gd` keeps its way digging, the mole files that serve it stay, and
+§2.8 and P-2052-10 (a)'s locking are superseded by this paragraph.
 
 **What was read.** Every path under `godot/` is at origin/master `d41269dd` unless marked **[M5]**. [M5] means the
 read-only M5 branch `origin/feat/slice-d-m5-full` at `e99d7afb` (decision 2045's second build phase, before

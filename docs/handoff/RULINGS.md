@@ -255,6 +255,7 @@ Every row was checked against the record named.
 | Topic | Ruling | Recorded in |
 |---|---|---|
 | Slice D2's scoping (2052 P-2052-1–11), 2026-10-20 | **"Approve, start phase 1"**: P-2052-1, -2, -3, -5, -6, -9, -10 and -11 **(a)** as recommended; P-2052-7 **(a)**, a labelled stand-in moves stock into R until HAUL-H3+. **P-2052-4 (b), "Keep them as proof of concept"**: in the demo the Burrow mouth, Hatch with ladder and ways on levels 1–3 stay placeable as clearly labelled proof of concept; only the Stair-head is the real, qualified way down. **P-2052-8 superseded** by a pacing ruling, **"Building the stair should be ~30s–1m"**: the whole full-level stair, Confirm to level 1 open, takes 30–60 real seconds at 1x (pacing study, decision 2081); D2 assumes no build duration; the way's progress card stays. (Relayed by the coordinator) | [2052](../decisions/2052-slice-d2-scoping-binding-a-way-down-to-room-digs.md) "Brendan's rulings" |
+| Slice D2: the Mound hatch (2052 P-2052-10, amended), 2026-10-20 | **"Mound hatch stays PoC too."** The demo's Mound hatch stays placeable as a labelled proof of concept until MOUND-REAL, consistent with P-2052-4 (b); P-2052-10 (a)'s locking is withdrawn. (Relayed by the coordinator) | [2052](../decisions/2052-slice-d2-scoping-binding-a-way-down-to-room-digs.md) "Brendan's rulings" |
 
 ## Standing rules (not dated rulings)
 

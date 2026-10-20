@@ -2335,12 +2335,71 @@ func _next_placement(issuer: RefCounted, from: int) -> int:
 	return at if at >= 0 and at < issuer._capacity else -1
 
 
+## Decision 2045 (P-2045-8 (a)): the installed-source verdict kept for the rest of one Locations operation outside a
+## witness pass: [operation token, Placements instance, its bank revision, Catalog, variant, group and recipe
+## revisions, Catalog row and group count, the Assemblies and Recipes headers]; token 0 = none. Never saved.
+var _sources_key: PackedInt64Array = PackedInt64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+
+
+func _record_sources_charge(issuer: RefCounted) -> int:
+	"""Decision 2045: the source proof's charge, `_sources_charge()`, or the key compare when the open operation already
+	proved these sources (`_sources_key`)."""
+	return SOURCES_KEY_CHECKS if _op_sources_held(issuer) else _sources_charge()
+
+
+func _record_sources_current(issuer: RefCounted) -> bool:
+	"""Decision 2045: `_pass_sources_current`, kept for the open operation outside a witness pass while its key holds.
+	Nothing it reads changes inside one operation but through the key's own words; with the cache checks on a kept
+	verdict is re-derived and a difference is reported."""
+	if _op_sources_held(issuer):
+		if CacheChecks.enabled and not _installed_sources_current(issuer):
+			CacheChecks.report("installed sources", "operation %d" % _token)
+		return true
+	var current: bool = _pass_sources_current(issuer)
+	if current and not _in_witness_pass and _token != 0: _sources_key_into(issuer, _sources_key)
+	return current
+
+
+## Decision 2045: the words `_sources_key` compares.
+const SOURCES_KEY_CHECKS: int = 12
+
+
+func _op_sources_held(issuer: RefCounted) -> bool:
+	"""Decision 2045: whether the open operation already proved this issuer's sources at the current key."""
+	if _in_witness_pass or _token == 0 or issuer == null or _sources_key[0] != _token: return false
+	for at: int in SOURCES_KEY_CHECKS:
+		if _sources_key[at] != _sources_key_word(issuer, at): return false
+	return true
+
+
+func _sources_key_into(issuer: RefCounted, out: PackedInt64Array) -> void:
+	"""Decision 2045: record the current key."""
+	for at: int in SOURCES_KEY_CHECKS: out[at] = _sources_key_word(issuer, at)
+
+
+func _sources_key_word(issuer: RefCounted, at: int) -> int:
+	"""Decision 2045: one word of the installed-source key."""
+	var header: PackedInt64Array = issuer._live.header
+	match at:
+		0: return _token
+		1: return issuer.get_instance_id()
+		2: return header[issuer.H_REVISION]
+		3: return header[issuer.H_CATALOG_REV]
+		4: return header[issuer.H_VARIANT_REV]
+		5: return header[issuer.H_GROUP_REV]
+		6: return header[issuer.H_RECIPE_REV]
+		7: return header[issuer.H_CATALOG_ROW]
+		8: return header[issuer.H_GROUP_COUNT]
+		9: return issuer._assemblies._header[0] if issuer._assemblies != null else -1
+		10: return issuer._recipes._header[0] if issuer._recipes != null else -1
+	return issuer._assemblies._header[5] if issuer._assemblies != null else -1
+
+
 func _installed_surface_site(record: Record, physical: Sites) -> Vector2i:
 	"""A real installed prism and exact Catalog datum may locate its paid lower cube; arbitrary y-minus-one cannot."""
-	if physical == null or _installation == null or _installation.issuer == null or not _spend(_sources_charge()):
-		return NULL_REF
+	if physical == null or _installation == null or _installation.issuer == null: return NULL_REF
 	var issuer: RefCounted = _installation.issuer.get_ref()
-	if not _pass_sources_current(issuer): return NULL_REF
+	if not _spend(_record_sources_charge(issuer)) or not _record_sources_current(issuer): return NULL_REF
 	if _installation_active() and installation_scope_refusal(self, _installation) != &"": return NULL_REF
 	var found: Vector2i = NULL_REF
 	var matches: int = 0
@@ -2363,7 +2422,7 @@ func _installed_surface_site(record: Record, physical: Sites) -> Vector2i:
 		if site != NULL_REF:
 			found = site
 			matches += 1
-	return found if matches == 1 and _pass_sources_current(issuer) else NULL_REF
+	return found if matches == 1 and _record_sources_current(issuer) else NULL_REF
 
 
 func _sources_charge() -> int:
@@ -2394,7 +2453,7 @@ func _installed_record_kind(record: Record) -> int:
 	"""Derive the witness from current immutable LANDING geometry; no saved flag or cube-height inference applies."""
 	if _installation == null: return 0
 	var issuer: RefCounted = _installation.issuer.get_ref() if _installation.issuer != null else null
-	if issuer == null or not _spend(_sources_charge()): return -1
+	if issuer == null or not _spend(_record_sources_charge(issuer)): return -1
 	var matches: int = 0
 	var current: bool = false
 	var row: int = -1
@@ -2407,7 +2466,7 @@ func _installed_record_kind(record: Record) -> int:
 		if issuer._live.i32[issuer.ROOM_SLOT * issuer._capacity + row] != record.room.x \
 				or issuer._live.i32[(issuer.ROOM_SLOT + 1) * issuer._capacity + row] != record.room.y: continue
 		if not current:
-			if not _pass_sources_current(issuer): return -1
+			if not _record_sources_current(issuer): return -1
 			current = true
 		if not _installed_row_source(issuer, row, record.room): return -1
 		var count: int = _installed_landing_count(issuer, row, record)

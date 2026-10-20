@@ -591,3 +591,17 @@ air, every footing on the deck rows) before any runtime change. A first pass of 
 test's own helpers already holds on M2 and on every M5 landing: 45 at U0' and swept U0' → R', 42 at R' and 47 swept
 R' → F' meet no part; 45's footing at U0' ends 94 u inside the deck rows and 42's at R' exactly on their edge; 45's
 body lies inside 42's air.
+
+## Brendan's ruling on P-2045-11 (2026-10-20)
+
+Relayed by the coordinator: Brendan answered in chat through AskUserQuestion.
+
+| Proposal | Ruling | What it means |
+|---|---|---|
+| P-2045-11 | **(a), the turning spot R'** | On each landing j ≥ 1, R' stands at D's point, is sized by the all-yaw claw walk 42 and is published with module j's T0 (an installed contact of T0, as U0' is). U0' is sized by the approach 45. The way up is U0' → R' on 45, a turn at R' on 42, then R' → F' on 47 and on as before. No new motion. **This supersedes P-2045-9** |
+
+**P-2045-9 (a) is recorded as failed:** its clearance test, written first, showed the all-yaw walk 42's footing at U0'
+running 63 u past the floor that is never cut (to z −7,231 against the deck rows' edge at −7,168 on landing 1; the
+same at every landing), and a Routes turn needs an all-yaw selection with its whole footing on support. The clearance
+test for R' (R', U0' on 45 and the three edges U0' → R', R' → F' and the turn, on M2 and every M5 landing) is
+committed before anything is built. Indexed in `docs/handoff/RULINGS.md`.

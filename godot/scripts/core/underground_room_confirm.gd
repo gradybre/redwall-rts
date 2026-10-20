@@ -27,6 +27,12 @@ const PITCH_U: int = 1024
 const REFUSE_NO_WAY_IN: StringName = &"ROOM_DIG_NO_WAY_IN"
 const REFUSE_SCOPE: StringName = &"ROOM_DIG_SCOPE"
 const NO_WAY_IN_WORDS: String = "No way in: needs a way down to level %d"
+## Decision 1943, P-1943-1 ("Claws for turns, warn"): moles dig rooms with their claws (DEC-052), so a named crew
+## member holding a pick is refused (`Composer.REFUSE_CREW_MEMBER`), and a claw digger who picks one up mid-dig stops
+## the dig (`Builder.REFUSE_PICK_CANNOT_TURN`). Both in words, never a bare code.
+const PICK_CREW_WORDS: String = "Pick diggers can't dig rooms yet: choose a claw digger"
+const PICK_TURN_WORDS: String = "Stopped: a digger picked up a pick, and pick diggers can't dig rooms. " \
+	+ "Choose a claw digger and Confirm all again"
 
 
 class Painted extends RefCounted:
@@ -103,3 +109,15 @@ static func _request(world: Vector2i, space_revision: int, painted: Painted) -> 
 static func refusal_words(code: StringName, level: int) -> String:
 	"""The player's words for the route's own refusal; any other code is returned as it is (its owner's words)."""
 	return NO_WAY_IN_WORDS % level if code == REFUSE_NO_WAY_IN else String(code)
+
+
+static func pick_words(code: StringName, owners: Builder.Owners = null,
+		crew: PackedInt32Array = PackedInt32Array()) -> String:
+	"""Decision 1943: the words for a pick refusal (a named crew member holding a pick, `owners` and `crew` given; a
+	claw digger who picked one up mid-dig), or "" for any other refusal."""
+	if code == Builder.REFUSE_PICK_CANNOT_TURN: return PICK_TURN_WORDS
+	if code != Composer.REFUSE_CREW_MEMBER or owners == null: return ""
+	for at: int in range(0, crew.size() - 1, 2):
+		var slot: int = Composer._slot_of(owners.residents, Vector2i(crew[at], crew[at + 1]))
+		if slot >= 0 and owners.residents.has_equipped_tool(slot): return PICK_CREW_WORDS
+	return ""

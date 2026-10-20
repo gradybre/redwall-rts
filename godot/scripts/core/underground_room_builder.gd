@@ -72,6 +72,9 @@ const REFUSE_STALL: StringName = &"ROOM_BUILDER_STALLED"
 const REFUSE_LEG: StringName = &"ROOM_BUILDER_LEG_PROFILE"
 ## Decision 1943: the content has no READY sibling of the bound travel rows at the cube's work-row heading.
 const REFUSE_HEADING_ROWS: StringName = &"ROOM_BUILDER_HEADING_ROWS"
+## Decision 1943, P-1943-1 ("Claws for turns, warn"): a claw digger that picked up a tool after the order. The dig
+## stops in words (`UndergroundRoomConfirm.refusal_words`), never as a bare planner refusal.
+const REFUSE_PICK_CANNOT_TURN: StringName = &"ROOM_DIG_PICK_CANNOT_TURN"
 const REFUSE_TARGET: StringName = &"ROOM_BUILDER_TARGET_MOVED"
 const REFUSE_LOST: StringName = &"ROOM_BUILDER_CREW_LOST"
 ## Decision 1934 (P-C22-1): no certified stair row carries cargo yet, so stock is hauled only within one level.
@@ -585,8 +588,11 @@ func footprint_serial() -> int:
 
 
 func _contact(site: Vector2i, key: int) -> StringName:
-	"""ADR1213's foreman step, aimed at one Site: the next unpaid Site after key-1 must be this one."""
+	"""ADR1213's foreman step, aimed at one Site: the next unpaid Site after key-1 must be this one. Decision 1943: a
+	claw digger now holding a tool stops the dig in words (`REFUSE_PICK_CANNOT_TURN`)."""
 	var o: Owners = _ctx.owners
+	if _crew.tool == NULL_REF and o.residents.has_equipped_tool(_worker_row_of(_ctx, _crew)):
+		return _fail(REFUSE_PICK_CANNOT_TURN)
 	var cold: int = o.budget.acquire(Budget.COLD_BYTES)
 	if cold == 0: return Budget.REFUSE_BUSY
 	var candidate: Frontier.Candidate = Frontier.Candidate.new()

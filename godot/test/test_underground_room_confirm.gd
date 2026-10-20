@@ -20,6 +20,7 @@ const Routes := preload("res://scripts/core/underground_routes.gd")
 const Sites := preload("res://scripts/core/excavation_sites.gd")
 const Contract := preload("res://scripts/core/excavation_contract.gd")
 const Buildings := preload("res://scripts/core/buildings.gd")
+const Gear := preload("res://scripts/core/gear.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const TICK_BOUND: int = 60000
 ## The second room lies north of the Kitchen along the corridor's east wall: cells z 2..3 (fixture geometry only).
@@ -491,3 +492,51 @@ func test_a_route_node_is_never_a_parking_and_a_member_with_no_parking_left_stay
 		if not _runtime.is_running() and _runtime.kept() == 0: break
 	assert_equal(seen, [] as Array[StringName], "no refusal")
 	assert_equal(foreman.done_cubes(), StationTests.KITCHEN_SITES, "every cube dug")
+
+
+func _give_a_pick() -> void:
+	"""The fixture's claw mole takes up a basic pick (decision 1943's case: moles dig rooms with their claws)."""
+	var pick: Vector2i = _h.stock(&"tool", 1000)
+	assert_true(_h._gear.create_gear(_h._inventory, _h._items, pick, Gear.MANUFACTURE_BASIC).ok, "a pick")
+	assert_true(_h._gear.equip(pick, _h._worker).ok, "carried")
+
+
+func test_a_named_crew_member_holding_a_pick_is_refused_in_words() -> void:
+	"""Decision 1943, P-1943-1 ("Claws for turns, warn"): a named mole holding a pick is refused before anything is
+	admitted, and the words say why ("Pick diggers can't dig rooms yet: choose a claw digger"); any other refused
+	crew keeps its code."""
+	if _runtime == null: return
+	var rooms: int = _room_count()
+	_give_a_pick()
+	var result: Confirm.Result = _confirm(_painted(Phase.Z, _worker_crew()), _way)
+	assert_equal(result.code, Composer.REFUSE_CREW_MEMBER, "a pick holder does not crew a room")
+	assert_equal(Confirm.pick_words(result.code, _h.owners(), _worker_crew()),
+		"Pick diggers can't dig rooms yet: choose a claw digger", "in words")
+	assert_equal(_room_count(), rooms, "nothing admitted")
+	assert_equal(_way.calls, 0, "the way in was never asked")
+	assert_equal(Confirm.pick_words(result.code, _h.owners(), PackedInt32Array([999, 1])), "",
+		"no such resident: no pick words")
+	assert_equal(Confirm.pick_words(Composer.REFUSE_CREW_SIZE, _h.owners(), _worker_crew()), "", "another refusal")
+
+
+func test_a_claw_digger_who_picks_up_a_pick_mid_dig_stops_the_dig_in_words() -> void:
+	"""Decision 1943, P-1943-1: the named claw mole takes up a pick after its first cube; at its next cube the dig stops
+	with ROOM_DIG_PICK_CANNOT_TURN, in words, never a bare planner refusal; what is dug stays dug."""
+	if _runtime == null: return
+	var result: Confirm.Result = _confirm(_painted(Phase.Z, _worker_crew()), _way)
+	assert_equal(result.code, &"", "confirmed and ordered")
+	var foreman: Foreman = _runtime.foreman_of(result.room)
+	var builder: Builder = foreman.builders()[0]
+	var seen: Array[StringName] = []
+	var given: bool = false
+	for step: int in TICK_BOUND:
+		seen.append_array(_tick())
+		if not given and foreman.done_cubes() >= 1 and builder.stage() == Builder.STAGE_IDLE:
+			_give_a_pick()
+			given = true
+		if not _runtime.is_running() and _runtime.kept() == 0: break
+		if not seen.is_empty(): break
+	assert_true(given, "the pick was taken up between cubes")
+	assert_equal(seen, [Builder.REFUSE_PICK_CANNOT_TURN] as Array[StringName], "stopped, named")
+	assert_true(foreman.done_cubes() >= 1, "what is dug stays dug")
+	assert_true(Confirm.pick_words(seen[0]).begins_with("Stopped: a digger picked up a pick"), "in words")

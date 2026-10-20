@@ -29,7 +29,8 @@ this file, the tools are wrong and get fixed.
                     with DEVIATIONS / SURVIVED_MUTANTS / BLOCKED
                                 │
                                 ▼
-                    CI: contracts job, then godot job
+                    CI: contracts and underground-memory jobs,
+                    then the aggregate godot job
                                 │
                                 ▼
                     tools/auto_merge.py

@@ -136,8 +136,11 @@ lines.
   `docs/validation/ready07_arithmetic.py`, `docs/validation/merge_gate.py` (the memory ledger chain and row
   arithmetic), `tools/dispatch_plan.py --validate`, `tools/astra_inbox.py --check`,
   `tools/generate_canonical_state_table.py --check`, `tools/lane_notes.py --check`, the movement checks,
-  `docs/validation/state_registry_coverage.py` and the rest listed in `.github/workflows/tests.yml`. Settlement work
-  that adds bytes must update the memory ledger and the registry capacity audit so these pass.
+  `docs/validation/state_registry_coverage.py` and the rest listed in `.github/workflows/tests.yml`. The joint
+  underground allocation pack (`tools/underground_memory_budget.py --check`, `tools/test_underground_memory_budget.py`
+  and `tools/test_underground_current_census.py`) runs in its own "underground-memory" job, the refusal tests split
+  into three shards by `tools/unittest_shard.py` (decision 1244); locally, run the three commands directly. Settlement
+  work that adds bytes must update the memory ledger and the registry capacity audit so these pass.
 - **Live harnesses.** Run the ones your change can affect (`godot/test/live/*.gd`) at **1280x720 and 1920x1080**:
   `godot --headless --path godot --script res://test/live/<name>.gd -- --size 1920x1080`.
 - **Frames.** For anything visible, capture frames at 1080p (and 720p for UI) into
@@ -296,7 +299,7 @@ outcome; every shared file and key touched; and the PROPOSALS needing Brendan's 
 6. **PR** with the template's three sections. Merge `origin/master` into the branch first if master moved, and rerun
    the gates.
 7. **Merge when CI is green.** The required check is the aggregate "Godot headless suite" (decision 0991); every shard,
-   gate group and contract job must pass. A PR with a non-`none` declaration waits for a human read.
+   gate group, contract job and underground-memory shard must pass (decision 1244). A PR with a non-`none` declaration waits for a human read.
    `tools/auto_merge.py` (dry run by default) checks the four conditions. Merge only when told to merge; the lead
    merged PRs in an agreed order (STATUS.md).
 8. **After merging,** mark the task done in `work_queue.json` (settlement) and move to the next packet.

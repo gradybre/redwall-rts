@@ -605,3 +605,122 @@ running 63 u past the floor that is never cut (to z −7,231 against the deck ro
 same at every landing), and a Routes turn needs an all-yaw selection with its whole footing on support. The clearance
 test for R' (R', U0' on 45 and the three edges U0' → R', R' → F' and the turn, on M2 and every M5 landing) is
 committed before anything is built. Indexed in `docs/handoff/RULINGS.md`.
+
+## Third build phase (2026-10-20): R' built, level 1 reached past the bound, stopped on WorldRoutes
+
+**Where it stands.** With R' (P-2045-11 (a)) and the fixes below, **the M5 flight reaches level 1** (the chain ends
+`ENTRY_KITCHEN_UNBUILT`, the step after the flight, at tick 92,560) **only with the bound lifted**. With today's bound
+the chain stops at tick 67,863 on landing 3 (`SPACE_COMPANION_PREPARATION_REFUSED`, WorldRoutes 1,050,600 of
+1,048,576). Locations now fits through module 3's sill and goes over on landing 4. As the brief says ("if anything
+still blocks level 1, stop and report the numbers"), the lane stops here: the census pass, checkpoints, the sharded
+suite, mutation testing, the review and the frames wait for a chain that reaches level 1 under the bound.
+
+### Built
+
+| Commit | What |
+|---|---|
+| `66a2561a` | R''s clearance test, written first: R' clears every installed part on M2 and every M5 landing; U0' sized by 45; the edges U0' → R' (45), the turn at R' (42) and R' → F' (47); and the failing case kept as a test (`test_the_all_yaw_walk_cannot_stand_at_u0`, 63 u) |
+| `8e71ad9f` | R' on each landing: the publisher writes **`qualified-stairs-m5-v2`** (bundles are create-only; `qualified-stairs-m2-v1` is unchanged), the three compositions load it, the stair path's way up is U0' → R' → F', `BINDINGS_AND_GROWTH_BYTES` +160 B with its ledger row, 305 contact-retirement endpoints |
+| `aa8b3f83` | A crew on a yaw-exact row takes the all-yaw walk 42 before it turns (`_all_yaw_before_turn` in the foreman, `_face_and_travel` in the installer); Routes turns only an all-yaw selection |
+| `fb37ffff` | The installer's legs count as progress for the stall budget (module 3's T0 haul has many legs and was failing `ENTRY_FOREMAN_STALLED` while moving) |
+| `2ed939f6` | **P-2045-8 (a), continued.** Locations keeps an operation's installed-source verdict outside a witness pass (`_sources_key`, twelve words, `SOURCES_KEY_CHECKS` 12); verified in full under the cache checks |
+
+### Re-measured: the whole flight (cache checks off, real schedule, real hauls)
+
+Peaks per interval, in checks. Bounded: today's `MAX_CHECKS`; unbounded: the bound raised in a scratch clone only.
+
+| Interval (ticks) | WorldRoutes | Locations | Bindings entry | Bindings timber |
+|---|---:|---:|---:|---:|
+| Module 0's sill (34,926) | 963,081 | 503,309 | 958,095 | 404,068 |
+| Landing 1 (to 50,000) | 590,822 | 592,220 | 424,966 | 262,890 |
+| Module 1's sill (50,011) | 413,571 | 652,548 | 971,519 | 398,651 |
+| Landing 2 (to 65,000) | 812,438 | 752,961 | 471,687 | 278,324 |
+| Module 2's sill (65,009) | 637,618 | 814,649 | 904,999 | 377,238 |
+| **Landing 3** (to 78,000) | **1,085,695** (bounded: refused at 1,050,600, tick 67,863) | 926,564 | 504,897 | 270,249 |
+| Module 3's sill (78,135) | 905,023 | 987,176 | 761,886 | 333,662 |
+| **Landing 4** (to 90,000) | **1,395,013** | **1,110,593** | 558,118 | 287,839 |
+| **Module 4 and level 1** (to 92,560) | **1,212,854** | **1,148,976** | 560,599 | 306,960 |
+
+The source memo (`2ed939f6`) took Locations from 1,431,324 to 1,148,976 at the end (−20 %), and from 1,028,181 to
+814,649 at module 2's sill. WorldRoutes is unchanged by it.
+
+**What WorldRoutes spends past landing 2.** Its profile proofs scan every row of the route image, which grows with
+every installed part: about 423 checks per profile on landing 1, 654 on landing 2, 877 on landing 3 and 1,100 on
+landing 4. On landing 4's worst tick (1,087 image volumes): the carried ground edges 791,823 (101 edges; rows 43
+and 47 never carry, `_may_excuse_pending`), 4 recompiled ground edges 414,739 (16 profiles), stair edges 83,919,
+eligibility 39,490. The bounded run's last traced recompile (875 volumes) spent 921,612 on 10 ground edges'
+40 profiles. The scans are in Clearance (`blocked`, `subtract_role`, `_body_blocked`, `_solid_contacts_covered`),
+outside the six functions held for this lane. Locations' remaining spend on landings 3 and 4 is `_covered` and
+`_record_obstacles_refusal` in each record's stage refresh, both of which scan every image row.
+
+### Everything needed outside the claims (this phase)
+
+| # | File and function | Why | Proposal |
+|---|---|---|---|
+| O-10 | `underground_world_routes.gd` Clearance: `blocked`, `subtract_role`, `_body_blocked`, `_solid_contacts_covered` (Slice C) | Per-profile cost grows with every installed part; landing 3 is over the bound | P-2045-12 |
+| O-11 | `underground_world_routes.gd` `_may_excuse_pending` (Slice C) | Rows 43/47 re-prove in full on every requalification | P-2045-12 (b) |
+
+### Proposals
+
+**P-2045-12 — WorldRoutes past landing 2.**
+- **(a) A z-ordered index over the route image's rows (sorted by box z-low, with a running maximum of z-high), so the
+  four Clearance scans visit only rows whose z-range meets the profile's swept box, charged per row visited plus the
+  binary search.** Exact: the same rows are tested and every skipped row is provably disjoint in z; under the cache
+  checks the full scan runs too and a difference reports `RUNTIME_CACHE_STALE`. The deep landings are 1,024 u apart,
+  so a profile on landing j meets about one landing's parts, roughly landing 1's per-profile cost at every landing
+  (an estimate, not measured).
+- (b) Let rows 43/47 carry when nothing their pending excuse reads has changed (the excuse's inputs in the carry key).
+  Landing 3's carried 43/47 proofs are 401,835 of its peak.
+- (c) Stop at M3 (three modules) until (a) lands: not a fix, and it changes the flight Brendan ruled.
+
+**Recommendation: (a)**, Slice C's code, with (b) if (a) leaves landing 4 within 10 % of the bound.
+
+**P-2045-13 — Locations on landing 4 (1,110,593 / 1,148,976).** Within P-2045-8 (a)'s clearance
+(`_record_geometry_refusal`): the same z-ordered read for `_covered` and `_record_obstacles_refusal`, or scope them to
+the record's landing as `_landing_scope` does the datums. Not built this phase, because WorldRoutes stops the chain
+first and the brief says stop. **(a) Build it in this lane alongside P-2045-12 (a); (b) wait for P-2045-12 and
+re-measure first.** Recommendation: (a).
+
+### The flight's ticks by kind (for decision 2081, the pacing study)
+
+Brendan's pacing ruling (2026-10-20, relayed): the whole stair, Confirm to level 1, should take 30–60 real seconds at
+1x, about 900–1,800 ticks. Nothing in this lane changes for it yet. Measured on the unbounded run (`2ed939f6` plus
+the scratch bound lift): **92,559 ticks**, about 51 real minutes at 1x. Each tick is classed by the stage the crew
+ended it in (foreman, installer, hauler) and whether the worker moved. A **rest wait** is a tick standing in a rest
+hour at a resting point (a hauler's stand, or X before a haul).
+
+| Kind | Ticks | Share |
+|---|---:|---:|
+| Cube work: WORK ticks (brace 1,645, cut 3,282, finish 2,512) | 7,439 | 8.0 % |
+| Cube work: entering WORK | 4,804 | 5.2 % |
+| Cube work: recovering to READY | 8,009 | 8.7 % |
+| Tread fitting and installs: WORK | 2,934 | 3.2 % |
+| Tread fitting and installs: handling | 2,196 | 2.4 % |
+| Tread fitting and installs: entering WORK | 1,080 | 1.2 % |
+| Tread fitting and installs: recovering | 3,474 | 3.8 % |
+| Hauls: walking (approach, to source, carry, home) | 6,622 | 7.2 % |
+| Hauls: lift and set down | 2,502 | 2.7 % |
+| **Walks and climbs: moving** | **41,328** | **44.7 %** |
+| Walks and climbs: standing (turns in place, leg ends, route waits) | 7,499 | 8.1 % |
+| Rest waits: at a haul stand | 2,966 | 3.2 % |
+| Rest waits: at X before a haul (P-2045-10) | 1,298 | 1.4 % |
+| Planning and requalification stalls (OPEN stages) | 408 | 0.4 % |
+
+Requalification costs no ticks of its own: the cold operations run inside one tick (their cost is checks, above).
+In all, 7,500 ticks fall in rest hours, and needs are held, not simulated. **By window:** Confirm to the first
+installs (to tick 3,361) 3,360; module 0 (50 cubes and its treads) 31,565; landing 1 (40 cubes) and module 1 15,085;
+landing 2 (30) and module 2 14,998; landing 3 (20) and module 3 13,126; landing 4 (10), module 4 and level 1 14,425.
+Each cube costs about 120–125 ticks of work, entry and recovery. Walking is 45 % on its own, so the ruled 900–1,800
+ticks need the walks shortened or the speed raised, as well as the cubes.
+
+**Timing in this lane's code.** Nothing new assumes a tick count except `test_underground_m5_rest_wait.gd`. It looks
+for the first rest hour the crew meets at X, which is at tick 45,414 today, under a 50,000-tick ceiling. A faster
+flight may never meet one, and the test would then need its own schedule. The foreman's `STAGE_TICK_LIMIT` (1,200)
+was there before.
+
+### Gates
+
+Analyzer on port 6505: 0 warnings in 1,662 files on `2ed939f6`. The focused suites for each commit above passed when
+it was committed. #278 (12 CI shards) is not on master yet; master is `d41269dd`, already merged in. Not run: the
+census pass, checkpoints, the sharded suite, mutation testing, the review and the frames, because level 1 is not
+reached under the bound.

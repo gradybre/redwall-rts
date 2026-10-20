@@ -724,3 +724,33 @@ Analyzer on port 6505: 0 warnings in 1,662 files on `2ed939f6`. The focused suit
 it was committed. #278 (12 CI shards) is not on master yet; master is `d41269dd`, already merged in. Not run: the
 census pass, checkpoints, the sharded suite, mutation testing, the review and the frames, because level 1 is not
 reached under the bound.
+
+## Brendan's rulings on P-2045-12 and -13 (2026-10-20)
+
+Relayed by the coordinator: Brendan answered in chat through AskUserQuestion, **"Approve both."**
+
+| Proposal | Ruling | What it means |
+|---|---|---|
+| P-2045-12 | **(a), the route-image row index** | WorldRoutes `blocked`, `subtract_role`, `_body_blocked` and `_solid_contacts_covered` read candidate rows from an index instead of every row. Slice C holds the four functions and the index helper for this lane. (b), carrying rows 43/47, is not ruled: it would reverse ADR 1205 / ADR 1217 step 4e |
+| P-2045-13 | **(a)** | The same index for Locations `_covered` and `_record_obstacles_refusal` |
+
+**Slice C's conditions, all to be met:**
+
+1. Candidates are visited in ascending row order, never in index order. `subtract_cover` rewrites the fragment bank
+   row by row, and the order of overlapping rows decides the fragments (count, shapes, capacity refusals).
+2. The candidate test is a superset of `Space.overlaps`' true set, with the same open and closed faces. A fixture puts
+   face-touching rows on the index's boundaries.
+3. Spend: each scan spends one check a row today, and a failed spend means "blocked" in `blocked`/`_body_blocked`
+   and "false" in `subtract_role`/`_solid_contacts_covered`. **The only outcome change allowed is a scan that ran out
+   of budget on master now getting a real answer.** Every master scenario under the bound stays byte-identical: the
+   SHA trace and the checkpoints.
+4. The index is charged honestly: its build once per image plus each lookup's real cost; rebuilt or invalidated on
+   every image change (a new snapshot in `_begin_proof`, and the carry path); its memory a cold slice under ADR 1212.
+5. `_endpoint_observation_refusal`'s real-cost charge comes from the indexed scan, so the memo and a fresh observation
+   spend the same; `test_underground_route_memos.gd`'s differential replay at every budget stays green.
+6. A test still reaches `_pending_span_refusal`'s 4096 spend (only overlapping OBSTACLE rows do).
+
+**Pacing** (decision 2081, separate lane): the per-cube build is later replaced by a batched build with one entry
+time scale. P-2081-9 (a), **"Finish M5, then batch"**: M5 completes as briefed and lands as the exact reference;
+nothing changes for pacing here. Master is `163cf5b3` (#278: twelve CI shards), merged in as `47d0a115`. Indexed in
+`docs/handoff/RULINGS.md`.

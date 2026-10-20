@@ -2,6 +2,12 @@ extends "res://test/room_heading_case.gd"
 ## Decision 1943: rooms on every side of their access are dug (the fixture: `room_heading_case.gd`). A Kitchen of
 ## 2 x 2 cells on each side of the Corridor by the claw mole, and east by a pick mole; a dig stopped while it earns a
 ## turned-heading cube's paid phase and ordered again; a turned-heading dig saved and restored before every tick.
+## The side rooms dig the floor band (`matrix_height_u`); the pick, stopped and restored rooms dig the full 4 m.
+
+
+func _init() -> void:
+	"""The floor band for `dig_matrix` (room_heading_case.gd)."""
+	matrix_height_u = Contract.QUANTUM_SIDE_U
 
 
 func test_a_kitchen_east_of_its_access_is_dug() -> void:
@@ -27,7 +33,9 @@ func test_a_kitchen_west_of_its_access_is_dug() -> void:
 func test_a_pick_mole_digs_east_of_its_access() -> void:
 	"""The held pick's own rows (content 12's pick READY and wall rows) dig the Kitchen on the bound heading. (On any
 	other heading a pick mole cannot reach a face: its READY rows reach 142 u past its wall rows' anchor and content 12
-	publishes the pick's finite step only at +X, decision 1943 §5.)"""
+	publishes the pick's finite step only at +X, decision 1943 §4.) Dug the full 4 m: the pick mole stands 1,036 u tall,
+	so it cannot stand in a room dug one cube high."""
+	matrix_height_u = 4096
 	dig_matrix(EAST, 2, 2, KITCHEN, true)
 
 

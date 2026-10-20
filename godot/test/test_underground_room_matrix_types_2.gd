@@ -3,6 +3,11 @@ extends "res://test/room_heading_case.gd"
 ## area (a tile is 2 x 2 cells), each on a different side of the access.
 
 
+func _init() -> void:
+	"""The floor band only (`matrix_height_u`, room_heading_case.gd)."""
+	matrix_height_u = Contract.QUANTUM_SIDE_U
+
+
 func test_a_pantry_at_its_minimum_south_of_its_access_is_dug() -> void:
 	"""A Pantry's minimum: 4 tiles (16 cells), 4 by 4, south."""
 	dig_matrix(SOUTH, 4, 4, Buildings.ROOM_TYPE_PANTRY)

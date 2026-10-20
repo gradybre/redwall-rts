@@ -55,6 +55,7 @@ class SideRooms extends RetirementTests.LargeRoom:
 	var pick: bool = false
 	var wood_made: int = 0
 	var painted_cubes: int = 0
+	var painted_height_u: int = 4096 # The painted height, before the wall row's reach clamps it (DEC-054).
 	var painted: PackedInt32Array = PackedInt32Array() # Cells to paint instead of the width x depth grid (x then z).
 
 	func prepared() -> bool:
@@ -136,7 +137,7 @@ class SideRooms extends RetirementTests.LargeRoom:
 		request.access = access; request.work_location = work
 		request.travel_profile = forward; request.travel_revision = _profiles._live.quantities[forward]
 		request.work_profile = wall; request.work_revision = _profiles._live.quantities[wall]
-		request.height_u = mini(4096, Approach.reachable_height_u(_profiles, wall))
+		request.height_u = mini(painted_height_u, Approach.reachable_height_u(_profiles, wall))
 		request.face = struck; request.yaw = yaw
 		@warning_ignore("integer_division") var cubes_high: int = request.height_u / Contract.QUANTUM_SIDE_U
 		@warning_ignore("integer_division") var cells: int = request.cells.size() / 2
@@ -242,6 +243,11 @@ class Dig extends RefCounted:
 
 
 var _h: SideRooms = null
+## The height `dig_matrix` paints. The large and room-type suites dig the floor band only (one cube a cell): the
+## heading search, the chains and retirement are the floor cubes'; the cubes above a floor cube are dug from its
+## station (decision 1971), which the full-height rooms cover: the L-shaped Kitchen, and the multi-heading suite's
+## stopped and restored north Kitchens.
+var matrix_height_u: int = 4096
 
 
 func after_each() -> void:
@@ -302,6 +308,7 @@ func dig_matrix(side: int, width: int, depth: int, room_type: int = KITCHEN, pic
 	every BRACE paid once, the live graph and the route proof kept under their bounds by retirement."""
 	if not _prepared(pick): return null
 	_h.painted = cells
+	_h.painted_height_u = matrix_height_u
 	var room: Vector2i = _h.side_room(side, width, depth, room_type)
 	if room == NULL_REF: return null
 	var run: Dig = _dig(_runtime(room, [_h.crew_member()] as Array[Builder.Crew]))

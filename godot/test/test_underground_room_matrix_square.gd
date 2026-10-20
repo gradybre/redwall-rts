@@ -3,6 +3,11 @@ extends "res://test/room_heading_case.gd"
 ## wide, so its far cubes are reached over the room's own dug floor.
 
 
+func _init() -> void:
+	"""The floor band only (`matrix_height_u`, room_heading_case.gd)."""
+	matrix_height_u = Contract.QUANTUM_SIDE_U
+
+
 func test_a_seven_by_seven_kitchen_east_of_its_access_is_dug() -> void:
 	"""7 x 7 cells east of the access: the rows past the Corridor's north end are reached by turning inside the room
 	(an L-shaped approach, or a turned heading), every cube dug."""

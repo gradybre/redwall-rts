@@ -2323,6 +2323,18 @@ static func installed_prism_into(issuer: RefCounted, row: int, ordinal: int, out
 	return _installed_world_box(issuer, row, low, high, out)
 
 
+func _next_placement(issuer: RefCounted, from: int) -> int:
+	"""Decision 2045 (P-2045-8 (a)): the first Placement row at or after `from` that the full slot scan would not skip:
+	when the presence column holds only 0 and 1, the next present row, found natively, so an empty slot is never
+	visited or charged (as the bindings' Region scans since decision 2044); otherwise every row, as before. -1 past
+	the capacity."""
+	var present: PackedByteArray = issuer._live.present
+	if from >= issuer._capacity: return -1
+	if present.count(0) + present.count(1) != present.size(): return from
+	var at: int = present.find(1, from)
+	return at if at >= 0 and at < issuer._capacity else -1
+
+
 func _installed_surface_site(record: Record, physical: Sites) -> Vector2i:
 	"""A real installed prism and exact Catalog datum may locate its paid lower cube; arbitrary y-minus-one cannot."""
 	if physical == null or _installation == null or _installation.issuer == null or not _spend(_sources_charge()):
@@ -2332,7 +2344,10 @@ func _installed_surface_site(record: Record, physical: Sites) -> Vector2i:
 	if _installation_active() and installation_scope_refusal(self, _installation) != &"": return NULL_REF
 	var found: Vector2i = NULL_REF
 	var matches: int = 0
-	for row: int in issuer._capacity:
+	var row: int = -1
+	while true:
+		row = _next_placement(issuer, row + 1) # Decision 2045: present rows only, each charged its visit.
+		if row < 0: break
 		if not _spend(): return NULL_REF
 		if issuer._live.present[row] != 1: continue
 		if not _spend(32): return NULL_REF
@@ -2382,7 +2397,10 @@ func _installed_record_kind(record: Record) -> int:
 	if issuer == null or not _spend(_sources_charge()): return -1
 	var matches: int = 0
 	var current: bool = false
-	for row: int in issuer._capacity:
+	var row: int = -1
+	while true:
+		row = _next_placement(issuer, row + 1) # Decision 2045: present rows only, each charged its visit.
+		if row < 0: break
 		if not _spend(): return -1
 		if issuer._live.present[row] != 1: continue
 		if not _spend(32): return -1

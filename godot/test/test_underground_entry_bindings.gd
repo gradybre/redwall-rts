@@ -1224,7 +1224,8 @@ func test_installed_landing_scan_keeps_exact_metadata_cost_and_full_generation_p
 
 
 func test_installed_kind_scan_charges_all_presence_and_live_metadata_before_permission() -> void:
-	"""All actual Placement slots are read, and the one real live source retains its complete metadata allowance."""
+	"""Every present Placement row is read, and the one real live source retains its complete metadata allowance.
+	Decision 2045 (P-2045-8 (a)): an empty slot is never visited, so it is not charged."""
 	if not _completed_timber(): return
 	var record: Locations.Record = Locations.Record.new()
 	record.envelope.resize(6)
@@ -1234,10 +1235,10 @@ func test_installed_kind_scan_charges_all_presence_and_live_metadata_before_perm
 	for row: int in _placements._capacity:
 		if _placements._live.present[row] == 1: live += 1
 	assert_equal(live, 1, "one actual completed Placement")
-	var charge: int = 1024 + _placements._capacity + 32 * live + _landing_scan_charge()
+	var charge: int = 1024 + live + 32 * live + _landing_scan_charge()
 	_f._locations._remaining = charge
 	assert_equal(_f._locations._installed_record_kind(record), 1, "full immutable installed-kind proof")
-	assert_equal(_f._locations._remaining, 0, "all empty presence and live metadata work charged")
+	assert_equal(_f._locations._remaining, 0, "every present row and its live metadata work charged")
 	_f._locations._remaining = charge - 1
 	assert_equal(_f._locations._installed_record_kind(record), -1, "insufficient allowance never grants witness")
 

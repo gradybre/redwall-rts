@@ -4,6 +4,11 @@ extends RefCounted
 ## own floor, away from the room, joined to it by two straight WALK spans (ADR1213 "Parking"). An endpoint already at
 ## the point is reused, so repeated digs never add endpoints there. Only the Locations and Routes public staging calls
 ## are used; their own proofs decide (air, footing, span certificates).
+##
+## Decision 1991 (review H-1): a second builder's parking had landed in the corridor between the access and the room,
+## where its body stood on the first builder's way to the station (ROOM_FOREMAN_CREW_BLOCKED), or on another route's
+## TRANSIT endpoint. A parking now never lies between the access and the room, and an existing endpoint is reused only
+## when it is a parking (every span touching it runs to or from the access).
 
 const Locations := preload("res://scripts/core/underground_locations.gd")
 const Routes := preload("res://scripts/core/underground_routes.gd")
@@ -29,23 +34,46 @@ class Request extends RefCounted:
 	var content: int = 0
 	var room_box: PackedInt32Array = PackedInt32Array()
 	var taken: Array[Vector2i] = []
+	## Decision 1991 (review H-1): the locations of the room's containers, where the crew fetches and drops; never a
+	## parking (a body parked there blocks every fetch: ROOM_FOREMAN_CREW_BLOCKED).
+	var keep_clear: Array[Vector2i] = []
 
 
 static func find_into(owners: RefCounted, request: Request, out: Array[Vector2i]) -> StringName:
 	"""The first candidate point, away from the room first, whose endpoint exists or is published and is joined to the
-	access both ways on the travel rows."""
+	access both ways on the travel rows; failing that, an authored parking (`_authored_parking`)."""
 	var access: Locations.Record = _record()
 	var code: StringName = owners.locations.read_location_into(request.access, access)
 	if code != &"": return code
 	for direction: Vector3i in _ordered(access.point, request.room_box):
 		for cells: int in [2, 3]:
 			var point: Vector3i = access.point + direction * (cells * CELL_U)
-			if _clear(owners.profiles, request, access, point):
+			if not _between(access.point, request.room_box, point) and _clear(owners.profiles, request, access, point):
 				var found: Vector2i = _parking_at(owners, request, access, point)
 				if found != NULL_REF:
 					out.assign([found])
 					return &""
-	return REFUSE_NONE
+	var parked: Vector2i = _authored_parking(owners, request, access)
+	if parked == NULL_REF: return REFUSE_NONE
+	out.assign([parked])
+	return &""
+
+
+static func _authored_parking(owners: RefCounted, request: Request, access: Locations.Record) -> Vector2i:
+	"""Decision 1991 (review H-1): with no point free along the access's floor, an endpoint already published as a
+	parking anywhere in the access's air (TRANSIT or STORAGE in its section, not a container's location, every span
+	to or from the access, joined both ways, off the room's way and its cells, not taken) is used; nothing is
+	published here."""
+	var locations: Locations = owners.locations
+	var stride: int = locations._capacity
+	for row: int in stride:
+		var ref: Vector2i = Vector2i(row, locations._live.i32[Locations.GENERATION * stride + row])
+		if ref == request.access or request.taken.has(ref) or request.keep_clear.has(ref) \
+				or _existing(locations, access, _point(locations, row)) != ref: continue
+		var point: Vector3i = _point(locations, row)
+		if _between(access.point, request.room_box, point) or not _clear(owners.profiles, request, access, point): continue
+		if not _routed_elsewhere(owners.routes, ref, request.access) and _joined(owners, request, ref): return ref
+	return NULL_REF
 
 
 static func _record() -> Locations.Record:
@@ -64,6 +92,13 @@ static func _ordered(at: Vector3i, room: PackedInt32Array) -> Array[Vector3i]:
 	out.assign(DIRECTIONS)
 	out.sort_custom(func(a: Vector3i, b: Vector3i) -> bool: return a.x * away.x + a.z * away.z > b.x * away.x + b.z * away.z)
 	return out
+
+
+static func _between(at: Vector3i, room: PackedInt32Array, point: Vector3i) -> bool:
+	"""The point lies in the floor box spanned by the access and the room's cells (bounds included): the way a builder
+	walks to its station."""
+	return point.x >= mini(at.x, room[0]) and point.x <= maxi(at.x, room[2]) \
+		and point.z >= mini(at.z, room[1]) and point.z <= maxi(at.z, room[3])
 
 
 static func _clear(profiles: Profiles, request: Request, access: Locations.Record, point: Vector3i) -> bool:
@@ -91,10 +126,36 @@ static func _extent(profiles: Profiles, row: int, point: Vector3i) -> PackedInt3
 static func _parking_at(owners: RefCounted, request: Request, access: Locations.Record, point: Vector3i) -> Vector2i:
 	"""An endpoint at the point (existing, not WORK and not taken, or newly published), joined to the access."""
 	var found: Vector2i = _existing(owners.locations, access, point)
+	if found != NULL_REF and _routed_elsewhere(owners.routes, found, request.access): return NULL_REF
 	if found == NULL_REF and _occupied(owners.locations, point): return NULL_REF
 	if found == NULL_REF: found = _publish_endpoint(owners, request, access, point)
-	if found == NULL_REF or request.taken.has(found): return NULL_REF
-	return found if _joined(owners, request, found) or _publish_spans(owners, request, found, access) else NULL_REF
+	if found == NULL_REF or request.taken.has(found) or request.keep_clear.has(found): return NULL_REF
+	if _joined(owners, request, found): return found
+	# Decision 1991 (decision 1937's review M5): spans already published between the two that still do not join are
+	# never published again; the candidate is passed over, so a failed parking adds nothing on later orders.
+	if _span_between(owners.routes, found, request.access): return NULL_REF
+	return found if _publish_spans(owners, request, found, access) else NULL_REF
+
+
+static func _span_between(routes: Routes, a: Vector2i, b: Vector2i) -> bool:
+	"""Some live authored span already runs from `a` to `b` (Routes' own edge columns; a scan when a dig starts)."""
+	var stride: int = routes._edge_capacity
+	for row: int in stride:
+		if routes._live.present[row] != 1: continue
+		if routes._edge_pair(routes._live, Routes.E_FROM_SLOT, row) == a \
+				and routes._edge_pair(routes._live, Routes.E_TO_SLOT, row) == b: return true
+	return false
+
+
+static func _routed_elsewhere(routes: Routes, found: Vector2i, access: Vector2i) -> bool:
+	"""Some live span touches the endpoint and runs to or from anywhere but the access: a route's TRANSIT node, which a
+	parked body would block."""
+	for row: int in routes._edge_capacity:
+		if routes._live.present[row] != 1: continue
+		var from: Vector2i = routes._edge_pair(routes._live, Routes.E_FROM_SLOT, row)
+		var to: Vector2i = routes._edge_pair(routes._live, Routes.E_TO_SLOT, row)
+		if (from == found and to != access) or (to == found and from != access): return true
+	return false
 
 
 static func _existing(locations: Locations, access: Locations.Record, point: Vector3i) -> Vector2i:

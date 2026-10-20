@@ -77,7 +77,7 @@ class JointPackTests(unittest.TestCase):
         joint = result["profile_motion_reservation"]["joint"]
         self.assertEqual((joint["total"], joint["reservation"], joint["headroom"]), (270824, 282624, 11800)) # decision 1972: content 12
         self.assertEqual(joint["independent_maxima_total_refuses"], 444284)
-        self.assertEqual(result["live_with_reserve_bytes"], 105798684)
+        self.assertEqual(result["live_with_reserve_bytes"], 105833110)
         self.assertFalse(result["runtime_qualified"])
 
     def test_session_fits_current_source_counted_joint_without_global_increase(self) -> None:
@@ -87,7 +87,7 @@ class JointPackTests(unittest.TestCase):
                          result["profile_motion_reservation"]["joint"]["total"])
         self.assertEqual((session["retained_numeric_bytes"], session["strong_reference_or_alias_members"]), (43, 24))
         self.assertEqual((session["profile_level_motion_session_joint_bytes"], session["joint_remaining_bytes"]), (272360, 10264))
-        self.assertEqual(result["live_with_reserve_bytes"], 105798684)
+        self.assertEqual(result["live_with_reserve_bytes"], 105833110)
         self.assertFalse(session["native_memory_qualified"])
 
     def test_session_unaccounted_owner_is_rejected(self) -> None:
@@ -123,7 +123,7 @@ class JointPackTests(unittest.TestCase):
                          route["constructor_exclusive_reuse"])
         self.assertEqual(route["retained_reference_delta"], 2)
         self.assertEqual(result["contributions"]["PROFILE_BYTES"], 282624)
-        self.assertEqual(result["live_with_reserve_bytes"], 105798684)
+        self.assertEqual(result["live_with_reserve_bytes"], 105833110)
 
     def test_ui_current_text_mutation_is_not_replaced_with_disk_source(self) -> None:
         for role, (name, _) in budget.ui_reset_memory.CURRENT.items():
@@ -145,7 +145,7 @@ class JointPackTests(unittest.TestCase):
         self.assertEqual(result["contributions"]["room_world_bindings"], 1024)
         self.assertEqual(result["room_world_reservation"]["logical_helper_and_included_native_bytes"], 986)
         self.assertEqual(result["room_world_reservation"]["maximum_shared_phase_bytes"], 1048912)
-        self.assertEqual(result["headroom_bytes"], 44201316) # decision 1953 -19,048; ADR1212 §7: DEC-053 gate 150,000,000; ADR1217 step 5 PROFILE_BYTES +16,384; ADR1229 6b +7,009; DEC-059 +296; decisions 1936/1937 +5,350,277; decision 1952 +140,872; decision 1972 +37,880
+        self.assertEqual(result["headroom_bytes"], 44166890) # decision 1991 -34,426; decision 1953 -19,048; ADR1212 §7: DEC-053 gate 150,000,000; ADR1217 step 5 PROFILE_BYTES +16,384; ADR1229 6b +7,009; DEC-059 +296; decisions 1936/1937 +5,350,277; decision 1952 +140,872; decision 1972 +37,880
 
     def test_ordinary_provider_extra_allocation_requires_a_new_census(self) -> None:
         self.refuses("underground_room_world_bindings", "_ordinary_checks.resize(1)", "_ordinary_checks.resize(2)")
@@ -183,7 +183,7 @@ class JointPackTests(unittest.TestCase):
         self.assertEqual((clock["additional_logical_counted"], clock["combined_logical_counted"]), (208, 1298))
         self.assertEqual((clock["clock_caller_bytes"], clock["shared_caller_reservation"]), (44, 176))
         self.assertEqual(clock["joint"], result["profile_motion_reservation"]["joint"])
-        self.assertEqual(result["live_with_reserve_bytes"], 105798684)
+        self.assertEqual(result["live_with_reserve_bytes"], 105833110)
 
     def test_clock_cannot_retain_per_actor_ticks(self) -> None:
         self.refuses("underground_motion_clock", "const TREAD_TICKS", "var _ticks: int = 0\nconst TREAD_TICKS")
@@ -546,10 +546,10 @@ class JointPackTests(unittest.TestCase):
 
     def test_positive_current_joint_pack_is_not_runtime_qualification(self) -> None:
         result = budget.build(self.index)
-        self.assertEqual(result["new_mutable_and_reserved_bytes"], 10803064) # decision 1953 +19048 route compile memos; decision 1972 +33784 stair-carry tables, +4096 PROFILE_BYTES; decision 1952 +140872 endpoint memo; ADR1218 +5128 entry images; ADR1221 +196694 cold-load images; ADR1223 +9; ADR1217 step 5 +16384; ADR1229 +15260; 6b +7009; DEC-059 P1 +296; decisions 1936/1937 room-dig runtime +5349494
-        self.assertEqual(result["declaration_bytes"], 26428) # ADR1221 +165; ADR1222 Q7 +1115; ADR1228 +642; decisions 1936/1937 +783
-        self.assertEqual(result["live_with_reserve_bytes"], 105798684)
-        self.assertEqual(result["headroom_bytes"], 44201316) # decision 1953 -19,048; ADR1212 §7: DEC-053 gate 150,000,000; ADR1217 step 5 PROFILE_BYTES +16,384; ADR1229 6b +7,009; DEC-059 +296; decisions 1936/1937 +5,350,277; decision 1952 +140,872; decision 1972 +37,880
+        self.assertEqual(result["new_mutable_and_reserved_bytes"], 10837384) # decision 1991 +34320 room-dig crew, release flag, filter, image; decision 1953 +19048 route compile memos; decision 1972 +33784 stair-carry tables, +4096 PROFILE_BYTES; decision 1952 +140872 endpoint memo; ADR1218 +5128 entry images; ADR1221 +196694 cold-load images; ADR1223 +9; ADR1217 step 5 +16384; ADR1229 +15260; 6b +7009; DEC-059 P1 +296; decisions 1936/1937 room-dig runtime +5349494
+        self.assertEqual(result["declaration_bytes"], 26534) # ADR1221 +165; ADR1222 Q7 +1115; ADR1228 +642; decisions 1936/1937 +783; decision 1991 +106
+        self.assertEqual(result["live_with_reserve_bytes"], 105833110)
+        self.assertEqual(result["headroom_bytes"], 44166890) # decision 1991 -34,426; decision 1953 -19,048; ADR1212 §7: DEC-053 gate 150,000,000; ADR1217 step 5 PROFILE_BYTES +16,384; ADR1229 6b +7,009; DEC-059 +296; decisions 1936/1937 +5,350,277; decision 1952 +140,872; decision 1972 +37,880
         self.assertFalse(result["runtime_qualified"])
         workpieces = result["connector_workpieces_reservation"]
         self.assertEqual(workpieces["two_bank_bytes"], 10752)

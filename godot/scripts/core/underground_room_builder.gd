@@ -367,10 +367,20 @@ func begin(index: int, site: Vector2i, key: int, tick: int) -> StringName:
 	if _ctx.owners.sites.project_of(site) != NULL_REF:
 		code = _take_paid_phase()
 	else:
-		_operation = Contract.OP_BRACE
+		_operation = _next_operation(site)
 		code = _open_phase(tick)
 	if code == &"": code = _set_off(_ctx.forward)
 	return _fail(code) if code != &"" else &""
+
+
+func _next_operation(site: Vector2i) -> int:
+	"""Decision 1991 (item 24 of decision 1990): the phase a cube with no live Project needs next, by Sites' own
+	record. A dig stopped between a hand-over and its next phase's start leaves a cube BRACED (or open and unfinished)
+	with the next phase cancelled unpaid; a re-order continues it from there, never opening a BRACE twice."""
+	var phase: int = _ctx.owners.sites._phase[site.x]
+	if phase == Sites.BRACED or phase == Sites.CUTTING: return Contract.OP_CUT
+	if phase == Sites.OPEN_UNFINISHED or phase == Sites.FINISHING: return Contract.OP_FINISH
+	return Contract.OP_BRACE
 
 
 func _take_paid_phase() -> StringName:
@@ -1176,7 +1186,7 @@ func continue_column(index: int, site: Vector2i, key: int, tick: int) -> StringN
 	if code != &"": return code
 	_index = index
 	_site = site
-	_operation = Contract.OP_BRACE
+	_operation = _next_operation(site)
 	code = _open_phase(tick)
 	if code == &"": code = _set_off(_ctx.backward)
 	if code == &"": _column_cubes += 1

@@ -44,7 +44,7 @@ func test_the_dug_rooms_are_drawn_per_level_and_rebuilt_only_on_a_change() -> vo
 	dug.refresh(1)
 	assert_equal(dug.rebuilds, 1, "drawn once")
 	assert_true(dug.earth.visible and dug.earth.top_quads >= BOUNDS.size.y, "the level's earth drawn")
-	assert_true(dug.tags().has("Waiting for the mole: 8 cells"), "waiting cells said in words")
+	assert_true(dug.tags().has("Proof of concept, free: 8 cells wait for the crew"), "waiting cells said in words")
 	assert_true(dug.tags().has("Hatch with ladder") and dug.tags().has("Hatch with ladder: way up to the surface"),
 		", ".join(dug.tags()))
 	dug.refresh(1)
@@ -200,7 +200,7 @@ func test_the_cell_being_dug_deepens() -> void:
 	assert_true(is_equal_approx(dug.earth.height_at(Vector2(5.5, 4.5)), top - Earth.dug_depth_m(1.0)), "nearly through")
 	assert_equal(dug.earth.rebuilds, rebuilds, "deepening rebuilds nothing")
 	assert_equal(dug.earth.mark_quads, 6 * 4, "six cells pegged out (not the one being dug)")
-	assert_true(dug.tags().has("Digging") and dug.tags().has("Waiting for the mole: 6 cells"), ", ".join(dug.tags()))
+	assert_true(dug.tags().has("Digging") and dug.tags().has("Proof of concept, free: 6 cells wait for the crew"), ", ".join(dug.tags()))
 	dug.refresh(1)
 	assert_equal(dug.earth.digging(), Earth.NO_CELL, "not digging: none drawn")
 	dug.refresh(2, Vector3i(1, 5, 4))

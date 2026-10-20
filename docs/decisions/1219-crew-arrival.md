@@ -152,6 +152,13 @@ It now applies the same rule as the other five proofs, through the same helper:
 The bound is the same over-refusing one. No new constant or state is added, and the leaf's existing
 16-checks-per-row charge covers the read.
 
+## Note (2026-10-19, decision 1991): the seventh proof, the room phases
+
+The room bindings' ordinary occupancy leaf (`underground_room_world_bindings.gd` `_ordinary_occupants_leaf`) still
+required every living resident to be a route actor, so every room phase refused `ROOM_PHASE_WORKER` while anyone not
+crew lived. Decision 1991 §3a applies this rule there too, through `unregistered_body_refusal` at the working actor's
+WORK location, with the same 16-check charge per row.
+
 ## Note (2026-10-07, ADR 1227): the reach scan's measured cost
 
 ADR 1224 suspected this rule's per-row charge of exhausting Contacts' operation budget at T0's paid FUND (ADR 1197

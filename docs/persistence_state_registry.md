@@ -2265,9 +2265,12 @@ as source-qualified motion. No composed save adapter is claimed here.
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
 | Room dig record: slot rows | `_room_row` | 4 | `MAX_KEPT` = 512 | -1 for a free slot | 1 | §6 AUXILIARY_STATE | Decision 1937 (P-1937-1 D): the records are a pool of `MAX_KEPT` slots; each names its room's directory row. Saved as each record's row inside `underground_room_progress`'s record, in row order. |
-| Room dig record: generation | `_generation` | 4 | `MAX_KEPT` = 512 | Zero in a free slot | 1 | §6 AUXILIARY_STATE | Decision 1933, P-C2-4 (a): one small packed record per room being dug or kept. Decision 1936: composed with the Session's room owners at mount and saved inside `underground_room_progress`'s record (only the records in use). Decision 1937: a pool of 512 slots, 33 B each with the room row (16,896 B, was 475,136). |
+| Room dig record: generation | `_generation` | 4 | `MAX_KEPT` = 512 | Zero in a free slot | 1 | §6 AUXILIARY_STATE | Decision 1933, P-C2-4 (a): one small packed record per room being dug or kept. Decision 1936: composed with the Session's room owners at mount and saved inside `underground_room_progress`'s record (only the records in use). Decision 1937: a pool of 512 slots, 33 B each with the room row (16,896 B, was 475,136); decision 1991: 66 B with the named crew and the release flag (33,792 B). |
 | Room dig record: state | `_state` | 1 | `MAX_KEPT` = 512 | RECORD_NONE | 1 | §6 AUXILIARY_STATE | Same record: none, queued, digging, done, stopped. Saved with the row (decision 1936). |
 | Room dig record: containers | `_storage`, `_output`, `_staging` | 4 | `2 * MAX_KEPT` = 1024 | Zero for a room never ordered; a null staging pair when none is named | 1 | §6 AUXILIARY_STATE | Same record: the room's input storage, the spoil container and (decision 1934) the same-level staging container missing inputs are hauled from, each a (slot, generation) pair. Saved with the row (decision 1936). |
+| Room dig record: named crew | `_crew` | 4 | `2 * CREW_REFS * MAX_KEPT` = 4096 | -1 pairs after the last member, and in a free slot | 1 | §6 AUXILIARY_STATE | Decision 1991 (C3; P-1990-4 (a) "Selected moles crew it"): up to four resident (slot, generation) pairs the player named; empty for the first idle mole. A QUEUED record waits for that crew. Saved with the row inside `underground_room_progress`'s record (record version 2). |
+| Room dig record: release once out | `_release_out` | 1 | `MAX_KEPT` = 512 | 0 | 1 | §6 AUXILIARY_STATE | Decision 1991 (P-1990-5 (a), the one "Stop digging"): 1 once the player stopped the dig; the record is released when its crew has walked out. Saved with the row (record version 2). |
+| Reserved-resident filter | `_builder_rows` | 1 | `Residents.RESIDENT_CAPACITY` = 512 | 0 | 3 | -- | Decision 1991 (decision 1937's review M7): one byte per Resident row set where a kept builder's resident is, rebuilt whenever a foreman is added; a resident it does not name is answered from it. Derived, never saved. Its two scalars `_filter_count`, `_filter_last` likewise. |
 | Foreman record rows | `_foreman_rows` | 4 | never allocated | One per kept foreman (at most MAX_DIGS running, plus stopped ones until released) | 1 | §6 AUXILIARY_STATE | Decision 1933 (C2.1). The record row of each kept foreman, so a room deleted mid-dig still settles its record. Decision 1936: saved with each foreman inside `underground_room_progress`'s record (at most `MAX_KEPT` = 512 kept). |
 
 ### `godot/scripts/core/underground_dispatch.gd`
@@ -2286,7 +2289,13 @@ as source-qualified motion. No composed save adapter is claimed here.
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
-| Stateless room-dig composition | -- | -- | -- | No members; the Order packet is caller-owned | 3 | -- | Decision 1936: binds the room phases' contacts to the first order's access (P-1936-1 (a)), picks the builder (P-1936-2 (a)), parks it and starts the dig. Everything it produces is the owners' or the runtime's own state. |
+| Stateless room-dig composition | -- | -- | -- | No members; the Order packet is caller-owned | 3 | -- | Decision 1936: binds the room phases' contacts to the first order's access (P-1936-1 (a)), picks the builder (P-1936-2 (a)), parks it and starts the dig. Decision 1991: or the 1-4 residents the player named, and a busy crew's record waits QUEUED (`start_waiting`). Everything it produces is the owners' or the runtime's own state. |
+
+### `godot/scripts/core/underground_room_confirm.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Stateless painted-room confirm route | -- | -- | -- | No members; the Painted, WayIn and Result packets are caller-owned | 3 | -- | Decision 1991 (C3): admits one painted room through RoomOrders and orders it through the composer with the player's crew. Everything it produces is RoomOrders', the Sites' or the room runtime's own saved state. The WayIn seam slice D2 fills is held by the host and re-bound at mount, never saved. |
 
 ### `godot/scripts/core/underground_room_parking.gd`
 

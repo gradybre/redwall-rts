@@ -197,10 +197,10 @@ the retirement head's, line for line.
 **`_edge_into`**: a leg inside the section it leaves keeps that section even where the arrival's would hold it; a
 leg down across a low edge takes the arrival's section, room and level both ways; a leg in neither is refused.
 
-**Mutation testing.** 52 mutants of this lane's logic and decision 1942's two survivors, each run against the suites that cover it (the
+**Mutation testing.** 55 mutants of this lane's logic and decision 1942's two survivors, each run against the suites that cover it (the
 multi-heading suite, the L-shaped room, the first room-type suite and the planner suite for the planner; the
-publication suite for the cap and `_edge_into`; the retirement and foreign-claims suites for 1942's): **47 killed,
-5 survived.**
+publication suite for the cap and `_edge_into`; the retirement and foreign-claims suites for 1942's; the Confirm
+suite for §8): **50 killed, 5 survived.**
 - The station cap: 24 mutants (the constant at 3, 4 and 6; each of the five Locations functions' count, refs and
   edges checks back at the old literal or one past five; Routes' edge size; the heap words; the publication's
   `MAX_STATIONS`; the precharge at its old figure). All killed.
@@ -209,6 +209,8 @@ publication suite for the cap and `_edge_into`; the retirement and foreign-claim
   planned again, a search out of checks stopping the headings, `_resumable`, `_cap`, extended plans split as master,
   the run probe, the midpoint, the turning lines' dedupe, side and reach, the builder's heading row, the patch rule,
   the L's lateral run).
+- P-1943-1's build (§8): no mid-dig stop, no pick words for a crew, a tool the order named also stopping. All 3
+  killed.
 - Decision 1942's two cost-only survivors: "the claims table ignored" is now killed (the table answers without
   scanning the owner, and the scan gives the same answers at its cost); "`_column_done` always true" survives (below).
 
@@ -239,7 +241,25 @@ GATES_PLACEHOLDER
 
 ## 8. The ruling's build: a pick holder refused in words, and a worded mid-dig stop
 
-BUILD_PLACEHOLDER
+Built on slice C3's Confirm route after it merged (#277), with no change to C3's crew rule (the coordinator's option
+(a); see "Brendan's ruling" for why the per-cell warning has nothing to warn about yet):
+
+| File | Change |
+|---|---|
+| `scripts/core/underground_room_confirm.gd` | `PICK_CREW_WORDS` ("Pick diggers can't dig rooms yet: choose a claw digger"), `PICK_TURN_WORDS`, and `pick_words(code, owners, crew)`: the words for a named crew member refused because they hold a tool, or for the mid-dig stop; "" for any other refusal (C3's `refusal_words` is unchanged) |
+| `scripts/core/underground_room_builder.gd` (`_contact`, cleared) | `REFUSE_PICK_CANNOT_TURN` (`ROOM_DIG_PICK_CANNOT_TURN`): a builder whose crew order named no tool but who now holds one fails at its next cube's contact, so the room stops named, never with a bare planner refusal. A crew the order named with a tool (the test fixtures' pick moles) is unaffected |
+| `scripts/systems/settlement_system.gd` (`order_painted_room`, `_alert_underground_room`, cleared) | the alert says the pick words when there are some, else the code as before |
+
+Tests (`test_underground_room_confirm.gd`, on the real Confirm route): a named mole holding a pick is refused before
+anything is admitted or the way in is asked, in those words, and other refusals get no pick words; a claw mole that
+takes up a pick after its first cube stops the dig at its next cube with `ROOM_DIG_PICK_CANNOT_TURN`, in words, its
+dug cubes kept.
+
+**The crew line and the room card.** The demo's crew line and room card show the proof of concept's crews
+(decision 1912's mole, demo actors that carry no tools) until slice D2 switches the demo to the real route, so no
+pick holder can appear in them yet. The words live with the route (`pick_words`), for D2's host to show on both; the
+settlement's alert says them now.
+
 
 ## Brendan's ruling
 

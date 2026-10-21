@@ -85,7 +85,7 @@ class Probe extends PhaseFixture:
 		_world = _make_world()
 		(_world as SourceWorld).negative_case = negative_case
 		_world.spec = _spec
-		_world.location_capacity = 64 # Decision 2044: the M2 work area's 29 endpoints and the prefix's stops.
+		_world.location_capacity = 128 # Decision 2044: the work area's endpoints and the prefix's stops; decision 2045: M5's 59.
 		_world._turn_source_case = 3
 		_world._actual_fixture()
 		_groups = PricedGroups.new()

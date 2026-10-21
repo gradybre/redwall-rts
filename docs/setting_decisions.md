@@ -1689,7 +1689,8 @@ Engineering record: [decision2001](decisions/2001-mound-homes.md).
 
 ### DEC-062 — Rooms are dug with a general claw motion to the full 4 m clear height
 
-On 2026-10-14, Brendan answered the question that slice C2's [decision 1932](decisions/1932-the-claw-down-stroke-cannot-open-an-underground-room.md) raises. That record is on
+On 2026-10-14, Brendan answered the question that slice C2's
+[decision 1932](decisions/1932-the-claw-down-stroke-cannot-open-an-underground-room.md) raises. That record is on
 branch `feat/room-foreman-slice-c2` at `70462eaa`, not yet on master. It found that the downward claw stroke (M1)
 cannot open an underground room. The coordinator relayed his answers, given in chat through multiple-choice
 questions:
@@ -1730,7 +1731,7 @@ numbers are at origin/master `e0e7065a`.
   and the same bill per cell (1971:30–49).
   - The proposal this entry asked for, how a 0.9 m mole works a 4 m face, is P-1971-3 (b) itself. The claws strike
     each column's bottom quantum, and the quanta above are worked from the same station and paid as part of the
-    same work (1971:56–66, 324–328). DEC-054's "no earth benches, steps or climbing" stays (line 1437).
+    same work (1971:57–67, 324–328). DEC-054's "no earth benches, steps or climbing" stays (line 1437).
   - It took effect in the game on 2026-10-17, when content 12 was mounted and 1971's LEGACY one-quantum band was
     deleted (decision 1972 Phase 3b, `decisions/1972-activating-contents-11-and-12-scoping.md:5`, `:822`).
     SET-BUILD-001 §7.2 carries the same note (`building_model_amendment.md:233–237`).
@@ -1740,9 +1741,9 @@ numbers are at origin/master `e0e7065a`.
 - **"General motion": its mechanism is replaced by decision 1971 (2026-10-15); one part is open.** Brendan's "I
   just want the basic claw stroke that digs anything" and P-1971-1 (b) "Approve" make the approved claw stroke M1
   the one stroke, with four wall rows derived from its own clips (1971:9–15, 21; this file, lines 1433–1435).
-  - Under that build, contact and patch are proved on the struck (bottom) cube (1971:58, 394). Only the upper quanta
+  - Under that build, contact and patch are proved on the struck (bottom) cube (1971:59, 394). Only the upper quanta
     are paid without contact, "in the spirit of DEC-060" (1971:324–328).
-  - **Open, put to Brendan on 2026-10-21:** does this entry's "exact contact with the struck face is not required"
+  - **Open, for Brendan (raised 2026-10-21):** does this entry's "exact contact with the struck face is not required"
     still stand for room digging, or did 1971's contact proof on the struck cube replace it? Neither record says.
     Until he rules, neither is read as overriding the other.
 - **"Not yet diggable": superseded on 2026-10-19** by P-1990-1 (b) "Keep the mole, build real" and P-1990-2 (a)
@@ -1755,10 +1756,10 @@ numbers are at origin/master `e0e7065a`.
     `godot/scripts/core/underground_room_confirm.gd:29`). Slice D2 binds the way down (decisions 2052 and 2053).
 - **Test leave on the retired pick rows ("not ruled"): given as "Yes, tests only".** Decisions 1931 and 1932 record
   it (`decisions/1932-the-claw-down-stroke-cannot-open-an-underground-room.md:27–28`;
-  `decisions/1931-slice-c2-room-foreman-scoping-stopped-for-rulings.md:56`). C2.1's foreman proof runs on the
+  `decisions/1931-slice-c2-room-foreman-scoping-stopped-for-rulings.md:49`). C2.1's foreman proof runs on the
   content-6 pick fixture under it, taking no height or price from the pick
   (`decisions/1933-the-room-foreman-on-the-fixed-tick.md:16`).
-- **Open, put to Brendan on 2026-10-21: the order of the rulings.** Decisions 1931 and 1932 date "One basic front
+- **Open, for Brendan (raised 2026-10-21): the order of the rulings.** Decisions 1931 and 1932 date "One basic front
   stroke" (M3, rooms one quantum high) and "Yes, tests only" to 2026-10-13 (1932:24–28), the day before this entry.
   Yet this entry chooses none of 1932's options and says the test leave was not ruled. Both were written to master on
   2026-10-15 (commit `fec1ca65`); this entry was written at 11:41 on 2026-10-14. So either those two answers came

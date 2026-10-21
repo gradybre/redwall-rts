@@ -272,3 +272,4 @@ Every row was checked against the record named.
 
 Not Brendan's: decision 0492 (the planner on T, Run-until on G, T no longer the Dig alias) was the coordinator's
 resolution of a key clash at batch 5, not a ruling.
+| The batched-build gate (2082 P-2082-1–7), 2026-10-21 | **"Cost lane first"**: the batched build's real-time gate failed (~113 s projected vs ~15 s), so batching pauses behind a cost lane (Contacts memo first, Routes by Slice C in parallel, then phase-spreading stage 2 on the re-measured baseline). **"Approve all"** for P-2082-2–7 when batching resumes. (Relayed by the coordinator) | [2082](../decisions/2082-batched-entry-build-design-and-transition-gate.md) |

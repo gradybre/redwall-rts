@@ -1,6 +1,6 @@
 # 2082 — The batched entry build: the design, and the transition gate measured (the gate fails; stopped for rulings)
 
-Date: 2026-10-20 · Status: **Proposed.** Phase 0 of the batched entry build lane: a design record and the measurement
+Date: 2026-10-20 · Status: **Accepted (2026-10-21): gate failed; batching paused behind a cost lane.** Phase 0 of the batched entry build lane: a design record and the measurement
 gate decision 2081 ruled must come first. **The gate fails on real time** (§4), so the lane stops here, as the ruling
 says, before any runtime change. Proposals P-2082-1 to P-2082-7 wait for Brendan.
 
@@ -23,6 +23,18 @@ Decision 2081, P-2081-1 to P-2081-9, all (a), Brendan, 2026-10-20 (relayed by th
 - M5 lands first as the exact reference, and its chain stays the reference suite;
 - **the gate: measure the batched transitions first, and stop if any single transition exceeds `Space.MAX_CHECKS`
   (1,048,576) or their real-time sum exceeds about 15 s.**
+
+
+## Brendan's rulings (2026-10-21)
+
+Relayed by the coordinator: Brendan answered in chat through AskUserQuestion.
+
+| Proposal | Ruling | What it means |
+|---|---|---|
+| P-2082-1 | **(a)**, "Cost lane first" | Batching stops here. A cost lane cuts Contacts' cost first (the observation/deep-reach memo, M5's P-2045-15), with Routes taken by Slice C in parallel; phase-spreading stage 2 reopens on the re-measured baseline; then this harness re-measures batching |
+| P-2082-2 to P-2082-7 | **(a)**, "Approve all" | One block per dig stage; landing 1 in two 20-cube commits; study seven-part fitting commits; k is a Work rate, not smaller amounts; shown progress at most one block ahead; saves between ticks. They apply when batching resumes |
+
+Not chosen (recorded so they are not re-asked by accident): keeping D2 moving at today's pace in parallel, and a design study of a simpler build model.
 
 ## In short
 

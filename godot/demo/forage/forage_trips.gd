@@ -281,9 +281,7 @@ func _hand_over_keep(j: int) -> void:
 	"""Job `j` claimed: the worker who kept it while away keeps it no longer -- her kept entry goes, as the
 	board's Reassign does (her own take-back has popped it already) -- else her promise would outlive the keeper column
 	and hold the trip; the column is cleared."""
-	var keeper: int = j_keeper[j]
-	if keeper != NONE:
-		HeldPlaces.release(brain_of(keeper), WorkIds.SOURCE_FORAGE, j_serial[j])
+	HeldPlaces.hand_over(j_keeper[j], self, WorkIds.SOURCE_FORAGE, j_serial[j])
 	j_keeper[j] = NONE
 
 
@@ -307,10 +305,8 @@ func _party_out(j: int) -> bool:
 func _release_kept(j: int) -> void:
 	"""Seat `j`'s keeper gives it up (held_places.gd: only her kept entry, only in working hours); the board offers it
 	to anyone idle."""
-	if not HeldPlaces.may_release(j_keeper[j], calendar):
-		return
-	HeldPlaces.release(brain_of(j_keeper[j]), WorkIds.SOURCE_FORAGE, j_serial[j])
-	j_keeper[j] = NONE
+	if HeldPlaces.try_release(j_keeper[j], calendar, self, WorkIds.SOURCE_FORAGE, j_serial[j]):
+		j_keeper[j] = NONE
 
 
 func _credit_work(usec: int) -> void:

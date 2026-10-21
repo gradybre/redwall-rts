@@ -31,6 +31,7 @@ const DemoWorldScript := preload("res://demo/world/demo_world.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const WorkIds := preload("res://demo/work/work_ids.gd")
+const Promises := preload("res://test/work_promises.gd")
 const FisheryWork := preload("res://demo/work/fishery_work.gd")
 const TaskRecord := preload("res://demo/work/work_task.gd")
 const DemoFarmScript := preload("res://demo/farm/demo_farm.gd")
@@ -132,21 +133,14 @@ func _board_pass(rig: Rig) -> void:
 	for j: int in Tables.MAX_JOBS:
 		if not f.waiting(j):
 			continue
-		var keeper: int = _promised_to(rig, f.tables.j_serial[j])
+		var keeper: int = Promises.promised_to(rig.fishery, rig.cast.actor_count(),
+			WorkIds.SOURCE_FISHERY, f.tables.j_serial[j])
 		for who: int in rig.cast.actor_count():
 			if keeper >= 0 and keeper != who:
 				continue
 			var brain: BrainScript = f.brain_of(who)
 			if brain.order == BrainScript.ORDER_NONE and not brain.in_water and f.eligibility(j, who).is_empty() and f.claim(j, who):
 				break
-
-
-func _promised_to(rig: Rig, task_key: int) -> int:
-	"""Who means to come back to that task (the work board leaves it to them, decision 0411; -1: nobody)."""
-	for who: int in rig.cast.actor_count():
-		if rig.fishery.brain_of(who).promises(WorkIds.SOURCE_FISHERY, task_key):
-			return who
-	return -1
 
 
 func _stock_rations(rig: Rig) -> void:

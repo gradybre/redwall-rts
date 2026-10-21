@@ -44,9 +44,9 @@ const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const WorkIds := preload("res://demo/work/work_ids.gd")
+const Promises := preload("res://test/work_promises.gd")
 const FisheryWork := preload("res://demo/work/fishery_work.gd")
 const WorkBoard := preload("res://demo/work/work_board.gd")
-const CrewsScript := preload("res://demo/work/work_crews.gd")
 const ErrandScript := preload("res://demo/tunnel/tunnel_task.gd")
 const InterruptScript := preload("res://demo/control/work_interrupt.gd")
 const RescueCardScript := preload("res://demo/routes/rescue_card.gd")
@@ -171,21 +171,14 @@ func _board_pass(rig: Rig) -> void:
 	for j: int in Tables.MAX_JOBS:
 		if not f.waiting(j):
 			continue
-		var keeper: int = _promised_to(rig, f.tables.j_serial[j])
+		var keeper: int = Promises.promised_to(rig.fishery, rig.cast.actor_count(),
+			WorkIds.SOURCE_FISHERY, f.tables.j_serial[j])
 		for who: int in rig.cast.actor_count():
 			if keeper >= 0 and keeper != who:
 				continue
 			var brain: BrainScript = f.brain_of(who)
 			if brain.order == BrainScript.ORDER_NONE and not brain.in_water and f.eligibility(j, who).is_empty() and f.claim(j, who):
 				break
-
-
-func _promised_to(rig: Rig, task_key: int) -> int:
-	"""Who means to come back to that task (the work board leaves it to them, decision 0411; -1: nobody)."""
-	for who: int in rig.cast.actor_count():
-		if rig.fishery.brain_of(who).promises(WorkIds.SOURCE_FISHERY, task_key):
-			return who
-	return -1
 
 
 func _debug(rig: Rig, frame: int) -> void:
@@ -1081,22 +1074,8 @@ func _milling_a_quarter_done(rig: Rig, who: int) -> int:
 
 
 func _board_over(rig: Rig, j: int) -> WorkBoard:
-	"""The REAL work board over the rig's residents, the fishery its one source: a crew key a resident, and every crew
-	allowed job `j`'s activity, so the board WOULD give it to an idle resident -- the promise is what stops it."""
-	var board := WorkBoard.new()
-	var brains: Array[BrainScript] = []
-	var names := PackedStringArray()
-	var keys: Array[StringName] = []
-	for who: int in rig.cast.actor_count():
-		brains.append(rig.fishery.brain_of(who))
-		names.append(rig.fishery.name_of(who))
-		keys.append(&"")
-	board.bind(brains, names, keys)
-	var source := FisheryWork.new(rig.fishery)
-	for crew: int in CrewsScript.CREW_COUNT:
-		board.crews.set_priority(crew, source.activity(j), WorkIds.PRIORITY_NORMAL)
-	board.add_source(source)
-	return board
+	"""The REAL work board over the rig's residents, the fishery its one source (work_promises.gd `board_over`)."""
+	return Promises.board_over(rig.fishery, rig.cast.actor_count(), FisheryWork.new(rig.fishery), j)
 
 
 func test_a_miller_called_away_keeps_the_job_promised_on_the_work_board() -> void:
@@ -1294,7 +1273,11 @@ func test_a_station_job_still_waits_for_its_miller() -> void:
 	brain.order_move(brain.position + Vector2(-1.0, 0.0))
 	_run(rig, func() -> bool: return false, 600, false)
 	assert_true(brain.promises(WorkIds.SOURCE_FISHERY, f.tables.j_serial[j]), "still kept")
-	assert_equal(f.tables.j_worker[j], FisheryScript.NONE, "and nobody else's")
+	var board: WorkBoard = _board_over(rig, j)
+	board.rebuild_index()
+	for who: int in rig.cast.actor_count():
+		board.consider(who)
+	assert_equal(f.tables.j_worker[j], FisheryScript.NONE, "and the REAL work board gives it to nobody else")
 
 
 func _next_hour(rig: Rig, hour: int) -> int:
@@ -1354,7 +1337,8 @@ func test_a_kept_seat_is_given_up_only_in_working_hours() -> void:
 
 func test_only_the_keepers_entry_is_given_up() -> void:
 	"""O(1): the boat gives up only the entry of the fisher it let keep the seat (its keeper column) -- another
-	resident's kept entry naming the same seat (put on 2's list by hand) is not looked at."""
+	resident's kept entry naming the same seat (put on 2's list by hand) is not looked at -- and her order list is told
+	to redraw (`queue_revision`)."""
 	var rig := _rig()
 	var f: FisheryScript = rig.fishery
 	_helm(rig, 0, 2)
@@ -1365,8 +1349,10 @@ func test_only_the_keepers_entry_is_given_up() -> void:
 	var brain: BrainScript = f.brain_of(2)
 	brain.order_move(brain.position + Vector2(-1.0, 0.0))
 	brain.remember_unfinished(f.unfinished_of(seat, serial))
+	var revision: int = f.brain_of(1).queue_revision
 	var released := func() -> bool: return not f.brain_of(1).promises(WorkIds.SOURCE_FISHERY, serial)
 	assert_true(_run(rig, released, MAX_FRAMES, false), "the keeper's place given up")
+	assert_true(f.brain_of(1).queue_revision > revision, "her order list told to redraw")
 	assert_true(brain.promises(WorkIds.SOURCE_FISHERY, serial), "2's entry not looked at")
 
 

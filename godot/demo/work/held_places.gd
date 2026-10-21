@@ -34,3 +34,21 @@ static func may_release(keeper: int, calendar: CalendarScript) -> bool:
 static func release(brain: BrainScript, task_source: int, task_key: int) -> bool:
 	"""Give up the place `brain` kept: its KEPT entry naming that task goes (a queued one stays). Whether one went."""
 	return brain.forget_kept(task_source, task_key)
+
+
+static func try_release(keeper: int, calendar: CalendarScript, owner: Object, task_source: int, task_key: int) -> bool:
+	"""TRIP DOESN'T WAIT's one step, shared by every owner: when a place kept by `keeper` may be given up now
+	(`may_release`), the keeper's brain (the owner's `brain_of`) gives it up (`release`). Whether the owner should clear
+	its keeper column: true exactly when the place was released."""
+	if not may_release(keeper, calendar):
+		return false
+	release(owner.call(&"brain_of", keeper) as BrainScript, task_source, task_key)
+	return true
+
+
+static func hand_over(keeper: int, owner: Object, task_source: int, task_key: int) -> void:
+	"""A kept job claimed by anyone: the old keeper (NONE: nobody kept it) keeps it no longer -- her kept entry goes, as
+	the board's Reassign does (her own take-back has popped it already) -- else her promise would outlive the owner's
+	keeper column and hold the trip. The owner then clears that column."""
+	if keeper != NONE:
+		release(owner.call(&"brain_of", keeper) as BrainScript, task_source, task_key)

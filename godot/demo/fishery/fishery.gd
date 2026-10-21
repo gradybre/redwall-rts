@@ -360,19 +360,15 @@ func _hand_over_keep(j: int) -> void:
 	"""Job `j` claimed: the fisher who kept it while away keeps it no longer -- her kept entry goes, as the
 	board's Reassign does (her own take-back has popped it already) -- else her promise would outlive the keeper column
 	and hold the boat; the column is cleared."""
-	var keeper: int = tables.j_keeper[j]
-	if keeper != NONE:
-		HeldPlaces.release(brain_of(keeper), WorkIds.SOURCE_FISHERY, tables.j_serial[j])
+	HeldPlaces.hand_over(tables.j_keeper[j], self, WorkIds.SOURCE_FISHERY, tables.j_serial[j])
 	tables.j_keeper[j] = NONE
 
 
 func _release_kept(j: int) -> void:
 	"""Job `j`'s keeper gives it up (held_places.gd: only her kept entry, only in working hours); the board offers it
 	to anyone idle."""
-	if not HeldPlaces.may_release(tables.j_keeper[j], calendar):
-		return
-	HeldPlaces.release(brain_of(tables.j_keeper[j]), WorkIds.SOURCE_FISHERY, tables.j_serial[j])
-	tables.j_keeper[j] = NONE
+	if HeldPlaces.try_release(tables.j_keeper[j], calendar, self, WorkIds.SOURCE_FISHERY, tables.j_serial[j]):
+		tables.j_keeper[j] = NONE
 
 
 func _follow_hours() -> void:

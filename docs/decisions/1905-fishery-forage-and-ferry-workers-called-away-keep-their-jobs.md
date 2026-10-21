@@ -94,9 +94,9 @@ How it is released (rulings 3 and 4, the second review), in one shared helper, `
 - **O(1).** A place nobody kept is skipped on its keeper column, and no brain is looked at. The first version swept
   every brain with `forget_task` each frame while a place waited (about 56 µs per sweep of 256 brains). That sweep was
   also what deleted queued orders.
-- **Working hours** (ruling 4): `HeldPlaces.working_hours` is the demo's existing day, the night routine's own rule:
-  not `night_routine.gd` `is_night_hour`, whose night runs from `DUSK_HOUR` 20:00 to `DAWN_HOUR` 06:00. No new
-  constant. Overnight a kept place stays hers; from 06:00 it may be released.
+- **Working hours** (ruling 4): `HeldPlaces.working_hours` is the demo's existing day, the complement of the
+  night routine's own rule (`night_routine.gd` `is_night_hour`), whose night runs from `DUSK_HOUR` 20:00 to
+  `DAWN_HOUR` 06:00. No new constant. Overnight a kept place stays hers; from 06:00 it may be released.
 
 "Ready to leave", owner by owner:
 
@@ -110,6 +110,39 @@ How it is released (rulings 3 and 4, the second review), in one shared helper, `
 - **The ferry** (`_release_held_crew`): a crossing posted with the ferry open, its crew place waiting. A crew aboard is
   never called away (`must_finish`), so a waiting crew place means the boat waits only for its crew. A closed ferry
   waits anyway and keeps the place; it is released once the ferry opens. Gathers and hauls keep theirs.
+
+### Revived on 2026-10-21: master merged, and the fourth review
+
+Brendan's "Revive all three" (2026-10-21, relayed by the coordinator) brought this branch up to origin/master
+`e0e7065a` (merge `7e60a6ce`). Only `RULINGS.md` conflicted; both sides' rows are kept, this lane's four 2026-10-12 rows
+ahead of master's later rows in that section. No code file this branch touches had changed on master since its base
+`5977191b`, and none is fingerprinted by a test checkpoint, so the fix applies to today's demo unchanged in meaning.
+Today's callers were re-checked: the build panel's mole and fitter (`demo_build.gd` `_send`) and the Mound host's
+`send_worker` go through `order_task` like any order, so a fisher, forager or ferry hand they take keeps her job and
+comes back to it, as orchard, farm and tunnel workers already do.
+
+An independent `code-reviewer` pass on the merged diff found no CRITICAL or HIGH issue. Fixed:
+
+- **MEDIUM, one adapter four times.** `fishery_task.gd`, `ferry_task.gd`, `forage_task.gd` and the orchard's
+  `orchard_task.gd` were the same ten functions. They now extend one shared adapter, `demo/work/owned_job_task.gd`,
+  and keep only their header notes. Behaviour is unchanged.
+- **MEDIUM, the release copied into three owners.** `HeldPlaces.try_release` (may it go now, then release) and
+  `HeldPlaces.hand_over` (a claim ends the old keeper's promise) hold the shared step. Each owner keeps its one-line
+  keeper-column clear, and the ferry's crew release now goes through the same call.
+- **MEDIUM, test helpers pasted into eleven suites.** `_promised_to` and the body of `_board_over` live once, in
+  `godot/test/work_promises.gd` (not a suite).
+- **LOW, an assertion that could not fail.** The three "solo work still waits" tests ran with the rig's board pass
+  off, so "nobody else's" was true by construction. They now offer the job through the REAL work board first.
+- **LOW:** `forget_kept`'s `queue_revision` bump is pinned (`test_only_the_keepers_entry_is_given_up`); the longest
+  forage test is split; this record's "working hours" sentence is reworded.
+
+Not fixed here, reported to the coordinator: **a queued walk is forgotten with every other queued walk** (MEDIUM,
+already on master). Every queued walk has `source = SOURCE_WALK`, `key = -1` (`order_list.gd`), so taking one up
+(`take_up_unfinished` → `forget_task`) deletes the others. It predates this lane and needs its own change and test.
+Also left as reviewed: Reassign forgets the promise for every resident (deliberate, the second review), and the order
+words built in two places (harmless; `forget_task` tidies on take-up).
+
+The mutation section's file:line references are from the commits named there, before this refactor.
 
 ### The third review of 5557aa5d, and what was done
 

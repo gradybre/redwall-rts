@@ -36,9 +36,9 @@ const Layout := preload("res://demo/world/world_layout.gd")
 const ErrandScript := preload("res://demo/tunnel/tunnel_task.gd")
 const InterruptScript := preload("res://demo/control/work_interrupt.gd")
 const WorkIds := preload("res://demo/work/work_ids.gd")
+const Promises := preload("res://test/work_promises.gd")
 const BoardScript := preload("res://demo/work/work_board.gd")
 const OrchardWork := preload("res://demo/work/orchard_work.gd")
-const CrewsScript := preload("res://demo/work/work_crews.gd")
 const UnfinishedScript := preload("res://demo/cast/unfinished_job.gd")
 
 const DT: float = 0.1
@@ -187,21 +187,14 @@ func _board_pass(rig: Rig) -> void:
 	for j: int in JobsScript.MAX_JOBS:
 		if not rig.jobs.waiting(j):
 			continue
-		var keeper: int = _promised_to(rig, rig.jobs.serial[j])
+		var keeper: int = Promises.promised_to(rig.jobs, rig.cast.actor_count(),
+			WorkIds.SOURCE_ORCHARD, rig.jobs.serial[j])
 		for who: int in rig.cast.actor_count():
 			if keeper >= 0 and keeper != who:
 				continue
 			var brain: BrainScript = rig.jobs.brain_of(who)
 			if brain.order == BrainScript.ORDER_NONE and rig.jobs.eligibility(j, who).is_empty() and rig.jobs.claim(j, who):
 				break
-
-
-func _promised_to(rig: Rig, task_key: int) -> int:
-	"""Who means to come back to that task (the work board leaves it to them, decision 0411; -1: nobody)."""
-	for who: int in rig.cast.actor_count():
-		if rig.jobs.brain_of(who).promises(WorkIds.SOURCE_ORCHARD, task_key):
-			return who
-	return -1
 
 
 func _stand(rig: Rig, group: int) -> int:
@@ -852,18 +845,8 @@ func test_two_kept_tasks_that_read_alike_are_both_kept() -> void:
 
 
 func _board_over(rig: Rig, j: int) -> BoardScript:
-	"""The REAL work board over the rig's residents, the orchard its one source: a crew key a resident, and every crew
-	allowed job `j`'s activity, so the board WOULD give it to an idle resident -- the promise is what stops it."""
-	var board := BoardScript.new()
-	var keys: Array[StringName] = []
-	for who: int in rig.cast.actor_count():
-		keys.append(&"")
-	board.bind(_brains_of(rig), _names_of(rig), keys)
-	var source := OrchardWork.new(rig.jobs)
-	for crew: int in CrewsScript.CREW_COUNT:
-		board.crews.set_priority(crew, source.activity(j), WorkIds.PRIORITY_NORMAL)
-	board.add_source(source)
-	return board
+	"""The REAL work board over the rig's residents, the orchard its one source (work_promises.gd `board_over`)."""
+	return Promises.board_over(rig.jobs, rig.cast.actor_count(), OrchardWork.new(rig.jobs), j)
 
 
 func _tending_a_quarter_done(rig: Rig, who: int) -> int:
@@ -873,22 +856,6 @@ func _tending_a_quarter_done(rig: Rig, who: int) -> int:
 	var quarter := func() -> bool: return rig.jobs.need_mwu[j] > 0 and rig.jobs.done_mwu[j] * 4 >= rig.jobs.need_mwu[j]
 	assert_true(_run(rig, quarter), "a quarter done")
 	return j
-
-
-func _brains_of(rig: Rig) -> Array[BrainScript]:
-	"""Every resident's brain, by actor index."""
-	var brains: Array[BrainScript] = []
-	for who: int in rig.cast.actor_count():
-		brains.append(rig.jobs.brain_of(who))
-	return brains
-
-
-func _names_of(rig: Rig) -> PackedStringArray:
-	"""Every resident's name, by actor index."""
-	var names := PackedStringArray()
-	for who: int in rig.cast.actor_count():
-		names.append(rig.jobs.name_of(who))
-	return names
 
 
 func test_a_job_the_board_takes_away_or_a_lost_walk_is_not_kept() -> void:

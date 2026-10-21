@@ -18,10 +18,10 @@ const SkillsScript := preload("res://demo/forage/forage_skills.gd")
 const SectionScript := preload("res://demo/forage/forage_section.gd")
 const ForageWork := preload("res://demo/work/forage_work.gd")
 const WorkBoard := preload("res://demo/work/work_board.gd")
-const CrewsScript := preload("res://demo/work/work_crews.gd")
 const ErrandScript := preload("res://demo/tunnel/tunnel_task.gd")
 const InterruptScript := preload("res://demo/control/work_interrupt.gd")
 const WorkIds := preload("res://demo/work/work_ids.gd")
+const Promises := preload("res://test/work_promises.gd")
 const TaskRecord := preload("res://demo/work/work_task.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const MealRules := preload("res://demo/kitchen/meal_rules.gd")
@@ -149,21 +149,14 @@ func _board_pass(rig: Rig) -> void:
 	for j: int in Rules.MAX_JOBS:
 		if not t.waiting(j):
 			continue
-		var keeper: int = _promised_to(rig, t.j_serial[j])
+		var keeper: int = Promises.promised_to(rig.trips, rig.cast.actor_count(),
+			WorkIds.SOURCE_FORAGE, t.j_serial[j])
 		for who: int in rig.cast.actor_count():
 			if keeper >= 0 and keeper != who:
 				continue
 			var brain: BrainScript = t.brain_of(who)
 			if brain.order == BrainScript.ORDER_NONE and t.eligibility(j, who).is_empty() and t.claim(j, who):
 				break
-
-
-func _promised_to(rig: Rig, task_key: int) -> int:
-	"""Who means to come back to that task (the work board leaves it to them, decision 0411; -1: nobody)."""
-	for who: int in rig.cast.actor_count():
-		if rig.trips.brain_of(who).promises(WorkIds.SOURCE_FORAGE, task_key):
-			return who
-	return -1
 
 
 # --- the items -------------------------------------------------------------------------------------------------
@@ -541,22 +534,8 @@ func _gathering_a_quarter_done(rig: Rig, who: int) -> int:
 
 
 func _board_over(rig: Rig, j: int) -> WorkBoard:
-	"""The REAL work board over the rig's residents, its one source: a crew key a resident, and every crew allowed job
-	`j`'s activity, so the board WOULD give it to an idle resident -- the promise is what stops it."""
-	var board := WorkBoard.new()
-	var brains: Array[BrainScript] = []
-	var names := PackedStringArray()
-	var keys: Array[StringName] = []
-	for who: int in rig.cast.actor_count():
-		brains.append(rig.trips.brain_of(who))
-		names.append(rig.trips.name_of(who))
-		keys.append(&"")
-	board.bind(brains, names, keys)
-	var source := ForageWork.new(rig.trips)
-	for crew: int in CrewsScript.CREW_COUNT:
-		board.crews.set_priority(crew, source.activity(j), WorkIds.PRIORITY_NORMAL)
-	board.add_source(source)
-	return board
+	"""The REAL work board over the rig's residents, the forage its one source (work_promises.gd `board_over`)."""
+	return Promises.board_over(rig.trips, rig.cast.actor_count(), ForageWork.new(rig.trips), j)
 
 
 func test_a_forager_called_away_keeps_the_seat_promised_on_the_work_board() -> void:
@@ -583,13 +562,19 @@ func test_a_forager_called_away_keeps_the_seat_promised_on_the_work_board() -> v
 	assert_equal(t.j_worker[j], TripsScript.NONE, "nobody else was given it")
 	brain.work_done()
 	assert_equal(t.j_worker[j], 3, "back to it")
+	_assert_gathers_on(rig, j, done, need)
+	assert_true(_books_kept, "THE BOOKS")
+
+
+func _assert_gathers_on(rig: Rig, j: int, done: int, need: int) -> void:
+	"""Seat `j`'s forager, back on it, is at her spot gathering again from where she stopped (`done` of `need`)."""
+	var t: TripsScript = rig.trips
 	var at_work := func() -> bool: return t.j_step[j] == TripsScript.S_GATHER and t.j_at[j] == 1
 	assert_true(_run(rig, at_work, MAX_FRAMES, false), "gathering again")
 	assert_equal(t.j_need[j], need, "the same share")
 	@warning_ignore("integer_division") var one_frame: int = need / 20
 	assert_true(t.j_mwu[j] >= done and t.j_mwu[j] < done + one_frame,
 		"from where she stopped: %d after %d" % [t.j_mwu[j], done])
-	assert_true(_books_kept, "THE BOOKS")
 
 
 func test_a_seat_lost_on_the_way_paused_or_reassigned_keeps_nothing() -> void:
@@ -728,7 +713,11 @@ func test_a_forager_alone_still_keeps_her_seat() -> void:
 	assert_equal(t.order_trip(MUSHROOMS, 1, PackedInt32Array([5])), "", "another forager out on a trip of her own")
 	_run(rig, func() -> bool: return false, 600, false)
 	assert_true(brain.promises(WorkIds.SOURCE_FORAGE, t.j_serial[j]), "still kept")
-	assert_equal(t.j_worker[j], TripsScript.NONE, "and nobody else's")
+	var board: WorkBoard = _board_over(rig, j)
+	board.rebuild_index()
+	for who: int in rig.cast.actor_count():
+		board.consider(who)
+	assert_equal(t.j_worker[j], TripsScript.NONE, "and the REAL work board gives it to nobody else")
 
 
 func test_a_party_seat_with_its_haul_set_down_is_still_kept() -> void:

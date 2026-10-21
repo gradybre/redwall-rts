@@ -38,9 +38,9 @@ const RouterScript := preload("res://demo/tunnel/tunnel_router.gd")
 const BoatRowsScript := preload("res://demo/routes/boat_rows.gd")
 const IceScript := preload("res://demo/fishery/pond_ice.gd")
 const WorkIds := preload("res://demo/work/work_ids.gd")
+const Promises := preload("res://test/work_promises.gd")
 const FerryWork := preload("res://demo/work/ferry_work.gd")
 const WorkBoard := preload("res://demo/work/work_board.gd")
-const CrewsScript := preload("res://demo/work/work_crews.gd")
 const ErrandScript := preload("res://demo/tunnel/tunnel_task.gd")
 const InterruptScript := preload("res://demo/control/work_interrupt.gd")
 const TaskRecord := preload("res://demo/work/work_task.gd")
@@ -179,21 +179,14 @@ func _board_pass(rig: Rig) -> void:
 	for j: int in FerryScript.MAX_JOBS:
 		if not f.waiting(j):
 			continue
-		var keeper: int = _promised_to(rig, f.j_serial[j])
+		var keeper: int = Promises.promised_to(rig.ferry, rig.cast.actor_count(),
+			WorkIds.SOURCE_FERRY, f.j_serial[j])
 		for who: int in rig.cast.actor_count():
 			if keeper >= 0 and keeper != who:
 				continue
 			var brain: BrainScript = f.brain_of(who)
 			if brain.order == BrainScript.ORDER_NONE and not brain.in_water and f.eligibility(j, who).is_empty() and f.claim(j, who):
 				break
-
-
-func _promised_to(rig: Rig, task_key: int) -> int:
-	"""Who means to come back to that task (the work board leaves it to them, decision 0411; -1: nobody)."""
-	for who: int in rig.cast.actor_count():
-		if rig.ferry.brain_of(who).promises(WorkIds.SOURCE_FERRY, task_key):
-			return who
-	return -1
 
 
 func _debug(rig: Rig, frame: int) -> void:
@@ -1020,22 +1013,8 @@ func _gathering_a_quarter_done(rig: Rig, who: int) -> int:
 
 
 func _board_over(rig: Rig, j: int) -> WorkBoard:
-	"""The REAL work board over the rig's residents, its one source: a crew key a resident, and every crew allowed job
-	`j`'s activity, so the board WOULD give it to an idle resident -- the promise is what stops it."""
-	var board := WorkBoard.new()
-	var brains: Array[BrainScript] = []
-	var names := PackedStringArray()
-	var keys: Array[StringName] = []
-	for who: int in rig.cast.actor_count():
-		brains.append(rig.ferry.brain_of(who))
-		names.append(rig.ferry.name_of(who))
-		keys.append(&"")
-	board.bind(brains, names, keys)
-	var source := FerryWork.new(rig.ferry)
-	for crew: int in CrewsScript.CREW_COUNT:
-		board.crews.set_priority(crew, source.activity(j), WorkIds.PRIORITY_NORMAL)
-	board.add_source(source)
-	return board
+	"""The REAL work board over the rig's residents, the ferry its one source (work_promises.gd `board_over`)."""
+	return Promises.board_over(rig.ferry, rig.cast.actor_count(), FerryWork.new(rig.ferry), j)
 
 
 func test_a_gatherer_called_away_keeps_the_job_promised_on_the_work_board() -> void:
@@ -1212,7 +1191,11 @@ func test_a_gatherer_still_keeps_her_pile() -> void:
 	brain.order_move(brain.position + Vector2(-1.0, 0.0))
 	_run(rig, func() -> bool: return false, 600, false)
 	assert_true(brain.promises(WorkIds.SOURCE_FERRY, ferry.j_serial[j]), "still kept")
-	assert_equal(ferry.j_worker[j], FerryScript.NONE, "and nobody else's")
+	var board: WorkBoard = _board_over(rig, j)
+	board.rebuild_index()
+	for who: int in rig.cast.actor_count():
+		board.consider(who)
+	assert_equal(ferry.j_worker[j], FerryScript.NONE, "and the REAL work board gives it to nobody else")
 
 
 func test_a_closed_ferry_keeps_its_helm_called_away() -> void:

@@ -432,9 +432,7 @@ func _hand_over_keep(j: int) -> void:
 	"""Job `j` claimed: the worker who kept it while away keeps it no longer -- her kept entry goes, as the
 	board's Reassign does (her own take-back has popped it already) -- else her promise would outlive the keeper column
 	and hold the trip; the column is cleared."""
-	var keeper: int = j_keeper[j]
-	if keeper != NONE:
-		HeldPlaces.release(brain_of(keeper), WorkIds.SOURCE_FERRY, j_serial[j])
+	HeldPlaces.hand_over(j_keeper[j], self, WorkIds.SOURCE_FERRY, j_serial[j])
 	j_keeper[j] = NONE
 
 
@@ -445,10 +443,8 @@ func _release_held_crew() -> void:
 	gather or haul keeps its own; a closed ferry waits anyway, and keeps it."""
 	if x_serial == 0 or x_job == NONE or j_keeper[x_job] == NONE or not is_open() or not waiting(x_job):
 		return
-	if not HeldPlaces.may_release(j_keeper[x_job], calendar):
-		return
-	HeldPlaces.release(brain_of(j_keeper[x_job]), WorkIds.SOURCE_FERRY, j_serial[x_job])
-	j_keeper[x_job] = NONE
+	if HeldPlaces.try_release(j_keeper[x_job], calendar, self, WorkIds.SOURCE_FERRY, j_serial[x_job]):
+		j_keeper[x_job] = NONE
 
 
 func _follow_hours() -> void:

@@ -15,22 +15,38 @@ const Space := preload("res://scripts/core/room_space.gd")
 const Contract := preload("res://scripts/core/excavation_contract.gd")
 const Jobs := preload("res://scripts/core/jobs.gd")
 const Face := preload("res://scripts/core/underground_work_face.gd")
+const Sites := preload("res://scripts/core/excavation_sites.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const MAX_STATIONS: int = Publication.MAX_STATIONS
 const MAX_CHAIN: int = MAX_STATIONS + 2 # Room to detect, and name, a chain one or two stations too long.
+## Decision 1943: a straight approach (a turn at the gateway, then the heading run) publishes at most ADR 1213's three
+## stations, as before; only an L-shaped approach may use the publication's whole MAX_STATIONS.
+const STRAIGHT_STATIONS: int = 3
+## Decision 1943: which approach one plan takes (`_plan_into`). PLAN_MASTER is ADR 1213's, unchanged: the bound
+## heading's first plan, so every room master digs is planned exactly as on master.
+const PLAN_MASTER: int = 0
+const PLAN_STRAIGHT: int = 1
+const PLAN_CORNERED: int = 2
 const MAX_REGIONS: int = 192 # Per kind (void, support, blocker, section) inside the query hull.
 const MAX_FRAGMENTS: int = 96
 const MAX_CANDIDATES: int = 2048
 const MAX_EDGES: int = 256
 const MAX_PRIMITIVES: int = 32 # Air primitives of one station's adjoining sources, before merging.
 const AIR_BOXES: int = Publication.AIR_BOXES
-## Declared logical cold slice (45,752 B): four region tables and their section refs, two fragment arenas,
+## Decision 1943: headings are tried a quarter turn apart on Profiles' yaw circle ([0, 65536); an exact-yaw policy
+## row's yaw is a multiple of 16384, underground_profiles.gd).
+const FULL_TURN: int = 65536
+## A box's horizontal low and high fields (x, z, then x, z).
+const HORIZONTAL_FIELDS: PackedInt32Array = [0, 2, 3, 5]
+const QUARTER_TURN: int = 16384
+## Declared logical cold slice (56,040 B): five region tables (decision 1942 added the claimed rows) and their section
+## and claim refs, two fragment arenas, decision 1943's turning lines,
 ## candidate keys, edge/plane scratch, the chain packets and their ADR1215 air boxes, the primitive scratch,
 ## eight six-int boxes and a 1,024 B scalar/reference allowance.
 ## Not a native measurement. The Query dies before publish_into admits its own lifetime in the same lease.
-const CONTROL_BYTES: int = 4 * 6 * MAX_REGIONS * 4 + 2 * MAX_REGIONS * 4 + 2 * 6 * MAX_FRAGMENTS * 4 \
+const CONTROL_BYTES: int = 5 * 6 * MAX_REGIONS * 4 + 5 * MAX_REGIONS * 4 + 2 * 6 * MAX_FRAGMENTS * 4 \
 	+ MAX_CANDIDATES * 8 + 2 * MAX_EDGES * 4 + MAX_CHAIN * (3 * 4 + 4 * 8 + 2 * 4 + 4 + AIR_BOXES * 6 * 4) \
-	+ MAX_PRIMITIVES * 6 * 4 + 8 * 6 * 4 + 1024
+	+ MAX_PRIMITIVES * 6 * 4 + 8 * 6 * 4 + 1024 + 2 * MAX_REGIONS * 8
 const IDENTITY_FIELDS: Array[int] = [Profiles.F_SOURCE, Profiles.F_SPECIES, Profiles.F_STAGE, Profiles.F_RIG,
 	Profiles.F_POSTURE, Profiles.F_TOOL, Profiles.F_TOOL_VARIANT, Profiles.F_CARGO, Profiles.F_CARGO_VARIANT]
 const REFUSE_SCOPE: StringName = &"ROOM_STATION_SCOPE"
@@ -55,6 +71,14 @@ class Query extends RefCounted:
 	## Private cold packet; dies before publish_into allocates. No owner, bank or caller packet is retained after return.
 	var profiles: Profiles = null
 	var owner: Owner = null
+	var sites: Sites = null # Decision 1942: the provider's Sites, for the room a WORK station's cube belongs to.
+	var claims: PackedInt32Array = PackedInt32Array() # Decision 1942: claimed rows meeting the hull, boxes of six.
+	var claim_refs: PackedInt32Array = PackedInt32Array() # Each claimed row's kind, claim slot and generation.
+	var claim_count: int = 0 # -1 once more than MAX_REGIONS meet the hull (the owner is then scanned in full).
+	var cornered: bool = false # Decision 1943: plan L-shaped ground approaches (after the straight ones all failed).
+	var master: bool = false # Decision 1943: ADR 1213's straight approach, exactly (no run split going down).
+	var lines: PackedInt64Array = PackedInt64Array() # Decision 1943: the distinct turning lines, (distance, value) keys.
+	var line_count: int = -1
 	var origin: Vector3i = Vector3i.ZERO
 	var axis: int = 0
 	var lateral: int = 2
@@ -109,7 +133,15 @@ const SECTION: int = 3
 
 static func plan_into(actual: Provider, candidate: Frontier.Candidate, face: int, yaw: int,
 		cold: int, max_checks: int, out: Publication.Request) -> StringName:
-	"""Derive one bounded station chain for the candidate Site; every refusal leaves the caller Request unchanged."""
+	"""Derive one bounded station chain for the candidate Site; every refusal leaves the caller Request unchanged.
+	This is ADR 1213's straight approach exactly; decision 1943's other approaches are tried by `next_contact_into`."""
+	return _plan_into(actual, candidate, face, yaw, cold, max_checks, out, PLAN_MASTER)
+
+
+static func _plan_into(actual: Provider, candidate: Frontier.Candidate, face: int, yaw: int,
+		cold: int, max_checks: int, out: Publication.Request, approach: int) -> StringName:
+	"""`plan_into` for one approach: PLAN_MASTER (ADR 1213's straight approach, unchanged), PLAN_STRAIGHT (the same
+	shape with decision 1943's runs split at section boundaries in both directions) or PLAN_CORNERED (L-shaped)."""
 	var code: StringName = Frontier._guard(actual, cold, CONTROL_BYTES, max_checks)
 	if code != &"": return code
 	if candidate == null or candidate.get_script() != Frontier.Candidate or out == null \
@@ -120,6 +152,7 @@ static func plan_into(actual: Provider, candidate: Frontier.Candidate, face: int
 	if face == 2 or face == 3: return REFUSE_VERTICAL # Roots are planned on the Room floor against side faces only.
 	var q: Query = Query.new()
 	_hold(q, actual, candidate, face, yaw, max_checks)
+	q.cornered = approach == PLAN_CORNERED; q.master = approach == PLAN_MASTER
 	code = _sources(q, actual)
 	if code == &"": code = _gateway(q, actual)
 	if code == &"": code = _regions(q)
@@ -131,22 +164,124 @@ static func plan_into(actual: Provider, candidate: Frontier.Candidate, face: int
 static func next_contact_into(actual: Provider, room: Vector2i, after_key: int, cold: int, max_checks: int,
 		candidate: Frontier.Candidate, contact: Face.Request, request: Publication.Request,
 		result: Publication.Result) -> StringName:
-	"""One foreman step: the next unpaid Site and a proved contact, publishing a planned chain when none exists yet."""
+	"""One foreman step: the next unpaid Site and a proved contact, publishing a planned chain when none exists yet.
+	Decision 1943: exactly as before on the access's bound heading first (its contact, else ADR 1213's straight
+	approach). A contact that exists (contacts are found whatever the approach row) is only ever walked to, never
+	planned again: when the bound row cannot walk to it, each other heading's row is tried. When no contact exists
+	and the bound heading's plan reaches none (`_unreached`), each heading is planned with a straight approach, the
+	bound one first, then with an L-shaped one. A publication ends the step whatever follows, as before."""
 	var code: StringName = Frontier.next_site_into(actual, room, after_key, cold, max_checks, candidate)
 	if code != &"": return code
+	var base: int = _retreat_yaw(actual)
+	code = _existing_contact(actual, base, cold, max_checks, candidate, contact)
+	if code != Frontier.REFUSE_CONTACT: return _walk_to_contact(actual, base, code, cold, max_checks, candidate, contact)
+	var work: Vector2i = result.work
+	code = _publish_at(actual, room, base, cold, max_checks, candidate, contact, request, result, PLAN_MASTER)
+	if code == &"" or result.work != work or not _unreached(code) or base < 0: return code
+	for pass_index: int in 2:
+		for turn: int in 4:
+			var other: StringName = _publish_at(actual, room, (base + turn * QUARTER_TURN) % FULL_TURN, cold, max_checks,
+				candidate, contact, request, result, PLAN_STRAIGHT if pass_index == 0 else PLAN_CORNERED)
+			if other == &"" or result.work != work or not _passable(other): return other
+	return code
+
+
+static func _unreached(code: StringName) -> bool:
+	"""Decision 1943: this heading reaches no contact for the cube: its plan finds no chain (RANKED), its rows are
+	missing, or an existing contact lies on another heading's chain that its own travel family cannot walk. Only
+	these move on to the next heading; any other refusal (an occupied span, a busy owner) is returned as before."""
+	return RANKED.has(code) or code == REFUSE_HEADING or code == REFUSE_VERTICAL or code == &"ROUTE_NOT_CONNECTED"
+
+
+static func _passable(code: StringName) -> bool:
+	"""Decision 1943: a heading tried after the bound one is passed over when it reaches no contact, has no travel
+	rows of its own, or its plan ran out of checks (an L-shaped search is costly; the next heading may be cheap)."""
+	return _unreached(code) or code == REFUSE_TRAVEL or code == REFUSE_CAPACITY
+
+
+static func _existing_contact(actual: Provider, yaw: int, cold: int, max_checks: int, candidate: Frontier.Candidate,
+		contact: Face.Request) -> StringName:
+	"""The cube's existing contact walked to on that heading's forward row; a contact on another heading's work row
+	is taken only when the builder has travel rows at that heading (`_walkable`)."""
 	var q: Query = Query.new()
 	q.profiles = actual._ordinary_config.profiles
-	q.yaw = _retreat_yaw(actual)
-	code = _sources(q, actual)
+	q.yaw = yaw
+	var code: StringName = _sources(q, actual)
+	if code == &"": code = Frontier.contact_into(actual, candidate, actual._ordinary_retreat, q.forward,
+		q.profiles._live.quantities[q.forward], cold, max_checks, contact)
+	if code == &"" and contact.yaw != yaw and not _walkable(actual, contact.yaw): code = REFUSE_HEADING
+	return code
+
+
+static func _walk_to_contact(actual: Provider, base: int, code: StringName, cold: int, max_checks: int,
+		candidate: Frontier.Candidate, contact: Face.Request) -> StringName:
+	"""An existing contact: the bound row's result as before, unless that row cannot walk to it, when each other
+	heading's row is tried; none plans or publishes. When none walks to it the bound row's refusal is returned."""
+	if not _unreached(code) or base < 0: return code
+	for turn: int in range(1, 4):
+		var other: StringName = _existing_contact(actual, (base + turn * QUARTER_TURN) % FULL_TURN, cold, max_checks,
+			candidate, contact)
+		if not _passable(other): return other
+	return code
+
+
+static func _walkable(actual: Provider, yaw: int) -> bool:
+	"""The bound rows have READY siblings at the yaw, so the builder can walk a cube struck from it (`_heading_row`)."""
+	var q: Query = Query.new()
+	q.profiles = actual._ordinary_config.profiles
+	q.yaw = yaw
+	return _sources(q, actual) == &""
+
+
+static func _publish_at(actual: Provider, room: Vector2i, yaw: int, cold: int, max_checks: int,
+		candidate: Frontier.Candidate, contact: Face.Request, request: Publication.Request, result: Publication.Result,
+		approach: int) -> StringName:
+	"""One heading with no existing contact: a planned and published chain, then the re-derived candidate's contact.
+	Every refusal before publication leaves the caller packets unchanged."""
+	var q: Query = Query.new()
+	q.profiles = actual._ordinary_config.profiles
+	q.yaw = yaw
+	var code: StringName = _sources(q, actual)
 	if code != &"": return code
 	var revision: int = q.profiles._live.quantities[q.forward]
-	code = Frontier.contact_into(actual, candidate, actual._ordinary_retreat, q.forward, revision, cold, max_checks, contact)
-	if code != Frontier.REFUSE_CONTACT: return code
-	code = plan_into(actual, candidate, facing_face(actual, q.yaw), q.yaw, cold, max_checks, request)
+	var face: int = facing_face(actual, yaw)
+	if face < 0: return REFUSE_HEADING # No WORK row strikes from this yaw.
+	code = _plan_into(actual, candidate, face, yaw, cold, max_checks, request, approach)
 	if code == &"": code = Publication.publish_into(actual, candidate, request, cold, max_checks, result)
 	if code == &"": code = Frontier.next_site_into(actual, room, candidate.key - 1, cold, max_checks, candidate)
 	if code == &"": code = Frontier.contact_into(actual, candidate, actual._ordinary_retreat, q.forward, revision, cold, max_checks, contact)
 	return code
+
+
+static func resume_contact_into(actual: Provider, candidate: Frontier.Candidate, bound_forward: int, cold: int,
+		max_checks: int, contact: Face.Request) -> StringName:
+	"""Decision 1943: a paid phase a stopped dig left is taken over at whichever heading its station was planned on:
+	the bound forward row first (as before), then, when that row finds no contact or cannot walk to the station's
+	chain (`_resumable`), the forward row of each other yaw, a quarter turn at a time. When none takes it over the
+	bound row's refusal is returned."""
+	var profiles: Profiles = actual._ordinary_config.profiles
+	var base: int = _retreat_yaw(actual)
+	var code: StringName = Frontier.resume_contact_into(actual, candidate, actual._ordinary_retreat, bound_forward,
+		profiles._live.quantities[bound_forward], cold, max_checks, contact)
+	if code == &"" and contact.yaw != base and not _walkable(actual, contact.yaw): code = REFUSE_HEADING
+	if not _resumable(code) or base < 0: return code
+	for turn: int in range(1, 4):
+		var q: Query = Query.new()
+		q.profiles = profiles
+		q.yaw = (base + turn * QUARTER_TURN) % FULL_TURN
+		if _sources(q, actual) != &"": continue
+		var other: StringName = Frontier.resume_contact_into(actual, candidate, actual._ordinary_retreat, q.forward,
+			profiles._live.quantities[q.forward], cold, max_checks, contact)
+		if other == &"" and contact.yaw != q.yaw and not _walkable(actual, contact.yaw): other = REFUSE_HEADING
+		if not _resumable(other): return other
+	return code
+
+
+static func _resumable(code: StringName) -> bool:
+	"""Decision 1943: this heading's forward row cannot take the paid phase over (no contact on its row, the station's
+	chain is one it cannot walk, or the builder has no travel rows at the contact's heading), so the next heading is
+	tried."""
+	return code == Frontier.REFUSE_CONTACT or code == &"ROUTE_NOT_CONNECTED" or code == REFUSE_HEADING
 
 
 static func _retreat_yaw(actual: Provider) -> int:
@@ -179,6 +314,7 @@ static func facing_face(actual: Provider, yaw: int) -> int:
 static func _hold(q: Query, actual: Provider, candidate: Frontier.Candidate, face: int, yaw: int, checks: int) -> void:
 	"""Pin the original immutable owners and allocate every fixed scratch packet once."""
 	q.profiles = actual._ordinary_config.profiles; q.owner = actual._ordinary_config.owner
+	q.sites = actual._ordinary_original_sites()
 	q.locations = actual._ordinary_config.locations
 	q.origin = Frontier._origin(actual._ordinary_original_sites(), candidate.key)
 	@warning_ignore("integer_division") var axis: int = face / 2
@@ -195,8 +331,9 @@ static func _hold(q: Query, actual: Provider, candidate: Frontier.Candidate, fac
 		table.resize(6 * MAX_REGIONS)
 		q.tables[kind] = table
 	q.section_refs.resize(2 * MAX_REGIONS)
+	q.claims.resize(6 * MAX_REGIONS); q.claim_refs.resize(3 * MAX_REGIONS)
 	q.front.resize(6 * MAX_FRAGMENTS); q.back.resize(6 * MAX_FRAGMENTS)
-	q.keys.resize(MAX_CANDIDATES); q.edges.resize(MAX_EDGES); q.planes.resize(MAX_EDGES)
+	q.keys.resize(MAX_CANDIDATES); q.edges.resize(MAX_EDGES); q.planes.resize(MAX_EDGES); q.lines.resize(2 * MAX_REGIONS)
 	q.points.resize(3 * MAX_CHAIN); q.spans.resize(4 * MAX_CHAIN); q.sections.resize(2 * MAX_CHAIN)
 	q.air_counts.resize(MAX_CHAIN); q.air.resize(MAX_CHAIN * AIR_BOXES * 6); q.primitives.resize(MAX_PRIMITIVES * 6); q.merged.resize(6)
 
@@ -256,6 +393,7 @@ static func _regions(q: Query) -> StringName:
 	for row: int in owner._region_capacity:
 		if not _spend(q, 4): return REFUSE_CAPACITY
 		if owner._r_present[row] != 1: continue
+		if owner._r_claim_kind[row] != Owner.CLAIM_NONE: _keep_claim(q, owner, row)
 		var role: int = owner._r_role[row]
 		var kind: int = SECTION if role == Space.FLOOR_DATUM else VOID if role == Space.SUPPORTED_VOID \
 			else SUPPORT if role == Space.SUPPORT else BLOCKER
@@ -270,6 +408,22 @@ static func _regions(q: Query) -> StringName:
 			q.section_refs[2 * q.counts[kind]] = row; q.section_refs[2 * q.counts[kind] + 1] = owner._r_generation[row]
 		q.counts[kind] += 1
 	return &""
+
+
+static func _keep_claim(q: Query, owner: Owner, row: int) -> void:
+	"""Decision 1942: a claimed row meeting the hull, with its claim, for `_foreign_claim` (no extra check is spent:
+	the row's scan already paid). Past MAX_REGIONS the table is abandoned and the owner is scanned when needed."""
+	if q.claim_count < 0: return
+	_region_box(owner, row, q.other)
+	if not Space.overlaps(q.other, q.hull): return
+	if q.claim_count >= MAX_REGIONS:
+		q.claim_count = -1
+		return
+	_put(q.claims, q.claim_count, q.other)
+	q.claim_refs[3 * q.claim_count] = owner._r_claim_kind[row]
+	q.claim_refs[3 * q.claim_count + 1] = owner._r_claim_slot[row]
+	q.claim_refs[3 * q.claim_count + 2] = owner._r_claim_generation[row]
+	q.claim_count += 1
 
 
 static func _hull(q: Query) -> void:
@@ -335,16 +489,30 @@ static func _anchor(q: Query, row: int) -> bool:
 		if q.profiles._live.boxes[6 * q.profiles._box_capacity + box] != Profiles.CONTACT_POINT: continue
 		found += 1
 		for axis: int in 3: q.anchor[axis] = q.profiles._live.boxes[axis * q.profiles._box_capacity + box]
-	return found == 1 and q.anchor[q.axis] * q.direction > 0
+	return found == 1 and q.anchor[q.axis] * q.direction > 0 and _patch_on_face(q, row)
+
+
+static func _patch_on_face(q: Query, row: int) -> bool:
+	"""Decision 1971: the row's CONTACT_PATCH lies flat on the struck face's axis. A patch flat in another axis (a
+	top-face dig, a seating tap) strikes some other face, and WorkFace's patch proof would refuse it later."""
+	var stride: int = q.profiles._box_capacity
+	for index: int in _field(q, row, Profiles.F_BOX_COUNT):
+		var box: int = _field(q, row, Profiles.F_FIRST_BOX) + index
+		if q.profiles._live.boxes[6 * stride + box] == Profiles.CONTACT_PATCH:
+			return q.profiles._live.boxes[q.axis * stride + box] == q.profiles._live.boxes[(q.axis + 3) * stride + box]
+	return false
 
 
 static func _reaches(q: Query) -> bool:
-	"""The anchor must lie strictly inside the cube's band above the Room floor and the root stand outside the cube."""
+	"""The anchor must lie strictly inside the struck cube's band and the root stand outside the cube. The struck cube
+	is the target, or, for a target above the floor band, its column's floor-band cube (decision 1971 column digging,
+	`Face.struck_origin`); the cubes below the target are proved open by WorkFace."""
 	var plane: int = int(q.origin[q.axis]) + (0 if q.direction > 0 else Contract.QUANTUM_SIDE_U)
 	var height: int = q.start.y + q.anchor.y
+	var band: int = Face.struck_origin(q.origin, q.start.y, height).y
 	q.root = q.start
 	q.root[q.axis] = plane - q.anchor[q.axis]
-	return height > q.origin.y and height < q.origin.y + Contract.QUANTUM_SIDE_U
+	return height > band and height < band + Contract.QUANTUM_SIDE_U
 
 
 static func _try_row(q: Query) -> bool:
@@ -429,15 +597,76 @@ static func _chain(q: Query) -> bool:
 	"""Work station, then the gateway turn, then heading legs (full travel, else the finite step)."""
 	q.stations = 0; q.entry = q.gateway
 	if not _work_fits(q): return false
+	if q.cornered: return _cornered(q)
 	var at: Vector3i = q.start
 	if q.start[q.lateral] != q.root[q.lateral]:
 		if q.ground < 0: _note(q, 3); return false
 		var turn: Vector3i = q.start
 		turn[q.lateral] = q.root[q.lateral]
-		if not _leg(q, at, turn, q.ground, q.ground): return false
+		if q.master and not _leg(q, at, turn, q.ground, q.ground): return false # ADR 1213's one turn span.
+		if not q.master and not _run(q, at, turn, q.ground, q.ground, q.lateral, signi(turn[q.lateral] - at[q.lateral])):
+			return false
 		at = turn
 	if q.direction * (q.root[q.axis] - at[q.axis]) <= 0: return false
 	return _heading(q, at)
+
+
+static func _cornered(q: Query) -> bool:
+	"""Decision 1943: an L-shaped ground approach. From the gateway the all-yaw ground row runs along the heading's own
+	axis to a turning line, then along that line to the root's line (each run split at section boundaries), and the
+	body turns in place there onto the heading run. The turning lines are the void regions' planes set back by the
+	ground body's own reach, so the ground body clears the region's edge, each tried once, nearest the gateway first."""
+	if q.ground < 0:
+		_note(q, 3); return false
+	if q.line_count < 0: q.line_count = _turning_lines(q)
+	for index: int in q.line_count:
+		if _turning(q, int(q.lines[index] & 0xFFFFFFFF) - 2147483648): return true
+		if q.exhausted: return false
+	return false
+
+
+static func _turning_lines(q: Query) -> int:
+	"""Each distinct turning line once (void regions share planes), nearest the gateway first, then by value: every
+	void region's two planes along the heading, set back by the ground body's reach. Computed once a plan."""
+	var reach: int = _ground_reach(q)
+	var count: int = 0
+	for index: int in q.counts[VOID]:
+		for side: int in 2:
+			var line: int = q.tables[VOID][index * 6 + q.axis + 3 * side] + (reach if side == 0 else -reach)
+			if q.direction * (line - q.start[q.axis]) <= 0: continue # Behind the gateway: never a turning line.
+			if not _spend(q, 1 + count): return count # One check a line kept, and one a line it is sorted past.
+			var key: int = (absi(line - q.start[q.axis]) << 32) | (line + 2147483648)
+			var at: int = count # Insertion into the sorted prefix, skipping a line already held.
+			while at > 0 and q.lines[at - 1] > key: at -= 1
+			if at > 0 and q.lines[at - 1] == key: continue
+			for move: int in range(count, at, -1): q.lines[move] = q.lines[move - 1]
+			q.lines[at] = key; count += 1
+	return count
+
+
+static func _turning(q: Query, line: int) -> bool:
+	"""One turning line: strictly past the gateway and short of the root along the heading, then the three runs."""
+	if q.direction * (line - q.start[q.axis]) <= 0 or q.direction * (q.root[q.axis] - line) <= 0: return false
+	q.stations = 0; q.entry = q.gateway
+	var corner: Vector3i = q.start
+	corner[q.axis] = line
+	if not _run(q, q.start, corner, q.ground, q.ground, q.axis, q.direction): return false
+	var turn: Vector3i = corner
+	turn[q.lateral] = q.root[q.lateral]
+	if turn != corner and not _run(q, corner, turn, q.ground, q.ground, q.lateral, signi(turn[q.lateral] - corner[q.lateral])):
+		return false
+	return _heading(q, turn)
+
+
+static func _ground_reach(q: Query) -> int:
+	"""The ground row's farthest horizontal box extent from its root (its body in any facing)."""
+	var reach: int = 0
+	var bank: PackedInt32Array = q.profiles._live.boxes
+	var stride: int = q.profiles._box_capacity
+	for index: int in _field(q, q.ground, Profiles.F_BOX_COUNT):
+		var box: int = _field(q, q.ground, Profiles.F_FIRST_BOX) + index
+		for axis: int in HORIZONTAL_FIELDS: reach = maxi(reach, absi(bank[axis * stride + box]))
+	return reach
 
 
 static func _heading(q: Query, at: Vector3i) -> bool:
@@ -460,15 +689,20 @@ static func _complete(q: Query) -> bool:
 	for index: int in q.stations:
 		if not _station_fits(q, index):
 			_note(q, 5); return false
-	if q.stations <= MAX_STATIONS or _regateway(q): return true
+	if q.stations <= _cap(q) or _regateway(q): return true
 	_note(q, 6)
 	return false
+
+
+static func _cap(q: Query) -> int:
+	"""Decision 1943: the stations one publication may hold for this kind of approach."""
+	return MAX_STATIONS if q.cornered else STRAIGHT_STATIONS
 
 
 static func _regateway(q: Query) -> bool:
 	"""An over-long chain may start at an existing TRANSIT station it passes through exactly (latest first)."""
 	for keep: int in range(q.stations - 2, -1, -1):
-		if q.stations - keep - 1 > MAX_STATIONS: return false
+		if q.stations - keep - 1 > _cap(q): return false
 		var ref: Vector2i = _existing_station(q, keep)
 		if ref == NULL_REF: continue
 		var drop: int = keep + 1
@@ -516,7 +750,9 @@ static func _station_fits(q: Query, index: int) -> bool:
 	if not last: return true
 	var section: int = _section_at(q, point)
 	_slice(q.tables[SECTION], section, q.other)
-	return q.footing[0] >= q.other[0] and q.footing[2] >= q.other[2] and q.footing[3] <= q.other[3] and q.footing[5] <= q.other[5]
+	if q.footing[0] < q.other[0] or q.footing[2] < q.other[2] or q.footing[3] > q.other[3] or q.footing[5] > q.other[5]:
+		return false
+	return _work_box_clear(q, index, point)
 
 
 static func _station_air(q: Query, index: int, point: Vector3i, last: bool) -> bool:
@@ -613,7 +849,9 @@ static func _extend(q: Query, profile: int, point: Vector3i) -> void:
 
 
 static func _legs(q: Query, first: Vector3i, last: Vector3i, forward: int, backward: int) -> bool:
-	"""Split one heading run at each section boundary; each span stays inside its own section."""
+	"""Split one heading run at each section boundary; each span stays inside its own section. ADR 1213's split
+	(PLAN_MASTER) splits only an increasing run; decision 1943's `_run` splits either direction."""
+	if not q.master: return _run(q, first, last, forward, backward, q.axis, q.direction)
 	var at: Vector3i = first
 	while at != last:
 		var section: int = _section_at(q, at)
@@ -627,11 +865,33 @@ static func _legs(q: Query, first: Vector3i, last: Vector3i, forward: int, backw
 	return true
 
 
+static func _run(q: Query, first: Vector3i, last: Vector3i, forward: int, backward: int, axis: int,
+		direction: int) -> bool:
+	"""Split one straight run along `axis` at each section boundary it crosses, in either direction (decision 1943:
+	the gateway turn and the runs of every heading, not only increasing ones). A boundary point is a station: it is
+	inside both sections' closed plan extents (Publication.section_span_refusal)."""
+	var at: Vector3i = first
+	while at != last:
+		var probe: Vector3i = at # Going up, the section holding `at`; going down, the one the next step enters.
+		if direction < 0: probe[axis] -= 1
+		var section: int = _section_at(q, probe)
+		if section < 0: _note(q, 2); return false
+		var next: Vector3i = last
+		var bound: int = q.tables[SECTION][section * 6 + axis + (3 if direction > 0 else 0)]
+		if direction * (last[axis] - bound) > 0: next[axis] = bound
+		if not _leg(q, at, next, forward, backward): return false
+		at = next
+	return true
+
+
 static func _leg(q: Query, first: Vector3i, last: Vector3i, forward: int, backward: int) -> bool:
-	"""Both directed sources sweep the whole span; the arrival becomes the next station."""
-	var section: int = _section_at(q, first)
+	"""Both directed sources sweep the whole span; the arrival becomes the next station. The span's section is the one
+	holding its departure (PLAN_MASTER, as ADR 1213), else its midpoint (decision 1943: a span leaving a section's low
+	edge lies in the section below it)."""
+	var section: int = _section_at(q, first if q.master else _midpoint(first, last))
 	var arrival: int = _section_at(q, last)
-	if section < 0 or arrival < 0 or q.stations >= MAX_CHAIN: _note(q, 2 if q.stations < MAX_CHAIN else 6); return false
+	var longest: int = _cap(q) + 2 # MAX_CHAIN for a cornered approach; a straight one keeps its old bound of five.
+	if section < 0 or arrival < 0 or q.stations >= longest: _note(q, 2 if q.stations < longest else 6); return false
 	_slice(q.tables[SECTION], section, q.box)
 	if Publication.section_span_refusal(first, last, q.box) != &"": _note(q, 2); return false
 	if not _sweep(q, forward, first, last) or not _sweep(q, backward, last, first): return false
@@ -642,6 +902,12 @@ static func _leg(q: Query, first: Vector3i, last: Vector3i, forward: int, backwa
 	q.sections[q.stations * 2] = q.section_refs[arrival * 2]; q.sections[q.stations * 2 + 1] = q.section_refs[arrival * 2 + 1]
 	q.stations += 1
 	return true
+
+
+static func _midpoint(first: Vector3i, last: Vector3i) -> Vector3i:
+	"""The span's integer midpoint, rounded down on every axis (also below zero)."""
+	var sum: Vector3i = first + last
+	return Vector3i(sum.x >> 1, sum.y >> 1, sum.z >> 1)
 
 
 static func _slice(table: PackedInt32Array, index: int, out: PackedInt32Array) -> void:
@@ -665,10 +931,20 @@ static func _work_fits(q: Query) -> bool:
 	for index: int in _field(q, q.work, Profiles.F_BOX_COUNT):
 		var box: int = _field(q, q.work, Profiles.F_FIRST_BOX) + index
 		var role: int = profiles._live.boxes[6 * profiles._box_capacity + box]
+		if role == Profiles.CONTACT_PATCH and not _patch_on_target(q, box):
+			_note(q, 1); return false
 		if role == Profiles.CONTACT_POINT or role == Profiles.CONTACT_PATCH: continue
 		if not _fits(q, _box_low(q, box, q.root), _box_high(q, box, q.root), role == Profiles.WORK_STROKE):
 			_note(q, 1); return false
 	return true
+
+
+static func _patch_on_target(q: Query, box: int) -> bool:
+	"""Decision 1943: WorkFace's patch rule (`patch_refusal`): the whole patch lies on the struck face, inside the
+	struck cube's extent across the face (its column shares the target's plan extent)."""
+	var low: Vector3i = _box_low(q, box, q.root)
+	var high: Vector3i = _box_high(q, box, q.root)
+	return low[q.lateral] >= q.target[q.lateral] and high[q.lateral] <= q.target[q.lateral + 3]
 
 
 static func _box_low(q: Query, box: int, at: Vector3i) -> Vector3i:
@@ -700,13 +976,14 @@ static func _sweep(q: Query, profile: int, first: Vector3i, last: Vector3i) -> b
 
 
 static func _fits(q: Query, low: Vector3i, high: Vector3i, stroke: bool) -> bool:
-	"""Air above the Room floor needs void (and no blocker); anything below it needs actual support."""
+	"""Air above the Room floor needs void (and no blocker); anything below it needs actual support, except a stroke's
+	claws, whose below-floor scrape WorkFace alone proves against natural earth (decision 1971, P-1971-2 (a))."""
 	var plane: int = q.start.y
 	if high.y > plane:
 		_set_box(q.box, low, high)
 		q.box[1] = maxi(low.y, plane)
 		if _blocked(q) or not _covered(q, VOID, stroke): return false
-	if low.y < plane:
+	if low.y < plane and not stroke:
 		_set_box(q.box, low, high)
 		q.box[4] = mini(high.y, plane)
 		if not _covered(q, SUPPORT, false): return false
@@ -716,6 +993,77 @@ static func _fits(q: Query, low: Vector3i, high: Vector3i, stroke: bool) -> bool
 static func _set_box(out: PackedInt32Array, low: Vector3i, high: Vector3i) -> void:
 	"""Write a half-open box from two corners."""
 	out[0] = low.x; out[1] = low.y; out[2] = low.z; out[3] = high.x; out[4] = high.y; out[5] = high.z
+
+
+static func _work_box_clear(q: Query, index: int, point: Vector3i) -> bool:
+	"""Decision 1942: the WORK station's air as Locations will prove it: two or more claimed boxes go through the
+	route-sweep survey (no claim check); one box, or the one AABB, must meet no claim its Site survey keeps."""
+	return q.air_counts[index] > 1 or not _foreign_claim(q, index, point)
+
+
+static func _foreign_claim(q: Query, index: int, point: Vector3i) -> bool:
+	"""Decision 1942: a WORK station published with a single air box (no extra boxes) is proved by Locations against
+	one Space survey: for a station on a world section, `snapshot_into`, in which every claimed row is an obstacle; for
+	one on a room's section, `snapshot_for_site_into` for the Site holding its point, which must be that room's, and
+	which omits only that room's claims and the Site's own phase claim. The planner's region tables treat every room
+	marker as nonphysical (a route sweep's view, which is how a TRANSIT station or extra air boxes are proved), so
+	that one box must also meet no claimed row the survey keeps. True also when no such Site exists."""
+	if q.air_counts[index] == 1:
+		_slice(q.air, index * AIR_BOXES, q.box) # The one claimed box is the published envelope.
+	else:
+		for axis: int in 6: q.box[axis] = q.envelope[axis]
+	var room: Vector2i = _section_room(q, index)
+	var project: Vector2i = NULL_REF
+	if room != NULL_REF:
+		var site: Vector2i = q.sites.site_at(_cube_origin(q, point))
+		if site == NULL_REF or q.sites.room_of(site) != room: return true # LOCATION_PAID_SITE_MISSING.
+		project = q.sites.project_of(site)
+	if q.claim_count < 0: return _owner_claim(q, room, project)
+	for at: int in q.claim_count:
+		if _exempt(q.claim_refs[3 * at], Vector2i(q.claim_refs[3 * at + 1], q.claim_refs[3 * at + 2]), room, project): continue
+		_slice(q.claims, at, q.other)
+		if Space.overlaps(q.box, q.other): return true
+	return false
+
+
+static func _section_room(q: Query, index: int) -> Vector2i:
+	"""The room owning the station's section, as Publication names the record's room; null for a world section."""
+	var owner: Owner = q.owner
+	var row: int = q.sections[index * 2]
+	var section: Vector2i = Vector2i(owner._r_owner_slot[row], owner._r_owner_generation[row])
+	return NULL_REF if section == q.locations._world else section
+
+
+static func _cube_origin(q: Query, point: Vector3i) -> Vector3i:
+	"""The paid-cube datum holding a point (Locations' `_cube_origin`: floor division on the domain's datum)."""
+	var datum: Vector3i = q.owner._domain._datum
+	var origin: Vector3i = Vector3i.ZERO
+	for axis: int in 3:
+		var offset: int = int(point[axis]) - datum[axis]
+		@warning_ignore("integer_division")
+		var quanta: int = offset / Space.QUANTUM_U
+		if offset < quanta * Space.QUANTUM_U: quanta -= 1
+		origin[axis] = datum[axis] + quanta * Space.QUANTUM_U
+	return origin
+
+
+static func _exempt(kind: int, claim: Vector2i, room: Vector2i, project: Vector2i) -> bool:
+	"""Space's `_exempt_claim`: the survey's own room's claims and its Site's own phase claim."""
+	return (kind == Owner.CLAIM_ROOM and room != NULL_REF and claim == room) \
+		or (kind == Owner.CLAIM_CONSTRUCTION and project != NULL_REF and claim == project)
+
+
+static func _owner_claim(q: Query, room: Vector2i, project: Vector2i) -> bool:
+	"""More claimed rows meet the hull than the table holds: scan the owner itself (each row spends its check)."""
+	var owner: Owner = q.owner
+	for row: int in owner._region_capacity:
+		if not _spend(q, 4): return true
+		if owner._r_present[row] != 1 or owner._r_claim_kind[row] == Owner.CLAIM_NONE \
+				or _exempt(owner._r_claim_kind[row], Vector2i(owner._r_claim_slot[row], owner._r_claim_generation[row]), room,
+				project): continue
+		_region_box(owner, row, q.other)
+		if Space.overlaps(q.box, q.other): return true
+	return false
 
 
 static func _blocked(q: Query) -> bool:
@@ -782,9 +1130,10 @@ static func _emit(q: Query, next: int) -> int:
 static func _output(q: Query, out: Publication.Request) -> void:
 	"""Only a complete admissible chain is written; unused tails are explicit nulls and zeros."""
 	out.gateway = q.entry; out.count = q.stations
-	out.sections = PackedInt32Array([-1, 0, -1, 0, -1, 0])
-	out.points = PackedInt32Array(); out.points.resize(9)
-	out.profiles = PackedInt64Array(); out.profiles.resize(12)
+	out.sections = PackedInt32Array(); out.sections.resize(2 * MAX_STATIONS)
+	for index: int in MAX_STATIONS: out.sections[index * 2] = -1
+	out.points = PackedInt32Array(); out.points.resize(3 * MAX_STATIONS)
+	out.profiles = PackedInt64Array(); out.profiles.resize(4 * MAX_STATIONS)
 	for index: int in q.stations:
 		out.sections[index * 2] = q.sections[index * 2]; out.sections[index * 2 + 1] = q.sections[index * 2 + 1]
 		for axis: int in 3: out.points[index * 3 + axis] = q.points[index * 3 + axis]

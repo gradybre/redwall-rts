@@ -1324,6 +1324,14 @@ runtime activation. Stair material and work costs are unchanged. The original
 alternatives and implementation constraints are retained in
 [decision1145](decisions/1145-proposed-initial-timber-stair-timing.md).
 
+**Addendum (2026-10-15): laden workers.** Brendan approved decision 1981's P-1981-3 (a) ("Approve all", relayed
+by the coordinator). The same pace applies to a mole carrying one unit of wood or stone on the stair: 30 fixed ticks
+a tread, ascending or descending, and 45 a supported half-turn. The stair carry's on-and-off handoffs (the approach,
+the retreat and the back-up, three steps each) take this decision's "1 second per step": 90 ticks. The laden clips
+have the same keys, feet and root tracks as the unladen ones, and on level ground carrying already moves at the
+walking cap (decision 1198). No new balance number is introduced. Engineering record:
+[decision1981](decisions/1981-one-basic-stair-carry-scoping.md).
+
 
 ### DEC-051 — Simulation-owned memory gate raised to 100.1 MB
 
@@ -1411,6 +1419,23 @@ amends neither. Level spacing and the level catalog's roof
 are unchanged; only the excavated part below the roof is capped.
 
 Engineering record: [decision1220](decisions/1220-kitchen-earth-benches.md).
+
+**Addendum, 2026-10-15: rooms are dug to the painted height (amends this decision).** Brendan gave two directions
+for slice C's digging, relayed by the coordinator: **"Real digging, in full"** (Confirm all must eventually dig in
+the real game), then **"I just want the basic claw stroke that digs anything."** On
+[decision1971](decisions/1971-one-basic-claw-stroke-digs-any-reachable-cube.md) he then ruled:
+
+- **P-1971-3, room height: "Painted height".** Each cell's column is dug to the room's full height. The mole claws
+  the bottom, and the upper earth is dug and paid as part of the same work, without a separate stroke. Rooms must
+  fit every species. This **replaces the cap above**: a Room is no longer limited to the height the dig strokes
+  reach. The height is SET-BUILD-001's adopted clear height, 4,096 u (4 quanta per painted cell), which fits the
+  badger's 2,611 u (DEC-039).
+- **P-1971-1 (b) and P-1971-2 (a): "Approve".** The one stroke is the approved claw stroke (M1). Four wall rows are
+  derived from its own clips, so it can strike a side face. The claws may scrape the floor only into natural,
+  unowned earth inside the row's own 61 u below-floor box.
+
+Unchanged: the bill per quantum (DEC-059), the level spacing and clear height (DEC-061 Q6), and "no earth benches,
+steps or climbing are built for excavation".
 
 
 ### DEC-055 — Settlement save and load policy
@@ -1625,3 +1650,43 @@ repainting a pending tile to cancel it. The scope is in the study's slice H "H a
 
 Not ruled, so the study's proposals stand: the slice order A–H and everything in study §4 (things not copied from
 EG2). These include research-gated rock and gold veins.
+
+**Addendum, 2026-10-15: Mound homes, an exception to Q3's generated walls and roof (decision 2001).** Brendan asked
+how to build into hillsides and whether painting "a certain style of room" could also build "the hill that it is
+built into", with "Stairs in the home leading to underground levels". He chose "Phone mockup first" and shaped the
+mockup over ten more messages (W4–W13), relayed by the coordinator. The rules among them are:
+
+- **"pile dirt, dig into the dirt, frame the build, then fix the top"**;
+- the hill should "match the size of the build we've done, then grow as we expand more rooms";
+- "The door and windows should have to be manually placed by the user on the grid system, not auto generated";
+- the window goes "on the turf slope", sits "flat against the ground" at "a natural height", is not "blocked by
+  bushes", and gives light "from the inside too";
+- "the rooms are always on the edge of the mound".
+
+He then approved the result: **"This looks good, let's build this into the plan."** All fourteen messages are
+quoted in decision 2001 as W1–W14.
+
+- **Mound** (working name) is a construction style for rooms painted on the Surface. A hill is heaped to fit the
+  painted rooms, the rooms are dug into it, framed and topped with turf, and the player places doors and windows on
+  the rooms' outer edges.
+- **This is an exception to Q3 for Mound-style rooms only.** Their walls are braced earth and their roof is the
+  earth cover; Q3's "walls and roof are generated from the painted area" still holds for every other surface room.
+  SET-BUILD-001 §12 (BUILD-MOUND-001 onward) holds the rules.
+- **Reference images.** Brendan supplied four Bag End images: "These should be your inspirations". They are not in
+  the repository and their provenance is unknown. DEC-010's provenance boundary (no copied film designs) and DEC-036's
+  provenance record still apply.
+- **His rulings on decision 2001, the same day.**
+  - **P-2001-1: "Finer heights"** (not the recommendation). Ground heights are finer than a metre and slopes are
+    real slopes. Walkers and haulers must handle them, which opens movement work against SET-MOVE-001's gates. GDD
+    §5.1's three fixed surface heights are to be amended (MOUND-TERRAIN).
+  - **P-2001-6: "Wall's top metre".** A window lies on the slope at the height of its wall's top metre.
+  - **P-2001-8: "Our own, oak default".** The approved door front is read as general burrow-home inspiration within
+    DEC-010's boundary: our own design, no centre knob, oak by default, green still a choice.
+  - **"Approve all"** for the rest, as recommended: P-2001-2–5, -7, -9–14. That covers the name "Mound", spoil as the
+    heap's earth, a 1 m cover and a 3-cell berm, a 6-cell yard, no walking on the mound at first, hills authored into
+    the estuary preset, daylight as presentation, a free proof of concept first, removal that backfills and keeps
+    the hill, the thirteen smaller rules, and the build order as the mockup shows it.
+  - **P-2001-15: "1/8 m"**, ruled later the same day. Ground heights are integers in steps of 128 u, so today's
+    512, −128 and 0 convert exactly.
+
+Engineering record: [decision2001](decisions/2001-mound-homes.md).

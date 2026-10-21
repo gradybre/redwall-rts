@@ -100,3 +100,15 @@ func test_nothing_to_add_is_a_dropped_stroke() -> void:
 	"""Decision 1871's proposal for a stroke wholly inside its own room: X, in words."""
 	assert_equal(Validity.kind_of(Validity.REASON_NOTHING_NEW), Validity.KIND_NOT_POSSIBLE, "X")
 	assert_equal(Validity.nothing_new(), "Nothing to add: these cells are already planned for this room", "words")
+
+
+func test_the_ways_reasons_read_as_ruled() -> void:
+	"""Decision 2021 P-D1-12 (a), as worded, and the table's two new rows: a way below the Surface needs a passage (!),
+	one partly on a Mound room's floor does not fit (X); the card's "Connects to ..."."""
+	assert_equal(Validity.needs_passage("Hatch with ladder"),
+		"Hatch with ladder needs a passage under it: paint one there first", "needs a passage")
+	assert_equal(Validity.kind_of(Validity.REASON_NEEDS_PASSAGE), Validity.KIND_BLOCKED, "!")
+	assert_equal(Validity.not_in_room("Burrow mouth", 2, 9), "Burrow mouth does not fit in this room: it needs 2 × 9 cells",
+		"does not fit")
+	assert_equal(Validity.kind_of(Validity.REASON_NOT_IN_ROOM), Validity.KIND_NOT_POSSIBLE, "X")
+	assert_equal(Validity.connects("Underground level 2"), "Connects to Underground level 2", "the card's line")

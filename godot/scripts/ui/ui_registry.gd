@@ -397,39 +397,46 @@ const OPENS: Dictionary = {
 # say so with a size kind, exactly as UI-SET-054 does: UI-BUILD-010's size is "Painted cell set" (SIZE_PAINTED_CELLS,
 # added for it) and UI-BUILD-011's "Footprint + access tiles" (SIZE_FOOTPRINT). UI-BUILD-005 also has an expanded
 # size, held in BUILD_LEDGER_OPEN_*. UI-BUILD-008 and 009 are instances of UI-SET-066/confirm_all and
-# UI-SET-067/discard_all (BUILD_INSTANCES).
+# UI-SET-067/discard_all (BUILD_INSTANCES). Decision 1991 (slice C3) adds UI-BUILD-015, the confirmed room's card, and
+# UI-BUILD-016, its "Stop digging" button (Brendan's rulings P-1990-4 (a) and P-1990-5 (a)), and names the crew on
+# UI-BUILD-005's binding.
 
 const BUILD_FIRST_ID: int = 1
-const BUILD_ELEMENT_COUNT: int = 14
+const BUILD_ELEMENT_COUNT: int = 16
 const BUILD_LAST_ID: int = BUILD_FIRST_ID + BUILD_ELEMENT_COUNT - 1
 
 const BUILD_NAMES: Array[StringName] = [
 	&"Build panel", &"Build tab", &"Type or item card", &"Info card", &"Running ledger", &"Undo", &"Redo",
 	&"Confirm all", &"Discard all", &"Paint ghost", &"Item ghost", &"Connector card", &"Level bar", &"Level button",
+	&"Room card", &"Stop digging",
 ]
 ## The "Zone / anchor" column: BC; owned by 001 (its top row, content row, footer); CENTER (cells / footprint of the
 ## level); BC above 001; BL above the minimap; owned by 013's grid.
 const BUILD_ZONES: Array[int] = [
 	ZONE_BOTTOM_CENTER, ZONE_OWNER, ZONE_OWNER, ZONE_OWNER, ZONE_OWNER, ZONE_OWNER, ZONE_OWNER,
 	ZONE_OWNER, ZONE_OWNER, ZONE_CENTER, ZONE_CENTER, ZONE_BOTTOM_CENTER, ZONE_BOTTOM_LEFT, ZONE_OWNER,
+	ZONE_BOTTOM_CENTER, ZONE_OWNER,
 ]
 const BUILD_PROFILES: Array[int] = [
 	PROFILE_PANEL, PROFILE_TOGGLE, PROFILE_BUTTON, PROFILE_PANEL, PROFILE_READOUT, PROFILE_BUTTON, PROFILE_BUTTON,
 	PROFILE_BUTTON, PROFILE_BUTTON, PROFILE_OVERLAY, PROFILE_OVERLAY, PROFILE_PANEL, PROFILE_PANEL, PROFILE_TOGGLE,
+	PROFILE_PANEL, PROFILE_BUTTON,
 ]
 const BUILD_GATES: Array[int] = [
 	GATE_WORKSPACE, GATE_WORKSPACE, GATE_WORKSPACE, GATE_WORKSPACE, GATE_WORKSPACE, GATE_WORKSPACE, GATE_WORKSPACE,
 	GATE_WORKSPACE, GATE_WORKSPACE, GATE_WORLD_TOOL, GATE_WORLD_TOOL, GATE_CONDITION, GATE_ALWAYS, GATE_ALWAYS,
+	GATE_CONDITION, GATE_CONDITION,
 ]
 const BUILD_SIZE_KINDS: Array[int] = [
 	SIZE_FIXED, SIZE_FIXED, SIZE_FIXED, SIZE_FIXED, SIZE_FIXED, SIZE_FIXED, SIZE_FIXED,
 	SIZE_FIXED, SIZE_FIXED, SIZE_PAINTED_CELLS, SIZE_FOOTPRINT, SIZE_FIXED, SIZE_FIXED, SIZE_FIXED,
+	SIZE_FIXED, SIZE_FIXED,
 ]
 ## "Size min->max", logical px; zero for the two runtime-sized ghosts (unreachable: `build_size_into` refuses them).
-const BUILD_MIN_W: Array[int] = [480, 96, 136, 160, 120, 44, 44, 120, 96, 0, 0, 280, 160, 78]
-const BUILD_MIN_H: Array[int] = [256, 44, 128, 128, 44, 44, 44, 44, 44, 0, 0, 136, 104, 32]
-const BUILD_MAX_W: Array[int] = [912, 160, 208, 208, 520, 96, 96, 240, 160, 0, 0, 360, 256, 126]
-const BUILD_MAX_H: Array[int] = [256, 44, 128, 128, 44, 44, 44, 44, 44, 0, 0, 160, 140, 44]
+const BUILD_MIN_W: Array[int] = [480, 96, 136, 160, 120, 44, 44, 120, 96, 0, 0, 280, 160, 78, 280, 176]
+const BUILD_MIN_H: Array[int] = [256, 44, 128, 128, 44, 44, 44, 44, 44, 0, 0, 136, 104, 32, 128, 32]
+const BUILD_MAX_W: Array[int] = [912, 160, 208, 208, 520, 96, 96, 240, 160, 0, 0, 360, 256, 126, 360, 256]
+const BUILD_MAX_H: Array[int] = [256, 44, 128, 128, 44, 44, 44, 44, 44, 0, 0, 160, 140, 44, 184, 32]
 ## UI-BUILD-005 "expanded 320×160→640×320".
 const BUILD_LEDGER_OPEN_MIN: Vector2i = Vector2i(320, 160)
 const BUILD_LEDGER_OPEN_MAX: Vector2i = Vector2i(640, 320)
@@ -441,7 +448,7 @@ const BUILD_BINDINGS: Array[String] = [
 	"Tab name (“Rooms”, “Furnish”, “Decor”)+“ tab ”+index+“ of 3”",
 	"Name+“; ”+cost per cell or per item in natural measures+“; ”+footprint in cells+“; ”+unlock state",
 	"Picture description+purpose line+cost+rules+gesture",
-	"“Plan needs ”+totals in natural measures+“; work ”+hours+“; earth out ”+amount+“; stores hold ”+available",
+	"“Plan needs ”+totals in natural measures+“; work ”+hours+“; earth out ”+amount+“; stores hold ”+available+“; Crew: ”+crew",
 	"“Undo ”+last_operation",
 	"“Redo ”+next_operation",
 	"“Confirm all; ”+pending_count+“ changes”",
@@ -451,6 +458,8 @@ const BUILD_BINDINGS: Array[String] = [
 	"“Connects to ”+target_level_name+“; ”+validity",
 	"“Levels; viewing ”+level_name",
 	"Full name+“; ”+access state",
+	"“Room card: ”+room_name+“, ”+level_name+“; ”+dug+“ of ”+cells+“ cells dug”",
+	"“Stop digging ”+room_name+“: the crew walks out, dug cells stay, the rest goes back to the plan”",
 ]
 
 # --- §1.3 and §2.2's overflow rules --------------------------------------------------------------

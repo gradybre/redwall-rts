@@ -90,11 +90,20 @@ class RoomMemoryWitnessTests(unittest.TestCase):
                 self.refuses_current_change(name, changed, "current reviewed source changed")
 
     def test_current_transitive_body_changes_are_not_hidden_by_frame_counts(self):
-        name = "underground_work_face"
+        # Decision 1971 made underground_work_face a projected input (ADR 1212): its injected body is replaced by the
+        # reviewed manifest-3 bytes, as for every projected input. An unprojected transitive input still refuses.
+        name = "underground_terrain"
         old = self.index[name]
         changed = old._replace(text=old.text + "\nfunc same_size_callback() -> void:\n\tpass\n")
         with self.assertRaisesRegex(ValueError, "current reviewed source changed"):
             room.build(dict(self.index, **{name: changed}))
+        face = self.index["underground_work_face"]
+        archived = set()
+        _, _, replayed = room.verified_inputs(dict(self.index, underground_work_face=face._replace(
+            text=face.text + "\nfunc same_size_callback() -> void:\n\tpass\n")), archived)
+        self.assertIn(face.relative_path, archived)
+        self.assertEqual(hashlib.sha256(replayed["underground_work_face"].text.encode()).hexdigest(),
+                         self.manifest["sources"]["underground_work_face"]["sha256"])
 
     def test_actual_movement_reader_cannot_add_uncounted_scratch(self):
         old = self.index["movement"]
@@ -194,7 +203,7 @@ class RoomMemoryWitnessTests(unittest.TestCase):
         source = self.index["underground_route_composition"]
         # ADR1212: route composition is projected, so its constants and allocation sites are recounted by the
         # current census. A pure comparison edit (header[7] != N) is not storage and is not refused there.
-        for before, after in (("GROUND_PACE_COUNT: int = 29", "GROUND_PACE_COUNT: int = 16"),
+        for before, after in (("GROUND_PACE_COUNT: int = 43", "GROUND_PACE_COUNT: int = 29"),
                               ("var o: Retirement.Owners", "var scratch: Array = [1, 2]\n\tvar o: Retirement.Owners")):
             self.assertIn(before, source.text)
             changed = source._replace(text=source.text.replace(before, after, 1))

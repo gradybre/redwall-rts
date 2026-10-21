@@ -132,6 +132,29 @@ func test_ux_build_t01_rectangles_stay_in_bounds_and_apart_at_the_nine_sizes() -
 			_assert_apart(row, shown, view, own, hud)
 
 
+func test_the_room_card_stays_in_bounds_and_apart_at_the_nine_sizes() -> void:
+	"""Decision 1991, UI-BUILD-015: above the panel's top-right edge (280 × 184), or the connector card's place inside
+	the panel in NARROW; inside the viewport and clear of resources, time, alerts, the minimap and the level bar."""
+	for row: Array in SIZES:
+		var geometry: UiLayout.Geometry = _at(int(row[0]), int(row[1]), int(row[2]))
+		var view: Rect2 = Rect2(0, 0, geometry.logical_width, geometry.logical_height)
+		var card: Rect2 = BuildLayout.room_card_rect(geometry)
+		var label: String = "%dx%d@%d" % [row[0], row[1], row[2]]
+		assert_true(view.encloses(card), "%s: in bounds %s" % [label, card])
+		for shown: bool in [true, false]:
+			var others: Array[Rect2] = [geometry.resources, geometry.time, geometry.alerts,
+				BuildLayout.level_bar_rect(geometry, shown)]
+			if shown:
+				others.append(geometry.minimap)
+			for other: Rect2 in others:
+				assert_false(card.intersects(other), "%s: %s clear of %s" % [label, card, other])
+		if geometry.profile == UiLayout.PROFILE_NARROW:
+			assert_equal(card, BuildLayout.connector_rect(geometry), "%s: NARROW takes the connector card's place" % label)
+		else:
+			assert_equal(card.size, BuildLayout.ROOM_CARD_SIZE, "%s: its size" % label)
+			assert_equal(card.end, BuildLayout.connector_rect(geometry).end, "%s: aligned with the connector card" % label)
+
+
 func _assert_apart(row: Array, shown: bool, view: Rect2, own: Array[Rect2], hud: Array[Rect2]) -> void:
 	"""Each own rectangle in the view and clear of every HUD rectangle; the panel and bar clear of each other."""
 	var label: String = "%dx%d@%d map %s" % [row[0], row[1], row[2], "shown" if shown else "hidden"]

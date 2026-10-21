@@ -29,6 +29,7 @@ const Buildings := preload("res://scripts/core/buildings.gd")
 const Definitions := preload("res://scripts/core/building_definitions.gd")
 const WorkScript := preload("res://scripts/core/work.gd")
 const Clock := preload("res://scripts/core/sim_clock.gd")
+const Sites := preload("res://scripts/core/excavation_sites.gd")
 ## ADR1217 step 5: content 9's grip certificate (wood/stone v10 images; rows 32-41 unchanged).
 const Grip := preload("res://data/underground/mole-worker/qualified-claw-runtime-v1/grip_certificate.gd")
 const RESERVED_BYTES: int = 4096
@@ -86,6 +87,7 @@ var _number: IntMath.IntResult = null
 var _frame: PackedInt32Array = PackedInt32Array()
 var _install: PackedInt32Array = PackedInt32Array()
 var _excavation: bool = false # ADR1197 G3: cut inputs for an entry excavation phase Project.
+var _room_haul: bool = false # Decision 1934 (P-C22-1): cut inputs for a room's excavation phase, on its own level.
 var _endpoint: PackedInt32Array = PackedInt32Array()
 var _bounds: PackedInt32Array = PackedInt32Array()
 var _support: PackedInt32Array = PackedInt32Array()
@@ -172,6 +174,7 @@ static func _clear(a: RefCounted) -> void:
 	a._poisoned = false
 	a._work_tick = false
 	a._excavation = false
+	a._room_haul = false
 	a._job = NULL_REF
 	a._worker = NULL_REF
 	a._project = NULL_REF
@@ -253,16 +256,60 @@ func _pin_project() -> StringName:
 	_excavation = construction._purpose[row] == Construction.PURPOSE_EXCAVATION
 	if not _excavation and construction._purpose[row] != Construction.PURPOSE_CONNECTOR_INSTALL: return REFUSE_JOB
 	_destination = Vector2i(construction._material_container_slot[row], construction._material_container_generation[row])
+	_room_haul = _excavation and _room_dig(self, row)
+	if _room_haul: return _pin_room()
 	_placement = _entry_placement() if _excavation else Vector2i(construction._subject_slot[row], construction._subject_generation[row])
 	var code: StringName = _placements.placement_into(_placement, _order)
 	if code != &"" or (not _excavation and _order.project != _project): return REFUSE_SOURCE
+	_pin_receipts()
+	code = _placements.placement_frame_into(_placement, _frame)
+	if code == &"": code = _frontier.installation_into(_order.installed_count, _install)
+	return code if code != &"" else _pin_material()
+
+
+func _pin_receipts() -> void:
+	"""The geometry, Frontier and graph publications every later leaf re-reads unchanged."""
 	_geometry_revision = _placements._space._header[17]
 	_frontier_revision = _frontier._header[0]
 	_location_receipt = _placements._locations._last_published_token
 	_route_receipt = _placements._routes._last_published_token
-	code = _placements.placement_frame_into(_placement, _frame)
-	if code == &"": code = _frontier.installation_into(_order.installed_count, _install)
-	return code if code != &"" else _pin_material()
+
+
+func _pin_room() -> StringName:
+	"""Decision 1934: a room dig's inputs go to its phase Project's own material container, which Sites proved at
+	`bind_material_container` and re-proves at `record_deliveries`. No Placement or Frontier row describes a room."""
+	_pin_receipts()
+	_destination_location = _placements._inventory.spatial_location_of(_destination)
+	var read: StringName = _placements._locations.read_location_into(_destination_location, _location)
+	return read if read != &"" else _material_leaf(self)
+
+
+static func _room_dig(a: RefCounted, row: int) -> bool:
+	"""The excavation Project's Site belongs to a live room that is no live Placement's corridor (the entry's)."""
+	var room: Vector2i = _site_room(a, row)
+	return room != NULL_REF and not _entry_room(a, room)
+
+
+static func _site_room(a: RefCounted, row: int) -> Vector2i:
+	"""The live room of the Site this excavation Project is open on, from Sites' own columns; null otherwise."""
+	var context: Locations.PhaseContext = a._placements._phase_context
+	var sites: Sites = context.sites.get_ref() as Sites if context.sites != null else null
+	var construction: Construction = a._placements._construction
+	if sites == null or sites.get_script() != Sites \
+			or construction._subject_generation[row] != Sites.SITE_GENERATION: return NULL_REF
+	var site: Vector2i = Vector2i(construction._subject_slot[row], Sites.SITE_GENERATION)
+	if not sites.is_live_site(site) or sites._project(site.x) != a._project: return NULL_REF
+	var room: Vector2i = sites._room(site.x)
+	return room if a._placements._buildings.is_live_room(room) else NULL_REF
+
+
+static func _entry_room(a: RefCounted, room: Vector2i) -> bool:
+	"""Some present Placement names this room as its corridor: its cuts are the entry's. The phase authority's own
+	rule (`underground_room_world_bindings.gd` `_ordinary_entry_room`), so the two never disagree about a room."""
+	var p: Placements = a._placements
+	for row: int in p._capacity:
+		if p._live.present[row] == 1 and p._pair(p._live, Placements.ROOM_SLOT, row) == room: return true
+	return false
 
 
 func _entry_placement() -> Vector2i:
@@ -309,6 +356,7 @@ static func _material_leaf(a: RefCounted) -> StringName:
 	var row: int = a._destination_location.x
 	if _location32(locations, Locations.ROLE, row) != Locations.ROLE_STORAGE:
 		return REFUSE_ENDPOINT
+	if a._room_haul: return &"" # Sites owns the room store's contact; the material container is pinned by _job_leaf.
 	var section: Vector2i = _location_pair(locations, Locations.SECTION_SLOT, row)
 	if a._excavation: return _excavation_material_leaf(a, row, section)
 	for axis: int in 3:
@@ -751,6 +799,7 @@ static func _reserved_source_leaf(a: RefCounted) -> StringName:
 
 static func _source_leaf(a: RefCounted) -> StringName:
 	"""A full original Placement/source/prefix and all live graph receipts must survive every callback."""
+	if a._room_haul: return _room_source_leaf(a)
 	var p: Placements = a._placements
 	if not _spend(a, 512) or p._busy or not p._ready or not p._is_live(p._live, a._placement): return REFUSE_SOURCE
 	if p._space._header[17] != a._geometry_revision or a._frontier._header[0] != a._frontier_revision \
@@ -772,6 +821,22 @@ static func _source_leaf(a: RefCounted) -> StringName:
 			or p._pair(p._live, Placements.SECTION_SLOT, a._placement.x) != Vector2i(a._frame[5], a._frame[6]) \
 			or p._pair(p._live, Placements.ANCHOR_SLOT, a._placement.x) != Vector2i(a._frame[7], a._frame[8]): return REFUSE_SOURCE
 	return &""
+
+
+static func _room_source_leaf(a: RefCounted) -> StringName:
+	"""A room dig: all live graph receipts, and the Project still open on a Site of a live non-entry room."""
+	var p: Placements = a._placements
+	if not _spend(a, 512 + p._capacity) or p._busy or not p._ready: return REFUSE_SOURCE
+	if p._space._header[17] != a._geometry_revision or a._frontier._header[0] != a._frontier_revision \
+			or p._locations._last_published_token != a._location_receipt \
+			or p._routes._last_published_token != a._route_receipt: return REFUSE_SOURCE
+	var row: int = _full_row(p._ids, a._project, Directory.KIND_CONSTRUCTION)
+	return &"" if row >= 0 and _room_dig(a, row) else REFUSE_SOURCE
+
+
+static func _world_of(a: RefCounted) -> Vector2i:
+	"""The World every endpoint container belongs to: the Placement's, or for a room dig the Placements owner's."""
+	return a._placements._world if a._room_haul else a._order.world
 
 
 static func _job_leaf(a: RefCounted) -> StringName:
@@ -805,7 +870,7 @@ static func _endpoint_leaf(a: RefCounted, container: Vector2i, endpoint: Vector2
 	var inventory: Inventory = a._placements._inventory
 	var locations: Locations = a._placements._locations
 	if not TransferContract.container_live(inventory, container) or not _location_live(locations, endpoint) \
-			or inventory._spatial_world != a._order.world or inventory._spatial_authority == null: return REFUSE_ENDPOINT
+			or inventory._spatial_world != _world_of(a) or inventory._spatial_authority == null: return REFUSE_ENDPOINT
 	var provider: Locations.InventoryLocations = inventory._spatial_authority.get_ref() as Locations.InventoryLocations
 	if provider == null or provider._locations == null or provider._locations.get_ref() != locations: return REFUSE_ENDPOINT
 	var row: int = -2 - inventory._c_anchor_tile[container.x]
@@ -814,7 +879,7 @@ static func _endpoint_leaf(a: RefCounted, container: Vector2i, endpoint: Vector2
 			or inventory._spatial_location_slot[row] != endpoint.x or inventory._spatial_location_generation[row] != endpoint.y \
 			or inventory._spatial_location_revision[row] != _location64(locations, Locations.PAYLOAD_REVISION, endpoint.x):
 		return REFUSE_ENDPOINT
-	return &"" if Vector2i(inventory._c_owner_slot[container.x], inventory._c_owner_generation[container.x]) == a._order.world \
+	return &"" if Vector2i(inventory._c_owner_slot[container.x], inventory._c_owner_generation[container.x]) == _world_of(a) \
 		and inventory._c_reachable[container.x] == 1 and inventory._c_max_mass_g[container.x] == Inventory.GROUND_PILE_MAX_MASS_G \
 		and inventory._c_filters[container.x] == Inventory.FILTERS_ACCEPT_ALL \
 		and (inventory._c_policy[container.x] == Inventory.UNSET_POLICY or inventory._c_policy[container.x] == Inventory.POLICY_GROUND_PILE) \
@@ -990,7 +1055,10 @@ static func _occupants_leaf(a: RefCounted) -> StringName:
 	var graph: Routes = a._placements._routes
 	if not _spend(a, 16 * Routes.RESIDENT_CAPACITY): return REFUSE_BUDGET
 	var worker_row: int = _full_row(a._placements._ids, a._worker, Directory.KIND_RESIDENT)
-	for row: int in Routes.RESIDENT_CAPACITY:
+	var row: int = -1
+	while true:
+		row = Routes.next_occupancy_row(graph, row + 1) # Decision 1952: rows answering "" are passed over.
+		if row >= Routes.RESIDENT_CAPACITY: break
 		if row == worker_row: continue
 		if graph._resident_ref(row) == NULL_REF:
 			var missing: StringName = Routes.unregistered_body_refusal(graph, row,
@@ -1212,7 +1280,7 @@ static func _terrain_binding(a: RefCounted) -> StringName:
 			or owner._header[17] != a._geometry_revision or owner._stage_token != 0 \
 			or t._checked_geometry_revision != a._geometry_revision or not t._world._published \
 			or t._world._published_seed != t._seed or t._world._nodes != t._nodes \
-			or t._world._directory != a._placements._ids or t._world_ref != a._order.world \
+			or t._world._directory != a._placements._ids or t._world_ref != _world_of(a) \
 			or owner._sources._construction != a._placements._construction:
 		return Terrain.REFUSE_BINDING
 	return &"" if _full_row(a._placements._ids, t._world_ref, Directory.KIND_WORLD) >= 0 else Terrain.REFUSE_BINDING

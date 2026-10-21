@@ -21,6 +21,11 @@
      "bytes": 0,
      "carried_by": "PROFILE_BYTES joint (motion census)",
      "store": "ADR1229: content 10 (67 rows, 547 boxes, 6 sources; paired bank 44,212 B, +3,052 B over content 9) in the Motion/Profile joint, 262,128 of 278,528"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "PROFILE_BYTES joint (motion census)",
+     "store": "Decision 1972: content 12 (85 rows, 637 boxes, 8 sources; paired bank 52,908 B, +8,696 B over content 10) in the Motion/Profile joint, 270,824 of 282,624 (with the Session and retirement slices, 280,552)"
     }
    ],
    "delta": {
@@ -33,27 +38,27 @@
     "int_constants_added": [
      [
       "BOX_COUNT",
-      "547"
+      "637"
      ],
      [
       "CONTENT_REVISION",
-      "10"
+      "12"
      ],
      [
       "PAIRED_BANK_BYTES",
-      "44212"
+      "52908"
      ],
      [
       "PROFILE_COUNT",
-      "67"
+      "85"
      ],
      [
       "SOURCE_COUNT",
-      "6"
+      "8"
      ],
      [
       "WIRE_BYTES",
-      "22114"
+      "26462"
      ]
     ],
     "int_constants_removed": [
@@ -637,6 +642,11 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "ADR 1217 step 5: PROFILE_BYTES 262,144 -> 278,528 (+16,384 B reserve) so content 9's paired profile bank keeps the Motion/Profile/Level joint plus the Session and retirement slices inside one assigned reserve"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "joint pack (the reserve is a pack contribution)",
+     "store": "Decision 1972 (P-1972-2 (a)): PROFILE_BYTES 278,528 -> 282,624 (+4,096 B reserve), its own ledger row, so content 12's paired bank keeps the joint plus the Session and retirement slices inside one assigned reserve"
     }
    ],
    "delta": {
@@ -647,7 +657,7 @@
      ],
      [
       "PROFILE_BYTES",
-      "278528"
+      "282624"
      ]
     ],
     "int_constants_removed": [
@@ -667,10 +677,21 @@
     {
      "bytes": 0,
      "carried_by": "none",
-     "store": "no retained-storage change"
+     "store": "decision 1972: two constants (a milli-u/s stair pace kind and its scale), no retained storage"
     }
    ],
-   "delta": {}
+   "delta": {
+    "int_constants_added": [
+     [
+      "MILLI",
+      "1000"
+     ],
+     [
+      "RATE_AUTHORED_MILLI",
+      "2"
+     ]
+    ]
+   }
   },
   "godot/scripts/core/underground_connector_contacts.gd": {
    "charges": [
@@ -693,6 +714,11 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "ADR1229 increment 6b: the tread-station stair reach (StairPath.Stops, one per resolution, and the leg list), the per-region tread body proof and the step-forward retreat; cold-path caller allocations only, inside the existing Contacts control and fragment banks, no retained member"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "decision 2044 (P-2044-16): the M5 landing and deep-hub reach (walk-off, hub D) and the row path helper; cold-path caller logic only, fewer allocation sites, no retained member"
     }
    ],
    "delta": {
@@ -732,11 +758,11 @@
      ]
     ],
     "allocation_sites": {
-     "([": 4,
+     "([": 3,
      ".new(": 2,
      "=[": 2,
-     "PackedInt32Array(": 3,
-     "range(": 3,
+     "PackedInt32Array(": 1,
+     "range(": 2,
      "return[": 1
     }
    }
@@ -781,6 +807,11 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "no retained-storage change"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "decision 1952: the final snapshot's source and claim scans walk present rows (Owner._next_present) through two static row helpers; no member, packet or resize"
     }
    ],
    "delta": {}
@@ -801,6 +832,16 @@
      "bytes": 6201,
      "carried_by": "new contribution",
      "store": "ADR1229 increment 6b: the installed-witness pass's prism cache (_prism_boxes, 6 x Catalog.MAX_PARTS int32 = 6,144 B; _prism_key, 5 int64) and its counters (_witness_pass, _sources_pass, _in_witness_pass): within one synchronous pass the paid prefix's prisms and the source verdict are derived once and shared by every record; nothing survives a pass; never saved"
+    },
+    {
+     "bytes": 3896,
+     "carried_by": "new contribution",
+     "store": "decision 2044 (P-2044-15/16, M2): the witness pass's landing cache (_landing_boxes, 7 x PASS_LANDINGS 64 int32 = 1,792 B; _landing_key, 4 int64 = 32 B), the prism cache key widened to its eight inputs (_prism_key 5 -> 8 int64, +24 B) and the prisms' height order (_prism_tops, Catalog.MAX_PARTS 256 int64 = 2,048 B); runtime only, rebuilt per pass, never saved; with the cache checks on, a kept prism set is re-derived and compared (_cached_prisms_hold), unspent, no storage"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "decision 1943: FRONTIER_MAX_STATIONS (5) and FRONTIER_HEAP_WORDS (168 -> 280) size only the room-frontier publication's cold Query packets, charged in its CONTROL_BYTES row; no Locations member or bank changes"
     }
    ],
    "delta": {
@@ -834,6 +875,14 @@
       "bool"
      ],
      [
+      "_landing_boxes",
+      "PackedInt32Array"
+     ],
+     [
+      "_landing_key",
+      "PackedInt64Array"
+     ],
+     [
       "_loading_rows",
       "bool"
      ],
@@ -843,6 +892,10 @@
      ],
      [
       "_prism_key",
+      "PackedInt64Array"
+     ],
+     [
+      "_prism_tops",
       "PackedInt64Array"
      ],
      [
@@ -856,8 +909,11 @@
     ],
     "resizes_added": [
      "_air_box.resize(6)",
+     "_landing_boxes.resize(7 * PASS_LANDINGS)",
+     "_landing_key.resize(4)",
      "_prism_boxes.resize(6 * ConnectorCatalog.MAX_PARTS)",
-     "_prism_key.resize(5)",
+     "_prism_key.resize(8)",
+     "_prism_tops.resize(ConnectorCatalog.MAX_PARTS)",
      "air.resize(6 * MAX_AIR_EXTRA)",
      "air.resize(AIR_FIELDS * air_slots)"
     ],
@@ -875,6 +931,14 @@
       "4 * AIR_FIELDS"
      ],
      [
+      "FRONTIER_HEAP_WORDS",
+      "2 * FRONTIER_MAX_STATIONS * 14 * 2"
+     ],
+     [
+      "FRONTIER_MAX_STATIONS",
+      "5"
+     ],
+     [
       "MAX_AIR_EXTRA",
       "3"
      ],
@@ -883,11 +947,23 @@
       "256"
      ],
      [
+      "PASS_LANDINGS",
+      "64"
+     ],
+     [
       "SCHEMA",
       "2"
+     ],
+     [
+      "TOP_BIAS",
+      "1 << 30"
      ]
     ],
     "int_constants_removed": [
+     [
+      "FRONTIER_HEAP_WORDS",
+      "168"
+     ],
      [
       "SCHEMA",
       "1"
@@ -1188,10 +1264,10 @@
      ".duplicate(": 1,
      ".new(": 1,
      "=[": 1,
-     "PackedInt32Array(": 4,
-     "PackedInt64Array(": 1,
+     "PackedInt32Array(": 5,
+     "PackedInt64Array(": 3,
      "in[": -1,
-     "range(": 2
+     "range(": 4
     }
    }
   },
@@ -1211,13 +1287,18 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "ADR1229: rebound to the content-10 motion wire (revision 10); banks and tables unchanged"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "Decision 1972: rebound to the content-12 motion wire (revision 12); banks and tables unchanged"
     }
    ],
    "delta": {
     "int_constants_added": [
      [
       "REVISION",
-      "10"
+      "12"
      ]
     ]
    }
@@ -1247,15 +1328,61 @@
     {
      "bytes": 336,
      "carried_by": "Profiles CONTROL_RESERVE (load-time, released)",
-     "store": "two load-time key-order scratch columns, one int per profile row (2 x 42 x 4); ADR 1229 adds three integer constants (POLICY_STAIR, POLICY_STAIR_TURN, CONTACT_TREAD_FIT) and no storage"
+     "store": "two load-time key-order scratch columns, one int per profile row (2 x 42 x 4); ADR 1229 adds three integer constants (POLICY_STAIR, POLICY_STAIR_TURN, CONTACT_TREAD_FIT) and no storage; decision 1981 adds four integer constants (the rooted-travel words 10-13) and no storage"
+    },
+    {
+     "bytes": 25,
+     "carried_by": "none (new)",
+     "store": "decision 1952 (P-1951-3): _load_revision, _step_closure_revision and _step_closure_bank (int64) and _step_closure (bool), runtime-only, never saved"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none (new)",
+     "store": "decision 1952: the test-only cache-check switch moved to the dependency-free runtime_cache_checks.gd (one static bool there, never saved); no storage here"
+    },
+    {
+     "bytes": 384,
+     "carried_by": "Profiles CONTROL_RESERVE",
+     "store": "decision 1952: the itinerary anchor-check memo _anchor_memo, ANCHOR_MEMO_SLOTS x ANCHOR_MEMO_STRIDE int64 (8 x 6 x 8), runtime-only, never saved"
     }
    ],
    "delta": {
+    "members_added": [
+     [
+      "_anchor_memo",
+      "PackedInt64Array"
+     ],
+     [
+      "_load_revision",
+      "int"
+     ],
+     [
+      "_step_closure",
+      "bool"
+     ],
+     [
+      "_step_closure_bank",
+      "int"
+     ],
+     [
+      "_step_closure_revision",
+      "int"
+     ]
+    ],
     "resizes_added": [
+     "_anchor_memo.resize(ANCHOR_MEMO_SLOTS * ANCHOR_MEMO_STRIDE)",
      "last_of.resize(_stage.header[3])",
      "same_key.resize(_stage.header[3])"
     ],
     "int_constants_added": [
+     [
+      "ANCHOR_MEMO_SLOTS",
+      "8"
+     ],
+     [
+      "ANCHOR_MEMO_STRIDE",
+      "6"
+     ],
      [
       "CONTACT_ASSEMBLY_PALM",
       "3"
@@ -1273,6 +1400,22 @@
       "7"
      ],
      [
+      "POLICY_ROOTED_BACKWARD",
+      "11"
+     ],
+     [
+      "POLICY_ROOTED_STAIR",
+      "12"
+     ],
+     [
+      "POLICY_ROOTED_TRAVEL",
+      "10"
+     ],
+     [
+      "POLICY_ROOTED_TURN",
+      "13"
+     ],
+     [
       "POLICY_STAIR",
       "8"
      ],
@@ -1282,7 +1425,8 @@
      ]
     ],
     "allocation_sites": {
-     "PackedInt32Array(": 2
+     "PackedInt32Array(": 2,
+     "PackedInt64Array(": 1
     }
    }
   },
@@ -1318,22 +1462,43 @@
     {
      "bytes": 0,
      "carried_by": "none",
-     "store": "no retained-storage change"
+     "store": "decision 1936 resume_contact_into(): one per-call Query packet, as contact_into's; dies with the call"
     }
    ],
-   "delta": {}
+   "delta": {
+    "allocation_sites": {
+     ".new(": 1
+    }
+   }
   },
   "godot/scripts/core/underground_room_frontier_publication.gd": {
    "charges": [
     {
-     "bytes": 920,
-     "carried_by": "Room publication CONTROL_BYTES (8,970 of 9,216) inside Budget.COLD_BYTES",
-     "store": "ADR 1215 air shape in the caller and private Requests (2 x 300) and four Query Records (4 x 80)"
+     "bytes": 3400,
+     "carried_by": "Room publication CONTROL_BYTES (11,450 of 12,288) inside Budget.COLD_BYTES",
+     "store": "ADR 1215 air shape in the caller and private Requests (2 x 500) and six Query Records (6 x 80), and decision 1943's two further stations (2 x 960: Record, section Region, Request packets, refs and edges, two heap-patch removals, caller Result refs, object/header allowance) over ADR 1161's 8,050"
     }
    ],
    "delta": {
     "resizes_added": [
-     "air.resize(MAX_STATIONS * AIR_BOXES * 6)"
+     "air.resize(MAX_STATIONS * AIR_BOXES * 6)",
+     "air_counts.resize(MAX_STATIONS)",
+     "q.context.edges.resize(4 * MAX_STATIONS)",
+     "q.context.refs.resize(2 * MAX_STATIONS)",
+     "q.edges.resize(4 * MAX_STATIONS)",
+     "q.refs.resize(2 * MAX_STATIONS)",
+     "q.request.points.resize(3 * MAX_STATIONS)",
+     "q.request.profiles.resize(4 * MAX_STATIONS)",
+     "q.request.sections.resize(2 * MAX_STATIONS)"
+    ],
+    "resizes_removed": [
+     "q.context.edges.resize(12)",
+     "q.context.refs.resize(6)",
+     "q.edges.resize(12)",
+     "q.refs.resize(6)",
+     "q.request.points.resize(9)",
+     "q.request.profiles.resize(12)",
+     "q.request.sections.resize(6)"
     ],
     "int_constants_added": [
      [
@@ -1342,13 +1507,21 @@
      ],
      [
       "CONTROL_BYTES",
-      "9216"
+      "12288"
+     ],
+     [
+      "MAX_STATIONS",
+      "Locations.FRONTIER_MAX_STATIONS"
      ]
     ],
     "int_constants_removed": [
      [
       "CONTROL_BYTES",
       "8192"
+     ],
+     [
+      "MAX_STATIONS",
+      "3"
      ]
     ],
     "classes": {
@@ -1451,6 +1624,11 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "one range() iterator in a cold path; no retained storage"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "decision 1952: _edge_profile consults WorldRoutes' memo; the live choice moves to _edge_profile_live; no member, packet or resize"
     }
    ],
    "delta": {
@@ -1485,6 +1663,11 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "ADR1229: GROUND_PACE_COUNT 24 -> 29 inside the Catalog fixed MAX_PACES bank; one StairMotion per route composition, lent to Routes, charged in the census claw_stair_tables row (9,580 B)"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "Decision 1972: qualified-stairs-v10's 26 ground caps and 17 milli-u/s stair rows (43) inside the Catalog's fixed MAX_PACES = 256 bank; the stair-carry tables are charged as the stair motion owner's second bank"
     }
    ],
    "delta": {
@@ -1511,7 +1694,7 @@
      ],
      [
       "GROUND_PACE_COUNT",
-      "29"
+      "43"
      ],
      [
       "PROFILE_CONTENT_REVISION",
@@ -1566,6 +1749,16 @@
      "bytes": 8,
      "carried_by": "Routes HEADER_RESERVE (fixed numeric controls)",
      "store": "ADR 1229 increment 3: MotionStep.stair_key (one int in the single step packet) and the borrowed `_stair_motion` reference (native header, uncounted like every reference); the claw stair tables themselves are charged when the Session mounts them (increment 6)"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "Routes 48 * RESIDENT_CAPACITY occupancy reservation (unchanged)",
+     "store": "decision 1951: the unregistered standing snapshot (_standing_x I64[512], _standing_refused I32[512], _standing_key I64[8]: 6,208 B) replaces the write-only _occupancy_bounds I32[3072] and _occupancy_profile I64[512] (16,384 B), which nothing read; the five occupancy columns now total 16,448 B inside the arena formula's 48 * RESIDENT_CAPACITY = 24,576 B"
+    },
+    {
+     "bytes": 16,
+     "carried_by": "Routes HEADER_RESERVE (fixed numeric controls)",
+     "store": "decision 1951: _standing_count and _standing_refused_count"
     }
    ],
    "delta": {
@@ -1573,12 +1766,53 @@
      [
       "_stair_motion",
       "StairMotion"
+     ],
+     [
+      "_standing_count",
+      "int"
+     ],
+     [
+      "_standing_key",
+      "PackedInt64Array"
+     ],
+     [
+      "_standing_refused",
+      "PackedInt32Array"
+     ],
+     [
+      "_standing_refused_count",
+      "int"
+     ],
+     [
+      "_standing_x",
+      "PackedInt64Array"
+     ]
+    ],
+    "members_removed": [
+     [
+      "_occupancy_bounds",
+      "PackedInt32Array"
+     ],
+     [
+      "_occupancy_profile",
+      "PackedInt64Array"
      ]
     ],
     "resizes_added": [
+     "_standing_key.resize(STANDING_KEYS)",
+     "_standing_refused.resize(RESIDENT_CAPACITY)",
+     "_standing_x.resize(RESIDENT_CAPACITY)",
      "out.resize(wire_bytes()"
     ],
+    "resizes_removed": [
+     "_occupancy_bounds.resize(6 * RESIDENT_CAPACITY)",
+     "_occupancy_profile.resize(RESIDENT_CAPACITY)"
+    ],
     "int_constants_added": [
+     [
+      "STANDING_KEYS",
+      "8"
+     ],
      [
       "UNREGISTERED_REACH_U",
       "2 * 2611"
@@ -1729,8 +1963,8 @@
      ]
     },
     "allocation_sites": {
-     "=[": 2,
-     "PackedInt64Array(": 2,
+     "=[": 3,
+     "PackedInt64Array(": 3,
      "range(": 3
     }
    }
@@ -1751,10 +1985,23 @@
      "bytes": 0,
      "carried_by": "presentation (outside the REQ-SET-163 simulation gate)",
      "store": "ADR1229: presentation constants for the v2 claw and paw images; no simulation member, packet or resize"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "presentation set reservation (cold, demo presentation only)",
+     "store": "Decision 1972: the two stair-carry images' declared peaks (7,589,568 and 7,370,344 B) join PRESENTATION_SET_BYTES; presentation only, never simulation-owned"
     }
    ],
    "delta": {
     "int_constants_added": [
+     [
+      "CARRY_STONE_PRESENTATION_BYTES",
+      "7370344"
+     ],
+     [
+      "CARRY_WOOD_PRESENTATION_BYTES",
+      "7589568"
+     ],
      [
       "CLAW_PRESENTATION_BYTES",
       "7551924"
@@ -1798,6 +2045,11 @@
      "bytes": 4322,
      "carried_by": "new contribution",
      "store": "two geometry journals (ADR 1205 route view, ADR 1207 full view), 64 sides each"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "decision 1951: the region and source scans walk present rows with PackedByteArray.find/count (two static helpers); no member, packet or resize"
     }
    ],
    "delta": {
@@ -2196,6 +2448,36 @@
      "bytes": 0,
      "carried_by": "Budget.COLD_BYTES shared cold lease",
      "store": "ADR 1221: certificate and journal image (84,184 B) is the caller's leased cold image; restore decodes into the existing stage bank. No retained storage"
+    },
+    {
+     "bytes": 2504,
+     "carried_by": "WorldRoutes CONTROL_RESERVE (recounted)",
+     "store": "decision 1952 (P-1951-1): the itinerary edge-profile memo I64[16 x 19] with each edge's own certificate inputs, its input stamp I64[6], and three int64 runtime tokens (_edge_memo_epoch, _certificate_revision, _descriptor_writes); never saved"
+    },
+    {
+     "bytes": 140872,
+     "carried_by": "new retained (world_routes_endpoint_memo)",
+     "store": "decision 1952 (P-1952-2): the endpoint-proof memo: results I64[64 x 256] (131,072 B), entries I32[64 x 34] (8,704 B), entry tags I64[64 x 2] (1,024 B) and stamp I64[9] (72 B), allocated once with WorldRoutes' fixed scratch; never saved"
+    },
+    {
+     "bytes": 16,
+     "carried_by": "none (new)",
+     "store": "decision 1952: two int64 runtime tokens of the endpoint memo (_endpoint_memo_epoch, _endpoint_memo_serial); never saved"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "new retained (world_routes_compile_memos)",
+     "store": "decision 1953: per-compile endpoint observations (_observed_key I64[12], two Locations.Record copies in _observed's two Variant slots) and the per-preparation pace memo (_pace_memo I64[256 x 6], _pace_codes 256 StringName slots, input stamp _pace_inputs I64[10]); counted by the census item world_routes_compile_memos, never saved"
+    },
+    {
+     "bytes": 24,
+     "carried_by": "none (new)",
+     "store": "decision 1953: three int64 runtime tokens (_observe_serial, _observe_next, _pace_serial); never saved"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "decision 2044 (P-2044-16, Slice C clearance): the carried stair form and _carry_hull_clean, whose hull is held in the existing _support stance scratch; no retained member, packet or allocation site"
     }
    ],
    "delta": {
@@ -2213,8 +2495,84 @@
       "bool"
      ],
      [
+      "_certificate_revision",
+      "int"
+     ],
+     [
+      "_descriptor_writes",
+      "int"
+     ],
+     [
+      "_edge_memo",
+      "PackedInt64Array"
+     ],
+     [
+      "_edge_memo_epoch",
+      "int"
+     ],
+     [
+      "_edge_memo_stamp",
+      "PackedInt64Array"
+     ],
+     [
+      "_endpoint_entries",
+      "PackedInt32Array"
+     ],
+     [
+      "_endpoint_entry_tags",
+      "PackedInt64Array"
+     ],
+     [
+      "_endpoint_memo",
+      "PackedInt64Array"
+     ],
+     [
+      "_endpoint_memo_epoch",
+      "int"
+     ],
+     [
+      "_endpoint_memo_serial",
+      "int"
+     ],
+     [
+      "_endpoint_memo_stamp",
+      "PackedInt64Array"
+     ],
+     [
       "_envelope",
       "PackedInt32Array"
+     ],
+     [
+      "_observe_next",
+      "int"
+     ],
+     [
+      "_observe_serial",
+      "int"
+     ],
+     [
+      "_observed",
+      "Array[Locations.Record]"
+     ],
+     [
+      "_observed_key",
+      "PackedInt64Array"
+     ],
+     [
+      "_pace_codes",
+      "Array[StringName]"
+     ],
+     [
+      "_pace_inputs",
+      "PackedInt64Array"
+     ],
+     [
+      "_pace_memo",
+      "PackedInt64Array"
+     ],
+     [
+      "_pace_serial",
+      "int"
      ],
      [
       "_proof_checks",
@@ -2230,9 +2588,21 @@
      ]
     ],
     "resizes_added": [
+     "_edge_memo.resize(EDGE_MEMO_SLOTS * EDGE_MEMO_STRIDE)",
+     "_edge_memo_stamp.resize(EDGE_MEMO_STAMP)",
+     "_endpoint_entries.resize(ENDPOINT_MEMO_ENTRIES * ENDPOINT_ENTRY_WORDS)",
+     "_endpoint_entry_tags.resize(2 * ENDPOINT_MEMO_ENTRIES)",
+     "_endpoint_memo.resize(ENDPOINT_MEMO_ENTRIES * Profiles.MAX_PROFILES)",
+     "_endpoint_memo_stamp.resize(ENDPOINT_MEMO_STAMP)",
      "_envelope.resize(6)",
+     "_observed_key.resize(2 * OBSERVED_KEY)",
+     "_pace_codes.resize(PACE_SLOTS)",
+     "_pace_inputs.resize(PACE_INPUT_WORDS)",
+     "_pace_memo.resize(PACE_SLOTS * PACE_WORDS)",
      "changes.resize(Journal.STAGED_STRIDE * CHANGE_CAPACITY)",
-     "out.resize(CERT_WIRE_BYTES)"
+     "out.resize(CERT_WIRE_BYTES)",
+     "record.envelope.resize(6)",
+     "record.support.resize(6)"
     ],
     "int_constants_added": [
      [
@@ -2262,6 +2632,54 @@
      [
       "COLD_BYTES",
       "SNAPSHOT_BYTES + 48 * FRAGMENT_CAPACITY + 28 * CHANGE_CAPACITY + 1024"
+     ],
+     [
+      "EDGE_MEMO_INPUTS",
+      "11"
+     ],
+     [
+      "EDGE_MEMO_SLOTS",
+      "16"
+     ],
+     [
+      "EDGE_MEMO_STAMP",
+      "6"
+     ],
+     [
+      "EDGE_MEMO_STRIDE",
+      "19"
+     ],
+     [
+      "ENDPOINT_ENTRY_WORDS",
+      "34"
+     ],
+     [
+      "ENDPOINT_MEMO_ENTRIES",
+      "64"
+     ],
+     [
+      "ENDPOINT_MEMO_STAMP",
+      "9"
+     ],
+     [
+      "ENDPOINT_SERIAL_MAX",
+      "1 << 46"
+     ],
+     [
+      "OBSERVED_KEY",
+      "6"
+     ],
+     [
+      "PACE_INPUT_WORDS",
+      "10"
+     ],
+     [
+      "PACE_SLOTS",
+      "256"
+     ],
+     [
+      "PACE_WORDS",
+      "6"
      ]
     ],
     "int_constants_removed": [
@@ -2375,8 +2793,10 @@
      ]
     },
     "allocation_sites": {
-     "PackedInt32Array(": 2,
-     "PackedInt64Array(": 1,
+     ".new(": 2,
+     "=[": 3,
+     "PackedInt32Array(": 3,
+     "PackedInt64Array(": 10,
      "range(": 1
     }
    }
@@ -2560,6 +2980,21 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "ADR 1228 restore_underground_entry(): a load's entry runtime, adopted in place of the one the first request would create; counted in first_entry_runtime"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "decision 1933 (C2.1) room-dig runtime reference; decision 1936 composes it with the Session's room owners (UndergroundRoomRuntime.new) and counts it in room_dig_runtime"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "decision 1936 (review H4): the composite Jobs dispatcher (UndergroundDispatch.new), bound at each mount; two Callables of native overhead, counted in room_dig_runtime's exact member set"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "decision 1991 (slice C3): the way-in seam slice D2 fills (UndergroundRoomConfirm.WayIn.new, an empty RefCounted; native overhead), held by the host, reset to a fresh base WayIn at every mount and release (review H-3: one live at a time) and bound again by D2 after each mount; order_painted_room returns a transient Result; the painted Confirm route itself is stateless"
     }
    ],
    "delta": {
@@ -2573,12 +3008,24 @@
       "StorePolicyScript"
      ],
      [
+      "_underground_dispatch",
+      "UndergroundDispatch"
+     ],
+     [
       "_underground_entry",
       "UndergroundEntryRuntime"
+     ],
+     [
+      "_underground_rooms",
+      "UndergroundRoomRuntime"
+     ],
+     [
+      "_underground_way_in",
+      "UndergroundRoomConfirm.WayIn"
      ]
     ],
     "allocation_sites": {
-     ".new(": 4
+     ".new(": 10
     }
    }
   },
@@ -2627,6 +3074,309 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "MEAS-2 (decision 1801): the Wood and Stone counters worded in natural measures; two static text helpers, no member, packet or resize"
+    }
+   ],
+   "delta": {}
+  },
+  "godot/scripts/core/underground_work_face.gd": {
+   "charges": [
+    {
+     "bytes": 24,
+     "carried_by": "WorkFace CONTROL_BYTES (2,048 B cold allowance, lease-bound)",
+     "store": "decision 1971: Check.struck, the struck cube's six ints, one per synchronous observation; the column, scrape and cut-history helpers allocate nothing"
+    }
+   ],
+   "delta": {
+    "int_constants_added": [
+     [
+      "COLUMN_RISE_LIMIT_U",
+      "4096"
+     ],
+     [
+      "CUT_SCAN_CHECKS",
+      "20"
+     ],
+     [
+      "QUANTUM_U",
+      "Contract.QUANTUM_SIDE_U"
+     ]
+    ],
+    "classes": {
+     "Check": [
+      [
+       [
+        "actual",
+        "Routes.Configuration"
+       ],
+       [
+        "body",
+        "Profiles.Box"
+       ],
+       [
+        "bounds",
+        "PackedInt32Array"
+       ],
+       [
+        "contact",
+        "Vector3i"
+       ],
+       [
+        "descriptor",
+        "Profiles.Descriptor"
+       ],
+       [
+        "domain",
+        "Space.Domain"
+       ],
+       [
+        "endpoint",
+        "Locations.Record"
+       ],
+       [
+        "endpoint_after",
+        "Locations.Record"
+       ],
+       [
+        "has_contact",
+        "bool"
+       ],
+       [
+        "has_patch",
+        "bool"
+       ],
+       [
+        "original",
+        "Routes.Configuration"
+       ],
+       [
+        "original_request",
+        "Request"
+       ],
+       [
+        "proof",
+        "Routes.Clearance"
+       ],
+       [
+        "request",
+        "Request"
+       ],
+       [
+        "scratch",
+        "PackedInt32Array"
+       ],
+       [
+        "section",
+        "Owner.Region"
+       ],
+       [
+        "stance",
+        "Profiles.Box"
+       ],
+       [
+        "stroke_touches_contact",
+        "bool"
+       ],
+       [
+        "support",
+        "PackedInt32Array"
+       ],
+       [
+        "target",
+        "PackedInt32Array"
+       ],
+       [
+        "token",
+        "int"
+       ],
+       [
+        "world_seed",
+        "int"
+       ]
+      ],
+      [
+       [
+        "actual",
+        "Routes.Configuration"
+       ],
+       [
+        "body",
+        "Profiles.Box"
+       ],
+       [
+        "bounds",
+        "PackedInt32Array"
+       ],
+       [
+        "contact",
+        "Vector3i"
+       ],
+       [
+        "descriptor",
+        "Profiles.Descriptor"
+       ],
+       [
+        "domain",
+        "Space.Domain"
+       ],
+       [
+        "endpoint",
+        "Locations.Record"
+       ],
+       [
+        "endpoint_after",
+        "Locations.Record"
+       ],
+       [
+        "has_contact",
+        "bool"
+       ],
+       [
+        "has_patch",
+        "bool"
+       ],
+       [
+        "original",
+        "Routes.Configuration"
+       ],
+       [
+        "original_request",
+        "Request"
+       ],
+       [
+        "proof",
+        "Routes.Clearance"
+       ],
+       [
+        "request",
+        "Request"
+       ],
+       [
+        "scratch",
+        "PackedInt32Array"
+       ],
+       [
+        "section",
+        "Owner.Region"
+       ],
+       [
+        "stance",
+        "Profiles.Box"
+       ],
+       [
+        "stroke_touches_contact",
+        "bool"
+       ],
+       [
+        "struck",
+        "PackedInt32Array"
+       ],
+       [
+        "support",
+        "PackedInt32Array"
+       ],
+       [
+        "target",
+        "PackedInt32Array"
+       ],
+       [
+        "token",
+        "int"
+       ],
+       [
+        "world_seed",
+        "int"
+       ]
+      ]
+     ]
+    },
+    "allocation_sites": {
+     "PackedInt32Array(": 1
+    }
+   }
+  },
+  "godot/scripts/core/underground_space_authority.gd": {
+   "charges": [
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "decision 1971: _contacts_refusal reads the contact face through Face.struck_origin; one preload, no member, packet or resize"
+    }
+   ],
+   "delta": {}
+  },
+  "godot/scripts/core/entity_directory.gd": {
+   "charges": [
+    {
+     "bytes": 8,
+     "carried_by": "none (new)",
+     "store": "decision 1951: _mutation_revision, a runtime-only int64 token (never saved)"
+    }
+   ],
+   "delta": {
+    "members_added": [
+     [
+      "_mutation_revision",
+      "int"
+     ]
+    ],
+    "int_constants_added": [
+     [
+      "REVISION_MAX",
+      "9223372036854775807"
+     ]
+    ]
+   }
+  },
+  "godot/scripts/core/needs.gd": {
+   "charges": [
+    {
+     "bytes": 8,
+     "carried_by": "none (new)",
+     "store": "decision 1951: _life_revision, a runtime-only int64 token (never saved)"
+    }
+   ],
+   "delta": {
+    "members_added": [
+     [
+      "_life_revision",
+      "int"
+     ]
+    ]
+   }
+  },
+  "godot/scripts/core/residents.gd": {
+   "charges": [
+    {
+     "bytes": 8,
+     "carried_by": "none (new)",
+     "store": "decision 1951: _identity_revision, a runtime-only int64 token (never saved)"
+    }
+   ],
+   "delta": {
+    "members_added": [
+     [
+      "_identity_revision",
+      "int"
+     ]
+    ]
+   }
+  },
+  "godot/scripts/core/underground_connector_source_facts.gd": {
+   "charges": [
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "decision 1951: the source and level digests compared as 64-bit words through two static helpers; no member, packet or resize"
+    }
+   ],
+   "delta": {}
+  },
+  "godot/scripts/core/underground_entry_structure.gd": {
+   "charges": [
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "decision 2044 (P-2044-12 (a)): the BRACE-start hook that stages a retired M5 floor strip's removal (_retired_strip, _retire_strip); no member, packet, resize or allocation site"
     }
    ],
    "delta": {}

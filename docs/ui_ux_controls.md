@@ -622,7 +622,7 @@ level-selection part of UI-MOVE-001. Profiles, tokens, focus, Escape order and a
 | UI-BUILD-002 Build tab |BUILD-001 top row |96×44→160×44 |TOGGLE |Tab name (“Rooms”, “Furnish”, “Decor”)+“ tab ”+index+“ of 3” |WORKSPACE 001; Furnish/Decor disabled with “Choose a room type first” until a room type or Outdoor/Passage is chosen; Ctrl+Tab cycles |
 | UI-BUILD-003 Type or item card |BUILD-001 content row, horizontal scroll |136×128→208×128 |BUTTON |Name+“; ”+cost per cell or per item in natural measures+“; ”+footprint in cells+“; ”+unlock state |WORKSPACE 001; Rooms lists the room types allowed on this level plus Outdoor (surface), Passage (every level), Clear ground (surface), Earth (underground) and a Remove tool (every level: click a placed room or item to open its removal review); Furnish lists only items the chosen type allows; locked cards stay inspectable |
 | UI-BUILD-004 Info card |BUILD-001 content row, left |160×128→208×128 |PANEL |Picture description+purpose line+cost+rules (“Needs 1 bench and 1 hearth; at least 24 cells”)+gesture (“Drag to paint”, “Click to place; R to rotate”) |WORKSPACE 001; follows the focused or hovered card; with nothing chosen reads “Choose a room type to begin” |
-| UI-BUILD-005 Running ledger |BUILD-001 footer, left; expands upward |120×44→520×44; expanded 320×160→640×320 |READOUT |“Plan needs ”+totals in natural measures+“; work ”+hours+“; earth out ”+amount+“; stores hold ”+available |WORKSPACE 001; one line per room type or item (“Kitchen (+24 cells)”) when expanded; shows needs beside stock and never reserves anything |
+| UI-BUILD-005 Running ledger |BUILD-001 footer, left; expands upward |120×44→520×44; expanded 320×160→640×320 |READOUT |“Plan needs ”+totals in natural measures+“; work ”+hours+“; earth out ”+amount+“; stores hold ”+available+“; Crew: ”+crew (decision 1991) |WORKSPACE 001; one line per room type or item (“Kitchen (+24 cells)”) when expanded; shows needs beside stock and never reserves anything |
 | UI-BUILD-006 Undo |BUILD-001 footer |44×44→96×44 |BUTTON |“Undo ”+last_operation |WORKSPACE 001; disabled with “Nothing to undo”; Ctrl+Z / Cmd+Z |
 | UI-BUILD-007 Redo |BUILD-001 footer |44×44→96×44 |BUTTON |“Redo ”+next_operation |WORKSPACE 001; disabled with “Nothing to redo”; Ctrl+Shift+Z or Ctrl+Y / Cmd+Shift+Z |
 | UI-BUILD-008 Confirm all |BUILD-001 footer, right |120×44→240×44 |BUTTON (instance UI-SET-066/confirm_all) |“Confirm all; ”+pending_count+“ changes” |WORKSPACE 001; disabled while any operation is invalid, naming the first reason and the count; Enter only when focused |
@@ -632,6 +632,8 @@ level-selection part of UI-MOVE-001. Profiles, tokens, focus, Escape order and a
 | UI-BUILD-012 Connector card |BC, above BUILD-001's top-right edge; in NARROW, inside BUILD-001's content row |280×136→360×160 |PANEL |“Connects to ”+target_level_name+“; ”+validity |CONDITION connector or entrance ghost placed; direction toggles Down/Up (impossible one disabled with its reason); “Add to plan” (066) and Cancel (067) |
 | UI-BUILD-013 Level bar |BL, above the minimap; rect below |160×104→256×140 |PANEL |“Levels; viewing ”+level_name |ALWAYS, including with the minimap hidden and outside build mode |
 | UI-BUILD-014 Level button |BUILD-013 grid, 2 columns × 3 rows |78×32→126×44 |TOGGLE |Full name (“Surface”, “Underground level 1”…“Underground level 4”, “Overview, all levels”)+“; ”+access state |ALWAYS; one selected; PageUp / PageDown (adopted, decision 1851 OPEN-09) step through Surface…Level 4; Overview only by the bar; never disabled — a level with no way in reads “no way in yet” |
+| UI-BUILD-015 Room card |BC, above BUILD-001's top-right edge (280×184); in NARROW, UI-BUILD-012's place in BUILD-001's content row (280×128, words scroll); the two cards are never open together |280×128→360×184 |PANEL |“Room card: ”+room_name+“, ”+level_name+“; ”+dug+“ of ”+cells+“ cells dug” |CONDITION: a click on a confirmed room with no card armed (decision 1991); names the room and level, how far it is dug, its crew (“Crew: Bramble, Teasel”, P-1990-4 (a)), and while the demo digs with decision 1912's mole “Proof of concept: free …”; words scroll, never cut short; Close or Escape (after the stroke) puts it away; changing level closes it |
+| UI-BUILD-016 Stop digging |BUILD-015 foot, left |176×32→256×32 |BUTTON |“Stop digging ”+room_name+“: the crew walks out, dug cells stay, the rest goes back to the plan” |CONDITION 015; disabled with “Nothing left to dig: every cell of this room is dug”; pressed: the room's cells still waiting go back into the pending batch as one step (Undo takes them out), dug cells stay, a crew with nothing left walks out (P-1990-5 (a)); in the real route (slice D2 on) the dig halts, unpaid phases are cancelled and paid ones kept for a re-order (BUILD-REQ-019) |
 
 UI-SET-034's demolition review is reused for BUILD-REQ-006 removals (paint Earth / Clear ground, or Delete on a placed
 room or item). It lists every item, occupant and lot affected and its 50% return, and never removes anything before
@@ -698,6 +700,8 @@ reason (DANGER, hatched; never valid here). Canonical reasons:
 | “Locked: needs ”+milestone | ! | REQ-UX-015 |
 | “No level above the surface” / “No level below level 4” | X | BUILD-REQ-016, -018 |
 | “Would cut off ”+names+“: build another way in first” | X | BUILD-REQ-017 |
+| item+“ needs a passage under it: paint one there first” | ! | SET-BUILD-001 §9, BUILD-REQ-016 (decision 2021 P-D1-5, P-D1-12) |
+| item+“ does not fit in this room: it needs ”+w+“ × ”+l+“ cells” | X | BUILD-MOUND-021 (decision 2021 P-D1-12) |
 
 ### Acceptance
 
@@ -722,3 +726,13 @@ a tool strip of four toggles (Rect · Oval · Paint · Erase) stands along the i
 chosen (32 px high, inside UI-BUILD-004's rectangle); the arrows move the cell cursor relative to the camera
 (P-B10 (b)); the Rooms tab offers the Entrance on the Surface and a Way down on levels 1–3 (a lite UI-BUILD-012:
 placed by a click, no connector card yet). Proposed words for the Validity table are listed in decision 1912.
+
+**Follow-up (slice D1), 2026-10-16 ([decision 2021](decisions/2021-slice-d1-scoping-connector-items-in-the-build-panel.md),
+built in [decision 2022](decisions/2022-connector-items-in-the-build-panel.md)).** The Rooms tab on every level offers
+three way items -- Burrow mouth, Hatch with ladder, Stair-head -- then Stone and Spiral stairs locked; each card states
+its placeholder footprint and bill. UI-BUILD-011's item ghost shows a way's cells on the level shown with its access
+pair labelled "access"; R / Shift+R turn it. UI-BUILD-012 is built: a click pins the ghost and opens the card (Down /
+Up, the impossible one disabled with its reason, "✓ Connects to "+level name or the reason, the placeholder's notes,
+Add to plan and Cancel); Enter adds, Escape closes it before the panel. A click on a confirmed way with a way's card
+chosen asks for its removal, refused with "Would cut off ..." while it is the only way in (BUILD-REQ-017). The two
+reasons above were ruled with P-D1-12 (a).

@@ -1,0 +1,170 @@
+{
+  "schema": 1,
+  "decision": [
+    "1981",
+    "1971",
+    "1229",
+    "1217"
+  ],
+  "content_revision": 12,
+  "profile_count": 85,
+  "box_count": 637,
+  "source_count": 8,
+  "wire_sha256": "fa96acbeac96ca3860f2368c88c9287a51a5eadba29cd9530ea14c6c5e95e202",
+  "wire_bytes": 26462,
+  "paired_bank_bytes": 52908,
+  "sources": {
+    "6": "b7092e0c653143fd2a6fb15311934f312d732c835029509788b75b1bd1f2f945",
+    "7": "606936a142f755059a283d8cb8f2688fad87f65a93e577583e0c916dd5f2097e"
+  },
+  "rows": {
+    "0-70": "content 11",
+    "71-72": "the empty walk-off and back-up (source 6, WALK)",
+    "73-78": "the wood stair carry: approach, descent, ascent, turn, retreat, back-up (source 6)",
+    "79-84": "the stone stair carry, the same six (source 7)"
+  },
+  "inputs": {
+    "godot/data/underground/mole-worker/stair-carry-v1/evidence/rows-v1.json": "d7a85f76331840b331cf2577cbfddd7c438a0e13593616055f05194a247ffbcd",
+    "godot/data/underground/mole-worker/stair-carry-v1/evidence/native-stair-carry-v1/wood/compiled/compilation.json": "7fe9bce015b6a5bc69434dbe7dd63f37e2435d356e43745c4ef0edfb381d5045",
+    "godot/data/underground/mole-worker/stair-carry-v1/evidence/native-stair-carry-v1/stone/compiled/compilation.json": "9c4c59a2c6d0fb1560f29cb9fcd7fbd81118a5ddf2f84754fd7e4f7786333cd1",
+    "godot/data/underground/mole-worker/stair-carry-v1/evidence/native-stair-carry-v1/wood-verification.json": "fffb7fb0d8d190a8497abdf7299de8134c3e1da2ff38841db7b175e0448fa5ec",
+    "godot/data/underground/mole-worker/stair-carry-v1/evidence/native-stair-carry-v1/stone-verification.json": "48cfd5fbbdbe45f96f38daed7d350f49108e8457262036cbe26a4e4264653a7d"
+  },
+  "ground_sha256": "3234f2d25eeed0e535f68316d555919855741c9067263eb7443edaf94991d75c",
+  "motion_sha256": "05e4c692eed1a4eef778e99c16f9866e8a78c52abea9c2276fb4f577401c5598",
+  "motion_inputs": {
+    "godot/data/underground/mole-worker/qualified-claw-wall-v12/motion.ugmotion": "8e5b5bc25119245f29dc1fbe6dfb24fba216bbe256cb79b60f82f0864015fc7f",
+    "godot/data/underground/mole-worker/qualified-stair-carry-v13/mole-worker.ugprof": "fa96acbeac96ca3860f2368c88c9287a51a5eadba29cd9530ea14c6c5e95e202",
+    "godot/data/underground/mole-worker/publish_stair_carry_runtime.py": "b32eb40f5f08a9dce5cc19bbfb80b22004a1b688574196f64c9e27d985528ca7"
+  },
+  "runtime_admitted": false,
+  "consumers": {
+    "godot/scripts/core/underground_profiles.gd": "4684fce53085b62f4fea85a26a862bd6a99b881dec10827a4802f8d5d0119bdc",
+    "godot/scripts/core/underground_work_face.gd": "1ad3eab1c62df90f0e41c78f0ccf484f4d04b630ca825b50dedcca2a6be4f731",
+    "godot/scripts/core/underground_connector_contacts.gd": "6e92297d747030f97e40dcd343bec7d977f8b8a5da7a4ee398ff93aeaf9d06d0",
+    "godot/scripts/core/underground_routes.gd": "b6b570efc04ea821915f7e43be7f1f98f2ffdac21d7dda67867ea4fd8c1d9dbc",
+    "godot/scripts/core/underground_world_routes.gd": "0c004f9fc8beb9403787521208d542782d53b8473510a3b5c9f1a737fce01c04",
+    "godot/demo/cast/underground_actor.gd": "b0ef7640d2b5626eb95c162d19318d9b3985a51479d19dfdf9a38e0176a06e91",
+    "godot/demo/cast/underground_actor_content.gd": "388374964d20879b6b896021ebde7927e472634ea8a32b6834ec7b1b5042157f",
+    "godot/data/underground/mole-worker/mole_profile_driver.gd": "db7c2051d5d4d4b642a5c1442be4241de3dd4802780bcace6d91d44e5f643064",
+    "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
+    "godot/data/underground/mole-worker/work-step-v1/source_program.gd": "7134c58f0a48c8eb1184484f1caf41089696cc90083c5cd7038fafeb3fce7879"
+  },
+  "renewals": [
+    {
+      "path": "godot/scripts/core/underground_routes.gd",
+      "from": "e16a8392a9d469af43d3adf2410db5a7cdc41cb51c3b5d590c572fd1bd9c2146",
+      "to": "4d59d52611336af5baa13621265e39aa02937f4463c111c2ea160933c7ec3672"
+    },
+    {
+      "path": "godot/scripts/core/underground_world_routes.gd",
+      "from": "602f20d30812f4da61d624d3d42ade7eb1fe44729b751942b9d64dee1b4ee531",
+      "to": "69f078099a1f74ff9e442b6d06d0b251cf9937dbb335d288201c6ace0eb46fa8"
+    },
+    {
+      "path": "godot/scripts/core/underground_profiles.gd",
+      "from": "326d280310d26ecb8eb69a963fc6245d8f67c1f85b66b164a39c371a3f4974ec",
+      "to": "4684fce53085b62f4fea85a26a862bd6a99b881dec10827a4802f8d5d0119bdc"
+    },
+    {
+      "path": "godot/scripts/core/underground_connector_contacts.gd",
+      "from": "d45d58aa5c24fb1da5429de74719862713f0716d3d20c37ef8f1b3b055d46db0",
+      "to": "b33a859c8308a213b9f1aad5e4412147ab2b3030be33fa9f5b4490a5f879e3cc"
+    },
+    {
+      "path": "godot/scripts/core/underground_routes.gd",
+      "from": "4d59d52611336af5baa13621265e39aa02937f4463c111c2ea160933c7ec3672",
+      "to": "0fde2c69d853462a375dd6dd025368c9bf47b14fccb87dd6b27b5775688f5f15"
+    },
+    {
+      "path": "godot/scripts/core/underground_world_routes.gd",
+      "from": "69f078099a1f74ff9e442b6d06d0b251cf9937dbb335d288201c6ace0eb46fa8",
+      "to": "a0f724f1d2efcdefdf8d38395919bee5d29cbc0ee14f75561be4820b38055472"
+    },
+    {
+      "path": "godot/scripts/core/underground_world_routes.gd",
+      "from": "a0f724f1d2efcdefdf8d38395919bee5d29cbc0ee14f75561be4820b38055472",
+      "to": "fab1b7e7a8a42bbc537b3556b7866a9d2947024fe2e6671e6bcf880239acea28"
+    },
+    {
+      "path": "godot/scripts/core/underground_connector_contacts.gd",
+      "from": "b33a859c8308a213b9f1aad5e4412147ab2b3030be33fa9f5b4490a5f879e3cc",
+      "to": "cca172bdb476c4ade0ae773fa826e22b1bf2400cd7497c96ea3d78fecea197ab"
+    },
+    {
+      "path": "godot/scripts/core/underground_world_routes.gd",
+      "from": "fab1b7e7a8a42bbc537b3556b7866a9d2947024fe2e6671e6bcf880239acea28",
+      "to": "4cc71adba30965b0028387e370f6b41c0d19d65dd2b0812e0c65472288b81ef0"
+    },
+    {
+      "path": "godot/scripts/core/underground_world_routes.gd",
+      "from": "4cc71adba30965b0028387e370f6b41c0d19d65dd2b0812e0c65472288b81ef0",
+      "to": "97ab5159c162746df2af64ec53bf9927628f74de8bae000780ad95540daebfc3"
+    },
+    {
+      "path": "godot/scripts/core/underground_world_routes.gd",
+      "from": "97ab5159c162746df2af64ec53bf9927628f74de8bae000780ad95540daebfc3",
+      "to": "60c7925a8d24c599c6e67a0495f1211ec32585f16cc1e253e942dc59e252392a"
+    },
+    {
+      "path": "godot/scripts/core/underground_world_routes.gd",
+      "from": "60c7925a8d24c599c6e67a0495f1211ec32585f16cc1e253e942dc59e252392a",
+      "to": "b2fd7817b61b68b78309a6003eb9594c7737db43d5fb7353972f2559f8db90b5"
+    },
+    {
+      "path": "godot/scripts/core/underground_world_routes.gd",
+      "from": "b2fd7817b61b68b78309a6003eb9594c7737db43d5fb7353972f2559f8db90b5",
+      "to": "3431f14441b9e4439bb577540062d843d457e6b1dc72190cb32429253b3e04b8"
+    },
+    {
+      "path": "godot/scripts/core/underground_world_routes.gd",
+      "from": "3431f14441b9e4439bb577540062d843d457e6b1dc72190cb32429253b3e04b8",
+      "to": "bd116cb09b9e609b8be4a4f08f342ecaa7ad5fa3ac4eb3ca4cd20a152186de62"
+    },
+    {
+      "path": "godot/scripts/core/underground_world_routes.gd",
+      "from": "bd116cb09b9e609b8be4a4f08f342ecaa7ad5fa3ac4eb3ca4cd20a152186de62",
+      "to": "8bf8971d30f127a9a212eea331f60cd7ecbfbce5fe8a706b66359bd8fef588b7"
+    },
+    {
+      "path": "godot/scripts/core/underground_connector_contacts.gd",
+      "from": "cca172bdb476c4ade0ae773fa826e22b1bf2400cd7497c96ea3d78fecea197ab",
+      "to": "cffa77d7a29d3cad1efc6ec247b5c1901213d7bfa96d750b83fe801a7d08ad28"
+    },
+    {
+      "path": "godot/scripts/core/underground_connector_contacts.gd",
+      "from": "cffa77d7a29d3cad1efc6ec247b5c1901213d7bfa96d750b83fe801a7d08ad28",
+      "to": "13b6c339a01150b06f763cd5251cc8cdfd24e71e42498ce882580c01dcfb526e"
+    },
+    {
+      "path": "godot/scripts/core/underground_connector_contacts.gd",
+      "from": "13b6c339a01150b06f763cd5251cc8cdfd24e71e42498ce882580c01dcfb526e",
+      "to": "eb52d58cbc55f8afc27c007905f468c635b7770cffb4a49e8781727f9d87c1a6"
+    },
+    {
+      "path": "godot/scripts/core/underground_connector_contacts.gd",
+      "from": "eb52d58cbc55f8afc27c007905f468c635b7770cffb4a49e8781727f9d87c1a6",
+      "to": "6e92297d747030f97e40dcd343bec7d977f8b8a5da7a4ee398ff93aeaf9d06d0"
+    },
+    {
+      "path": "godot/scripts/core/underground_world_routes.gd",
+      "from": "8bf8971d30f127a9a212eea331f60cd7ecbfbce5fe8a706b66359bd8fef588b7",
+      "to": "b5620cd4cc758ce57a1231b0aba469ee2f253dd45131139764aba4da229c4244"
+    },
+    {
+      "path": "godot/scripts/core/underground_world_routes.gd",
+      "from": "b5620cd4cc758ce57a1231b0aba469ee2f253dd45131139764aba4da229c4244",
+      "to": "3f40b2aadc0fec95fd57c303febe5e6e3504b2dbf274e32182c5282e6db632c8"
+    },
+    {
+      "path": "godot/scripts/core/underground_world_routes.gd",
+      "from": "3f40b2aadc0fec95fd57c303febe5e6e3504b2dbf274e32182c5282e6db632c8",
+      "to": "0c004f9fc8beb9403787521208d542782d53b8473510a3b5c9f1a737fce01c04"
+    },
+    {
+      "path": "godot/scripts/core/underground_routes.gd",
+      "from": "0fde2c69d853462a375dd6dd025368c9bf47b14fccb87dd6b27b5775688f5f15",
+      "to": "b6b570efc04ea821915f7e43be7f1f98f2ffdac21d7dda67867ea4fd8c1d9dbc"
+    }
+  ]
+}

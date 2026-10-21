@@ -6,6 +6,8 @@ extends RefCounted
 ##   X  Cannot dig here: water / protected ground / occupied / protected route   the host's ground reader (ECON-003)
 ##   X  Too narrow: rooms need at least 2 × 2 cells       the cell lies in no 2 × 2 block of its own room
 ##   !  No way in: connect to a finished Passage or entrance   no route to finished space (BUILD-REQ-013)
+##   !  No way in: place a door on an outer edge   a Mound room on the Surface whose Mound has no door
+##      (BUILD-MOUND-012; decision 2002): set by the batch, which knows the doors (`judge_level`'s `way_in` off there)
 ##
 ## THE WAY IN (Brendan's ruling on decision 1911 P-C4 (a), 2026-10-12): a drafted cell has a way in when a 4-connected
 ## chain of drafted cells on its level -- of ANY room type, the stroke in progress included -- links it to a cell
@@ -20,6 +22,7 @@ extends RefCounted
 ## WITH NO GROUND READER BOUND only the 2 × 2 rule is judged (a host that knows no ground claims nothing about it).
 
 const Validity := preload("res://scripts/ui/build_validity.gd")
+const Mound := preload("res://scripts/ui/build_mound.gd")
 
 const CELL_OK: int = 0
 const CELL_TOO_NARROW: int = 1
@@ -30,7 +33,9 @@ const CELL_OCCUPIED: int = 5
 const CELL_ROUTE: int = 6
 ## A ground reading only: the space is dug and finished (a way in for its neighbours; occupied for a drafted cell).
 const CELL_FINISHED: int = 7
-const CELL_CODES: int = 8
+## Decision 2002: a Mound room's cell whose Mound has no door (BUILD-MOUND-012).
+const CELL_NO_DOOR: int = 8
+const CELL_CODES: int = 9
 ## What the canonical "Cannot dig here: " reason names for each ground code (docs/ui_ux_controls.md).
 const DIG_WORDS: Dictionary = {CELL_WATER: "water", CELL_PROTECTED: "protected ground", CELL_OCCUPIED: "occupied",
 	CELL_ROUTE: "protected route", CELL_FINISHED: "occupied"}
@@ -45,6 +50,12 @@ var _bounds: Rect2i = Rect2i()
 var _ground: Callable = Callable()
 var _ground_revision: Callable = Callable()
 var _landings: Callable = Callable()
+## Decision 1991: the confirmed room type at a cell (`room_type(level, cell) -> int`, -1 none), and the set types and
+## level being judged: a drafted cell completes its 2 × 2 block with its room's own confirmed cells (BUILD-REQ-002,
+## "a 2 × 2 block of its room": a stopped room's cells put back in the plan are judged with what of it is dug).
+var _room_type: Callable = Callable()
+var _set_types: PackedInt32Array = PackedInt32Array()
+var _judging_level: int = -1
 ## Per cell of one level: 0 not drafted, else the drafted set's index + 1 (cleared after each judgement).
 var _member: PackedInt32Array = PackedInt32Array()
 ## The breadth-first queue, and which cells were reached (by index into `_member`).
@@ -119,7 +130,7 @@ static func kind_of(code: int) -> int:
 	"""A cell code's validity kind (build_validity.gd KIND_*): 0 can build, 1 blocked (No way in), 2 not possible."""
 	if code == CELL_OK:
 		return 0
-	return 1 if code == CELL_NO_WAY_IN else 2
+	return 1 if code == CELL_NO_WAY_IN or code == CELL_NO_DOOR else 2
 
 
 static func words_of(code: int) -> String:
@@ -128,23 +139,36 @@ static func words_of(code: int) -> String:
 		return Validity.too_narrow()
 	if code == CELL_NO_WAY_IN:
 		return Validity.no_way_in()
+	if code == CELL_NO_DOOR:
+		return Mound.TEXT_NO_DOOR
 	return Validity.cannot_dig(DIG_WORDS[code]) if DIG_WORDS.has(code) else ""
 
 
-func judge_level(level: int, sets: Array[PackedInt32Array]) -> Array[PackedByteArray]:
+func bind_room_type(room_type: Callable) -> void:
+	"""Decision 1991: `room_type(level, cell) -> int`, the confirmed room type there (-1 none)."""
+	_room_type = room_type
+
+
+func judge_level(level: int, sets: Array[PackedInt32Array], way_in: bool = true,
+		types: PackedInt32Array = PackedInt32Array()) -> Array[PackedByteArray]:
 	"""Each drafted set on `level` (canonical cell pairs; one set per room, the stroke as its own) judged per cell:
 	the codes, aligned with each set's cells. A set with a cell outside the planning area is judged as it can be
-	(that cell CELL_PROTECTED: no ground there)."""
+	(that cell CELL_PROTECTED: no ground there). Without `way_in` (the Surface, decision 2002: its way in is a door
+	the batch judges) no cell is judged for a way in. With `types` (each set's room type) and a bound room-type reader,
+	a cell's 2 × 2 block may be completed by confirmed cells of its own type (decision 1991)."""
 	judgements += 1
+	_set_types = types
+	_judging_level = level
 	var out: Array[PackedByteArray] = []
 	for index: int in sets.size():
 		out.append(_mark(sets[index], index + 1))
 	for index: int in sets.size():
 		_judge_set(level, sets[index], index + 1, out[index])
-	if _ground.is_valid():
+	if _ground.is_valid() and way_in:
 		_way_in(level, sets, out)
 	for cells: PackedInt32Array in sets:
 		_unmark(cells)
+	_set_types = PackedInt32Array()
 	return out
 
 
@@ -200,9 +224,14 @@ func _in_block(cell: Vector2i, id: int) -> bool:
 
 
 func _is(cell: Vector2i, id: int) -> bool:
-	"""Whether `cell` belongs to set `id`."""
+	"""Whether `cell` belongs to set `id`, or (decision 1991) is a confirmed cell of that set's room type."""
 	var index: int = _index(cell)
-	return index >= 0 and _member[index] == id
+	if index < 0:
+		return false
+	if _member[index] == id:
+		return true
+	return id > 0 and id <= _set_types.size() and _room_type.is_valid() and _member[index] == 0 \
+		and int(_room_type.call(_judging_level, cell)) == _set_types[id - 1]
 
 
 func _way_in(level: int, sets: Array[PackedInt32Array], out: Array[PackedByteArray]) -> void:

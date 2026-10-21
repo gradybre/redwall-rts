@@ -59,6 +59,10 @@ const RESTORE_HEIGHT: float = 44.0
 ## UI-BUILD-012.
 const CONNECTOR_SIZE: Vector2 = Vector2(280.0, 136.0)
 const CONNECTOR_NARROW: Vector2 = Vector2(280.0, 128.0)
+## UI-BUILD-015 (decision 1991): the room card stands where the connector card does, taller so its words (how far,
+## the crew, the proof of concept's note) show without scrolling; in NARROW it takes the connector card's place in the
+## content row and scrolls.
+const ROOM_CARD_SIZE: Vector2 = Vector2(280.0, 184.0)
 
 
 static func panel_rect(geometry: UiLayout.Geometry) -> Rect2:
@@ -103,6 +107,15 @@ static func connector_rect(geometry: UiLayout.Geometry) -> Rect2:
 	if geometry.profile == UiLayout.PROFILE_NARROW:
 		return Rect2(panel.position + Vector2(PADDING, CONTENT_Y), CONNECTOR_NARROW)
 	return Rect2(panel.end.x - CONNECTOR_SIZE.x, panel.position.y - GAP - CONNECTOR_SIZE.y, CONNECTOR_SIZE.x, CONNECTOR_SIZE.y)
+
+
+static func room_card_rect(geometry: UiLayout.Geometry) -> Rect2:
+	"""UI-BUILD-015: above the panel's top-right edge, or the connector card's place in NARROW."""
+	var panel: Rect2 = panel_rect(geometry)
+	if geometry.profile == UiLayout.PROFILE_NARROW:
+		return connector_rect(geometry)
+	return Rect2(panel.end.x - ROOM_CARD_SIZE.x, panel.position.y - GAP - ROOM_CARD_SIZE.y, ROOM_CARD_SIZE.x,
+		ROOM_CARD_SIZE.y)
 
 
 static func info_width(profile: int) -> float:

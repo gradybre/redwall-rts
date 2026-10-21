@@ -14,6 +14,8 @@ const Validity := preload("res://scripts/ui/build_validity.gd")
 const GhostShader := preload("res://demo/build_panel/build_ghost.gdshader")
 
 const TAG_PX: int = 40
+## The tag's widest line before it wraps (Label3D pixels, at TAG_PX): about 40 characters.
+const TAG_WRAP_PX: float = 900.0
 const TAG_PIXEL_SIZE: float = 0.01
 const TAG_LIFT_M: float = 0.2
 ## A dash along a 1 m cell edge (two a cell, the gaps between them and at the corners 0.2 m).
@@ -50,6 +52,9 @@ func configure_ghost(datum: Vector3i, bounds: Rect2i, marks_layer: int, owns_gri
 	_tag.outline_size = 8
 	_tag.render_priority = 5
 	_tag.outline_render_priority = 4
+	# A long reason wraps rather than running off across the HUD (decision 2022).
+	_tag.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_tag.width = TAG_WRAP_PX
 	add_child(_tag)
 	return &""
 
@@ -124,6 +129,11 @@ func _middle(cells: PackedInt32Array) -> Vector3:
 		low = low.min(Vector2i(cells[at], cells[at + 1]))
 		high = high.max(Vector2i(cells[at], cells[at + 1]))
 	return (world_corner(low) + world_corner(high + Vector2i.ONE)) / 2.0
+
+
+func tag() -> Label3D:
+	"""The tag (decision 1991: spaced with the level's other tags, demo_build_tags.gd)."""
+	return _tag
 
 
 func tag_text() -> String:

@@ -205,6 +205,26 @@ static func contact_into(actual: Provider, candidate: Candidate, access: Vector2
 	return code
 
 
+static func resume_contact_into(actual: Provider, candidate: Candidate, access: Vector2i, approach: int,
+		approach_revision: int, cold: int, max_checks: int, out: Face.Request) -> StringName:
+	"""Decision 1936, P-1933-2 (a): the same full observation as `contact_into`, for a Site whose phase a stopped dig
+	had started (its Project live, WORKING or with its work done), so another builder can take that paid phase
+	over. Any other live Project is still refused."""
+	var code: StringName = _guard(actual, cold, COLD_BYTES, max_checks)
+	if code != &"": return code
+	if candidate == null or candidate.get_script() != Candidate or out == null or out.get_script() != Face.Request:
+		return REFUSE_SCOPE
+	code = _candidate_leaf(actual, candidate, cold)
+	if code != &"": return code
+	if candidate.project == NULL_REF or (candidate.project_phase != Construction.PHASE_WORKING \
+			and candidate.project_phase != Construction.PHASE_WORK_DONE): return REFUSE_ACTIVE
+	var query: Query = Query.new()
+	_hold(query, actual, candidate, access, approach, approach_revision, max_checks)
+	code = _observe(query)
+	if code == &"": _copy_request(query.request, out)
+	return code
+
+
 static func _candidate_leaf(actual: Provider, candidate: Candidate, cold: int) -> StringName:
 	"""The original full Site/key/source/history is rederived before contact; caller values confer no authority."""
 	var sites: Sites = actual._ordinary_original_sites()
@@ -354,13 +374,20 @@ static func _face(query: Query, profile: int, location: Vector2i) -> int:
 		var box: int = _field(query, profile, Profiles.F_FIRST_BOX) + index
 		if profiles._live.boxes[6 * profiles._box_capacity + box] != Profiles.CONTACT_POINT: continue
 		if result >= 0: return -1
+		var floor_y: int = query.config.locations._get32(query.config.locations._live, Locations.Y, location.x)
+		# Decision 1971: an upper quantum's claws strike its column's floor-band cube (P-1971-3 "Painted height").
+		var origin: Vector3i = Face.struck_origin(query.origin, floor_y,
+			floor_y + int(profiles._live.boxes[profiles._box_capacity + box]))
 		for axis: int in 3:
 			var value: int = int(profiles._live.boxes[axis * profiles._box_capacity + box]) \
 				+ query.config.locations._get32(query.config.locations._live, Locations.X + axis, location.x)
-			if value < query.origin[axis] or value > int(query.origin[axis]) + Contract.QUANTUM_SIDE_U: return -1
-			if value == query.origin[axis] or value == int(query.origin[axis]) + Contract.QUANTUM_SIDE_U:
+			if value < origin[axis] or value > int(origin[axis]) + Contract.QUANTUM_SIDE_U: return -1
+			if value == origin[axis] or value == int(origin[axis]) + Contract.QUANTUM_SIDE_U:
 				if result >= 0: return -1
-				result = axis * 2 + int(value != query.origin[axis])
+				result = axis * 2 + int(value != origin[axis])
+				# Decision 1971: as WorkFace's contact rule, the station stands outside the face it strikes.
+				var station: int = query.config.locations._get32(query.config.locations._live, Locations.X + axis, location.x)
+				if (station >= value) if result % 2 == 0 else (station < value): return -1
 	return result
 
 

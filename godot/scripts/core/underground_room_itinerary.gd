@@ -63,8 +63,50 @@ static func _search(actual: WorldRoutes, first: Vector2i, last: Vector2i,
 
 
 static func _anchor_refusal(profiles: Profiles, anchor: int, revision: int, content: int) -> StringName:
-	"""The exact finite forward/backward programme fixes heading and source; ordinary untagged rows are not anchors."""
-	if StepProgram.uses(profiles):
+	"""Decision 1952: the anchor check, answered from Profiles' anchor memo while its bank and load revision are the ones
+	it was read at (with the framework's cache checks on, read live and compared)."""
+	var at: int = _anchor_memo_at(profiles, anchor, revision, content)
+	if at >= 0 and not Profiles.CacheChecks.enabled:
+		return REFUSE_FAMILY if profiles._anchor_memo[at + 5] == 1 else &""
+	var code: StringName = _anchor_refusal_live(profiles, anchor, revision, content)
+	if at >= 0 and (profiles._anchor_memo[at + 5] == 1) != (code != &""):
+		Profiles.CacheChecks.report("anchor check", "anchor %d: Profiles bank edited in place" % anchor)
+	_remember_anchor(profiles, anchor, revision, content, code)
+	return code
+
+
+static func _anchor_memo_at(profiles: Profiles, anchor: int, revision: int, content: int) -> int:
+	"""Decision 1952: the offset of the slot that answers this check, or -1 (also for a loading or poisoned store)."""
+	var token: int = profiles.load_revision() if profiles._live != null and not profiles._loading else 0
+	var at: int = posmod(anchor, Profiles.ANCHOR_MEMO_SLOTS) * Profiles.ANCHOR_MEMO_STRIDE
+	var memo: PackedInt64Array = profiles._anchor_memo
+	if token == 0 or memo.size() != Profiles.ANCHOR_MEMO_SLOTS * Profiles.ANCHOR_MEMO_STRIDE or memo[at] != token \
+			or memo[at + 1] != profiles._live.get_instance_id() or memo[at + 2] != anchor or memo[at + 3] != revision \
+			or memo[at + 4] != content: return -1
+	return at
+
+
+static func _remember_anchor(profiles: Profiles, anchor: int, revision: int, content: int, code: StringName) -> void:
+	"""Decision 1952: keep one answer, keyed on the store's current token and bank."""
+	var token: int = profiles.load_revision() if profiles._live != null and not profiles._loading else 0
+	if token == 0 or profiles._anchor_memo.size() != Profiles.ANCHOR_MEMO_SLOTS * Profiles.ANCHOR_MEMO_STRIDE: return
+	var at: int = posmod(anchor, Profiles.ANCHOR_MEMO_SLOTS) * Profiles.ANCHOR_MEMO_STRIDE
+	profiles._anchor_memo[at] = token
+	profiles._anchor_memo[at + 1] = profiles._live.get_instance_id()
+	profiles._anchor_memo[at + 2] = anchor
+	profiles._anchor_memo[at + 3] = revision
+	profiles._anchor_memo[at + 4] = content
+	profiles._anchor_memo[at + 5] = 1 if code != &"" else 0
+
+
+static func _anchor_refusal_live(profiles: Profiles, anchor: int, revision: int, content: int) -> StringName:
+	"""The exact finite forward/backward programme fixes heading and source; ordinary untagged rows are not anchors.
+	Decision 1939: a program-owned source's (the claws') READY row anchors its own family."""
+	if _owned(profiles, anchor):
+		var policy: int = Profiles.selection_policy_leaf(profiles, anchor, revision, content)
+		return &"" if (policy == Profiles.POLICY_READY_FORWARD or policy == Profiles.POLICY_READY_BACKWARD) \
+			and Routes._source_profile_refusal(profiles, anchor, revision, content) == &"" else REFUSE_FAMILY
+	if Routes._step_closure(profiles):
 		return &"" if anchor >= 2 and anchor < StepProgram.GROUND \
 			and StepProgram.profile_refusal(profiles, anchor, revision, content) == &"" else REFUSE_FAMILY
 	if SourceProgram.profile_refusal(profiles, anchor, revision, content) != &"" \
@@ -118,8 +160,41 @@ static func _relax(actual: WorldRoutes, origin: Vector2i, anchor: int) -> String
 
 
 static func _edge_profile(actual: WorldRoutes, edge: int, anchor: int) -> int:
-	"""Choose the first exact compatible bit in the original mask, spending every attempted row and source check."""
+	"""Choose the first exact compatible bit in the original mask, spending every attempted row and source check.
+	Decision 1952: answered from WorldRoutes' memo, spend and descriptor write replayed, while every input is unchanged."""
 	var graph: Routes = actual._routes_ref.get_ref() as Routes
+	var at: int = WorldRoutes.edge_memo_hit(actual, graph, edge, anchor)
+	if at >= 0 and not Profiles.CacheChecks.enabled: return WorldRoutes.replay_edge_profile(actual, graph, at)
+	if at >= 0: return _checked_edge_profile(actual, graph, edge, anchor, at)
+	return _remembered_edge_profile(actual, graph, edge, anchor)
+
+
+static func _remembered_edge_profile(actual: WorldRoutes, graph: Routes, edge: int, anchor: int) -> int:
+	"""Decision 1952: the live choice, then remembered with its spend and whether it wrote the descriptor."""
+	var epoch: int = WorldRoutes.edge_memo_epoch(actual, graph)
+	var before: int = graph._remaining
+	var writes: int = actual._descriptor_writes
+	var row: int = _edge_profile_live(actual, graph, edge, anchor)
+	WorldRoutes.remember_edge_profile(actual, graph, edge, anchor, row, before - graph._remaining,
+		writes != actual._descriptor_writes, epoch)
+	return row
+
+
+static func _checked_edge_profile(actual: WorldRoutes, graph: Routes, edge: int, anchor: int, at: int) -> int:
+	"""Decision 1952, checks on: run the replay the game would run and keep what it leaves (budget and descriptor),
+	put both back, then choose live (the choice used) and report any difference."""
+	var before: PackedInt64Array = WorldRoutes.search_state(actual, graph)
+	var replayed: int = WorldRoutes.replay_edge_profile(actual, graph, at)
+	var after_replay: PackedInt64Array = WorldRoutes.search_state(actual, graph)
+	WorldRoutes.restore_search_state(actual, graph, before)
+	var row: int = _remembered_edge_profile(actual, graph, edge, anchor)
+	if row != replayed or graph._operation_error != &"" or WorldRoutes.search_state(actual, graph) != after_replay:
+		Profiles.CacheChecks.report("itinerary edge profile", "edge %d: an input changed without moving its token" % edge)
+	return row
+
+
+static func _edge_profile_live(actual: WorldRoutes, graph: Routes, edge: int, anchor: int) -> int:
+	"""The choice itself, read from the current certificates and Profiles bank."""
 	var profiles: Profiles = actual._profiles
 	for row: int in profiles._live.header[1]:
 		if not graph._spend(16): return -1
@@ -156,7 +231,8 @@ static func _compatible(profiles: Profiles, anchor: int, row: int) -> bool:
 		if profiles._live.fields[field * stride + row] != profiles._live.fields[field * stride + anchor]: return false
 	for field: int in range(Profiles.L_QUANTITY_MIN, Profiles.L_QUANTITY_MAX + 1):
 		if profiles._live.quantities[field * stride + row] != profiles._live.quantities[field * stride + anchor]: return false
-	if StepProgram.uses(profiles):
+	if _owned(profiles, anchor): return _owned_compatible(profiles, anchor, row)
+	if Routes._step_closure(profiles):
 		return _canonical_compatible(profiles, anchor, row)
 	var policy: int = Profiles.selection_policy_leaf(profiles, row, profiles._live.quantities[row], profiles._live.header[0])
 	if policy == Profiles.POLICY_AUTOMATIC:
@@ -164,6 +240,29 @@ static func _compatible(profiles: Profiles, anchor: int, row: int) -> bool:
 	return row >= 2 and row < 10 and profiles._live.fields[Profiles.F_YAW * stride + row] \
 		== profiles._live.fields[Profiles.F_YAW * stride + anchor] \
 		and SourceProgram.profile_refusal(profiles, row, profiles._live.quantities[row], profiles._live.header[0]) == &""
+
+
+static func _owned(profiles: Profiles, row: int) -> bool:
+	"""Decision 1939: a row of a source its own program owns (the claws, Routes' `_source_owner`), not the parent or
+	step program's source 0, whose rows the fixed positions below describe."""
+	return Routes._source_owner(profiles, row, profiles._live.header[0]) >= 0
+
+
+static func _owned_compatible(profiles: Profiles, anchor: int, row: int) -> bool:
+	"""Decision 1939: in a program-owned family, the READY and short-step rows at the anchor's heading and the source's
+	all-yaw canonical ground WALK share travel, each passing its owner's own source proof (Routes'). Stair and other
+	rows are not travel legs."""
+	var stride: int = profiles._profile_capacity
+	var revision: int = profiles._live.quantities[row]
+	var policy: int = Profiles.selection_policy_leaf(profiles, row, revision, profiles._live.header[0])
+	var exact: bool = profiles._live.fields[Profiles.F_YAW_KIND * stride + row] == Profiles.YAW_EXACT \
+		and profiles._live.fields[Profiles.F_YAW * stride + row] == profiles._live.fields[Profiles.F_YAW * stride + anchor]
+	var travel: bool = exact and (policy == Profiles.POLICY_READY_FORWARD or policy == Profiles.POLICY_READY_BACKWARD \
+		or policy == Profiles.POLICY_SHORT_FORWARD or policy == Profiles.POLICY_SHORT_BACKWARD)
+	var ground: bool = policy == Profiles.POLICY_CANONICAL_GROUND \
+		and profiles._live.fields[Profiles.F_YAW_KIND * stride + row] == Profiles.YAW_ALL \
+		and profiles._live.fields[Profiles.F_MODE * stride + row] == Profiles.MODE_WALK
+	return (travel or ground) and Routes._source_profile_refusal(profiles, row, revision, profiles._live.header[0]) == &""
 
 
 static func _canonical_compatible(profiles: Profiles, anchor: int, row: int) -> bool:

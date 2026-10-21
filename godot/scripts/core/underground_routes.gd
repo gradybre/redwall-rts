@@ -44,6 +44,12 @@ const RESIDENT_CAPACITY: int = Residents.RESIDENT_CAPACITY
 ## body reaches past height plus tail, which is under twice the tallest height. Conservative: it can only over-refuse.
 const UNREGISTERED_REACH_U: int = 2 * 2611
 const REFUSE_UNREGISTERED_NEAR: StringName = &"ROUTE_UNREGISTERED_RESIDENT_NEAR"
+## Decision 1951: the unregistered standing snapshot. A row's standing is bounds-independent: nothing (absent or
+## dead), placed (a reach cube at its root), or one of these refusals. PLACED is internal and never returned.
+const STANDING_REFUSALS: Array[StringName] = [&"ROUTE_TURN_ACTOR_STALE", &"ROUTE_TURN_ACTOR_UNBOUND"]
+const STANDING_PLACED: StringName = &"ROUTE_STANDING_PLACED"
+## Residents, Needs, Directory and Transforms: each instance and its revision.
+const STANDING_KEYS: int = 8
 const MAX_EDGES: int = 1536
 const MAX_VERTICES: int = 4096
 const MAX_LINKS: int = 4096
@@ -408,8 +414,11 @@ var _occupancy_heads: PackedInt32Array = PackedInt32Array()
 var _occupancy_next: PackedInt32Array = PackedInt32Array()
 var _occupancy_cell: PackedInt32Array = PackedInt32Array()
 var _occupancy_visit: PackedInt32Array = PackedInt32Array()
-var _occupancy_bounds: PackedInt32Array = PackedInt32Array()
-var _occupancy_profile: PackedInt64Array = PackedInt64Array()
+var _standing_x: PackedInt64Array = PackedInt64Array() # Decision 1951: (root x << 10) | row, ascending.
+var _standing_refused: PackedInt32Array = PackedInt32Array() # row | (STANDING_REFUSALS index << 10), by row.
+var _standing_key: PackedInt64Array = PackedInt64Array() # The STANDING_KEYS tokens the snapshot was read at.
+var _standing_count: int = 0
+var _standing_refused_count: int = 0
 var _token: int = 0
 var _next_token: int = 1
 var _cold_token: int = 0
@@ -578,8 +587,10 @@ func _allocate() -> void:
 	_occupancy_next.resize(RESIDENT_CAPACITY)
 	_occupancy_cell.resize(3 * RESIDENT_CAPACITY)
 	_occupancy_visit.resize(RESIDENT_CAPACITY)
-	_occupancy_bounds.resize(6 * RESIDENT_CAPACITY)
-	_occupancy_profile.resize(RESIDENT_CAPACITY)
+	# Decision 1951: 12 of the 32 B a row the two removed write-only columns held.
+	_standing_x.resize(RESIDENT_CAPACITY)
+	_standing_refused.resize(RESIDENT_CAPACITY)
+	_standing_key.resize(STANDING_KEYS)
 	_occupancy_heads.fill(-1)
 	_occupancy_next.fill(-1)
 	_occupancy_expected_revision = _transforms.mutation_revision()
@@ -2273,7 +2284,7 @@ func _actor_profile_into(worker: Vector2i, job: Vector2i, mode: int, posture: in
 	if mode == Profiles.MODE_WORK and profile_id >= 0:
 		return _profiles.query_work_profile_into(worker, job, profile_id, profile_revision,
 			content_revision, posture, family, hint, out)
-	if mode == Profiles.MODE_WALK and profile_id >= 0 and Profiles.selection_policy_leaf(_profiles,
+	if (mode == Profiles.MODE_WALK or mode == Profiles.MODE_CARRY) and profile_id >= 0 and Profiles.selection_policy_leaf(_profiles,
 			profile_id, profile_revision, content_revision) != Profiles.POLICY_AUTOMATIC:
 		return _profiles.query_travel_profile_into(worker, job, profile_id, profile_revision,
 			content_revision, posture, family, hint, out)
@@ -2321,9 +2332,34 @@ static func _source_word_known(value: int) -> bool:
 	return (value & ~63) == SourceProgram.TAG or (value & ~63) == ShortStep.TAG or (value & ~63) == Assembly.TAG
 
 
+static func _step_closure(profiles: Profiles) -> bool:
+	"""Decision 1952 (P-1951-3): `ShortStep.uses()`, read once per Profiles bank and load revision. A loading store,
+	a missing bank or a poisoned (zero) revision reads it afresh every time."""
+	var token: int = 0
+	if profiles != null and profiles._live != null and not profiles._loading: token = profiles.load_revision()
+	if token == 0:
+		return ShortStep.uses(profiles)
+	if profiles._step_closure_revision != token or profiles._step_closure_bank != profiles._live.get_instance_id():
+		profiles._step_closure = ShortStep.uses(profiles)
+		profiles._step_closure_revision = token
+		profiles._step_closure_bank = profiles._live.get_instance_id()
+	elif Profiles.CacheChecks.enabled:
+		return _checked_step_closure(profiles)
+	return profiles._step_closure
+
+
+static func _checked_step_closure(profiles: Profiles) -> bool:
+	"""Decision 1952, checking on: the live closure; a remembered one that differs is reported, then replaced."""
+	var live: bool = ShortStep.uses(profiles)
+	if live != profiles._step_closure:
+		Profiles.CacheChecks.report("step closure", "Profiles bank edited in place without invalidate_runtime_caches()")
+		profiles._step_closure = live
+	return live
+
+
 static func _source_word_for(profiles: Profiles, phase: int, source_phase: int) -> int:
 	"""Publication uses the selected immutable source version, never a caller-selected clock tag."""
-	return ShortStep.word(phase, source_phase) if ShortStep.uses(profiles) else SourceProgram.word(phase, source_phase)
+	return ShortStep.word(phase, source_phase) if _step_closure(profiles) else SourceProgram.word(phase, source_phase)
 
 
 static func _source_profile_refusal(profiles: Profiles, profile: int, profile_revision: int, content: int) -> StringName:
@@ -2332,8 +2368,16 @@ static func _source_profile_refusal(profiles: Profiles, profile: int, profile_re
 	if Stair.owns(profiles, profile): return Stair.profile_refusal(profiles, profile, profile_revision, content)
 	if Claw2.owns(profiles, profile): return Claw2.profile_refusal(profiles, profile, profile_revision, content)
 	if Claw.owns(profiles, profile): return Claw.profile_refusal(profiles, profile, profile_revision, content)
-	return ShortStep.profile_refusal(profiles, profile, profile_revision, content) if ShortStep.uses(profiles) \
-		else SourceProgram.profile_refusal(profiles, profile, profile_revision, content)
+	return _program_profile_refusal(profiles, profile, profile_revision, content)
+
+
+static func _program_profile_refusal(profiles: Profiles, profile: int, profile_revision: int, content: int) -> StringName:
+	"""The step program's refusal when its closure holds, else the parent program's. Decision 1951: the step refusal
+	begins with that closure check, so a pass proves it; the closure is read again only after a refusal, to choose."""
+	var code: StringName = ShortStep.profile_refusal(profiles, profile, profile_revision, content)
+	if code == &"" or _step_closure(profiles):
+		return code
+	return SourceProgram.profile_refusal(profiles, profile, profile_revision, content)
 
 
 static func _source_clock_leaf(actual: RefCounted, row: int) -> StringName:
@@ -2350,22 +2394,51 @@ static func _source_clock_leaf(actual: RefCounted, row: int) -> StringName:
 		return &"" if policy <= Profiles.POLICY_AUTOMATIC else &"ROUTE_SOURCE_CLOCK"
 	if policy == Profiles.POLICY_AUTOMATIC:
 		return &"ROUTE_SOURCE_CLOCK"
-	var code: StringName = _source_profile_refusal(actual._profiles, profile, profile_revision, content)
+	var owner: int = _source_owner(actual._profiles, profile, content)
+	if owner >= 0:
+		return _owned_clock_leaf(actual, row, phase, profile, profile_revision, content, owner)
+	return _program_clock_leaf(actual, row, phase, profile, profile_revision, content)
+
+
+static func _source_owner(profiles: Profiles, profile: int, content: int) -> int:
+	"""Decision 1951: the program that owns a row, in `_source_profile_refusal`'s order: 0 handling, 1 stair, 2 claw
+	v2, 3 claw v1, -1 none (the step or the parent program)."""
+	if Handling.is_handling(profile, content): return 0
+	if Stair.owns(profiles, profile): return 1
+	if Claw2.owns(profiles, profile): return 2
+	return 3 if Claw.owns(profiles, profile) else -1
+
+
+static func _owned_clock_leaf(actual: RefCounted, row: int, phase: int, profile: int, profile_revision: int,
+		content: int, owner: int) -> StringName:
+	"""Handling, stair and claw rows: their owner's source proof, then its clock, as `_source_profile_refusal` and the
+	clock dispatch chose them before (the owner is read once)."""
+	var profiles: Profiles = actual._profiles
+	var code: StringName = Handling.profile_refusal(profiles, profile, profile_revision, content) if owner == 0 \
+		else Stair.profile_refusal(profiles, profile, profile_revision, content) if owner == 1 \
+		else Claw2.profile_refusal(profiles, profile, profile_revision, content) if owner == 2 \
+		else Claw.profile_refusal(profiles, profile, profile_revision, content)
 	if code != &"": return code
-	if Handling.is_handling(profile, content):
-		return Handling.clock_refusal(phase, actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row],
-			profile, content)
-	if Stair.owns(actual._profiles, profile): return _stair_clock_leaf(actual, row, phase, profile)
-	if Claw2.owns(actual._profiles, profile):
-		return Claw2.clock_refusal(phase, actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row], profile)
-	if Claw.owns(actual._profiles, profile):
-		return Claw.clock_refusal(phase, actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row], profile)
-	if not ShortStep.uses(actual._profiles):
-		return SourceProgram.clock_refusal(phase, actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row], profile)
-	code = ShortStep.clock_refusal(phase, actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row], profile)
+	var clock: int = actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row]
+	if owner == 0: return Handling.clock_refusal(phase, clock, profile, content)
+	if owner == 1: return _stair_clock_leaf(actual, row, phase, profile)
+	if owner == 2: return Claw2.clock_refusal(phase, clock, profile)
+	return Claw.clock_refusal(phase, clock, profile)
+
+
+static func _program_clock_leaf(actual: RefCounted, row: int, phase: int, profile: int, profile_revision: int,
+		content: int) -> StringName:
+	"""The step or the parent program. Decision 1951: as in `_program_profile_refusal`, a passing step refusal proves
+	the step closure, which is read again only after a refusal."""
+	var code: StringName = ShortStep.profile_refusal(actual._profiles, profile, profile_revision, content)
+	var short: bool = code == &"" or _step_closure(actual._profiles)
+	if not short: code = SourceProgram.profile_refusal(actual._profiles, profile, profile_revision, content)
+	if code != &"": return code
+	var clock: int = actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row]
+	if not short: return SourceProgram.clock_refusal(phase, clock, profile)
+	code = ShortStep.clock_refusal(phase, clock, profile)
 	if code == &"" and ShortStep.is_short(profile):
-		code = ShortStep.progress_refusal(phase, actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row],
-			actual._motion.resident_long[R_PROGRESS * RESIDENT_CAPACITY + row],
+		code = ShortStep.progress_refusal(phase, clock, actual._motion.resident_long[R_PROGRESS * RESIDENT_CAPACITY + row],
 			actual._motion.resident_long[R_REMAINDER * RESIDENT_CAPACITY + row],
 			actual._motion.resident[R_EDGE_SLOT * RESIDENT_CAPACITY + row] >= 0)
 	return code
@@ -2725,8 +2798,11 @@ static func _assembly_occupants_leaf(actual: RefCounted, mine: int) -> StringNam
 	"""Every living actual resident retains a complete current body; an unregistered occupant cannot disappear from proof."""
 	actual._remaining -= 16 * RESIDENT_CAPACITY
 	if actual._remaining < 0: return &"ROUTE_OPERATION_BUDGET"
-	for row: int in RESIDENT_CAPACITY:
-		if row == mine or actual._residents._present[row] != 1 or actual._residents._needs._present[row] != 1 \
+	var row: int = -1
+	while true:
+		row = actual._residents._present.find(1, row + 1) if row + 1 < RESIDENT_CAPACITY else -1 # Decision 1952:
+		if row < 0 or row >= RESIDENT_CAPACITY: break # exactly the rows the `present != 1` test would not skip.
+		if row == mine or actual._residents._needs._present[row] != 1 \
 				or actual._residents._needs._health[row] <= 0: continue
 		var worker: Vector2i = Vector2i(actual._residents._ref_slot[row], actual._residents._ref_generation[row])
 		if _resident_ref_leaf(actual, row) == NULL_REF: # ADR1219 (sixth proof): unregistered = reach cube.
@@ -2847,9 +2923,6 @@ func _write_selected_fields(row: int, family: int, room: Vector2i, section: Vect
 	_motion.resident_long[R_PROFILE_REVISION * RESIDENT_CAPACITY + row] = _selection.profile_revision
 	_motion.resident_long[R_CONTENT_REVISION * RESIDENT_CAPACITY + row] = _selection.content_revision
 	_motion.resident_long[R_QUANTITY * RESIDENT_CAPACITY + row] = _selection.cargo_quantity_milli
-	for axis: int in 6:
-		_occupancy_bounds[axis * RESIDENT_CAPACITY + row] = _candidate_bounds[axis]
-	_occupancy_profile[row] = _selection.profile_revision
 
 
 func request_route(worker: Vector2i, destination: Vector2i, tick: int) -> StringName:
@@ -2887,7 +2960,7 @@ func request_route(worker: Vector2i, destination: Vector2i, tick: int) -> String
 
 func _short_request_refusal(row: int) -> StringName:
 	"""An interrupted finite prefix cannot replace its original path, restart key0 or acquire a successor."""
-	if not ShortStep.uses(_profiles) or not ShortStep.is_short(_motion.resident[R_PROFILE * RESIDENT_CAPACITY + row]):
+	if not ShortStep.is_short(_motion.resident[R_PROFILE * RESIDENT_CAPACITY + row]) or not _step_closure(_profiles):
 		return &""
 	if _motion.resident[R_PHASE * RESIDENT_CAPACITY + row] != ShortStep.word(PHASE_IDLE, SourceProgram.READY) \
 			or _resident_pair(R_EDGE_SLOT, row) != NULL_REF or _motion.resident[R_HEAD * RESIDENT_CAPACITY + row] >= 0:
@@ -2897,7 +2970,7 @@ func _short_request_refusal(row: int) -> StringName:
 
 func _short_path_refusal() -> StringName:
 	"""Before replacing any route links, prove the single full immutable span and its actual unchanged rate."""
-	if not ShortStep.uses(_profiles) or not ShortStep.is_short(_checked_selection.profile_id): return &""
+	if not ShortStep.is_short(_checked_selection.profile_id) or not _step_closure(_profiles): return &""
 	if _proposed_count != 1: return &"ROUTE_SOURCE_STEP_SPAN"
 	_step.edge = Vector2i(_proposed_edges[0], _proposed_edges[1])
 	if not is_live_edge(_step.edge): return &"ROUTE_EDGE_STALE"
@@ -3073,7 +3146,7 @@ func cancel_route(worker: Vector2i) -> StringName:
 	var row: int = _ids.get_typed_row(worker)
 	if _resident_ref(row) != worker or _route_count(row) < 0:
 		return &"ROUTE_ACTOR_NOT_REGISTERED"
-	if ShortStep.uses(_profiles) and ShortStep.is_short(_motion.resident[R_PROFILE * RESIDENT_CAPACITY + row]) \
+	if ShortStep.is_short(_motion.resident[R_PROFILE * RESIDENT_CAPACITY + row]) and _step_closure(_profiles) \
 			and ((_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] >> 2) & 15) != SourceProgram.READY:
 		return &"ROUTE_SOURCE_STEP_ACTIVE"
 	_release_route(row)
@@ -3284,7 +3357,9 @@ func _stationary_next(phase: int, time: int, old: int, queued: bool) -> Vector3i
 		phase = SourceProgram.FADE_READY
 		old = time
 		time = 0
-	var profile: int = ShortStep.mapped(_selection.profile_id) if ShortStep.uses(_profiles) else _selection.profile_id
+	# Decision 1951: an unmapped row reads the same either way, so the source closure check is only needed to choose.
+	var profile: int = _selection.profile_id
+	if ShortStep.mapped(profile) != profile and _step_closure(_profiles): profile = ShortStep.mapped(profile)
 	return SourceProgram.advance(phase, time, old, profile)
 
 
@@ -3331,7 +3406,7 @@ func _prepare_motion(row: int) -> StringName:
 	_step.consumed = 1 if entering else 0
 	if entering:
 		_step.cursor = _link(L_NEXT, _step.cursor)
-	if ShortStep.uses(_profiles) and ShortStep.is_short(_selection.profile_id) \
+	if ShortStep.is_short(_selection.profile_id) and _step_closure(_profiles) \
 			and (_step.cursor >= 0 or _edge_i32(_live, E_PATH_COUNT, _step.edge.x) != 2):
 		return &"ROUTE_SOURCE_STEP_SPAN"
 	_copy_selection(_selection, _checked_selection)
@@ -3579,7 +3654,7 @@ func _pace_refusal() -> StringName:
 		return &"ROUTE_CALLBACK_REENTRY"
 	if code == &"" and (_number.value < 1 or _number.value > I32_MAX):
 		return &"ROUTE_PACE_UNAUTHORED"
-	if code == &"" and ShortStep.uses(_profiles) and ShortStep.is_short(_selection.profile_id) \
+	if code == &"" and ShortStep.is_short(_selection.profile_id) and _step_closure(_profiles) \
 			and _number.value != ShortStep.PACE:
 		return &"ROUTE_SOURCE_STEP_PACE"
 	return code
@@ -3893,15 +3968,17 @@ func occupancy_refusal(bounds: PackedInt32Array, except_worker: Vector2i = NULL_
 
 
 func _unregistered_occupants(bounds: PackedInt32Array, except_worker: Vector2i) -> StringName:
-	"""ADR1219: a living Resident with no route row is checked by its reach cube, never treated as empty air."""
+	"""ADR1219: a living Resident with no route row is checked by its reach cube, never treated as empty air.
+	Decision 1951: answered from the standing snapshot while every input it read is unchanged, else by the scan."""
 	_occupancy_remaining -= 16 * RESIDENT_CAPACITY
 	if _occupancy_remaining < 0:
 		return &"ROUTE_OCCUPANCY_QUERY_BUDGET"
+	if _standing_current() or _standing_rebuild():
+		return _standing_query(bounds, except_worker)
 	var low: Vector3i = Vector3i(bounds[0], bounds[1], bounds[2])
 	var high: Vector3i = Vector3i(bounds[3], bounds[4], bounds[5])
 	for row: int in RESIDENT_CAPACITY:
-		if _resident_ref(row) != NULL_REF or (except_worker.x == _residents._ref_slot[row]
-				and except_worker.y == _residents._ref_generation[row] and _residents._present[row] == 1):
+		if _standing_skipped(row, except_worker):
 			continue
 		var code: StringName = unregistered_occupant_refusal(self, row, low, high)
 		if code != &"":
@@ -3909,20 +3986,118 @@ func _unregistered_occupants(bounds: PackedInt32Array, except_worker: Vector2i) 
 	return &""
 
 
-static func unregistered_occupant_refusal(actual: RefCounted, row: int, low: Vector3i, high: Vector3i) -> StringName:
-	"""ADR1219: an absent or dead row occupies nothing; a living unregistered Resident occupies the half-open cube
-	of half-width UNREGISTERED_REACH_U around its own Transform root. A Resident never placed has no known position,
-	so it can never be proved clear. Direct column reads only: no Directory or Transforms observer is dispatched."""
+func _standing_skipped(row: int, except_worker: Vector2i) -> bool:
+	"""A registered row is checked by its route body; the excepted worker's own row is never its own occupant."""
+	return _resident_ref(row) != NULL_REF or (except_worker.x == _residents._ref_slot[row]
+		and except_worker.y == _residents._ref_generation[row] and _residents._present[row] == 1)
+
+
+func _standing_token(index: int) -> int:
+	"""Decision 1951: one input of the standing snapshot: each owner's instance, then its write revision."""
+	match index:
+		0: return _residents.get_instance_id()
+		1: return _residents._needs.get_instance_id()
+		2: return _ids.get_instance_id()
+		3: return _transforms.get_instance_id()
+		4: return _residents.identity_revision()
+		5: return _residents._needs.life_revision()
+		6: return _ids.mutation_revision()
+	return _transforms.mutation_revision()
+
+
+func _standing_current() -> bool:
+	"""The snapshot answers only while every owner it read is the same instance at the same revision."""
+	for index: int in STANDING_KEYS:
+		if _standing_key[index] != _standing_token(index):
+			return false
+	return true
+
+
+func _standing_rebuild() -> bool:
+	"""Read every present row's standing once; false (and no snapshot) while any revision is poisoned (zero)."""
+	_standing_key.fill(0)
+	for index: int in STANDING_KEYS:
+		if _standing_token(index) == 0:
+			return false
+	_standing_x.fill(I64_MAX)
+	_standing_count = 0
+	_standing_refused_count = 0
+	var row: int = _residents._present.find(1)
+	while row >= 0:
+		_standing_add(row)
+		row = _residents._present.find(1, row + 1)
+	_standing_x.sort()
+	for index: int in STANDING_KEYS:
+		_standing_key[index] = _standing_token(index)
+	return true
+
+
+func _standing_add(row: int) -> void:
+	"""File one present row: placed rows by root x, refusals in row order; nothing-rows are left out."""
+	var code: StringName = _unregistered_standing(self, row)
+	if code == STANDING_PLACED:
+		var x: int = _transforms._x[Transforms.POSITIONED_BASE[Directory.KIND_RESIDENT] + row]
+		_standing_x[_standing_count] = (x << 10) | row
+		_standing_count += 1
+	elif code != &"":
+		var index: int = STANDING_REFUSALS.find(code)
+		assert(index >= 0, "a standing refusal is one of STANDING_REFUSALS")
+		_standing_refused[_standing_refused_count] = row | (index << 10)
+		_standing_refused_count += 1
+
+
+func _standing_query(bounds: PackedInt32Array, except_worker: Vector2i) -> StringName:
+	"""The scan's answer: the first unskipped row in row order that refuses or whose reach cube meets `bounds`.
+	Every placed row answers the same code, so only rows before the first unskipped refusal need be found."""
+	var limit: int = RESIDENT_CAPACITY
+	var code: StringName = &""
+	for index: int in _standing_refused_count:
+		var row: int = _standing_refused[index] & 1023
+		if not _standing_skipped(row, except_worker):
+			limit = row
+			code = STANDING_REFUSALS[_standing_refused[index] >> 10]
+			break
+	var at: int = _standing_x.bsearch((int(bounds[0]) - UNREGISTERED_REACH_U + 1) << 10, true)
+	var end: int = int(bounds[3]) + UNREGISTERED_REACH_U
+	while at < _standing_count and (_standing_x[at] >> 10) < end:
+		var row: int = _standing_x[at] & 1023
+		if row < limit and _standing_reaches(row, bounds) and not _standing_skipped(row, except_worker):
+			return REFUSE_UNREGISTERED_NEAR
+		at += 1
+	return code
+
+
+func _standing_reaches(row: int, bounds: PackedInt32Array) -> bool:
+	"""The y and z halves of the reach-cube test (x is the snapshot's search range)."""
+	var at: int = Transforms.POSITIONED_BASE[Directory.KIND_RESIDENT] + row
+	var y: int = _transforms._y[at]
+	var z: int = _transforms._z[at]
+	return y - UNREGISTERED_REACH_U < bounds[4] and y + UNREGISTERED_REACH_U > bounds[1] \
+		and z - UNREGISTERED_REACH_U < bounds[5] and z + UNREGISTERED_REACH_U > bounds[2]
+
+
+static func _unregistered_standing(actual: RefCounted, row: int) -> StringName:
+	"""ADR1219: an absent or dead row occupies nothing; a Resident never placed has no known position, so it can
+	never be proved clear. Direct column reads only: no Directory or Transforms observer is dispatched."""
 	var residents: Residents = actual._residents
 	if residents._present[row] != 1: return &""
-	if residents._needs._present[row] != 1: return &"ROUTE_TURN_ACTOR_STALE"
+	if residents._needs._present[row] != 1: return STANDING_REFUSALS[0]
 	if residents._needs._health[row] <= 0: return &""
 	var worker: Vector2i = Vector2i(residents._ref_slot[row], residents._ref_generation[row])
 	if _turn_directory_row(actual, worker, Directory.KIND_RESIDENT) != row or actual._ids._persistent_id[worker.x] <= 0:
-		return &"ROUTE_TURN_ACTOR_STALE"
+		return STANDING_REFUSALS[0]
+	var at: int = Transforms.POSITIONED_BASE[Directory.KIND_RESIDENT] + row
+	if actual._transforms._bound_persistent_id[at] != actual._ids._persistent_id[worker.x]: return STANDING_REFUSALS[1]
+	return STANDING_PLACED
+
+
+static func unregistered_occupant_refusal(actual: RefCounted, row: int, low: Vector3i, high: Vector3i) -> StringName:
+	"""ADR1219: a living unregistered Resident occupies the half-open cube of half-width UNREGISTERED_REACH_U around
+	its own Transform root; its standing (`_unregistered_standing`) decides every other case."""
+	var code: StringName = _unregistered_standing(actual, row)
+	if code != STANDING_PLACED: return code
 	var transforms: Transforms = actual._transforms
 	var at: int = Transforms.POSITIONED_BASE[Directory.KIND_RESIDENT] + row
-	if transforms._bound_persistent_id[at] != actual._ids._persistent_id[worker.x]: return &"ROUTE_TURN_ACTOR_UNBOUND"
 	var root: Vector3i = Vector3i(transforms._x[at], transforms._y[at], transforms._z[at])
 	for axis: int in 3:
 		if int(root[axis]) - UNREGISTERED_REACH_U >= high[axis] or int(root[axis]) + UNREGISTERED_REACH_U <= low[axis]:
@@ -3937,6 +4112,26 @@ static func unregistered_body_refusal(actual: RefCounted, row: int, point: Vecto
 	var extent: PackedInt32Array = actual._catalog_extent
 	return unregistered_occupant_refusal(actual, row, point + Vector3i(extent[0], extent[1], extent[2]),
 		point + Vector3i(extent[3], extent[4], extent[5]))
+
+
+static func occupancy_extent_fresh(actual: RefCounted) -> bool:
+	"""Decision 1952: `unregistered_body_refusal` passes its stale-extent test (so may answer from standing)."""
+	return actual._extent_revision > 0 and actual._extent_revision == actual._profiles.content_revision()
+
+
+static func next_occupancy_row(actual: RefCounted, from: int, extent: bool = true) -> int:
+	"""Decision 1952: the first row at or after `from` an occupancy scan cannot pass over. Once the unregistered test
+	reaches standing (always, or with `extent` only while the catalog extent is current), an unregistered row whose
+	Resident is not present answers "" there, its standing's first test, and is skipped; otherwise no row is.
+	RESIDENT_CAPACITY when none is left."""
+	if extent and not occupancy_extent_fresh(actual): return from
+	var present: PackedByteArray = actual._residents._present
+	var bank: PackedInt32Array = actual._motion.resident
+	var row: int = from
+	while row < RESIDENT_CAPACITY and present[row] != 1 and bank[R_SLOT * RESIDENT_CAPACITY + row] == NULL_REF.x \
+			and bank[R_GENERATION * RESIDENT_CAPACITY + row] == NULL_REF.y:
+		row += 1
+	return row
 
 
 func _query_occupants(bounds: PackedInt32Array, except_worker: Vector2i) -> StringName:
@@ -4345,7 +4540,8 @@ static func frontier_leaf_refusal(actual: RefCounted, context: Locations.Frontie
 	if actual._stage.revision != actual._live.revision + 1 \
 			or actual._stage.edge_count != actual._live.edge_count + 2 * context.count \
 			or actual._stage.vertex_count != actual._live.vertex_count + 4 * context.count \
-			or actual._stage.free_count != actual._live.free_count - 2 * context.count or context.edges.size() != 12:
+			or actual._stage.free_count != actual._live.free_count - 2 * context.count \
+			or context.edges.size() != 4 * Locations.FRONTIER_MAX_STATIONS:
 		return &"ROUTE_FRONTIER_ROWS"
 	var code: StringName = _retained_paths_refusal(actual, context.revision, context.profiles)
 	if code == &"": code = _frontier_order_refusal(actual)

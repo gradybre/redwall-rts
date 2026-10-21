@@ -5,10 +5,12 @@ extends RefCounted
 ## (`screen_rect`: its anchor and its text's size through the camera) and `spread` lifts each one, in order, just clear
 ## of every one before it; the lift is the tag's own offset, so where each tag stands is never changed. The figures'
 ## names go first (they stay over their bodies); the fixed tags give way. A lift moves only when it changed by more
-## than MOVE_PX (a Label3D redraws its text on a change). Presentation only.
+## than MOVE_PX (a Label3D redraws its text on a change). A tag drawn at a constant screen size (`fixed_size`: the
+## Surface's, decision 2002) is measured at its drawn size: its world size grows with its depth before the camera, as
+## the engine draws it. Presentation only.
 
 ## Screen pixels kept between two tags, and the least change of lift worth redrawing a tag for.
-const GAP_PX: float = 4.0
+const GAP_PX: float = 8.0 # Decision 1991: 4 px left a crew's stacked tags cramped at 1280 x 720.
 const MOVE_PX: float = 0.5
 const LIFT_SLACK_PX: float = 0.01
 
@@ -61,14 +63,21 @@ static func first_hit(rect: Rect2, placed: Array[Rect2], gap: float) -> int:
 	return -1
 
 
+static func world_size(tag: Label3D, depth: float) -> Vector2:
+	"""`tag`'s text's size in metres as drawn `depth` metres before the camera: its font's size at its pixel size, grown
+	with the depth when it is drawn at a constant screen size (`fixed_size`)."""
+	var font: Font = tag.font if tag.font != null else ThemeDB.fallback_font
+	var size: Vector2 = font.get_string_size(tag.text, HORIZONTAL_ALIGNMENT_LEFT, -1, tag.font_size) * tag.pixel_size
+	return size * depth if tag.fixed_size else size
+
+
 static func screen_rect(camera: Camera3D, tag: Label3D) -> Rect2:
 	"""Where `tag`'s text is on screen with no lift (its anchor in the middle, as a billboard draws it); an empty rect
 	when it is behind the camera."""
 	var at: Vector3 = tag.global_position
 	if camera.is_position_behind(at):
 		return Rect2()
-	var font: Font = tag.font if tag.font != null else ThemeDB.fallback_font
-	var size: Vector2 = font.get_string_size(tag.text, HORIZONTAL_ALIGNMENT_LEFT, -1, tag.font_size) * tag.pixel_size
+	var size: Vector2 = world_size(tag, -(camera.global_transform.affine_inverse() * at).z)
 	var middle: Vector2 = camera.unproject_position(at)
 	var half_w: float = middle.distance_to(camera.unproject_position(at + camera.global_basis.x * size.x / 2.0))
 	var half_h: float = middle.distance_to(camera.unproject_position(at + camera.global_basis.y * size.y / 2.0))

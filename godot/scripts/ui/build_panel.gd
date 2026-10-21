@@ -18,6 +18,14 @@ extends Control
 ## TOOLS (decision 1912; Brendan's ruling on decision 1911 P-C7 (a)): with a room type chosen, a strip of four toggles
 ## along the info card's foot -- Rect · Oval · Paint · Erase (accessible names "Rectangle tool" ...) -- sets the
 ## batch's tool; the info card's last line names the tool and its gesture in words (never the pressed look alone).
+## FURNISH AND DECOR (decision 1921): an item card chosen on levels 1-4 arms placing it (`piece_armed`); the host
+## places it on a dug floor (build_furniture.gd judges it) and hands the info card the dug rooms' lines in words
+## (`set_room_lines`: "✓ Kitchen ready", "! Kitchen: Needs 1 hearth"), shown under the card on those tabs.
+## STYLE (decision 2002; BUILD-MOUND-001): two toggles after the tabs on the Rooms tab, "Built" and "Mound". The style
+## follows the level shown -- Mound on the Surface, Built below -- and the other can be pressed to read why its cards are
+## locked ("Not yet: built rooms on the surface ...", "X Not possible: Mound rooms are painted on the Surface").
+## A FRONT DOOR'S COLOUR (P-2001-8 (a)): with the Front door card chosen the tool strip offers Oak · Green · Red · Blue
+## (oak first and by default), and the info card names the colour in words.
 ## TABS. Furnish and Decor stay disabled, saying "Choose a room type first", until a room type or Passage is chosen;
 ## Ctrl+Tab / Ctrl+Shift+Tab cycle the enabled ones (`cycle_tab`). CARDS: arrow keys move along the row and Enter
 ## chooses (Godot's own focus and press); a locked card is chosen for INSPECTION only -- the info card says why it is
@@ -27,16 +35,30 @@ extends Control
 ## discard; Confirm all is disabled while a stroke is in progress or any operation is invalid, naming the first reason
 ## and the count. CLOSING with pending changes asks "Keep N pending changes?" (Keep / Discard). The questions sit in the
 ## footer's place. ESCAPE (`escape`): the stroke in progress, then an open question, then the expanded ledger, then
-## the panel (the connector card, UI-BUILD-012, comes with slice D).
+## the panel. THE CONNECTOR CARD (UI-BUILD-012; decision 2021, P-D1-3 (a)): with a way's card chosen, the host pins
+## its ghost at a cell (`pin_way`); the card offers Down / Up (P-D1-4 (a)), says where it leads or why not, and "Add to
+## plan" (Enter: `add_pinned`) puts it in the batch -- the card chosen is put down unless Shift keeps it; Cancel or
+## Escape (after the stroke, before the rest) closes it. R / Shift+R turn the way (`rotate_way`).
+## THE CREW AND THE ROOM CARD (decision 1991; Brendan's rulings P-1990-4 (a), P-1990-5 (a)). The host names the crew
+## Confirm all will send ("Crew: Bramble, Teasel", or "Crew: the first free mole": `set_crew_line`), shown on the
+## footer's ledger under the plan's totals. A click on a confirmed room (no card armed) opens UI-BUILD-015, the room's
+## card (`show_room`, in the connector card's place), with UI-BUILD-016 "Stop digging" (`room_stop_requested`); Close
+## or Escape (after the stroke) puts it away.
 
 const Batch := preload("res://scripts/ui/build_batch.gd")
 const Stroke := preload("res://scripts/ui/build_stroke.gd")
 const Items := preload("res://scripts/ui/build_items.gd")
+const Furniture := preload("res://scripts/ui/build_furniture.gd")
+const Mound := preload("res://scripts/ui/build_mound.gd")
+const MoundEdges := preload("res://scripts/ui/build_mound_edges.gd")
 const BuildCatalog := preload("res://scripts/ui/build_catalog.gd")
 const BuildLayout := preload("res://scripts/ui/build_layout.gd")
 const Ledger := preload("res://scripts/ui/build_ledger.gd")
 const Validity := preload("res://scripts/ui/build_validity.gd")
 const LevelBar := preload("res://scripts/ui/level_bar.gd")
+const ConnectorCard := preload("res://scripts/ui/build_connector_card.gd")
+const RoomCard := preload("res://scripts/ui/build_room_card.gd")
+const Families := preload("res://scripts/ui/build_connector_families.gd")
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const UiTheme := preload("res://scripts/ui/ui_theme.gd")
 const Measures := preload("res://scripts/ui/goods_measures.gd")
@@ -60,8 +82,18 @@ const RETRY: String = "! Refused last time, Confirm all tries again: %s: %s"
 const NONE_PENDING: String = "No pending changes"
 const PICTURE: String = "Picture (placeholder): %s"
 const TOOL_LINE: String = "Tool: %s. %s"
-const ITEM_LINE: String = "%s · %s (a way down to level %d; free for now): %s"
+const ITEM_LINE: String = "%s · %s (%s; placeholder, free for now): %s"
+const REMOVAL_LINE: String = "%s · Remove %s: %s"
+const PIECE_LINE: String = "%s · %s%s (free for now): %s"
+const FURNITURE_BILL: String = "Furniture needs %s; work %s (free for now: nothing is taken from the stores)"
 const TOOL_ACCESSIBLE: String = "%s tool"
+## Decision 2002: the style toggles, the door colour strip, and the ledger's Mound lines.
+const STYLE_WIDTH: float = 76.0
+const STYLE_ACCESSIBLE: String = "%s style"
+const COLOUR_ACCESSIBLE: String = "%s door"
+const COLOUR_LINE: String = "Colour: %s. %s"
+const EDGE_LINE: String = "%s · %s%s (free for now): %s"
+const HEAP_LINE: String = "Mound heap (free for now): %d room cells, 5 quanta of earth heaped over each and 4 dug back out; the berm's earth is measured with the ground heights (MOUND-TERRAIN)"
 
 ## A card was clicked or pressed with Enter (a locked one too: the host may only show it).
 signal card_chosen(card: BuildCatalog.Card)
@@ -69,6 +101,10 @@ signal card_chosen(card: BuildCatalog.Card)
 signal confirm_requested
 ## The panel closed: `kept` false when its pending changes were discarded on the way.
 signal closed(kept: bool)
+## The connector card's way went into the batch (or was dropped, kind "X"): the batch's kind (decision 2021).
+signal way_added(kind: int)
+## Decision 1991: UI-BUILD-016 "Stop digging" pressed on the room card.
+signal room_stop_requested
 
 var _batch: Batch = null
 var _catalog: BuildCatalog = null
@@ -116,6 +152,27 @@ var _widths: PackedFloat32Array = PackedFloat32Array()
 var _tally: PackedInt64Array = PackedInt64Array()
 var _types: PackedInt32Array = PackedInt32Array()
 var _type_cells: PackedInt32Array = PackedInt32Array()
+var _goods: PackedStringArray = PackedStringArray()
+var _goods_milli: PackedInt64Array = PackedInt64Array()
+## The dug rooms' lines the host hands in (decision 1921), shown on the Furnish and Decor tabs.
+var _room_lines: String = ""
+## Decision 2002: the style toggles (build_mound.gd STYLE_* order), the style chosen, and the front door's colour.
+var _style_buttons: Array[Button] = []
+## The panel starts on the Surface, so in the Mound style.
+var _style: int = Mound.STYLE_MOUND
+var _door_colour: int = Mound.COLOUR_OAK
+## Decision 2021: the connector card, the armed way's quarter turns, and the way pinned on the card (its cell, whether
+## it goes up).
+var _connector: ConnectorCard = null
+## Decision 1991: the room card (UI-BUILD-015) and the crew's words for the ledger.
+var _room_card: RoomCard = null
+var _crew_line: String = ""
+## Decision 1991: the host's note on the plan ("proof of concept, free" while the demo digs with its mole).
+var _plan_note: String = ""
+var _way_turn: int = 0
+var _pinned: bool = false
+var _pin_cell: Vector2i = Vector2i.ZERO
+var _pin_up: bool = false
 
 
 func _init() -> void:
@@ -145,12 +202,27 @@ func build() -> void:
 	_frame.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(_frame)
 	_build_tabs()
+	_build_styles()
 	_build_info()
 	_build_tools()
 	_build_cards()
 	_build_footer()
 	_build_question()
 	_build_ledger_open()
+	_build_connector()
+	_room_card = RoomCard.new()
+	_room_card.stop_pressed.connect(room_stop_requested.emit)
+	_room_card.close_pressed.connect(hide_room)
+	add_child(_room_card)
+
+
+func _build_connector() -> void:
+	"""UI-BUILD-012, hidden until a way is pinned."""
+	_connector = ConnectorCard.new()
+	_connector.direction_chosen.connect(set_way_up)
+	_connector.add_pressed.connect(_on_add_pressed)
+	_connector.cancel_pressed.connect(cancel_pin)
+	add_child(_connector)
 
 
 # --- construction --------------------------------------------------------------------------------------------------
@@ -166,6 +238,17 @@ func _build_tabs() -> void:
 	_status = _label("Status", TEXT_PX)
 	_status.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_status.clip_text = true
+
+
+func _build_styles() -> void:
+	"""The style toggles (decision 2002): "Built" and "Mound", in the tabs row after the tabs."""
+	for kind: int in Mound.STYLE_COUNT:
+		var button: Button = _button("BuildStyle-%s" % Mound.STYLE_NAMES[kind], Mound.STYLE_NAMES[kind],
+			choose_style.bind(kind))
+		button.toggle_mode = true
+		button.theme_type_variation = &"WoodlandToggle"
+		button.accessibility_name = STYLE_ACCESSIBLE % Mound.STYLE_NAMES[kind]
+		_style_buttons.append(button)
 
 
 func _build_info() -> void:
@@ -335,6 +418,8 @@ func place(geometry: UiLayout.Geometry) -> void:
 	_place_content()
 	_place_footer()
 	_place_ledger_open()
+	_connector.place_in(BuildLayout.connector_rect(geometry))
+	_room_card.place_in(BuildLayout.room_card_rect(geometry))
 
 
 func _place_tabs() -> void:
@@ -344,7 +429,12 @@ func _place_tabs() -> void:
 	for tab: int in _tabs.size():
 		_tabs[tab].position = row.position + Vector2(tab * (width + BuildLayout.GAP), 0.0)
 		_tabs[tab].size = Vector2(width, row.size.y)
-	var x: float = row.position.x + _tabs.size() * (width + BuildLayout.GAP) + BuildLayout.GAP
+	var x: float = row.position.x + _tabs.size() * (width + BuildLayout.GAP)
+	for toggle: Button in _style_buttons:
+		toggle.position = Vector2(x, row.position.y)
+		toggle.size = Vector2(STYLE_WIDTH, row.size.y)
+		x += STYLE_WIDTH
+	x += BuildLayout.GAP * 2.0
 	var words_width: float = maxf(row.end.x - x, 0.0)
 	_where.position = Vector2(x, row.position.y)
 	_where.size = Vector2(words_width, row.size.y / 2.0)
@@ -381,13 +471,16 @@ func _place_tools() -> void:
 
 
 func _strip_shown() -> bool:
-	"""Whether the tool strip shows: a room type chosen on the Rooms tab."""
-	return _chosen != null and _chosen.kind == BuildCatalog.CARD_ROOM and _tab == BuildCatalog.TAB_ROOMS
+	"""Whether the tool strip shows: a room type chosen on the Rooms tab, or the Front door's colours."""
+	return (_chosen != null and _chosen.kind == BuildCatalog.CARD_ROOM and _tab == BuildCatalog.TAB_ROOMS) \
+		or _colour_strip()
 
 
 func choose_tool(tool: int) -> bool:
-	"""Set the batch's tool (build_stroke.gd TOOL_*); the strip and the info card follow. False for an unknown
-	tool."""
+	"""Set the batch's tool (build_stroke.gd TOOL_*), or with the Front door chosen its colour; the strip and the info
+	card follow. False for an unknown tool."""
+	if _colour_strip():
+		return choose_colour(tool)
 	if _batch == null or not _batch.set_tool(tool):
 		_sync_tools()
 		return false
@@ -399,9 +492,13 @@ func choose_tool(tool: int) -> bool:
 func _sync_tools() -> void:
 	"""The strip shown with a room type chosen, the batch's tool pressed and named in its accessible state."""
 	var shown: bool = _strip_shown()
-	var current: int = _batch.tool() if _batch != null else Stroke.TOOL_RECTANGLE
+	var colours: bool = _colour_strip()
+	var current: int = _door_colour if colours else (_batch.tool() if _batch != null else Stroke.TOOL_RECTANGLE)
 	for tool: int in _tools.size():
 		_tools[tool].visible = shown
+		_tools[tool].text = Mound.COLOUR_NAMES[tool] if colours else Stroke.TOOL_LABELS[tool]
+		_tools[tool].accessibility_name = COLOUR_ACCESSIBLE % Mound.COLOUR_NAMES[tool] if colours \
+			else TOOL_ACCESSIBLE % Stroke.TOOL_NAMES[tool]
 		_tools[tool].set_pressed_no_signal(tool == current)
 		_tools[tool].accessibility_description = "selected" if tool == current else ""
 	if _info != null and _info_scroll.size.y > 0.0:
@@ -479,6 +576,8 @@ func _finish_close(kept: bool) -> void:
 	if _batch != null:
 		_batch.cancel_stroke()
 	visible = false
+	cancel_pin()
+	hide_room()
 	_chosen = null
 	_furnish_type = -1
 	_tab = BuildCatalog.TAB_ROOMS
@@ -492,8 +591,12 @@ func set_level(level: int, reachable: bool = true) -> void:
 	every level's changes)."""
 	if level == _level and reachable == _reachable and not _cards.is_empty():
 		return
+	if level != _level and level < LevelBar.LEVEL_OVERVIEW:
+		_style = Mound.STYLE_MOUND if level == Mound.SURFACE else Mound.STYLE_BUILT
+	if level != _level: hide_room() # Decision 1991: the room card is the level's.
 	_level = level
 	_reachable = reachable
+	cancel_pin()
 	_where.text = WHERE % LevelBar.level_name(level)
 	if _chosen != null and not _card_still_usable():
 		_chosen = null
@@ -506,8 +609,11 @@ func building_level() -> int:
 
 
 func _card_still_usable() -> bool:
-	"""Whether the chosen card is usable on the level now shown (a room type is locked on the surface)."""
-	_catalog.cards_into(BuildCatalog.TAB_ROOMS, _level, _furnish_type, _cards, _reachable)
+	"""Whether the chosen card is usable on the level now shown (a room type is locked on the surface, and so is a
+	piece of furniture: its own tab's cards are read)."""
+	var tab: int = BuildCatalog.TAB_ROOMS if _chosen.kind != BuildCatalog.CARD_ITEM \
+		and _chosen.kind != BuildCatalog.CARD_EDGE else _tab
+	_catalog.cards_into(tab, _level, _furnish_type, _cards, _reachable, _style)
 	for card: BuildCatalog.Card in _cards:
 		if card.id == _chosen.id:
 			return card.usable()
@@ -552,8 +658,12 @@ func choose_card(index: int) -> void:
 	if index < 0 or index >= _cards.size():
 		return
 	var card: BuildCatalog.Card = _cards[index]
-	if card.usable() and (card.kind == BuildCatalog.CARD_ROOM or card.kind == BuildCatalog.CARD_WAY_DOWN):
+	if card.usable() and card.kind != BuildCatalog.CARD_TOOL:
+		cancel_pin()
+		hide_room() # Decision 1991 (review M-1): arming a card puts the room card away.
 		_chosen = card
+		if card.kind == BuildCatalog.CARD_WAY_DOWN and not Families.turn_refusal(card.item_type, _way_turn).is_empty():
+			_way_turn = 0
 		if card.kind == BuildCatalog.CARD_ROOM:
 			_furnish_type = card.room_type
 	_shown = card
@@ -570,10 +680,48 @@ func chosen_card() -> BuildCatalog.Card:
 
 
 func paint_type() -> int:
-	"""The room type a stroke paints now, or -1 (none chosen, a way down chosen, or not paintable on this level)."""
+	"""The room type a stroke paints now, or -1 (none chosen, a way down chosen, or not paintable on this level in the
+	style chosen: Built on levels 1-4, Mound on the Surface)."""
 	if _chosen == null or _chosen.kind != BuildCatalog.CARD_ROOM:
 		return -1
-	return _chosen.room_type if _level >= 1 and _level <= LevelBar.LEVEL_DEEPEST else -1
+	var below: bool = _level >= 1 and _level <= LevelBar.LEVEL_DEEPEST and _style == Mound.STYLE_BUILT
+	var surface: bool = _level == Mound.SURFACE and _style == Mound.STYLE_MOUND
+	return _chosen.room_type if below or surface else -1
+
+
+func style() -> int:
+	"""The style rooms are painted in (build_mound.gd STYLE_*)."""
+	return _style
+
+
+func choose_style(chosen: int) -> bool:
+	"""Choose Built or Mound (decision 2002): the room cards follow (a card locked in the other style puts the chosen
+	one down). False for an unknown style."""
+	if not Mound.valid_style(chosen):
+		_sync_styles()
+		return false
+	_style = chosen
+	if _chosen != null and _chosen.kind == BuildCatalog.CARD_ROOM and not _card_still_usable():
+		_chosen = null
+	_fill_cards()
+	return true
+
+
+func _sync_styles() -> void:
+	"""The style toggles: on the Rooms tab only, the chosen one pressed, each naming why it is locked here."""
+	for style_at: int in _style_buttons.size():
+		var button: Button = _style_buttons[style_at]
+		button.visible = _tab == BuildCatalog.TAB_ROOMS
+		button.set_pressed_no_signal(style_at == _style)
+		var lock: String = BuildCatalog.room_lock(_level, true, style_at)
+		button.tooltip_text = Validity.line(BuildCatalog.lock_kind_of(_level, style_at), lock) if not lock.is_empty() \
+			else STYLE_ACCESSIBLE % Mound.STYLE_NAMES[style_at]
+		button.accessibility_description = "selected" if style_at == _style else ""
+
+
+func style_buttons() -> Array[Button]:
+	"""The style toggles (checks)."""
+	return _style_buttons
 
 
 func way_down_armed() -> bool:
@@ -581,8 +729,239 @@ func way_down_armed() -> bool:
 	return _chosen != null and _chosen.kind == BuildCatalog.CARD_WAY_DOWN and _level < LevelBar.LEVEL_OVERVIEW
 
 
+func armed_family() -> int:
+	"""The connector family a click places (build_connector_families.gd; -1: no way armed)."""
+	return _chosen.item_type if way_down_armed() else -1
+
+
+func way_turn() -> int:
+	"""The armed way's quarter turns, 0-3."""
+	return _way_turn
+
+
+func rotate_way(by: int) -> int:
+	"""R (+1) / Shift+R (-1): turn the armed (or pinned) way; its turns now."""
+	_way_turn = posmod(_way_turn + by, 4)
+	if _pinned:
+		_sync_connector()
+	return _way_turn
+
+
+func default_up(level: int) -> bool:
+	"""The direction a way placed on `level` starts with: down, except from level 4 (only up there)."""
+	return level >= LevelBar.LEVEL_DEEPEST
+
+
+static func direction_refusal(level: int, up: bool) -> String:
+	"""Why a way placed on `level` cannot go `up` (or down): "No level above the surface" / "No level below level 4";
+	"" when it can (BUILD-REQ-016, -018)."""
+	if up and level <= LevelBar.LEVEL_SURFACE:
+		return Validity.no_level_above()
+	if not up and level >= LevelBar.LEVEL_DEEPEST:
+		return Validity.no_level_below()
+	return ""
+
+
+func standing_level() -> int:
+	"""The level the pinned way stands on: the level shown going down, the one above going up."""
+	return _level - 1 if _pin_up else _level
+
+
+func pin_way(cell: Vector2i) -> bool:
+	"""Pin the armed way's ghost at `cell` on the level shown and open its card (direction: `default_up`). False with
+	no way armed."""
+	if not way_down_armed():
+		return false
+	hide_room() # Decision 1991 (review M-1): the room card and the connector card are never open together.
+	_pinned = true
+	_pin_cell = cell
+	_pin_up = default_up(_level)
+	_sync_connector()
+	return true
+
+
+func pinned() -> bool:
+	"""Whether a way is pinned on the card."""
+	return _pinned
+
+
+func pinned_cell() -> Vector2i:
+	"""Where the pinned way's north-west cell is."""
+	return _pin_cell
+
+
+func pinned_up() -> bool:
+	"""Whether the pinned way goes up."""
+	return _pin_up
+
+
+func set_way_up(up: bool) -> bool:
+	"""Down or Up on the card; an impossible direction is refused (false) and the card stays as it was."""
+	if not _pinned or not direction_refusal(_level, up).is_empty():
+		_sync_connector()
+		return false
+	_pin_up = up
+	_sync_connector()
+	return true
+
+
+func add_pinned(keep: bool = false) -> int:
+	"""Add to plan: the pinned way into the batch (build_batch.gd `place_item`); the card closes and, unless `keep`
+	(Shift), the way's card is put down. Returns the batch's kind (-1: nothing pinned or nothing tried)."""
+	if not _pinned:
+		return -1
+	var kind: int = _batch.place_item(standing_level(), _pin_cell, armed_family(), _way_turn)
+	if kind >= 0 and kind != Validity.KIND_NOT_POSSIBLE:
+		cancel_pin()
+		if not keep:
+			clear_choice()
+	way_added.emit(kind)
+	refresh(true)
+	return kind
+
+
+func _on_add_pressed() -> void:
+	"""The card's Add to plan, clicked (Shift held keeps the way's card)."""
+	add_pinned(Input.is_key_pressed(KEY_SHIFT))
+
+
+func cancel_pin() -> void:
+	"""Close the card; nothing is added."""
+	if _connector == null:
+		return
+	_pinned = false
+	_connector.visible = false
+	if _scroll != null:
+		_scroll.visible = true
+
+
+func connector() -> ConnectorCard:
+	"""The connector card (checks)."""
+	return _connector
+
+
+func room_card() -> RoomCard:
+	"""Decision 1991: the room card, UI-BUILD-015 (checks)."""
+	return _room_card
+
+
+func show_room(room_name: String, words: String, state: int) -> void:
+	"""Decision 1991: open the room card for a confirmed room (`state`: RoomCard.STATE_*; the connector card, if
+	pinned, is put away)."""
+	cancel_pin()
+	_room_card.show_room(room_name, words, state)
+
+
+func hide_room() -> void:
+	"""Put the room card away."""
+	if _room_card != null:
+		_room_card.visible = false
+
+
+func room_shown() -> bool:
+	"""Whether the room card is open."""
+	return _room_card != null and _room_card.visible
+
+
+func set_crew_line(words: String) -> void:
+	"""Decision 1991, P-1990-4 (a): who Confirm all sends to dig, in words, on the footer's ledger."""
+	if words == _crew_line:
+		return
+	_crew_line = words
+	if _ledger != null:
+		_sync_ledger()
+
+
+func set_plan_note(note: String) -> void:
+	"""Decision 1991: a short note shown with the crew on the ledger when it fits, and always in the expanded ledger and
+	the accessible name (the demo: "Proof of concept, free", P-1990-1 (b))."""
+	if note == _plan_note:
+		return
+	_plan_note = note
+	if _ledger != null:
+		_sync_ledger()
+
+
+func crew_line() -> String:
+	"""The crew's words now (checks)."""
+	return _crew_line
+
+
+func connector_words() -> String:
+	"""What the card says now ("" while it is closed)."""
+	return _connector.words() if _connector.visible else ""
+
+
+func _sync_connector() -> void:
+	"""The card from the pinned way's judgement now (cold: on a pin, a turn, a direction or a batch change)."""
+	var family: int = armed_family()
+	var judged: Array = _batch.judge_item(standing_level(), _pin_cell, -1, family, _way_turn)
+	var kind: int = int(judged[0])
+	var target: int = _level - 1 if _pin_up else _level + 1
+	var result: String = "%s %s" % [Validity.glyph(kind), Validity.connects(LevelBar.level_name(target))] \
+		if kind == Validity.KIND_CAN_BUILD else Validity.line(kind, String(judged[1]))
+	var notes: PackedStringArray = PackedStringArray([Families.PLACEHOLDER])
+	if family == Families.LADDER_HATCH:
+		notes.append(Families.CLIMBERS_ONLY)
+	notes.append(Families.NOT_QUALIFIED)
+	var reasons: PackedStringArray = PackedStringArray([direction_refusal(_level, false), direction_refusal(_level, true)])
+	_connector.show_way(Families.name_of(family), reasons, _pin_up, kind, result, "\n".join(notes))
+	# NARROW: the card stands in the content row in the card grid's place (UI-BUILD's geometry).
+	_scroll.visible = _profile != UiLayout.PROFILE_NARROW
+
+
+func piece_armed() -> bool:
+	"""Whether a click places a piece of furniture now (an item card chosen on an underground level, decision 1921, or
+	on the Surface for a Mound room's floor, decision 2002)."""
+	return _chosen != null and _chosen.kind == BuildCatalog.CARD_ITEM and _level >= 0 and _level <= LevelBar.LEVEL_DEEPEST
+
+
+func edge_armed() -> bool:
+	"""Whether a click places a Mound's front door or window now (its card chosen on a level that has one)."""
+	return _chosen != null and _chosen.kind == BuildCatalog.CARD_EDGE and _level <= LevelBar.LEVEL_DEEPEST
+
+
+func armed_edge_kind() -> int:
+	"""The door or window a click places (build_mound.gd KIND_*; -1: none armed)."""
+	return _chosen.edge_kind if edge_armed() else -1
+
+
+func door_colour() -> int:
+	"""The front door's colour chosen (build_mound.gd COLOUR_*; oak by default)."""
+	return _door_colour
+
+
+func choose_colour(colour: int) -> bool:
+	"""Choose the front door's colour; false for an unknown one."""
+	if colour < 0 or colour >= Mound.COLOUR_NAMES.size():
+		return false
+	_door_colour = colour
+	_sync_tools()
+	_sync_info()
+	return true
+
+
+func _colour_strip() -> bool:
+	"""Whether the tool strip offers the door's colours (the Front door card chosen on the Furnish tab)."""
+	return _chosen != null and _chosen.kind == BuildCatalog.CARD_EDGE and _chosen.edge_kind == Mound.KIND_DOOR
+
+
+func armed_item() -> int:
+	"""The item a click places (-1: none armed)."""
+	return _chosen.item_type if piece_armed() else -1
+
+
+func set_room_lines(text: String) -> void:
+	"""The dug rooms' lines in words, from the host (shown under the info card on Furnish and Decor)."""
+	if text == _room_lines:
+		return
+	_room_lines = text
+	_sync_info()
+
+
 func clear_choice() -> void:
 	"""Disarm the chosen card (the host left painting)."""
+	cancel_pin()
 	_chosen = null
 	_sync_tools()
 	_sync_cards()
@@ -603,9 +982,10 @@ func _fill_cards() -> void:
 	"""The tab's cards for the level, into the pooled buttons (cold: on a tab, level or choice change)."""
 	if _catalog == null:
 		return
-	_catalog.cards_into(_tab, _level, _furnish_type, _cards, _reachable)
+	_catalog.cards_into(_tab, _level, _furnish_type, _cards, _reachable, _style)
 	_shown = null
 	_sync_tabs()
+	_sync_styles()
 	_sync_tools()
 	_sync_cards()
 	_sync_info()
@@ -632,7 +1012,7 @@ func _sync_cards() -> void:
 		if not button.visible:
 			continue
 		var card: BuildCatalog.Card = _cards[k]
-		var lock: String = "" if card.usable() else "\n%s %s" % [Validity.glyph(Validity.KIND_BLOCKED), lock_head(card)]
+		var lock: String = "" if card.usable() else "\n%s %s" % [Validity.glyph(card.lock_kind), lock_head(card)]
 		var mark: String = "✓ " if _chosen != null and card.id == _chosen.id else ""
 		button.text = "%s%s\n%s%s" % [mark, card.name, card.footprint, lock]
 		button.accessibility_name = card.accessible_name()
@@ -657,24 +1037,30 @@ func _show_card(index: int) -> void:
 
 
 func _sync_info() -> void:
-	"""UI-BUILD-004: picture description, purpose, cost, rules and gesture; "Choose a room type to begin" with none."""
+	"""UI-BUILD-004: picture description, purpose, cost, rules and gesture; "Choose a room type to begin" with none
+	("Choose a piece to place" on Furnish and Decor); there, the dug rooms' lines under it (decision 1921)."""
 	var card: BuildCatalog.Card = _shown if _shown != null else _chosen
+	var rooms: String = "\n%s" % _room_lines if _tab != BuildCatalog.TAB_ROOMS and not _room_lines.is_empty() else ""
 	if card == null:
-		_info_text.text = BuildCatalog.NOTHING_CHOSEN
-		_info.accessibility_name = BuildCatalog.NOTHING_CHOSEN
+		var none: String = BuildCatalog.NOTHING_CHOSEN if _tab == BuildCatalog.TAB_ROOMS else BuildCatalog.CHOOSE_PIECE
+		_info_text.text = none + rooms
+		_info.accessibility_name = none
 		return
-	var lock: String = "" if card.usable() else "\n%s" % Validity.line(Validity.KIND_BLOCKED, card.locked)
+	var lock: String = "" if card.usable() else "\n%s" % Validity.line(card.lock_kind, card.locked)
 	var gesture: String = _gesture_of(card)
-	_info_text.text = "%s\n%s\n%s\n%s%s\n%s" % [card.name, card.purpose, card.cost, card.rules, lock, gesture]
+	_info_text.text = "%s\n%s\n%s\n%s%s\n%s%s" % [card.name, card.purpose, card.cost, card.rules, lock, gesture, rooms]
 	_info.accessibility_name = "%s; %s; %s; %s; %s; %s" % [PICTURE % card.picture, card.name, card.purpose, card.cost,
 		card.rules, gesture]
 	_info.tooltip_text = "%s\n%s" % [PICTURE % card.picture, gesture]
 
 
 func _gesture_of(card: BuildCatalog.Card) -> String:
-	"""The chosen room type's tool and its gesture ("Tool: Oval. Drag the box an oval fills; ..."), else the card's."""
+	"""The chosen room type's tool and its gesture ("Tool: Oval. Drag the box an oval fills; ..."), the chosen front
+	door's colour ("Colour: Oak. Click ..."), else the card's."""
 	if _chosen == null or card.id != _chosen.id or _batch == null:
 		return card.gesture
+	if _colour_strip():
+		return COLOUR_LINE % [Mound.colour_name(_door_colour), card.gesture]
 	return TOOL_LINE % [Stroke.TOOL_NAMES[_batch.tool()], Stroke.TOOL_GESTURES[_batch.tool()]]
 
 
@@ -703,6 +1089,8 @@ func refresh(force: bool) -> void:
 	if batch_changed:
 		_sync_ledger()
 	_frame.accessibility_name = ACCESSIBLE % [LevelBar.level_name(_level), _batch.pending_count()]
+	if _pinned and batch_changed:
+		_sync_connector()
 	_question.visible = _question_kind != QUESTION_NONE
 	for control: Button in _footer:
 		control.visible = not _question.visible
@@ -762,27 +1150,41 @@ func confirm_blocked() -> String:
 		return NOT_READY % [Validity.glyph(kind), _batch.invalid_count(), _batch.pending_count(),
 			BuildCatalog.type_name(_batch.operation_type(first)), _batch.operation_reason(first)]
 	var item: int = _batch.first_invalid_item()
-	if item < 0:
+	if item >= 0:
+		return NOT_READY % [Validity.glyph(_batch.item_kind(item)), _batch.invalid_count(), _batch.pending_count(),
+			_batch.items().name_of_row(item), _batch.item_reason(item)]
+	var piece: int = _batch.first_invalid_piece()
+	if piece >= 0:
+		return NOT_READY % [Validity.glyph(_batch.piece_kind(piece)), _batch.invalid_count(), _batch.pending_count(),
+			Furniture.name_of(_batch.furniture().item_of(piece)), _batch.piece_reason(piece)]
+	var edge: int = _batch.first_invalid_edge()
+	if edge < 0:
 		return ""
-	return NOT_READY % [Validity.glyph(_batch.item_kind(item)), _batch.invalid_count(), _batch.pending_count(),
-		Items.name_of(_batch.items().level_of(item)), _batch.item_reason(item)]
+	return NOT_READY % [Validity.glyph(_batch.edge_kind(edge)), _batch.invalid_count(), _batch.pending_count(),
+		Mound.kind_name(_batch.mound_edges().kind_of(edge)), _batch.edge_reason(edge)]
 
 
 func _sync_ledger() -> void:
 	"""UI-BUILD-005: the short form on the button, the full one when expanded and in the accessible name."""
 	var cells: int = _sum_tally()
+	var any: bool = cells > 0 or _batch.furniture().live_count() > 0 or _batch.mound_edges().live_count() > 0 \
+		or _batch.items().live_count() > 0
 	var wood: int = int(_stock.call(&"wood")) if _stock.is_valid() else 0
 	var stone: int = int(_stock.call(&"stone")) if _stock.is_valid() else 0
-	var summary: String = Ledger.summary_of(_tally, cells > 0, wood, stone)
+	var summary: String = Ledger.summary_of(_tally, any, wood, stone)
 	_ledger.accessibility_name = summary
 	_ledger.tooltip_text = summary
-	_ledger.text = _short_ledger(cells) + (" ▾" if _ledger.button_pressed else " ▴")
+	_ledger.text = _short_ledger(any) + (" ▾" if _ledger.button_pressed else " ▴")
+	if not _crew_line.is_empty() and any:
+		_ledger.accessibility_name = "%s; %s" % [summary, _crew_line] + ("; " + _plan_note if not _plan_note.is_empty() else "")
+		_ledger.tooltip_text = _ledger.accessibility_name
 	_ledger_text.text = ledger_lines(summary)
 	_place_ledger_open()
 
 
 func _sum_tally() -> int:
-	"""Every pending operation's cells into `_tally`, each at its own level's clear height; returns the cells."""
+	"""Every pending operation's cells into `_tally`, each at its own level's clear height, and the pending furniture's
+	wood, stone and work (its other goods are the expanded ledger's furniture line); returns the cells."""
 	_tally.resize(Ledger.SLOTS)
 	_tally.fill(0)
 	var cells: int = 0
@@ -791,16 +1193,41 @@ func _sum_tally() -> int:
 		if count > 0:
 			Ledger.add_into(count, _catalog.clear_height_of(_batch.operation_level(k)), _tally)
 			cells += count
+	var items: Items = _batch.items()
+	for row: int in items.count():
+		if items.is_live(row) and not items.is_removal(row):
+			Families.bill_into(items.family_of(row), _tally)
+	_tally[Ledger.WORK] += _batch.furniture().bill_into(_goods, _goods_milli)
+	for at: int in _goods.size():
+		if _goods[at] == "wood" or _goods[at] == "stone":
+			_tally[Ledger.WOOD if _goods[at] == "wood" else Ledger.STONE] += _goods_milli[at]
 	return cells
 
 
-func _short_ledger(cells: int) -> String:
+func _short_ledger(any: bool) -> String:
 	"""The collapsed ledger (`_tally` already summed): "Plan: 24 logs · 24 blocks · work about 6.8 hours" -- all of it
 	is in the expanded view."""
-	if cells <= 0:
+	if not any:
 		return "Plan: nothing yet"
-	return "Plan: %s · %s\nwork %s" % [Measures.need_cell(&"wood", _tally[Ledger.WOOD]),
-		Measures.need_cell(&"stone", _tally[Ledger.STONE]), Ledger.work_text(int(_tally[Ledger.WORK]))]
+	var second: String = "work " + Ledger.work_text(int(_tally[Ledger.WORK]))
+	if not _crew_line.is_empty(): second = _crew_second_line(second) # Decision 1991: the footer names the crew.
+	return "Plan: %s · %s\n%s" % [Measures.need_cell(&"wood", _tally[Ledger.WOOD]),
+		Measures.need_cell(&"stone", _tally[Ledger.STONE]), second]
+
+
+func _crew_second_line(work: String) -> String:
+	"""The ledger's second line with the crew, the longest that fits the button's width: the work, the crew and the
+	host's note; else the crew and the note; else the work and the crew; else the crew alone (what is left out stays
+	in the tooltip, the accessible name and the expanded ledger)."""
+	var font: Font = _ledger.get_theme_font(&"font")
+	var room: float = _ledger.size.x - 2.0 * BuildLayout.GAP - 16.0
+	if font == null or room <= 0.0:
+		return _crew_line
+	var note: String = " · " + _plan_note if not _plan_note.is_empty() else ""
+	for line: String in ["%s · %s%s" % [work, _crew_line, note], _crew_line + note, "%s · %s" % [work, _crew_line]]:
+		if font.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1.0, TEXT_PX).x <= room:
+			return line
+	return _crew_line
 
 
 func ledger_lines(summary: String) -> String:
@@ -812,13 +1239,70 @@ func ledger_lines(summary: String) -> String:
 	for k: int in _batch.operation_count():
 		if _batch.operation_cell_count(k) > 0:
 			lines.append("%s · %s" % [LevelBar.SHORT_NAMES[_batch.operation_level(k)], _batch.operation_line(k)])
-	var items: Items = _batch.items()
-	for row: int in items.count():
-		if items.is_live(row):
-			lines.append(ITEM_LINE % [LevelBar.SHORT_NAMES[items.level_of(row)], Items.name_of(items.level_of(row)),
-				items.level_of(row) + 1, Validity.line(_batch.item_kind(row), _batch.item_reason(row))])
+	_item_lines(lines)
+	_piece_lines(lines)
+	_mound_lines(lines)
+	if not _crew_line.is_empty(): lines.append(_crew_line)
+	if not _plan_note.is_empty(): lines.append(_plan_note)
 	lines.append(summary)
 	return "\n".join(lines)
+
+
+func _item_lines(lines: PackedStringArray) -> void:
+	"""Each pending way ("Surface · Burrow mouth (down to Underground level 1; placeholder, free for now): ✓ Can build")
+	and removal ("Level 1 · Remove Hatch with ladder: X Not possible: Would cut off ...")."""
+	var items: Items = _batch.items()
+	for row: int in items.count():
+		if not items.is_live(row):
+			continue
+		var where: String = LevelBar.SHORT_NAMES[items.level_of(row)]
+		var result: String = Validity.line(_batch.item_kind(row), _batch.item_reason(row))
+		if items.is_removal(row):
+			lines.append(REMOVAL_LINE % [where, items.name_of_row(row), result])
+		else:
+			lines.append(ITEM_LINE % [where, items.name_of_row(row), "down to %s" % LevelBar.level_name(
+				items.level_of(row) + 1), result])
+
+
+func _mound_lines(lines: PackedStringArray) -> void:
+	"""Decision 2002: each pending door, window or removal ("Surface · Front door, oak (free for now): ✓ Can build"), and
+	the Mounds' heap in the ruled measures (P-2001-3: five quanta heaped over a room cell, four dug back out), free."""
+	var edges: MoundEdges = _batch.mound_edges()
+	for row: int in edges.count():
+		if not edges.is_live(row):
+			continue
+		var kind: int = edges.kind_of(row)
+		var colour: String = ", %s" % Mound.colour_name(edges.colour_of(row)).to_lower() if kind == Mound.KIND_DOOR \
+			and not edges.is_removal(row) else ""
+		var named: String = ("Remove " if edges.is_removal(row) else "") + Mound.kind_name(kind)
+		lines.append(EDGE_LINE % [LevelBar.SHORT_NAMES[edges.level_of(row)], named, colour,
+			Validity.line(_batch.edge_kind(row), _batch.edge_reason(row))])
+	var mound_cells: int = 0
+	for k: int in _batch.operation_count():
+		if _batch.operation_style(k) == Mound.STYLE_MOUND:
+			mound_cells += _batch.operation_cell_count(k)
+	if mound_cells > 0:
+		lines.append(HEAP_LINE % mound_cells)
+
+
+func _piece_lines(lines: PackedStringArray) -> void:
+	"""Each pending piece ("L1 · Kitchen bench, turned once (free for now): ✓ Can build") and the furniture's whole
+	bill in its own goods (decision 1921: the ledger shows the bill; nothing is deducted)."""
+	var pieces: Furniture = _batch.furniture()
+	for row: int in pieces.count():
+		if not pieces.is_live(row):
+			continue
+		var item: int = pieces.item_of(row)
+		var turned: String = Furniture.turn_words(pieces.is_edge(item), pieces.turn_of(row))
+		lines.append(PIECE_LINE % [LevelBar.SHORT_NAMES[pieces.level_of(row)], Furniture.name_of(item),
+			", " + turned if not turned.is_empty() else "", Validity.line(_batch.piece_kind(row), _batch.piece_reason(row))])
+	var work: int = pieces.bill_into(_goods, _goods_milli)
+	if pieces.live_count() == 0:
+		return
+	var parts: PackedStringArray = PackedStringArray()
+	for at: int in _goods.size():
+		parts.append(Measures.need(StringName(_goods[at]), _goods_milli[at]))
+	lines.append(FURNITURE_BILL % [", ".join(parts), Ledger.work_text(work)])
 
 
 func toggle_ledger() -> void:
@@ -915,12 +1399,16 @@ func _answer(yes: bool) -> void:
 
 
 func escape() -> bool:
-	"""Escape, one layer: the stroke in progress, an open question, the expanded ledger, then the panel (asking about
-	pending changes). False when the panel was not open."""
+	"""Escape, one layer: the stroke in progress, the connector card, an open question, the expanded ledger, then the
+	panel (asking about pending changes). False when the panel was not open."""
 	if not visible:
 		return false
 	if _batch.cancel_stroke():
 		refresh(true)
+	elif _pinned:
+		cancel_pin()
+	elif room_shown():
+		hide_room()
 	elif _question_kind != QUESTION_NONE:
 		_question_kind = QUESTION_NONE
 		refresh(true)
@@ -952,4 +1440,5 @@ func controls() -> Dictionary:
 	"""The panel's named controls (checks and the host's focus region)."""
 	return {&"tabs": _tabs, &"ledger": _ledger, &"undo": _undo, &"redo": _redo, &"discard": _discard,
 		&"confirm": _confirm, &"yes": _question_yes, &"no": _question_no, &"status": _status, &"where": _where,
-		&"frame": _frame, &"info": _info, &"ledger_scroll": _ledger_scroll}
+		&"frame": _frame, &"info": _info, &"ledger_scroll": _ledger_scroll, &"cards": _scroll, &"connector": _connector,
+		&"room_card": _room_card}

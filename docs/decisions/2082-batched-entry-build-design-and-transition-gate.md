@@ -270,7 +270,7 @@ The whole flight, `ENTRY_KITCHEN_UNBUILT` at tick 92,560, as decision 2045 measu
 
 **What one cube costs.** Four transitions: a START (0.44 s at the top, 2.0 s at landing 4), two hand-overs (1.0 s, then
 4.7 s) and a settlement (0.6 s, then 2.3 s). Each installation is two (0.6 s at the top, then 2.0 s). The per-cube
-hand-overs alone take 590 s.
+hand-overs alone take about 598 s.
 
 **Every owner's largest spend:** phase structure 1,014,458 (96.7 %), entry bindings 971,519 (92.7 %), Contacts
 921,265 (87.9 %), Locations 870,951 (83.1 %), Routes 655,819, WorldRoutes 649,811. All are under the bound, as

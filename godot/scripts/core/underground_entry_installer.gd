@@ -150,16 +150,16 @@ func progress_marker() -> int:
 	"""Changes whenever the installation or its haul advances a stage; the foreman's stall budget reads it. Decision
 	2045: and whenever a leg of the installer's own climb or descent, or of its haul's approach, is reached, so a long
 	way down through several landings (module 3's T0 is many legs from M) is progress, not a stall. Packed into the
-	saved 32-bit field (`_last_install_stage`): stage < 16, stair leg < 32, haul leg < 32, haul stage < 8, trips
-	< 16,384, so it never exceeds 2,147,483,647."""
+	saved 32-bit field (`_last_install_stage`): stage < 16, stair leg < 64 (MAX_STAIR_LEGS), haul leg < 128
+	(MAX_HAUL_LEGS 72), haul stage < 8, trips < 1,024, so it never exceeds 2,147,483,647."""
 	if _hauler == null: return marker_of(_stage, _stair_leg, 0, 0, 0)
 	return marker_of(_stage, _stair_leg, _hauler._leg, _hauler.stage(), _hauler.trips())
 
 
 static func marker_of(installer_stage: int, stair_leg: int, haul_leg: int, haul_stage: int, trips: int) -> int:
 	"""Decision 2045: `progress_marker`'s packing, each part clamped to its width."""
-	return (((clampi(installer_stage, 0, 15) * 32 + clampi(stair_leg, 0, 31)) * 32 + clampi(haul_leg, 0, 31)) * 8
-		+ clampi(haul_stage, 0, 7)) * 16384 + clampi(trips, 0, 16383)
+	return (((clampi(installer_stage, 0, 15) * 64 + clampi(stair_leg, 0, 63)) * 128 + clampi(haul_leg, 0, 127)) * 8
+		+ clampi(haul_stage, 0, 7)) * 1024 + clampi(trips, 0, 1023)
 
 
 func advance(tick: int) -> StringName:

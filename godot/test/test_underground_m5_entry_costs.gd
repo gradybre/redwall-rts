@@ -12,6 +12,7 @@ const Locations := preload("res://scripts/core/underground_locations.gd")
 const Owner := preload("res://scripts/core/underground_space_owner.gd")
 const World := preload("res://scripts/core/world_init.gd")
 const Installer := preload("res://scripts/core/underground_entry_installer.gd")
+const Progress := preload("res://scripts/core/underground_entry_progress.gd")
 const DATUM: Vector3i = Vector3i(0, 512, 0)
 const ORIGIN: Vector3i = Vector3i(122880, 512, 102400)
 
@@ -147,16 +148,17 @@ func test_prisms_are_ordered_by_their_tops_for_the_height_search() -> void:
 
 func test_the_installers_progress_marker_fits_its_saved_field_and_tells_legs_apart() -> void:
 	"""Decision 2045: the marker counts the installer's stage and stair leg and its haul's leg, stage and trips, so a long
-	climb through the landings is progress; it is saved as the foreman's `_last_install_stage`, a signed 32-bit field,
-	so its largest value (installer stage 15, a haul on its 31st leg and 16,383rd trip) still fits."""
-	assert_equal(Installer.marker_of(15, 31, 31, 7, 16383), 2147483647, "the largest marker is the field's largest value")
-	assert_equal(Installer.marker_of(99, 99, 99, 99, 99999), 2147483647, "every part is clamped to its width")
+	climb through the landings is progress at every leg; it is saved as the foreman's `_last_install_stage`, a signed
+	32-bit field, so its largest value still fits. The leg fields cover every saved list (the review's H3: a 56-leg
+	climb must not freeze the marker past leg 31)."""
+	assert_true(Progress.MAX_STAIR_LEGS <= 64 and Progress.MAX_HAUL_LEGS <= 128, "the leg fields cover the saved lists")
+	assert_equal(Installer.marker_of(15, 63, 127, 7, 1023), 1073741823, "the largest marker fits the field")
+	assert_equal(Installer.marker_of(99, 99, 999, 99, 99999), 1073741823, "every part is clamped to its width")
 	var seen: Dictionary = {}
 	for stage: int in [0, 10, 15]:
-		for stair: int in [0, 1, 20]:
-			for leg: int in [0, 1, 23]:
+		for stair: int in [0, 31, 32, 55]:
+			for leg: int in [0, 31, 32, 56]:
 				for haul: int in [0, 6]:
 					for trips: int in [0, 1, 9]:
 						seen[Installer.marker_of(stage, stair, leg, haul, trips)] = true
-	assert_equal(seen.size(), 3 * 3 * 3 * 2 * 3, "each part changes the marker")
-	assert_equal(Installer.marker_of(10, 0, 0, 0, 0), 10 * 32 * 32 * 8 * 16384, "install 0's haul stage (the spare chain)")
+	assert_equal(seen.size(), 3 * 4 * 4 * 2 * 3, "each part changes the marker, past leg 31 too")

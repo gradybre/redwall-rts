@@ -2014,9 +2014,9 @@ func test_the_obstacle_scan_keeps_every_row_the_records_boxes_overlap_and_covers
 	spends no more."""
 	var image: Space.Snapshot = Space.Snapshot.new()
 	var boxes: Array = [[0, 0, 0, 10, 10, 10], [0, -4, 0, 10, 0, 10], [10, 0, 0, 20, 10, 10], [0, 10, 0, 10, 20, 10],
-		[0, 0, 6, 10, 10, 30], [500, 0, 0, 510, 10, 10], [0, 12, 0, 4, 18, 10]]
+		[0, 0, 6, 10, 10, 30], [500, 0, 0, 510, 10, 10], [0, 12, 0, 4, 18, 10], [0, 0, 9, 4, 4, 20]]
 	var roles: Array = [Space.SUPPORTED_VOID, Space.SUPPORT, Space.SUPPORTED_VOID, Space.SUPPORTED_VOID,
-		Space.SUPPORTED_VOID, Space.SUPPORT, Space.SUPPORTED_VOID]
+		Space.SUPPORTED_VOID, Space.SUPPORT, Space.SUPPORTED_VOID, Space.SUPPORTED_VOID]
 	for row: int in boxes.size():
 		assert_true(image.volumes.append(PackedInt32Array(boxes[row]), roles[row], 1, Vector2i(6, 3), 2), "row %d" % row)
 	var locations: Locations = Locations.new()
@@ -2035,8 +2035,8 @@ func test_the_obstacle_scan_keeps_every_row_the_records_boxes_overlap_and_covers
 	assert_equal(locations._record_obstacles_refusal(record), &"", "no blocker")
 	assert_equal(1000 - locations._remaining, boxes.size(), "one check a row, as the scan always charged")
 	assert_equal(locations._near_hull, PackedInt32Array([0, -2, 0, 10, 14, 10]), "the record's hull")
-	assert_equal(locations._near.slice(0, locations._near_count), PackedInt32Array([0, 1, 3, 4, 6]),
-		"rows meeting the hull, not those touching its faces")
+	assert_equal(locations._near.slice(0, locations._near_count), PackedInt32Array([0, 1, 3, 4, 6, 7]),
+		"rows meeting the hull, by one unit too, not those touching its faces")
 	var kept: int = locations._near_count
 	for probe: Array in [[record.envelope, Space.SUPPORTED_VOID], [record.support, Space.SUPPORT],
 			[record.air.slice(0, 6), Space.SUPPORTED_VOID], [record.envelope, Space.SUPPORT]]:

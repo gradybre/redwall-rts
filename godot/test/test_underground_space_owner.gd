@@ -3155,6 +3155,14 @@ func _overlap_rows(conflict: bool) -> Array[Owner.Region]:
 	return rows
 
 
+func _edge_conflict_rows() -> Array[Owner.Region]:
+	"""The stacked rows (z -8192..7168: 64 bands 240 wide), and an UNFINISHED row meeting row 15 (DRY_SOLID, from z
+	3328, a band's first unit) only in that unit: its last band is the one row 15 starts in."""
+	var rows: Array[Owner.Region] = _overlap_rows(false)
+	rows.append(_region([-1000, 0, 3300, -500, 1024, 3329], Space.UNFINISHED, _world, 2))
+	return rows
+
+
 func _seal_with(checks: int, linear: bool, rows: Array[Owner.Region]) -> StringName:
 	"""Stage `rows` on a fresh owner whose domain allows `checks`, and seal (the validation) linearly or indexed."""
 	var owner: Owner = Owner.new(_sources)
@@ -3185,18 +3193,25 @@ func test_the_overlap_index_refuses_and_admits_as_the_linear_validation() -> voi
 		var linear: StringName = _seal_with(100000, true, rows)
 		assert_equal(_seal_with(100000, false, rows), linear, "the same answer, conflict %s" % conflict)
 		assert_equal(linear, &"SPACE_SURVEY_CONTRADICTION" if conflict else &"", "and the expected one")
+	var edge: Array[Owner.Region] = _edge_conflict_rows()
+	assert_equal(_seal_with(100000, true, edge), &"SPACE_SURVEY_CONTRADICTION", "a one-unit overlap contradicts")
+	assert_equal(_seal_with(100000, false, edge), &"SPACE_SURVEY_CONTRADICTION", "and is found in its last band")
 
 
 func test_the_overlap_index_admits_at_the_linear_validations_exact_cost() -> void:
 	"""Decision 2045 (Slice C's min-cost rule): the indexed validation never charges more than the linear one, so at
-	the least budget the linear validation admits, the indexed one admits too."""
-	var rows: Array[Owner.Region] = _overlap_rows(false)
-	var low: int = 1
-	var high: int = 100000
-	assert_equal(_seal_with(high, true, rows), &"", "the linear validation admits with room to spare")
-	while low < high:
-		@warning_ignore("integer_division") var middle: int = (low + high) / 2
-		if _seal_with(middle, true, rows) == &"": high = middle
-		else: low = middle + 1
-	assert_equal(_seal_with(low - 1, true, rows), &"SPACE_OPERATION_BUDGET", "one check less refuses linearly")
-	assert_equal(_seal_with(low, false, rows), &"", "the indexed validation admits at the linear cost (%d)" % low)
+	the least budget the linear validation answers, the indexed one gives the same answer: an admission, or a
+	contradiction found from the first row, before the index's build could be repaid."""
+	for conflict: bool in [false, true]:
+		var rows: Array[Owner.Region] = _overlap_rows(conflict)
+		var answer: StringName = &"SPACE_SURVEY_CONTRADICTION" if conflict else &""
+		var low: int = 1
+		var high: int = 100000
+		assert_equal(_seal_with(high, true, rows), answer, "the linear validation answers with room to spare")
+		while low < high:
+			@warning_ignore("integer_division") var middle: int = (low + high) / 2
+			if _seal_with(middle, true, rows) == answer: high = middle
+			else: low = middle + 1
+		assert_equal(_seal_with(low - 1, true, rows), &"SPACE_OPERATION_BUDGET", "one check less refuses linearly")
+		assert_equal(_seal_with(low, false, rows), answer, "the indexed validation answers at the linear cost (%d), "
+			% low + "conflict %s: a contradiction found early is not overcharged by the build" % conflict)

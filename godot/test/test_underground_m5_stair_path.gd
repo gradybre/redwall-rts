@@ -5,6 +5,7 @@ extends "res://test/framework/test_case.gd"
 
 const StairPath := preload("res://scripts/core/underground_entry_stair_path.gd")
 const Progress := preload("res://scripts/core/underground_entry_progress.gd")
+const Installer := preload("res://scripts/core/underground_entry_installer.gd")
 const Tread := preload("res://data/underground/mole-worker/qualified-m5-runtime-v1/tread_geometry.gd")
 const StairPins := preload("res://data/underground/mole-worker/qualified-stair-carry-v13/catalog_source.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
@@ -193,3 +194,26 @@ func test_every_m5_hop_list_fits_the_saved_leg_lists() -> void:
 		longest = maxi(longest, StairPath.hops_up_from_landing(stops, landing).size())
 	assert_equal(longest, 56, "up from module 4's deepest stop to X")
 	assert_true(longest <= Progress.MAX_STAIR_LEGS, "every list fits the saved record")
+	assert_true(longest + 1 <= Progress.MAX_HAUL_LEGS, "and an installer's haul up its whole list, then to M (the review's H2)")
+
+
+func _legs_record(count: int) -> Progress.Writer:
+	"""A stair leg list of `count` legs as the installer writes it."""
+	var rows: PackedInt64Array = PackedInt64Array()
+	for leg: int in count: rows.append_array(PackedInt64Array([leg, 1, 7 * leg, 1000 + leg]))
+	var w: Progress.Writer = Progress.Writer.new()
+	Installer._write_legs(w, rows)
+	return w
+
+
+func test_a_leg_list_the_reader_admits_round_trips_and_a_longer_one_refuses_the_capture() -> void:
+	"""Decision 2045: the writer refuses (`overflow`) exactly the lists the reader cannot read back."""
+	var fits: Progress.Writer = _legs_record(Progress.MAX_STAIR_LEGS)
+	assert_false(fits.overflow, "the longest admitted list writes")
+	var r: Progress.Reader = Progress.Reader.new()
+	r.bytes = fits.bytes
+	var rows: PackedInt64Array = Installer._read_legs(r)
+	assert_false(r.bad, "and reads back")
+	assert_equal(rows.size(), 4 * Progress.MAX_STAIR_LEGS, "every leg")
+	assert_equal(rows[rows.size() - 1], 1000 + Progress.MAX_STAIR_LEGS - 1, "in order")
+	assert_true(_legs_record(Progress.MAX_STAIR_LEGS + 1).overflow, "one leg more refuses the capture")

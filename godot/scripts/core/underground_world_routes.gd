@@ -207,6 +207,7 @@ class Clearance extends RefCounted:
 		query.resize(6)
 		_index_volumes = null
 		_index_rows = -1
+		_index_debt = 0
 
 	func spend(amount: int = 1) -> bool:
 		"""The whole route preparation shares this bound, including refused profile candidates."""
@@ -248,12 +249,18 @@ class Clearance extends RefCounted:
 		if _index_words * (span.y - span.x + 1) + _band_prefix[span.y + 1] - _band_prefix[span.x] >= n:
 			_deferred[which] = 0
 			out.resize(0) # The lookup could cost a full scan's rows: scan every row, as master does.
-			return 0
+			return 0 if n > 0 else -1
 		_lookup[which] = _index_words * (span.y - span.x + 1)
 		_select_bands(span, out)
 		if Profiles.CacheChecks.enabled:
 			_check_selection(bounds, out)
 		return next_row(out, -1)
+
+	func linear_first(out: PackedInt32Array, which: int) -> int:
+		"""A scan of every row, charged a check a row as master's (`first_row`'s unindexed form)."""
+		_deferred[which] = 0
+		out.resize(0)
+		return 0 if image.volumes.role.size() > 0 else -1
 
 	func step(which: int) -> bool:
 		"""One row visited: a check now when the scan is linear (master's charge), or counted for `settle`."""
@@ -352,7 +359,7 @@ class Clearance extends RefCounted:
 
 	func index_rewind(mark: Array) -> void:
 		"""Forget an index built since `mark` was taken, and put the debt back (decision 2045)."""
-		if mark[0] == null:
+		if mark[0] != _index_volumes:
 			_index_volumes = null
 			_index_rows = -1
 		_index_debt = mark[1]
@@ -404,7 +411,9 @@ class Clearance extends RefCounted:
 		open fragment lies inside it, so a row that misses it misses every fragment, and subtracting such a row
 		re-emits each fragment unchanged, in order."""
 		var rows: Space.Volumes = image.volumes
-		var next: int = first_row(query, set_a, 0)
+		# With no fragment left the first row of the role that meets `limit` ends the scan, wherever it lies: scan
+		# linearly, as master does (the review's H1; the started box no longer bounds that row).
+		var next: int = first_row(query, set_a, 0) if count > 0 else linear_first(set_a, 0)
 		while next != -1:
 			if not step(0):
 				return false

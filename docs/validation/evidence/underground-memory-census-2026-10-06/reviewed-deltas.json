@@ -2732,6 +2732,7 @@
      "changes.resize(Journal.STAGED_STRIDE * CHANGE_CAPACITY)",
      "out.resize(0)",
      "out.resize(0)",
+     "out.resize(0)",
      "out.resize(CERT_WIRE_BYTES)",
      "out.resize(_index_words)",
      "query.resize(6)",

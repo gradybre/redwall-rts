@@ -92,7 +92,7 @@ def delta(before: str, after: str) -> dict:
 
 EVIDENCE = Path("docs/validation/evidence/underground-memory-census-2026-10-06")
 REVIEWED = EVIDENCE / "reviewed-deltas.json"
-REVIEWED_SHA = "f27151051a6b10504e2d23b858d5ca25010411063c22cc69486a03124cb4c9c6"
+REVIEWED_SHA = "f2d8ae6a6e6e77057aab4e65382f476e079292eabcb0ad64e465ed4161213426"
 # ADR1217 step 5: the runtime Frontier is the claw bundle's (same row census as qualified-stone-v5's).
 # ADR1229: the mounted T1-T6 bundle's Frontier (ADR1217 step 5 mounted qualified-claw-v6's).
 # DEC-059 (P3): qualified-stairs-v9, the same rows with T1-T6 fastened in 5,640 mWU.
@@ -344,11 +344,11 @@ def entry_progress(memory, index: dict) -> dict:
     source = module(index, CORE + "underground_entry_progress.gd").text
     formula = ("const MAX_WIRE_BYTES: int = HEADER_BYTES + RUNTIME_FIXED_BYTES + MAX_ENDPOINTS * 8 + CREW_BYTES + FOREMAN_FIXED_BYTES \\\n"
                "\t+ MAX_TASKS * TASK_BYTES + INSTALLER_FIXED_BYTES + MAX_QUOTE_LINES * QUOTE_LINE_BYTES \\\n"
-               "\t+ HAULER_FIXED_BYTES + MAX_QUEUE * 4 + MAX_LEGS * LEG_BYTES + 3 * MAX_STAIR_LEGS * LEG_BYTES\n")
+               "\t+ HAULER_FIXED_BYTES + MAX_QUEUE * 4 + MAX_HAUL_LEGS * LEG_BYTES + 3 * MAX_STAIR_LEGS * LEG_BYTES\n")
     require(formula in source, "entry progress wire bound formula")
     const = lambda name: int(re.search(r"^const " + name + r": int = (\d+)\b", source, re.M).group(1))
     wire = sum(const(name) for name in PROGRESS_TERMS) + 8 * const("MAX_ENDPOINTS") + const("MAX_TASKS") * const("TASK_BYTES") \
-        + const("MAX_QUOTE_LINES") * const("QUOTE_LINE_BYTES") + 4 * const("MAX_QUEUE") + const("MAX_LEGS") * const("LEG_BYTES") \
+        + const("MAX_QUOTE_LINES") * const("QUOTE_LINE_BYTES") + 4 * const("MAX_QUEUE") + const("MAX_HAUL_LEGS") * const("LEG_BYTES") \
         + 3 * const("MAX_STAIR_LEGS") * const("LEG_BYTES")
     packets = packet(memory, index, CORE + "underground_entry_progress.gd", "Writer") \
         + packet(memory, index, CORE + "underground_entry_progress.gd", "Reader")
@@ -367,8 +367,9 @@ def entry_chain(memory, index: dict) -> dict:
     require("const BRACE_WOOD_MILLI: int = 250" in contract and "const BRACE_STONE_MILLI: int = 250" in contract
             and "Grip.QUANTITY_MILLI" in hauler, "haul queue bound: one whole unit per BRACE input line")
     # ADR1210: ceil(250/1000) wood + stone units; ADR1219 adds the arrival leg before the retreat and storage legs.
-    # ADR1229 increment 6b: a tread order's haul climbs four stair legs before M (Progress.MAX_LEGS).
-    queue, legs = 2, memory.resolve(index, "underground_entry_progress", "MAX_LEGS")
+    # ADR1229 increment 6b: a tread order's haul climbs stair legs before M. Decision 2045: M5's deepest station climbs
+    # 56 hop legs and one to M, so the hauler's list is Progress.MAX_HAUL_LEGS (MAX_LEGS stays the room-dig builders').
+    queue, legs = 2, memory.resolve(index, "underground_entry_progress", "MAX_HAUL_LEGS")
     stair_legs = memory.resolve(index, "underground_entry_progress", "MAX_STAIR_LEGS")
     counts = frontier_counts()
     endpoints = memory.resolve(index, "underground_entry_work_area", "ENDPOINTS")

@@ -1957,3 +1957,38 @@ func test_an_indexed_lookup_never_costs_more_than_the_full_scan() -> void:
 	assert_true(proof.index_mark()[0] != null and proof.index_mark()[1] > 0, "the index was built, and is owed")
 	proof.index_rewind(mark)
 	assert_true(proof.index_mark()[0] == null and proof.index_mark()[1] == 0, "a rewind forgets the build and its debt")
+
+
+func test_an_empty_fragment_set_scans_as_master() -> void:
+	"""Decision 2045 (the review's H1): with no fragment left, `subtract_role` ends at the first row of its role that meets
+	`limit`, wherever it lies; indexed, it scans linearly as master does, charging exactly master's rows."""
+	var boxes: Array[PackedInt32Array] = _z_rows([Vector2i(5000, 5100), Vector2i(0, 100), Vector2i(6300, 6400)])
+	var roles: PackedInt32Array = PackedInt32Array([Space.SUPPORT, Space.SUPPORTED_VOID, Space.SUPPORT])
+	var limit: PackedInt32Array = PackedInt32Array([0, 0, 4000, 10, 10, 6000])
+	var spent: PackedInt32Array = PackedInt32Array()
+	for on: bool in [false, true]:
+		var proof: Binding.Clearance = _indexed(boxes, roles, on)
+		proof.start(PackedInt32Array([0, 0, 0, 10, 10, 100]))
+		assert_true(proof.subtract_role(Space.SUPPORTED_VOID), "the void covers the box, indexed %s" % on)
+		assert_equal(proof.count, 0, "no fragment left")
+		var before: int = proof.remaining
+		assert_true(proof.subtract_role(Space.SUPPORT, limit), "nothing left to cover")
+		spent.append(before - proof.remaining)
+	assert_equal(spent[1], spent[0], "the same charge as master: its first SUPPORT row meeting the limit, row 0")
+	assert_equal(spent[0], 1, "one check")
+
+
+func test_a_lookup_that_could_cost_a_full_scan_scans_every_row_as_master() -> void:
+	"""Decision 2045 (the review's guard): a query whose band words and band rows reach the row count is not indexed
+	(nothing deferred, nothing owed for it): it scans every row and charges a check a row. A narrow query is indexed."""
+	var boxes: Array[PackedInt32Array] = _z_rows([Vector2i(0, 100), Vector2i(1000, 1100), Vector2i(2000, 2100),
+		Vector2i(3000, 3100), Vector2i(4000, 4100), Vector2i(6300, 6400)])
+	var roles: PackedInt32Array = PackedInt32Array([Space.SUPPORT, Space.SUPPORT, Space.SUPPORT, Space.SUPPORT,
+		Space.SUPPORT, Space.SUPPORT])
+	var proof: Binding.Clearance = _indexed(boxes, roles, true)
+	var selection: PackedInt32Array = PackedInt32Array()
+	assert_equal(proof.first_row(PackedInt32Array([0, 0, 1000, 10, 10, 1050]), selection, 0), 1, "a narrow query")
+	assert_equal(proof._deferred[0], 1, "is indexed")
+	assert_equal(proof.first_row(PackedInt32Array([0, 0, 0, 10, 10, 6400]), selection, 0), 0, "the whole image")
+	assert_equal(proof._deferred[0], 0, "is scanned as master scans it")
+	assert_equal(selection.size(), 0, "with no selection")

@@ -38,8 +38,8 @@ class CurrentCensusTests(unittest.TestCase):
         result = census.build(self.index, self.projected, self.motion)
         self.assertEqual(result["new_retained_bytes"], {"geometry_journals": 4322,
                          # decision 2044 (M2): +3,896 Locations pass caches; +21,192 entry chain (P-2044-8 bounds, M2 Frontier)
-                         # decision 2045 (M5): +33,416 Locations pass and operation keys and the near rows; +9,744 the M5 work area's endpoints and leg lists
-                         "locations_carry_and_retirement_controls": 43674, "first_entry_runtime_chain": 46067,
+                         # decision 2045 (M5): +33,416 Locations pass and operation keys and the near rows; +13,968 the M5 work area's endpoints and leg lists (stair and haul)
+                         "locations_carry_and_retirement_controls": 43674, "first_entry_runtime_chain": 50291,
                          "cold_load_images": 196694, "claw_stair_tables": 43364, # ADR1229: the T1-T6 plan and tables; decision 1972: +33,784 stair-carry tables
                          "room_dig_runtime": 5646982, # decision 1936 at every bound; decision 1991: +34,320 (crew, release flag, filter, wider image); decision 2044 P-2044-8: MAX_LEGS 24 (+263,168)
                          "world_routes_endpoint_memo": 140872, # decision 1952: the endpoint-proof memo
@@ -61,11 +61,11 @@ class CurrentCensusTests(unittest.TestCase):
         """ADR 1218: two whole records at MAX_WIRE_BYTES plus the Writer/Reader packets; a changed bound refuses."""
         result = census.build(self.index, self.projected, self.motion)
         # Decision 2044 (P-2044-8): MAX_TASKS 160, MAX_ENDPOINTS 59, MAX_LEGS 24 (was 4,591 B).
-        self.assertEqual(result["first_entry_runtime"]["rows"]["progress_record"], 2 * 13947 + 10) # decision 2045: MAX_STAIR_LEGS 64
+        self.assertEqual(result["first_entry_runtime"]["rows"]["progress_record"], 2 * 14907 + 10) # decision 2045: MAX_STAIR_LEGS 64, MAX_HAUL_LEGS 72
         text = self.index["underground_entry_progress"].text.replace("const MAX_TASKS: int = 160", "const MAX_TASKS: int = 161")
         self.assertNotEqual(text, self.index["underground_entry_progress"].text)
         self.assertEqual(census.entry_progress(memory, self.changed("underground_entry_progress", text))["max_wire_bytes"],
-                         13947 + 52)
+                         14907 + 52)
         text = self.index["underground_entry_progress"].text.replace("+ HAULER_FIXED_BYTES + MAX_QUEUE", "+ 2 * HAULER_FIXED_BYTES + MAX_QUEUE")
         with self.assertRaises((AssertionError, ValueError)):
             census.build(self.changed("underground_entry_progress", text), self.projected, self.motion)
@@ -142,7 +142,7 @@ class CurrentCensusTests(unittest.TestCase):
     def test_joint_pack_fits_the_raised_gate(self):
         result = memory.build()
         self.assertEqual((result["live_with_reserve_bytes"], result["gate_bytes"], result["headroom_bytes"]),
-                         (106187565, 150000000, 43812435)) # decision 2045 (M5): +66,199 (binding reserve +23,039, Locations +33,416, entry chain +9,744); decision 2044 (M2): +288,256 (room dig +263,168 and entry chain +21,192 from P-2044-8's bounds, Locations +3,896); decision 1991: +34,426; decision 1953: +19,048 route compile memos; ADR1229: +5,680 entry chain, +9,580 stair tables; 6b: +808 chain, +6,201 Locations witness-pass cache; DEC-059 P1: +296 chain legs; decision 1936: +5,349,494 room-dig runtime (P-1937-1 B-E), +783 declaration; decision 1952: +140,872 endpoint memo; decision 1972: +33,784 stair-carry tables, +4,096 profile reserve
+                         (106191789, 150000000, 43808211)) # decision 2045 (M5): +70,423 (binding reserve +23,039, Locations +33,416, entry chain +13,968); decision 2044 (M2): +288,256 (room dig +263,168 and entry chain +21,192 from P-2044-8's bounds, Locations +3,896); decision 1991: +34,426; decision 1953: +19,048 route compile memos; ADR1229: +5,680 entry chain, +9,580 stair tables; 6b: +808 chain, +6,201 Locations witness-pass cache; DEC-059 P1: +296 chain legs; decision 1936: +5,349,494 room-dig runtime (P-1937-1 B-E), +783 declaration; decision 1952: +140,872 endpoint memo; decision 1972: +33,784 stair-carry tables, +4,096 profile reserve
 
     def test_publication_controls_refuse_above_their_ceiling(self):
         text = self.index["underground_room_frontier_publication"].text.replace(

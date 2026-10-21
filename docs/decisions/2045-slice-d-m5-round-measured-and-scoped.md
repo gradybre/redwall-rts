@@ -1033,16 +1033,20 @@ finish is 651,747.
 | before | `ea9c7ed6` | 1,749.5 s | 758, 1,096.1 s | 3,933 (+283.6 s) | 1,858 |
 | leg scan, index, overlap | `faae397d` | 1,577.1 s | 757, 1,049.5 s | 2,417 (+188.9 s) | 1,306 |
 | tread legs | `436716e5` | 1,486.2 s | 752, 1,074.0 s | 2,144 (+60.9 s) | 14 |
+| **final code** (quiet machine) | `dbffddc2` | **1,337.3 s** | 746, 966.1 s | 1,534 (+45.3 s) | 65 |
 
-The `436716e5` run shared the machine with the mutation run, so its seconds are high, transitions especially. It
-still ran the flight 263 s faster.
+The `436716e5` run shared the machine with the mutation run, so its seconds are high. The final run had the machine
+to itself. Against the start of the phase, the whole flight is **412 s faster (−23.6%)**. Cold transitions are 130 s
+faster (−11.9%). The Work ticks' time over 33.3 ms fell from 283.6 s to 45.3 s (−84%).
 
 **Against REQ-SET-163's 2 ms, the lane does not get there.**
 - **Work ticks.** A deep-stage Work tick went from 56 to 23 ms (landing 3, profiled). That is still about **11×** the
-  2 ms. The slow Work tick's time over 33.3 ms fell from 283.6 s to 60.9 s, and the 100–500 ms ticks almost vanished
-  (1,858 → 14).
-- **The p99 tick.** It lies in the 20–100 ms band, **10–50×** the 2 ms.
-- **Cold transitions.** They are about 1.4 s each on average (a cube hand-over is 1.2–3.4 s), about **700×** the 2 ms.
+  2 ms. The slow Work tick's time over 33.3 ms fell from 283.6 s to 45.3 s, and the 100–500 ms ticks fell from 1,858 to
+  65 (final run).
+- **The p99 tick.** In the final run, 698 of the flight's 92,559 ticks take over 100 ms, so the p99 tick (the 926th
+  slowest) lies in the 20–100 ms band. That is **10–50×** the 2 ms.
+- **Cold transitions.** They are about 1.3 s each on average (966 s over 746; a cube hand-over is 1.2–3.4 s), about
+  **650×** the 2 ms.
   They are `_run_cold_operation`/Placements `prepare_phase_refresh`, outside this lane's claims, and are the pacing
   study's subject (decision 2081, batched build; decision 1953 stage 2).
 
@@ -1190,3 +1194,66 @@ finish, tick 92,559 (`ENTRY_KITCHEN_UNBUILT`, level 1).
 - **Reviews:** the second review's three HIGHs are fixed (`dbffddc2`). The third review found nothing at HIGH or
   above, and its test gaps are closed (`17a2c10d`).
 - **Disk:** the measurement clones are deleted. One scratch clone is kept for the final meter and deleted after it.
+
+### After the round: master merged, and Slice C's paw certificate measurement
+
+**Master merged.** `b689c0e7` merges origin/master `e0e7065a`: #280, the pacing study, and #281, slice D2 phase 1.
+Only the shard weights conflicted; this branch's were kept, then regenerated.
+
+Slice C saw 15 failures and 12 timber-scope cache reports when it merged master with this branch's old head
+`ea9c7ed6`. Those failures are this phase's fixes:
+- the level-1 load (`faae397d`);
+- the timber scope re-check (`b7fe192d`);
+- the stale expectations (`58646391`).
+
+On the merge:
+- the timber, paid-assembly and D2 suites pass;
+- the checkpoints are current;
+- the contracts pass.
+
+The full 12-shard suite on the merge is below. The cache checks are always on in the suite: the test framework sets
+them.
+
+**P-2045-17 — the paw physical certificate (Slice C's steady-tick measurement: about 3.4 ms a call, on about 19% of
+master's entry-prefix ticks, inside `Routes.advance_tick`).**
+
+On module 0, which is all of master's prefix, `qualified-m5-runtime-v1/paw_physical_certificate.gd` hands every call
+to the published `qualified-claw-runtime-v2` certificate unchanged. So the time is the published proof, re-run each
+time WorldRoutes' assembly admission or a certificate read asks (`underground_world_routes.gd` `_assembly_admission`,
+`_certificate_refusal`).
+
+That proof is cache-free by design ("No retained packet, source observer or paid-state mutation lives here"). It
+re-reads, in order:
+- the owners;
+- the selection;
+- the World and the terrain scratch;
+- every Space source row and claim (charged `512 + 2 × (sources + regions)`);
+- the endpoint and the piece;
+- the body and stance volumes against the Space and the terrain.
+
+**An exact memo is possible only with a key over every one of those inputs.** The Space owner's source and claim
+columns have one (P-2045-7 keys on them). The World binding, the terrain scratch, the Locations endpoint, the
+Placement row and the Contacts fragments would each need a revision a memo can compare. Some of those owners have no
+such counter today.
+
+The memo would also have to live in WorldRoutes, because the certificate is static and holds no state. Slice C is now
+adding its own members there (`_search_memo`, `_search_chains`). So it is not built in this lane. Not measured here
+either: the code path is master's, unchanged by this branch.
+
+- **(a)** A memo in WorldRoutes, keyed on those revisions plus the selection's every field, answered at the proof's
+  real charge (as P-2045-4 charges an answered observation), with the full proof re-run and compared under the cache
+  checks. It needs the missing revisions, from their owners' lanes.
+- (b) Leave it until decision 2081's batched build, which removes most per-tick handling.
+
+**Recommendation: (a), owned by Slice C's steady-tick lane.** The call site, the key's owners and the new members are
+all in or next to WorldRoutes. This lane can supply the module-translation half for M5's later modules.
+
+**The full suite on the merge** (`b689c0e7`, 12 shards, five at a time, with the cache checks on) **passes**:
+- 601 suites, 13,228 tests and 1,511,096 assertions;
+- 0 failures, 0 unexpected errors or warnings, 0 leaks;
+- `verify --count 12` passes.
+
+The machine was busier than in the earlier run (load about 9). The slowest flight segment took 441 s, under the
+8-minute budget. The shard weights were regenerated from this run.
+
+The analyzer, on port 6505, reports 0 warnings in 1,699 files.

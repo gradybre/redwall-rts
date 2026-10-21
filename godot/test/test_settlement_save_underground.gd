@@ -30,6 +30,8 @@ const ROLLBACK_PATH: String = "user://test_settlement_save_underground.rwlsave.r
 
 var _content: Chain.Content = null
 var _nodes: Array[Node] = []
+## Decision 1953: the uninterrupted run's saves with the framework's cache checks on, kept for the run with them off.
+var _checked_saves: Array[PackedByteArray] = []
 
 
 func before_each() -> void:
@@ -39,7 +41,9 @@ func before_each() -> void:
 
 
 func after_each() -> void:
-	"""Free every node this test made; leave the autoload as the other suites expect it."""
+	"""Free every node this test made; leave the autoload, and the framework's cache checks, as the other suites
+	expect them."""
+	load("res://scripts/core/runtime_cache_checks.gd").set("enabled", true)
 	for node: Node in _nodes:
 		node.free()
 	_nodes.clear()
@@ -135,13 +139,40 @@ func test_the_live_chain_saved_to_a_file_at_each_checkpoint_continues_byte_ident
 	arrival, hauling, in the paid phases, in the installation) and at END_TICK. Each checkpoint's
 	save is written to a FILE, loaded into a FRESH settlement and run to the next checkpoint, where
 	its save must be byte-identical to the uninterrupted run's."""
+	_checked_saves = _continue_from_each_checkpoint()
+
+
+func test_the_chain_continues_byte_identically_with_the_runtime_caches_answering() -> void:
+	"""Decision 1953: the same chain with the framework's cache checks off, so every runtime cache (the route memos
+	of decisions 1952 and 1953) answers as in the game. Its saves equal the checked run's (every cache recomputed
+	live, as master computes); a load discards the caches, and each loaded run still saves byte-identically to the
+	uninterrupted one at the next checkpoint."""
+	var checked: Array[PackedByteArray] = _checked_saves if not _checked_saves.is_empty() \
+		else _checkpoint_saves(_begun_chain())
+	var caches: GDScript = load("res://scripts/core/runtime_cache_checks.gd")
+	caches.set("enabled", false)
+	var answered: Array[PackedByteArray] = _continue_from_each_checkpoint()
+	caches.set("enabled", true)
+	assert_equal(answered.size(), checked.size(), "a save at every checkpoint")
+	for index: int in mini(answered.size(), checked.size()):
+		assert_true(answered[index] == checked[index], "save %d: the caches answering change no byte" % index)
+
+
+func _begun_chain() -> Node:
+	"""A fresh clock and a composed settlement whose entry has begun, stocked for the whole descent."""
 	assert_true(GameManager.start_game(), "a fresh clock")
 	var host: Node = _composed()
 	assert_equal(Chain.begin_entry(host), &"", "the entry begins")
 	var o: RefCounted = host.underground_session()._retirement_owners
 	for item: Array in [[&"wood", 13000], [&"stone", 2000]]: # DEC-059: stock for the whole descent.
 		assert_equal(Chain._stage(o, host.underground_entry()._output, item[0], item[1]), &"", "staged")
-	var saves: Array[PackedByteArray] = _checkpoint_saves(host)
+	return host
+
+
+func _continue_from_each_checkpoint() -> Array[PackedByteArray]:
+	"""Save at every checkpoint, load each save into a fresh settlement and run it to the next checkpoint. Returns
+	the uninterrupted run's saves."""
+	var saves: Array[PackedByteArray] = _checkpoint_saves(_begun_chain())
 	var ends: Array[int] = []
 	ends.assign(CHECKPOINTS.slice(1))
 	ends.append(END_TICK)
@@ -152,11 +183,12 @@ func test_the_live_chain_saved_to_a_file_at_each_checkpoint_continues_byte_ident
 			FileAccess.get_file_as_bytes(SAVE_PATH), _content)
 		assert_true(loaded.is_ok(), "load at %d: %s %s" % [CHECKPOINTS[index], loaded.code, loaded.detail])
 		if not loaded.is_ok():
-			return
+			return saves
 		assert_equal(GameManager.clock().completed_tick(), CHECKPOINTS[index], "the clock went back")
 		_advance_to(target, ends[index])
 		assert_true(_saved(target, GameManager) == saves[index + 1],
 			"loaded at %d and run to %d: byte-identical" % [CHECKPOINTS[index], ends[index]])
+	return saves
 
 
 func test_a_failed_load_restores_the_target_from_its_disk_checkpoint() -> void:

@@ -1324,6 +1324,14 @@ runtime activation. Stair material and work costs are unchanged. The original
 alternatives and implementation constraints are retained in
 [decision1145](decisions/1145-proposed-initial-timber-stair-timing.md).
 
+**Addendum (2026-10-15): laden workers.** Brendan approved decision 1981's P-1981-3 (a) ("Approve all", relayed
+by the coordinator). The same pace applies to a mole carrying one unit of wood or stone on the stair: 30 fixed ticks
+a tread, ascending or descending, and 45 a supported half-turn. The stair carry's on-and-off handoffs (the approach,
+the retreat and the back-up, three steps each) take this decision's "1 second per step": 90 ticks. The laden clips
+have the same keys, feet and root tracks as the unladen ones, and on level ground carrying already moves at the
+walking cap (decision 1198). No new balance number is introduced. Engineering record:
+[decision1981](decisions/1981-one-basic-stair-carry-scoping.md).
+
 
 ### DEC-051 — Simulation-owned memory gate raised to 100.1 MB
 
@@ -1411,6 +1419,23 @@ amends neither. Level spacing and the level catalog's roof
 are unchanged; only the excavated part below the roof is capped.
 
 Engineering record: [decision1220](decisions/1220-kitchen-earth-benches.md).
+
+**Addendum, 2026-10-15: rooms are dug to the painted height (amends this decision).** Brendan gave two directions
+for slice C's digging, relayed by the coordinator: **"Real digging, in full"** (Confirm all must eventually dig in
+the real game), then **"I just want the basic claw stroke that digs anything."** On
+[decision1971](decisions/1971-one-basic-claw-stroke-digs-any-reachable-cube.md) he then ruled:
+
+- **P-1971-3, room height: "Painted height".** Each cell's column is dug to the room's full height. The mole claws
+  the bottom, and the upper earth is dug and paid as part of the same work, without a separate stroke. Rooms must
+  fit every species. This **replaces the cap above**: a Room is no longer limited to the height the dig strokes
+  reach. The height is SET-BUILD-001's adopted clear height, 4,096 u (4 quanta per painted cell), which fits the
+  badger's 2,611 u (DEC-039).
+- **P-1971-1 (b) and P-1971-2 (a): "Approve".** The one stroke is the approved claw stroke (M1). Four wall rows are
+  derived from its own clips, so it can strike a side face. The claws may scrape the floor only into natural,
+  unowned earth inside the row's own 61 u below-floor box.
+
+Unchanged: the bill per quantum (DEC-059), the level spacing and clear height (DEC-061 Q6), and "no earth benches,
+steps or climbing are built for excavation".
 
 
 ### DEC-055 — Settlement save and load policy
@@ -1622,10 +1647,49 @@ questions in chat:
 Not ruled, so the study's proposals stand: the slice order A–H and everything in study §4 (things not copied from
 EG2). These include research-gated rock and gold veins.
 
+**Addendum, 2026-10-15: Mound homes, an exception to Q3's generated walls and roof (decision 2001).** Brendan asked
+how to build into hillsides and whether painting "a certain style of room" could also build "the hill that it is
+built into", with "Stairs in the home leading to underground levels". He chose "Phone mockup first" and shaped the
+mockup over ten more messages (W4–W13), relayed by the coordinator. The rules among them are:
+
+- **"pile dirt, dig into the dirt, frame the build, then fix the top"**;
+- the hill should "match the size of the build we've done, then grow as we expand more rooms";
+- "The door and windows should have to be manually placed by the user on the grid system, not auto generated";
+- the window goes "on the turf slope", sits "flat against the ground" at "a natural height", is not "blocked by
+  bushes", and gives light "from the inside too";
+- "the rooms are always on the edge of the mound".
+
+He then approved the result: **"This looks good, let's build this into the plan."** All fourteen messages are
+quoted in decision 2001 as W1–W14.
+
+- **Mound** (working name) is a construction style for rooms painted on the Surface. A hill is heaped to fit the
+  painted rooms, the rooms are dug into it, framed and topped with turf, and the player places doors and windows on
+  the rooms' outer edges.
+- **This is an exception to Q3 for Mound-style rooms only.** Their walls are braced earth and their roof is the
+  earth cover; Q3's "walls and roof are generated from the painted area" still holds for every other surface room.
+  SET-BUILD-001 §12 (BUILD-MOUND-001 onward) holds the rules.
+- **Reference images.** Brendan supplied four Bag End images: "These should be your inspirations". They are not in
+  the repository and their provenance is unknown. DEC-010's provenance boundary (no copied film designs) and DEC-036's
+  provenance record still apply.
+- **His rulings on decision 2001, the same day.**
+  - **P-2001-1: "Finer heights"** (not the recommendation). Ground heights are finer than a metre and slopes are
+    real slopes. Walkers and haulers must handle them, which opens movement work against SET-MOVE-001's gates. GDD
+    §5.1's three fixed surface heights are to be amended (MOUND-TERRAIN).
+  - **P-2001-6: "Wall's top metre".** A window lies on the slope at the height of its wall's top metre.
+  - **P-2001-8: "Our own, oak default".** The approved door front is read as general burrow-home inspiration within
+    DEC-010's boundary: our own design, no centre knob, oak by default, green still a choice.
+  - **"Approve all"** for the rest, as recommended: P-2001-2–5, -7, -9–14. That covers the name "Mound", spoil as the
+    heap's earth, a 1 m cover and a 3-cell berm, a 6-cell yard, no walking on the mound at first, hills authored into
+    the estuary preset, daylight as presentation, a free proof of concept first, removal that backfills and keeps
+    the hill, the thirteen smaller rules, and the build order as the mockup shows it.
+  - **P-2001-15: "1/8 m"**, ruled later the same day. Ground heights are integers in steps of 128 u, so today's
+    512, −128 and 0 convert exactly.
+
+Engineering record: [decision2001](decisions/2001-mound-homes.md).
 
 ### DEC-062 — Rooms are dug with a general claw motion to the full 4 m clear height
 
-On 2026-10-14, Brendan answered the question that slice C2's [decision 1932](decisions/) raises. That record is on
+On 2026-10-14, Brendan answered the question that slice C2's [decision 1932](decisions/1932-the-claw-down-stroke-cannot-open-an-underground-room.md) raises. That record is on
 branch `feat/room-foreman-slice-c2` at `70462eaa`, not yet on master. It found that the downward claw stroke (M1)
 cannot open an underground room. The coordinator relayed his answers, given in chat through multiple-choice
 questions:
@@ -1654,3 +1718,49 @@ questions:
 
 Engineering records: decision 1932 and decision 1931 on `feat/room-foreman-slice-c2`. The C2 lane records this
 ruling in 1932 and points to here.
+
+**Superseded by / amended by (note added 2026-10-21, when this entry reached master).** The entry above is the
+2026-10-14 record as written then (PR #259); only its link to decision 1932 was corrected. It stayed off master
+until 2026-10-21, so the later rulings below were recorded without it, and decision 1932 does not point here. Line
+numbers are at origin/master `e0e7065a`.
+
+- **"Full 4 m clear height": confirmed on 2026-10-15, and its open part settled.** Brendan's "Painted height"
+  (decision 1971 P-1971-3 (b), `decisions/1971-one-basic-claw-stroke-digs-any-reachable-cube.md:25`) is recorded
+  as DEC-054's addendum of 2026-10-15 (this file, lines 1423–1438). It gives the same height, 4,096 u (4 quanta),
+  and the same bill per cell (1971:30–49).
+  - The proposal this entry asked for, how a 0.9 m mole works a 4 m face, is P-1971-3 (b) itself. The claws strike
+    each column's bottom quantum, and the quanta above are worked from the same station and paid as part of the
+    same work (1971:56–66, 324–328). DEC-054's "no earth benches, steps or climbing" stays (line 1437).
+  - It took effect in the game on 2026-10-17, when content 12 was mounted and 1971's LEGACY one-quantum band was
+    deleted (decision 1972 Phase 3b, `decisions/1972-activating-contents-11-and-12-scoping.md:5`, `:822`).
+    SET-BUILD-001 §7.2 carries the same note (`building_model_amendment.md:233–237`).
+  - Decision 1943's matrix suites dig most rooms one cube high to keep CI time down, and keep the full 4 m on the
+    7 × 7 Kitchen (`decisions/1943-rooms-dug-on-every-side-of-their-access.md:169–175`). That is test scope, not a
+    height rule.
+- **"General motion": its mechanism is replaced by decision 1971 (2026-10-15); one part is open.** Brendan's "I
+  just want the basic claw stroke that digs anything" and P-1971-1 (b) "Approve" make the approved claw stroke M1
+  the one stroke, with four wall rows derived from its own clips (1971:9–15, 21; this file, lines 1433–1435).
+  - Under that build, contact and patch are proved on the struck (bottom) cube (1971:58, 394). Only the upper quanta
+    are paid without contact, "in the spirit of DEC-060" (1971:324–328).
+  - **Open, put to Brendan on 2026-10-21:** does this entry's "exact contact with the struck face is not required"
+    still stand for room digging, or did 1971's contact proof on the struck cube replace it? Neither record says.
+    Until he rules, neither is read as overriding the other.
+- **"Not yet diggable": superseded on 2026-10-19** by P-1990-1 (b) "Keep the mole, build real" and P-1990-2 (a)
+  "Stays free, show bill" (`decisions/1990-slice-c3-scoping-what-closes-slice-c.md:36–37`). The panel never showed
+  these words.
+  - The demo's panel digs with decision 1912's proof-of-concept mole, labelled "proof of concept: free", and the
+    ledger shows the bill (`godot/demo/build_panel/demo_build.gd:93`, `:135`).
+  - The real Confirm route refuses "No way in: needs a way down to level N" until a level has a way in
+    (`decisions/1991-slice-c3-the-real-confirm-route-crew-and-stop.md:11–13`;
+    `godot/scripts/core/underground_room_confirm.gd:29`). Slice D2 binds the way down (decisions 2052 and 2053).
+- **Test leave on the retired pick rows ("not ruled"): given as "Yes, tests only".** Decisions 1931 and 1932 record
+  it (`decisions/1932-the-claw-down-stroke-cannot-open-an-underground-room.md:27–28`;
+  `decisions/1931-slice-c2-room-foreman-scoping-stopped-for-rulings.md:56`). C2.1's foreman proof runs on the
+  content-6 pick fixture under it, taking no height or price from the pick
+  (`decisions/1933-the-room-foreman-on-the-fixed-tick.md:16`).
+- **Open, put to Brendan on 2026-10-21: the order of the rulings.** Decisions 1931 and 1932 date "One basic front
+  stroke" (M3, rooms one quantum high) and "Yes, tests only" to 2026-10-13 (1932:24–28), the day before this entry.
+  Yet this entry chooses none of 1932's options and says the test leave was not ruled. Both were written to master on
+  2026-10-15 (commit `fec1ca65`); this entry was written at 11:41 on 2026-10-14. So either those two answers came
+  after this entry, in the C2 session Brendan started himself, or this entry replaced them. The 2026-10-15 rulings
+  govern either way; only the history differs.

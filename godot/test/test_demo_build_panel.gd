@@ -6,6 +6,8 @@ extends "res://test/framework/test_case.gd"
 ## UX-BUILD-T04 (no silent cost) and UX-BUILD-T05 (selection identity across levels), and a still frame allocating
 ## nothing.
 
+const Items := preload("res://scripts/ui/build_items.gd")
+const Families := preload("res://scripts/ui/build_connector_families.gd")
 const BuildScript := preload("res://demo/build_panel/demo_build.gd")
 const CommandScript := preload("res://demo/control/demo_command.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
@@ -14,6 +16,7 @@ const LevelBar := preload("res://scripts/ui/level_bar.gd")
 const BuildCatalog := preload("res://scripts/ui/build_catalog.gd")
 const Validity := preload("res://scripts/ui/build_validity.gd")
 const Orders := preload("res://demo/build_panel/demo_build_orders.gd")
+const Mound := preload("res://scripts/ui/build_mound.gd")
 const UiShellScript := preload("res://scripts/ui/ui_shell.gd")
 
 const KITCHEN_CARD: int = 2
@@ -236,7 +239,7 @@ func test_the_old_tool_cards_are_gone_and_passage_paints() -> void:
 	paints CORRIDOR (BUILD-REQ-014); no card opens the Dig tool; the panel says digging comes later."""
 	_command.select(PackedInt32Array([0]))
 	_build.open_panel()
-	assert_true(_said[-1].contains("a mole digs them (free for now)"), _said[-1])
+	assert_true(_said[-1].contains("the selected moles (or the first free one) dig them (proof of concept: free)"), _said[-1])
 	assert_equal(_card("Burrow home"), -1, "no Burrow home card")
 	assert_equal(_card("Root cellar"), -1, "no Root cellar card")
 	_build.bar.choose(1)
@@ -332,6 +335,10 @@ func test_a_still_frame_allocates_nothing() -> void:
 	"""The panel open, a type armed, nothing moving: no object is made over many frames."""
 	_paint_kitchen_by_keys()
 	_build._process(0.016)
+	_build._process(0.016)
+	# The level's earth is rebuilt on a worker and shown by a later frame (decision 1914): that one showing makes its
+	# meshes; it is shown here, so the frames measured are still ones.
+	_build.dug.earth.finish()
 	_build._process(0.016)
 	var before: int = int(Performance.get_monitor(Performance.OBJECT_COUNT))
 	for frame: int in 200:
@@ -449,8 +456,8 @@ func test_the_proof_of_concepts_loop_entrance_room_mole_and_visit() -> void:
 	var cast: Node = _nodes[0]
 	_build.bind_cast(cast, func() -> PackedInt32Array: return PackedInt32Array())
 	_build.open_panel()
-	_build.panel.choose_card(_card("Entrance"))
-	assert_true(_build.way_down_armed(), "the Entrance is armed on the surface")
+	_build.panel.choose_card(_card("Hatch with ladder"))
+	assert_true(_build.way_down_armed(), "the hatch is armed on the surface")
 	assert_equal(_build.batch.place_item(0, Vector2i(4, 4)), Validity.KIND_CAN_BUILD, "placed")
 	_build.bar.choose(1)
 	_build.panel.choose_card(KITCHEN_CARD)
@@ -472,15 +479,20 @@ func test_the_proof_of_concepts_loop_entrance_room_mole_and_visit() -> void:
 
 
 func test_a_way_down_is_placed_by_click_or_enter_and_says_why_not() -> void:
-	"""Decision 1912: on a level with nothing dug a Way down is "!" (needs a passage or room under it)."""
+	"""Decision 2021 (P-D1-3 (a)): Enter pins the way and opens the connector card, Enter again adds it to the plan; on a
+	level with nothing dug it is "!" (needs a passage under it, P-D1-5 (a)), said in words."""
 	_build.open_panel()
 	_build.bar.choose(1)
-	_build.panel.choose_card(_card("Way down"))
+	_build.panel.choose_card(_card("Hatch with ladder"))
 	_build.paint.set_cursor(Vector2i(20, 20), 1, -1)
-	assert_true(_press(KEY_ENTER), "Enter places it")
-	assert_equal(_build.batch.items().live_count(), 1, "one Way down")
+	assert_true(_press(KEY_ENTER), "Enter pins it")
+	assert_true(_build.panel.pinned(), "the card is open")
+	assert_true(_build.panel.connector_words().contains("needs a passage under it"), _build.panel.connector_words())
+	assert_true(_press(KEY_ENTER), "Enter adds it")
+	assert_false(_build.panel.pinned(), "the card closed")
+	assert_equal(_build.batch.items().live_count(), 1, "one way")
 	assert_equal(_build.batch.item_kind(0), Validity.KIND_BLOCKED, "nothing under it")
-	assert_true(_said[-1].contains("needs a passage or room under it"), _said[-1])
+	assert_true(_said[-1].contains("needs a passage under it"), _said[-1])
 
 
 
@@ -502,12 +514,12 @@ func test_the_mole_is_the_selected_one_and_figures_are_reused() -> void:
 	var selected: PackedInt32Array = PackedInt32Array([1])
 	_build.bind_cast(cast, func() -> PackedInt32Array: return selected)
 	_build.works.order_way_down(0, Vector2i(4, 4))
-	assert_true(_build._send_mole(), "sent")
+	assert_true(_build._send_crews(), "sent")
 	assert_true(_said[-1].begins_with(_build._name_of(1)), "the selected mole: %s" % _said[-1])
 	(cast.call(&"actor", 1) as Node).get(&"brain").call(&"release")
 	assert_false(_build.digging(), "its trip taken by another order")
 	selected = PackedInt32Array()
-	assert_true(_build._send_mole(), "sent again")
+	assert_true(_build._send_crews(), "sent again")
 	assert_equal(_build._figures.size(), 1, "the figure reused")
 
 
@@ -517,7 +529,7 @@ func test_with_no_mole_anyone_digs_and_says_so() -> void:
 	(cast.call(&"actor", 0) as Node).set(&"species", "Otter")
 	_build.bind_cast(cast, func() -> PackedInt32Array: return PackedInt32Array())
 	_build.works.order_way_down(0, Vector2i(4, 4))
-	assert_true(_build._send_mole(), "someone sent")
+	assert_true(_build._send_crews(), "someone sent")
 	assert_true(_said[-1].begins_with("No mole lives in the village: "), _said[-1])
 
 
@@ -530,7 +542,136 @@ func test_cells_cut_off_from_every_entrance_are_said_once_and_send_nobody() -> v
 	for cell: Vector2i in [Vector2i(4, 4), Vector2i(5, 4), Vector2i(4, 5), Vector2i(5, 5)]:
 		_build.works.open_cell(1, cell)
 	var before: int = _said.size()
-	assert_false(_build._send_mole(), "nobody sent")
-	assert_false(_build._send_mole(), "nor the next time")
+	assert_false(_build._send_crews(), "nobody sent")
+	assert_false(_build._send_crews(), "nor the next time")
 	assert_equal(_said.size(), before + 1, "said once")
 	assert_true(_said[-1].ends_with("cannot be reached from an Entrance: they wait"), _said[-1])
+
+
+func test_on_the_surface_a_mound_room_and_its_door_are_placed_by_keys() -> void:
+	"""Decision 2002: on the Surface a Kitchen paints in the Mound style, "! No way in" until a door; the Front door
+	card arms a door, Enter places it at the cursor cell's north side; with no way down nobody goes below."""
+	_build.open_panel()
+	assert_equal(_build.bar.shown_level(), LevelBar.LEVEL_SURFACE, "the Surface")
+	_build.panel.choose_card(KITCHEN_CARD)
+	assert_equal(_build.armed_type(), 2, "a Mound Kitchen armed")
+	_build.paint.set_cursor(Vector2i(2, 2), 0, 2)
+	assert_true(_press(KEY_ENTER), "Enter: the first corner")
+	for k: int in 5:
+		_press(KEY_RIGHT)
+	for k: int in 3:
+		_press(KEY_DOWN)
+	assert_true(_press(KEY_ENTER), "Enter: the second corner")
+	assert_equal(_build.batch.operation_style(0), Mound.STYLE_MOUND, "a Mound room")
+	assert_equal(_build.batch.operation_reason(0), Mound.TEXT_NO_DOOR, "no way in yet")
+	assert_true(_build.panel.select_tab(BuildCatalog.TAB_FURNISH), "Furnish")
+	assert_false(_build.edge_armed(), "nothing armed yet")
+	_build.panel.choose_card(_card("Front door"))
+	assert_true(_build.edge_armed(), "the door armed")
+	assert_equal(_build.armed_edge_kind(), Mound.KIND_DOOR, "a door")
+	_build.paint.set_cursor(Vector2i(3, 2), 0, -1)
+	assert_true(_press(KEY_ENTER), "Enter places it")
+	assert_equal(_build.batch.mound_edges().live_count(), 1, "pending")
+	assert_equal(_build.batch.operation_kind(0), Validity.KIND_CAN_BUILD, "the room ✓ with its door")
+	assert_equal(_said[-1], "✓ Place Front door", "said")
+	assert_false(_build.edge_armed(), "put down after placing")
+	assert_equal(_build.armed_edge_kind(), -1, "none")
+	assert_equal(_build.ground_point(Vector2(10.0, 10.0)), Vector2.INF, "off-tree: no ground point")
+	assert_equal(_build.way_in(), -1, "no way down: nobody goes below")
+
+
+func test_a_way_down_on_a_mound_rooms_floor_is_named_where_it_leads() -> void:
+	"""BUILD-MOUND-021: a hatch wholly on a Mound room's floor is "Way down, connects to Underground level 1"; elsewhere
+	its family's name (decision 2021)."""
+	_build.batch.begin_stroke(2, 0, Vector2i(10, 10), Mound.STYLE_MOUND)
+	_build.batch.extend_stroke(Vector2i(15, 13))
+	_build.batch.finish_stroke()
+	var hatch: int = Families.LADDER_HATCH
+	assert_equal(_build.paint.way_name(0, Items.footprint(Vector2i(11, 11)), hatch), _build.paint.HATCH_NAME, "on the floor")
+	assert_equal(_build.paint.way_name(0, Items.footprint(Vector2i(15, 11)), hatch), "Hatch with ladder", "half off it")
+	assert_equal(_build.paint.way_name(0, Items.footprint(Vector2i(30, 30)), hatch), "Hatch with ladder", "open ground")
+	assert_equal(_build.paint.way_name(2, Items.footprint(Vector2i(11, 11)), hatch), "Hatch with ladder", "below")
+	assert_equal(_build.paint.way_name(0, Items.footprint(Vector2i(11, 11)), Families.RAMP), "Burrow mouth",
+		"another family names itself")
+
+
+# --- the ways per family (decision 2021) ---------------------------------------------------------------------------
+
+func test_a_burrow_mouth_is_pinned_turned_added_and_dug_by_the_mole() -> void:
+	"""P-D1-3 (a), P-D1-11 (a): its card arms it; Enter pins it and opens the connector card; R turns it; Enter adds it;
+	Confirm all orders its run and landing, and the mole digs them all, free."""
+	var cast: Node = _nodes[0]
+	_build.bind_cast(cast, func() -> PackedInt32Array: return PackedInt32Array())
+	_build.open_panel()
+	_build.panel.choose_card(_card("Burrow mouth"))
+	_build.paint.set_cursor(Vector2i(4, 4), 0, -1)
+	assert_true(_press(KEY_R), "R turns it")
+	assert_equal(_build.panel.way_turn(), 1, "turned once")
+	assert_true(_press(KEY_R, false, true), "Shift+R back")
+	assert_true(_press(KEY_ENTER), "Enter pins it")
+	assert_true(_build.panel.connector_words().begins_with("✓ Connects to Underground level 1"),
+		_build.panel.connector_words())
+	assert_true(_press(KEY_ENTER), "Enter adds it")
+	assert_equal(_said[-1], "Burrow mouth: ✓ Can build", _said[-1])
+	_build.confirm_all()
+	assert_equal(_build.works.waiting(), 24, "its run and landing wait")
+	assert_true(_build.digging(), "a mole sent")
+	var brain: Object = (cast.call(&"actor", 0) as Node).get(&"brain")
+	_build.digger.arrived(brain)
+	for frame: int in 4000:
+		if not _build.digger.step(brain, 0.1):
+			break
+	assert_equal(_build.works.waiting(), 0, "every cell dug")
+
+
+func test_a_click_on_a_confirmed_way_asks_for_its_removal_or_says_why_not() -> void:
+	"""P-D1-6 (a): with a way's card chosen, a click on a confirmed way asks for its removal; while a room lies beyond it
+	and no other way leads there, it is refused in BUILD-REQ-017's words, naming the room."""
+	_build.works.order_way_down(0, Vector2i(4, 4))
+	_build.open_panel()
+	_build.panel.choose_card(_card("Hatch with ladder"))
+	assert_true(_build._place_way_down(Vector2i(5, 5)), "a click on it")
+	assert_equal(_said[-1], "✓ Remove Hatch with ladder", _said[-1])
+	assert_true(_build.batch.undo(), "taken back")
+	_build.works.order_room(1, PackedInt32Array([6, 4, 7, 4, 6, 5, 7, 5]), 2)
+	_build.batch.host_changed()
+	assert_true(_build._place_way_down(Vector2i(4, 4)), "clicked again")
+	assert_equal(_said[-1], "X Not possible: Would cut off Kitchen (level 1): build another way in first", _said[-1])
+	assert_equal(_build.batch.items().live_count(), 0, "nothing pending")
+	assert_false(_build.panel.pinned(), "no card opened")
+
+
+func test_a_click_pins_then_the_same_cell_adds_and_another_moves_the_pin() -> void:
+	"""The first click opens the card there; a click on another cell moves it; a click on the pinned cell adds it."""
+	_build.open_panel()
+	_build.panel.choose_card(_card("Stair-head"))
+	assert_true(_build._place_way_down(Vector2i(10, 10)), "pinned")
+	assert_true(_build._place_way_down(Vector2i(30, 10)), "moved")
+	assert_equal(_build.panel.pinned_cell(), Vector2i(30, 10), "there now")
+	assert_true(_build._place_way_down(Vector2i(30, 10)), "added")
+	assert_equal(_build.batch.items().cell_of(0), Vector2i(30, 10), "where it was pinned")
+	assert_equal(_build.batch.items().family_of(0), Families.EARTH_TIMBER, "a stair-head")
+	assert_true(_build.ways.cut_off(PackedInt32Array(), []).is_empty(), "the cut-off reader answers nothing removed")
+
+
+func test_over_a_built_way_only_the_removal_judgement_shows() -> void:
+	"""Decision 2022 (the coordinator's defect): hovering a built hatch with a way's card chosen shows one judgement --
+	the removal's -- in words beside the pointer; the ghost over it carries no tag, so no placement "Overlaps" refusal
+	and no access ghost shows."""
+	_build.works.order_way_down(0, Vector2i(4, 4))
+	_build.works.order_room(1, PackedInt32Array([6, 4, 7, 4, 6, 5, 7, 5]), 2)
+	_build.batch.host_changed()
+	_build.open_panel()
+	_build.panel.choose_card(_card("Hatch with ladder"))
+	_build.paint.set_cursor(Vector2i(5, 5), 0, -1)
+	_build._process(0.016)
+	assert_equal(_build.label_text(), "X Not possible: Would cut off Kitchen (level 1): build another way in first",
+		_build.label_text())
+	var tags: PackedStringArray = PackedStringArray()
+	for ghost: Object in _build.paint.stroke_ghosts(0):
+		if bool(ghost.get(&"visible")) and not String(ghost.call(&"tag_text")).is_empty():
+			tags.append(String(ghost.call(&"tag_text")))
+	assert_true(tags.is_empty(), "no ghost tag to compete with it: %s" % ", ".join(tags))
+	_build.paint.set_cursor(Vector2i(20, 20), 0, -1)
+	_build._process(0.016)
+	assert_true(_build.label_text().begins_with("Place Hatch with ladder"), "off it: placing again")

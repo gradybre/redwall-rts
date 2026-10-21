@@ -1084,12 +1084,14 @@ are game UI the demo mounts, and the settlement game's own Build button stays lo
   news strip step aside (their place is the panel's) and come back on close.
 - **Tabs** Rooms · Furnish · Decor (Ctrl+Tab / Ctrl+Shift+Tab). Furnish and Decor wait, saying "Choose a room type
   first", until a room type or Passage is chosen; then they list that type's furniture, placed on dug rooms below
-  (decision 1921: see "The Furnish tab" below); on the surface and Overview the cards are locked and say why.
+  (decision 1921: see "The Furnish tab" below), or on a Mound room's dug floor on the Surface, with the Mound's Front
+  door and Windows (decision 2002: see "Mound homes" below); on Overview the cards are locked and say why.
 - **Rooms** (decision 1912): the eight GDD room types -- Dormitory, Bedroom, Kitchen, Dining room, Common room,
   Infirmary, Pantry and **Passage** (CORRIDOR, at least 2 cells wide) -- to paint on levels 1-4; the **Entrance** on the
   Surface and a **Way down** on levels 1-3. The old Passage / Burrow home / Root cellar tool cards are gone (Brendan's
-  ruling on decision 1911 P-C2 (c)). On the surface and on Overview the room types are locked with the reason in words;
-  Earth, Remove, Outdoor and Clear ground are locked "Not yet".
+  ruling on decision 1911 P-C2 (c)). Two toggles after the tabs choose the **style**: **Built** below, **Mound** on the
+  Surface (decision 2002); the other style's room types are locked with the reason in words, as on Overview; Earth,
+  Remove, Outdoor and Clear ground are locked "Not yet".
 - **The info card** follows the hovered or focused card: a described placeholder picture, its purpose, its cost per
   cell in natural measures -- the claw crew's dig height, read in one place (`burrow/modular_runtime.gd
   dug_height_u`; 1 quantum on master: a quarter log, 1.25 kg of stone, about 5 minutes of work, a basket of earth) --
@@ -1122,16 +1124,35 @@ nothing reaches the settlement's simulation -- and sends a **mole** (the first s
 it walks to the Entrance, goes in, and a stand-in figure with its name (`demo_build_figure.gd`) digs the ordered cells
 one by one below, nearest first, each opening after a short wait (`demo_build_below_task.gd`). **The look (decision
 1913)**: the level is a cutaway block of earth whose top is the plane you paint on (`demo_build_earth.gd`); each dug
-cell is a pit 1 m deep in it, lit packed-earth floor and walls against the darker mass; an ordered cell is pegged out in
+cell is a pit 1 m deep in it (its walls rounded since decision 1914, below), lit packed-earth floor and walls against
+the darker mass; an ordered cell is pegged out in
 chalk ("Waiting for the mole: N cells"); the cell being dug deepens as the mole works ("Digging"). The Entrance is a
 burrow mouth on the surface, and its landing below has stairs rising out of it; a Way down whose landing is dug has
 stairs going down into the dark (`demo_build_ways.gd`). The tags and the names over the figures never sit on each other
 (`demo_build_tags.gd`). With residents selected, a **right click** on a dug cell's floor sends them down into it.
-Slice C3 replaces all of this with the settlement's own room foreman, excavation and payment. Nothing here is saved.
+Slice C3 (decision 1991; Brendan's ruling P-1990-1 (b), "Keep the mole, build real") built the real route in the game's
+code behind it (`scripts/core/underground_room_confirm.gd`: RoomOrders admits the painted room, the room foreman digs
+it, each phase paying when its work starts); slice D2 switches the panel to it once a level has a way in, and retires
+this mole. Nothing here is saved, and nothing is paid (P-1990-2 (a), "Stays free, show bill").
 
 Checks: `test_build_*.gd` (batch, stroke, cell validity, items, validity, catalog, panel, ledger, layout),
 `test_demo_build_panel.gd`, `test_demo_build_works.gd`, `test_demo_build_dig.gd`, `test_demo_build_orders.gd`, and
 the live harnesses `test/live/demo_input_live.gd` (build steps) and `test/live/demo_build_dig_live.gd` (the whole loop).
+
+### The crew and Stop digging (decision 1991)
+
+Brendan's rulings of 2026-10-19, P-1990-4 (a) "Selected moles crew it" and P-1990-5 (a) "One Stop digging". **The
+crew**: the moles selected when Confirm all is pressed (1 to 4; with no mole in the village, the selected residents)
+crew every room and way that batch ordered, and dig its cells side by side, each cell claimed by one of them
+(`demo_build_crews.gd`, `demo_build_works.gd` `crew_of` / `claim`); with none selected, the first free mole digs as
+before. The footer's ledger names the crew by first name before you confirm ("Crew: Tuppen, Bramble"). **The room
+card** (UI-BUILD-015): with no card chosen, click a confirmed room on its level -- the card says how far it is dug, who
+digs it, and that this is the proof of concept. **Stop digging** (UI-BUILD-016): the room's cells still waiting go back
+to earth and back into your plan as one pending room (Undo takes them out again); what is dug stays dug, and the room's
+dug cells count toward the put-back part's 2 × 2 blocks and its minimum size; a crew with nothing left walks out.
+
+Checks: `test_demo_build_crew.gd`, and the live harness `test/live/demo_build_crew_live.gd` (run by
+`test_demo_input_live.gd`; `-- --capture <directory>` for its frames).
 
 ### The Furnish tab: a resident fits it (decision 1921)
 
@@ -1156,6 +1177,93 @@ Nobody sleeps or cooks there yet, and nothing here is saved.
 Checks: `test_build_furniture.gd`, `test_demo_build_furnish.gd`, `test_build_panel.gd`, `test_build_catalog.gd`, and
 the live harness `test/live/demo_build_furnish_live.gd` (the whole loop; run by `test_demo_build_furnish_live.gd`,
 slow tier).
+
+### Ways in and out, per family (decision 2022; slice D1)
+
+Brendan's rulings of 2026-10-16 on decision 2021 (all twelve (a); "Use the table, marked", "All three types", "Real
+check now"). The Rooms tab on every level offers three ways -- **Burrow mouth** (a ramp), **Hatch with ladder** and
+**Stair-head** (earth/timber stairs) -- then Stone stairs and Spiral stair locked ("Not yet: ..."). Every size and
+cost they show is a **placeholder** awaiting review (`scripts/ui/build_connector_families.gd`, where each number's
+source is written): the hatch is the old 2 × 2; the ramp takes 2 × 9 cells where it stands and 2 × 12 below; the
+stair-head is decision 2043's M5 flight (today's module five times), 2 × 27 cells open to the land and 2 × 20 below,
+placed descending north only ("No qualified stair for this direction yet" when turned). With a
+way's card chosen, **R / Shift+R** turn it, and a **click** (or Enter at the cursor) pins its ghost -- its cells on the
+level shown, judged in words, with its access pair -- and opens the **connector card** (UI-BUILD-012, above the
+panel; in NARROW in the card row): **Down** / **Up** (the impossible one disabled with its reason: "No level above
+the surface", "No level below level 4"), "✓ Connects to Underground level N" or why not, the placeholder's notes
+("Climbers only: loads need a stair or ramp" on a hatch; "Proof of concept: free; not yet a qualified descent"),
+**Add to plan** (Enter; Shift keeps the card) and **Cancel** (Escape). Below the Surface a way stands on a Passage; on
+the Surface it may stand on open ground or wholly on a Mound room's floor, never over water or a placed thing. A
+ramp's or stair's run below must be untouched earth. **Confirm all** orders each way's cells below -- its landing (a
+way in for the rooms beside it) and its run (walked only along itself, never a way in: `demo_build_works.gd`
+TYPE_WAY) -- and the mole digs them, free, as it digs rooms. Each is drawn turned as placed: on the surface a burrow
+mouth, a hatch or a stair-head; below, a ramp, a ladder or stairs rising out of its foot, and going down where one
+stands on a passage (`demo_build_ways.gd`, `demo_build_dug.gd`). A **click on a confirmed way** with a way's card
+chosen asks for its removal (one step; click again to withdraw); it is **refused** in words while it is the only way
+in to anything -- "X Not possible: Would cut off Kitchen (level 1), Passage (level 1): build another way in first" --
+and so is a Mound's only front door's removal (BUILD-REQ-017: `scripts/ui/build_way_graph.gd` over the works, the
+Mounds and the residents below, `build_panel/demo_build_way_host.gd`). A removed way's dug cells stay dug; its
+waiting ones go back to earth. Nothing reaches the settlement and nothing is saved; slice D2 binds a qualified
+connector to the real room digs.
+
+Checks: `test_build_connector_families.gd`, `test_build_way_graph.gd`, `test_build_batch_ways.gd`,
+`test_build_connector_card.gd`, `test_build_items.gd`, `test_demo_build_works.gd`, `test_demo_build_way_host.gd`,
+`test_demo_build_panel.gd`, and the live harness `test/live/demo_build_dig_live.gd` (the five cards, the connector
+card, a burrow mouth and a stair-head placed, dug and drawn, the refused removal; its frames with `--capture`).
+
+### Rounded, hand-dug walls (decision 1914)
+
+Brendan approved the burrow-walls mockup on 2026-10-15 ("Let's build this"). Rooms stay on the 1 m grid for every
+rule -- painting, validity, footprints, digging, cost -- and only the drawing of dug space changes
+(`build_panel/demo_build_burrow_field.gd`, `demo_build_burrow.gd`, `build_burrow.gdshader`). The outline is smoothed
+and carried outward into the earth: a room's outer corners round, and where a passage meets a room the earth corner is
+filleted so the mouth flares. The walls are coved -- rounded over at the top lip, curving into the floor -- and the
+contour wobbles a little, the same every frame and every run. Two rules hold: **every dug cell's whole floor stays dug
+and visible** (the curves carve into the earth, never into a cell, so furniture always stands on flat floor), and
+**what is planned stays square** (ghosts, chalk and the ordered cells are never rounded; the rounding grows as cells are
+dug). A cell being dug deepens and the rounding round it grows with it. A one-cell wall between two rooms keeps its
+crest. The bought earth textures wrap the curved walls from the side they face; with nothing staged, the procedural
+earth. While the Rooms or Furnish tab is open, a faint cell grid shows on the dug floor. The earth is rebuilt only when
+the dug cells change, on a worker thread, and only the wall patches round a change are remade.
+
+Checks: `test_demo_build_burrow.gd` (the field, both rules, the wobble, cracks, the rebuild), `test_demo_build_dig.gd`,
+the rules on the drawn earth in `test/live/demo_build_dig_live.gd` and `demo_build_furnish_live.gd`, and
+`test/live/demo_build_rounded_live.gd` (the furnish loop with a bent passage, and its frames; run by hand).
+
+### Mound homes (decision 2002)
+
+Brendan's rulings of 2026-10-15 (decision 2001; P-2001-11 (a): a proof of concept first, in the demo, free, drawn over
+unchanged ground, unsaved). On the **Surface** the Rooms tab paints the room types in the **Mound** style: rooms dug
+into a hill heaped to fit them (`scripts/ui/build_mound.gd`, the batch's MOUND HOMES). Each Mound -- its rooms joined
+cell to cell -- says **"! No way in: place a door on an outer edge"** on every cell until it has a door, and Confirm all
+waits for it. On the **Furnish** tab the **Front door** card (two outer edges side by side; its colour on the tool
+strip: Oak first, Green, Red, Blue) and the **Window** card (one outer edge) place them: every outer edge shows as a
+slot, the one nearest the pointer is judged in words, a **click** places one or takes it back, **Enter** places one at
+the cursor cell's side that **R / Shift+R** names. A hill may not cover water, a tree, a building, an item or a way down
+that is not wholly on one room's floor ("Not possible: the hill would cover water"); the woods' rocks, logs and stumps
+are heaped over and hidden. No room stands in or beside a door's yard, and no window looks out beside one. The
+**Entrance** card on a Mound room's floor is its hatch: "Way down, connects to
+Underground level 1".
+
+**Confirm all** hands the rooms, doors and windows to `build_panel/demo_build_mounds.gd` and sends a resident (the
+selected one, else the first free one who is not a mole) to the door's yard (`demo_build_mound_task.gd`): it heaps the
+whole hill a cell at a time from the yard, goes in at the door to dig, bracing each cell as the frame's timber ribs,
+comes out to top and turf it, then fits the doors and windows and the furniture on the floor. The hill
+(`demo_build_mound_field.gd`, `_hill.gd`, `_view.gd`) stands a metre over the walls' tops under a domed crown,
+falls in a rounded curve to the ground four metres out (Brendan's 2026-10-16 ruling, "Rounder, like the mockup") and
+is cut to the ground in each door's yard; it only grows as rooms are added. The door's built front
+(`demo_build_mound_front.gd`): plaster, timber posts, a curved eave with the turf over it, a brick-ringed round door of
+our own design (no knob in its middle), a lantern, steps, flower beds, a bench and a picket fence. Windows lie flush on
+the turf slope at the wall's top metre; by day each lights its room with a beam and a pool of light. A finished hill
+grows turf, shrubs, a tree on its crown and a chimney over a fitted hearth, none by a window or on a door's path. While
+the panel shows the Surface the hill is drawn cut away at the walls' top so the rooms show. Residents walk round a hill
+and in only at a door's yard. A way down on a Mound's floor lands on level 1 and is reached through the door. Nothing is
+charged or saved; MOUND-TERRAIN and MOUND-REAL replace the drawing with ground and the settlement's own work.
+
+Checks: `test_build_mound.gd`, `test_build_mound_edges.gd`, `test_build_batch_mound.gd`, `test_build_panel_mound.gd`,
+`test_demo_build_mounds.gd`, `test_demo_build_mound_field.gd`, `_mesh.gd`, `_parts.gd`, `_view.gd`, `_host.gd`, and the
+live harness `test/live/demo_build_mound_live.gd` (the whole loop, with `--capture <directory>` for its frames; run by
+`test_demo_build_mound_live.gd`, slow tier).
 
 ## Digging tunnels
 

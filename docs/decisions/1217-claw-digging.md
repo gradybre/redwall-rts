@@ -97,8 +97,17 @@ Every motion follows the established path:
 | M7 | Tool-free stair gaits and handoffs | `stair-descent-v7`, `stair-motion-v15`, handoffs v1 | the accepted leg motion (feet unchanged), the tool-free upper body | the descent |
 | M2, M3 | Claw high-wall and front strokes | rows 14/15 families | M1's solver | Room levels 0–1 |
 
+**Note (2026-10-15, decision 1971).** Brendan asked for one basic claw stroke that digs any face. M2 and M3 are
+not authored; decision 1971 proposes M1's approved clips, with derived wall rows, as that one stroke (stopped for
+rulings).
+
 **Order.** M1 → M5 + M4a → M6 (or a decision to travel on rows 30/31 with a switch at rest at each station) →
 content 7 and the runtime changes above, which retire G11 → M7 + M4b/c (descent) → M2/M3 (Room).
+
+> **Note (2026-10-12, decision 1932).** Brendan ruled rooms dug with M1 alone (decision 1931 P-C2-1). M1's
+> patches are flat in y, and its turn-recovery air rises over the patch, so it can cut only a cube under air that is
+> already open. No underground room's top layer is, so M1 cannot open any room. Rooms still need M3 (or M2) or a new
+> ruling; see 1932's options.
 
 **Known risk for M2.** The open paw's reach is the arm (182 + 128 u) plus 202 u from the wrist to the claw tip.
 Standing upright, the right shoulder is 549 u up, so the claw tip reaches at most about 1,060 u above the stance.

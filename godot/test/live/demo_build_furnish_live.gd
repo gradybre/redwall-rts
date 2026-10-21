@@ -1,12 +1,14 @@
 extends "res://test/live/demo_build_dig_live.gd"
 ## THE FURNISH TAB'S WHOLE LOOP, live (decision 1921; Brendan's rulings of 2026-10-13), on the real village through the
-## real input gate: the Entrance placed, a Passage, a Kitchen and a Dormitory painted on level 1 and dug by the mole;
+## real input gate: the entrance (a Hatch with ladder, decision 2021) placed, a Passage, a Kitchen and a Dormitory painted on level 1 and dug by the mole;
 ## the Kitchen chosen, the Furnish tab clicked, a hearth and two kitchen benches placed by clicks on the dug floor (one
 ## turned with R); a bench over the Dormitory and a seat over the hearth refused in words; Confirm all (nothing taken
 ## from the stores); a resident walks in and fits each piece; "✓ Kitchen ready" over the room and on the tab; then two
-## beds in the Dormitory raise the HUD's Beds by two. Optional: -- --capture <directory> for its frames.
+## beds in the Dormitory raise the HUD's Beds by two, and every fitted piece stands on whole floor (decision 1914).
+## Optional: -- --capture <directory> for its frames.
 
 const Furniture := preload("res://scripts/ui/build_furniture.gd")
+const Fittings := preload("res://demo/build_panel/demo_build_fittings.gd")
 
 ## The loop's rooms on level 1 (dry from z 32 m: decision 1912 E8), east and south of the Entrance's landing.
 const BIG_KITCHEN_FROM: Vector2i = Vector2i(18, 35)
@@ -36,8 +38,8 @@ var _beds_before: int = 0
 func _initialize() -> void:
 	"""The real village; only the furnish loop's steps."""
 	super()
-	_steps = [_open_over_the_rooms, _scroll_to.bind("Entrance"), _choose_the_entrance, _place_the_entrance,
-		_down_to_level_one, _scroll_to.bind("Passage"), _choose_the_passage, _paint_the_passage,
+	_steps = [_open_over_the_rooms, _scroll_to.bind("Hatch with ladder"), _choose_the_entrance, _place_the_entrance,
+		_add_the_entrance, _down_to_level_one, _scroll_to.bind("Passage"), _choose_the_passage, _paint_the_passage,
 		_scroll_to.bind("Kitchen"), _choose_the_kitchen, _paint_a_room.bind(BIG_KITCHEN_FROM, BIG_KITCHEN_TO, 3),
 		_scroll_to.bind("Dormitory"), _choose_card.bind("Dormitory"), _paint_a_room.bind(DORMITORY_FROM, DORMITORY_TO, 4),
 		_confirm_the_rooms, _wait_for_the_digging, _closer_over_the_rooms, _scroll_to.bind("Kitchen"),
@@ -49,7 +51,8 @@ func _initialize() -> void:
 		_choose_card.bind("Seat"), _refused_over_the_hearth, _put_the_seat_down, _confirm_the_furniture, _wait_for_a_fitter,
 		_wait_for_the_fitting, _the_kitchen_is_ready, _tags_apart, _beds_on_the_rooms_tab, _scroll_to.bind("Dormitory"),
 		_choose_card.bind("Dormitory"), _open_the_furnish_tab.bind("Bed"), _scroll_to.bind("Bed"), _choose_card.bind("Bed"),
-		_place_two_beds, _confirm_the_beds, _wait_for_the_beds, _the_beds_count, _close_the_panel]
+		_place_two_beds, _confirm_the_beds, _wait_for_the_beds, _the_beds_count,
+		_after_the_earth.bind(_pieces_on_whole_floor), _close_the_panel]
 
 
 func _open_over_the_rooms() -> void:
@@ -296,6 +299,21 @@ func _wait_for_the_beds() -> void:
 	_wait_until("the beds are fitted", func() -> bool:
 		return int(_build().get("fittings").call(&"waiting")) == 0 and not bool(_build().call(&"fitting")),
 		"furnish_beds", WAIT_STEPS)
+
+
+func _pieces_on_whole_floor() -> void:
+	"""Decision 1914, rule (a): every fitted piece's footprint is drawn at the floor's depth (the rounded walls never
+	reach into a cell), and so is every dug cell."""
+	var earth: Object = _build().get("dug").get("earth")
+	var fittings: Object = _build().get("fittings")
+	var footprints: PackedInt32Array = PackedInt32Array()
+	for row: int in int(fittings.call(&"count")):
+		if int(fittings.call(&"state_of", row)) == Fittings.FITTED:
+			footprints.append_array(fittings.call(&"cells_of", row))
+	var off: int = int(earth.call(&"cells_off_the_floor", footprints))
+	_check("every fitted piece stands on whole floor (rule a)", footprints.size() >= 2 * 16 and off == 0,
+		"%d of %d cells off the floor" % [off, footprints.size() >> 1])
+	_check_whole_floors()
 
 
 func _the_beds_count() -> void:

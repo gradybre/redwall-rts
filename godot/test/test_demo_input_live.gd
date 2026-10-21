@@ -23,6 +23,13 @@ func test_room_blueprints_use_real_clicks_and_fit_at_1280x720() -> void:
 
 
 func test_the_build_proof_of_concept_digs_a_painted_room_at_1280x720() -> void:
-	"""Decision 1912: the Entrance placed, a Passage and a Kitchen painted, Confirm all, the mole digs them, and a
-	resident walks in -- through the real input gate on the real village."""
-	_assert_run("1280x720", "res://test/live/demo_build_dig_live.gd", 20)
+	"""Decision 1912: the entrance placed, a Passage and a Kitchen painted, Confirm all, the mole digs them, and a
+	resident walks in -- through the real input gate on the real village; the rounded walls' rules (decision 1914);
+	decision 2021's way cards, connector card, two more entrances dug and drawn, and a refused removal."""
+	_assert_run("1280x720", "res://test/live/demo_build_dig_live.gd", 45)
+
+
+func test_the_crew_digs_and_stop_digging_puts_the_rest_back_at_1280x720() -> void:
+	"""Decision 1991: the crew selected and named on the footer, Confirm all, the crew digging, the Kitchen's room card
+	and Stop digging -- its waiting cells back in the plan, what is dug kept -- through the real input gate."""
+	_assert_run("1280x720", "res://test/live/demo_build_crew_live.gd", 33)

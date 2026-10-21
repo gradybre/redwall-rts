@@ -1,0 +1,70 @@
+{
+  "schema": 1,
+  "decision": [
+    "1972",
+    "1981",
+    "1229",
+    "1209",
+    "DEC-060",
+    "DEC-059",
+    "DEC-050"
+  ],
+  "predecessor": "qualified-stairs-v9 (DEC-059); qualified-claw-v6 (ADR 1217 step 4e)",
+  "content_revision": 12,
+  "frontier_revision": 9,
+  "frontier_source": 4,
+  "workpieces_source": 5,
+  "assemblies": 8,
+  "parts": 52,
+  "stair_paces_milli_u_per_s": {
+    "53": 528000,
+    "54": 528000,
+    "55": 116000,
+    "71": 114334,
+    "72": 114334,
+    "73": 114334,
+    "74": 528000,
+    "75": 528000,
+    "76": 116000,
+    "77": 56334,
+    "78": 114334,
+    "79": 114334,
+    "80": 528000,
+    "81": 528000,
+    "82": 116000,
+    "83": 56334,
+    "84": 114334
+  },
+  "entry_source_constants": {
+    "CATALOG_REVISION": 1,
+    "GROUPING_REVISION": 1,
+    "RECIPE_REVISION": 1,
+    "FRONTIER_REVISION": 9,
+    "WORKPIECES_REVISION": 1,
+    "CONTENT_REVISION": 12,
+    "INSTALL_COUNT": 8,
+    "STATION_COUNT": 22,
+    "CUT_COUNT": 6,
+    "BEARING_COUNT": 38,
+    "ENDPOINT_COUNT": 46,
+    "EPISODE_COUNT": 14
+  },
+  "files": {
+    "structure.ugconn": "053b14a47f9ae6f6b12ebd7c852c5690cea29d62bc6e50065d2fd19c078f1115",
+    "assemblies.ugasmb": "757c4261fd5bf44b6c02693ad48d9212b8fb8f3b8d4620e627b2a4847077763b",
+    "recipes.ugrecp": "74e8c4f252b21b4b3b521eefd91db52587058036d132f0d3c8a3b18688323746",
+    "frontier.ugfront": "8ee90bbff55e11c45604af294cb47fb21e2b097c99484f000310464b48d0d006",
+    "workpieces.ugwipc": "ea5ee9fd7e987fd17d6e29039f5fe8eec6360fbb949b3dcab204191e175a37f2",
+    "ground-pace.ugconn": "8e189a6694b568542829ad9b7d57e57edee64647999d3fb39021d9c926c59d7d",
+    "mole-worker.ugprof": "fa96acbeac96ca3860f2368c88c9287a51a5eadba29cd9530ea14c6c5e95e202",
+    "catalog_source.gd": "e7cfff468cfe4e7d014f6f15d3f0345d5f864fb61fdcca3070df7f8ea0327340"
+  },
+  "inputs": {
+    "docs/design/underground-planning/first-entry-prefix-v1.json": "edd562056b12f732fbf60f0536207ba2afd1dce650d19df552ecf1e75ff9cf81",
+    "godot/data/underground/first-entry-prefix-v1/qualified-claw-v6/structure.ugconn": "e13ce51dbf394c825fbd7a240ef2568dc9ea4ec5df58b7fa19e02794a72a89e6",
+    "godot/data/underground/first-entry-prefix-v1/qualified-claw-v6/frontier.ugfront": "0d81d4f439912f737a5848d29cbfce4ad612da30b85f2d7fe38b5c23e0e8dfc7",
+    "godot/data/underground/mole-worker/qualified-stair-carry-v13/mole-worker.ugprof": "fa96acbeac96ca3860f2368c88c9287a51a5eadba29cd9530ea14c6c5e95e202",
+    "godot/data/underground/mole-worker/qualified-stair-carry-v13/ground-pace.ugconn": "3234f2d25eeed0e535f68316d555919855741c9067263eb7443edaf94991d75c"
+  },
+  "runtime_admitted": false
+}

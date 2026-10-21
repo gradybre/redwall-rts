@@ -1,7 +1,8 @@
 extends "res://test/framework/test_case.gd"
 ## Runs a live harness (test/live/*.gd) in its own headless process and asserts every check it prints (decision 0261:
 ## this runner's worker runs every suite inside `_initialize`, before the root is in the tree, where no Viewport can
-## dispatch a click or a key). Shared by test_demo_input_live.gd and test_demo_build_furnish_live.gd (decision 1921).
+## dispatch a click or a key). Shared by test_demo_input_live.gd, test_demo_build_furnish_live.gd (decision 1921) and
+## test_demo_build_mound_live.gd (decision 2002).
 
 const HARNESS: String = "res://test/live/demo_input_live.gd"
 const CHECK_PREFIX: String = "LIVE "

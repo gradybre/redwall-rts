@@ -11,6 +11,7 @@ const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const LevelBar := preload("res://scripts/ui/level_bar.gd")
 const Stroke := preload("res://scripts/ui/build_stroke.gd")
 const BuildLayout := preload("res://scripts/ui/build_layout.gd")
+const Mound := preload("res://scripts/ui/build_mound.gd")
 
 const KITCHEN: int = 2
 
@@ -99,7 +100,7 @@ func test_the_info_card_follows_the_shown_card_or_asks_for_a_choice() -> void:
 	assert_true(_panel.info_text().contains("per cell"), "cost")
 	var info: Control = _panel.controls()[&"info"]
 	assert_true(info.accessibility_name.begins_with("Picture (placeholder): "), "the picture described")
-	_panel.choose_card(9)
+	_panel.choose_card(13)
 	assert_true(_panel.info_text().contains("! Blocked: Not yet:"), "a locked card says why: %s" % _panel.info_text())
 	assert_equal(_panel.paint_type(), KITCHEN, "inspecting a locked card keeps the Kitchen armed")
 
@@ -111,26 +112,30 @@ func test_choosing_arms_paintable_types_only() -> void:
 	assert_equal(_panel.paint_type(), KITCHEN, "Kitchen armed")
 	_panel.choose_card(7)
 	assert_equal(_panel.paint_type(), BuildCatalog.CORRIDOR, "Passage paints")
-	_panel.choose_card(10)
+	_panel.choose_card(14)
 	assert_equal(_panel.paint_type(), BuildCatalog.CORRIDOR, "the locked Remove card keeps Passage armed")
-	_panel.choose_card(8)
-	assert_equal(_panel.paint_type(), -1, "a Way down paints nothing")
+	_panel.choose_card(9)
+	assert_equal(_panel.paint_type(), -1, "a Hatch with ladder paints nothing")
 	assert_true(_panel.way_down_armed(), "it places instead (decision 1912)")
 	assert_false(_panel.tool_buttons()[0].visible, "and shows no tool strip")
-	assert_equal(_chosen, ["Kitchen", "Passage", "Remove", "Way down"], "each told to the host")
+	assert_equal(_chosen, ["Kitchen", "Passage", "Remove", "Hatch with ladder"], "each told to the host")
 	_panel.choose_card(99)
 	assert_equal(_chosen.size(), 4, "a card past the row does nothing")
 
 
-func test_on_the_surface_nothing_paints() -> void:
-	"""Room types are locked on the surface; a chosen type is disarmed on the way up."""
+func test_on_the_surface_only_the_mound_style_paints() -> void:
+	"""Decision 2002: on the way up the style turns to Mound and a chosen type stays armed; in the Built style the
+	room types are locked there and a chosen type is disarmed."""
 	_panel.choose_card(2)
 	_panel.set_level(0)
-	assert_equal(_panel.paint_type(), -1, "no surface painting")
+	assert_equal(_panel.style(), Mound.STYLE_MOUND, "the surface's style")
+	assert_equal(_panel.paint_type(), 2, "a Mound Kitchen paints")
+	_panel.choose_style(Mound.STYLE_BUILT)
+	assert_equal(_panel.paint_type(), -1, "no built surface painting")
 	assert_null(_panel.chosen_card(), "disarmed")
 	_panel.choose_card(2)
 	assert_equal(_panel.paint_type(), -1, "a locked type does not arm")
-	assert_true(_panel.info_text().contains("rooms on the surface"), _panel.info_text())
+	assert_true(_panel.info_text().contains("built rooms on the surface"), _panel.info_text())
 	var where: Label = _panel.controls()[&"where"]
 	assert_equal(where.text, "Building on: Surface", "the words follow the level")
 
@@ -280,9 +285,9 @@ func test_card_buttons_carry_the_cards_accessible_names() -> void:
 	assert_true(first.visible, "a card")
 	assert_true(first.accessibility_name.begins_with("Dormitory; per cell "), first.accessibility_name)
 	assert_true(first.text.contains("Dormitory"), first.text)
-	var locked: Button = _panel.card_button(10)
+	var locked: Button = _panel.card_button(14)
 	assert_true(locked.text.contains("! Not yet"), "a locked card shows its glyph: %s" % locked.text)
-	assert_false(_panel.card_button(11).visible, "the pool's spare buttons are hidden")
+	assert_false(_panel.card_button(15).visible, "the pool's spare buttons are hidden")
 	assert_null(_panel.card_button(99), "none past the pool")
 
 
@@ -413,12 +418,15 @@ func test_a_locked_card_says_its_own_reason() -> void:
 
 
 func test_a_way_down_holds_confirm_all_back_in_its_own_words() -> void:
-	"""Decision 1912: a Way down placed with nothing under it is "!" and Confirm all names it."""
+	"""Decision 1912, per family since decision 2021: a way placed with no passage under it is "!" and Confirm all names
+	it; the ledger names it, where it leads, and that its sizes and costs are placeholders."""
 	_batch.place_item(1, Vector2i(10, 10))
 	_panel.refresh(true)
-	assert_equal(_panel.confirm_blocked(), "! 1 of 1 not ready: Way down: Way down needs a passage or room under it: paint one there first",
+	assert_equal(_panel.confirm_blocked(),
+		"! 1 of 1 not ready: Hatch with ladder: Hatch with ladder needs a passage under it: paint one there first",
 		_panel.confirm_blocked())
-	assert_true(_panel.ledger_lines("").contains("Level 1 · Way down (a way down to level 2; free for now): ! Blocked"),
+	assert_true(_panel.ledger_lines("").contains(
+		"Level 1 · Hatch with ladder (down to Underground level 2; placeholder, free for now): ! Blocked"),
 		_panel.ledger_lines(""))
 
 
@@ -448,8 +456,10 @@ func test_an_item_card_arms_placing_it_on_an_underground_level() -> void:
 	assert_equal(_panel.paint_type(), -1, "no room type paints meanwhile")
 	assert_false(_panel.way_down_armed(), "nor a way down")
 	_panel.set_level(LevelBar.LEVEL_SURFACE)
-	assert_false(_panel.piece_armed(), "on the surface it is disarmed")
-	assert_equal(_panel.armed_item(), -1, "nothing")
+	assert_true(_panel.piece_armed(), "decision 2002: on the surface it stays armed, for a Mound room's floor")
+	assert_equal(_panel.armed_item(), 2, "still the hearth")
+	_panel.set_level(LevelBar.LEVEL_OVERVIEW)
+	assert_false(_panel.piece_armed(), "on Overview it is disarmed")
 	assert_null(_panel.chosen_card(), "the choice dropped: locked there")
 
 

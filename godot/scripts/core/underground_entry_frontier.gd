@@ -21,10 +21,16 @@ const ENDPOINT: int = 4
 const EPISODE: int = 5
 const NATURAL: int = 0
 const INSTALLED_PART: int = 1
+## Decision 2044 (P-2044-12 (a)): a support strip of natural floor that a stop or a walk stands on. Its second field
+## names the EPISODE whose BRACE start retires it (the entry structure's hook), or -1 when it is never retired.
+const STRIP: int = 2
 const SURFACE_ANCHOR: int = 0
 const INSTALLED_CONTACT: int = 1
 const SURFACE_CONTACT: int = 2
 const MAX_ROWS: int = 2048
+## Decision 2044: the M2 interim mounted today needs 16,232 B and fits unchanged. P-2044-2 (a)'s raise to M5's
+## measured 51,476 B (36 installs, 190 stations, 26 cuts, 235 bearings, 301 endpoints, 154 episodes) lands with M5:
+## the shared bindings reserve (`Budget.BINDINGS_AND_GROWTH_BYTES`) is fully assigned and must grow with it.
 const MAX_BYTES: int = 28597 # 36789 remaining, less separate4096 Contacts and4096 EntryBindings.
 const FIXED_BYTES: int = 2048 # Exact header, capacities, streamed row and logical helper allowance.
 const WIRE_HEADER_BYTES: int = 220
@@ -276,6 +282,9 @@ static func _source_digest_refusal(actual: RefCounted) -> StringName:
 			or actual._header[7] < 0 or actual._header[7] >= actual._profiles._live.header[3] \
 			or actual._header[7] != actual._catalog._live.header[10] or actual._header[5] != actual._catalog._live.header[8]:
 		return REFUSE_SOURCE
+	if _digest_ranges(actual._digests, actual._profiles._live.sources, actual._header[7] * 32):
+		return &"" if _digest_words_match(actual._assemblies._digests, actual._recipes._digests, actual._digests,
+			actual._profiles._live.sources, actual._header[7] * 32) else REFUSE_SOURCE
 	for index: int in 32:
 		if actual._assemblies._digests[index] != actual._digests[64 + index] \
 				or actual._recipes._digests[index] != actual._digests[96 + index] \
@@ -286,6 +295,21 @@ static func _source_digest_refusal(actual: RefCounted) -> StringName:
 				or actual._profiles._live.sources[actual._header[7] * 32 + index] != actual._digests[128 + index]:
 			return REFUSE_SOURCE
 	return &""
+
+
+static func _digest_ranges(own: PackedByteArray, sources: PackedByteArray, source: int) -> bool:
+	"""Decision 1951: every compared 32-byte range exists (the caller has proved both 96-byte owner images), so the
+	word comparison reads exactly the loop's bytes."""
+	return own.size() >= 160 and source >= 0 and sources.size() >= source + 32
+
+
+static func _digest_words_match(assemblies: PackedByteArray, recipes: PackedByteArray, own: PackedByteArray,
+		sources: PackedByteArray, source: int) -> bool:
+	"""The byte loop's seven 32-byte equalities, each read as four 64-bit words without allocating."""
+	return SourceFacts._same_words(assemblies, 0, own, 64) and SourceFacts._same_words(recipes, 0, own, 96) \
+		and SourceFacts._same_words(assemblies, 32, own, 32) and SourceFacts._same_words(recipes, 32, own, 32) \
+		and SourceFacts._same_words(assemblies, 64, own, 96) and SourceFacts._same_words(recipes, 64, own, 64) \
+		and SourceFacts._same_words(sources, source, own, 128)
 
 
 func _semantic_refusal() -> StringName:
@@ -417,6 +441,8 @@ func _bearing_refusal(row: int) -> StringName:
 	var part: int = _field(BEARING, row, 2)
 	if kind == NATURAL:
 		if assembly != -1 or part != -1: return REFUSE_REFERENCE
+	elif kind == STRIP:
+		if part != -1 or (assembly != -1 and not _valid_row(EPISODE, assembly)): return REFUSE_REFERENCE
 	elif kind == INSTALLED_PART:
 		if not _valid_row(INSTALL, assembly): return REFUSE_REFERENCE
 		if part < _assemblies._first_part[assembly] \

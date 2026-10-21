@@ -700,17 +700,17 @@ func _scroll_to_the_passage_card() -> void:
 
 
 func _the_passage_card_is_a_room_type() -> void:
-	"""Decision 1912 (P-C2 (c)): the Passage card is a room type (on the surface it is locked, saying why); no card
-	opens the old Dig tool, and the panel said, on opening, that digging painted rooms comes later."""
+	"""Decision 1912 (P-C2 (c)): the Passage card is a room type (on the surface it paints in the Mound style, decision
+	2002); no card opens the old Dig tool, and the panel said, on opening, that digging painted rooms comes later."""
 	var tool: Object = _command().call(&"tunnels")
 	_click(_card_centre("Passage"))
 	_check("the Passage card opens no Dig tool", not bool(tool.get("planning")))
 	var passage: Button = _card_button("Passage")
-	_check("on the surface it says why it is locked", passage != null
-		and passage.accessibility_name.contains("rooms on the surface"), passage.accessibility_name if passage else "")
+	_check("on the surface it paints in the Mound style", passage != null
+		and passage.accessibility_name.contains("available"), passage.accessibility_name if passage else "")
 	_check("no Burrow home or Root cellar card", _card_button("Burrow home") == null and _card_button("Root cellar") == null)
 	var said: String = String(_command().get("_notice_general"))
-	_check("the panel says a mole digs them", said.contains("a mole digs them (free for now)"), said)
+	_check("the panel says the selected moles dig them", said.contains("the selected moles (or the first free one) dig them (proof of concept: free)"), said)
 
 
 func _b_closes_the_build_panel() -> void:
@@ -1607,7 +1607,8 @@ func _own_rects() -> Array[Rect2]:
 
 func _build_opens_on_b() -> void:
 	"""B opens the panel on the surface: the Rooms tab, Furnish and Decor waiting for a room type, every room type
-	locked there with its reason; the HUD's command strip steps aside."""
+	painted there in the Mound style, the Built style saying why it waits (decision 2002); the HUD's command strip
+	steps aside."""
 	_key(KEY_B)
 	var panel: Node = _build().get("panel")
 	_check("B opens the build panel", bool(_build().call(&"is_open")))
@@ -1616,8 +1617,10 @@ func _build_opens_on_b() -> void:
 	_check("Rooms shown; Furnish and Decor wait for a room type", int(panel.call(&"shown_tab")) == 0
 		and (tabs[1] as Button).disabled and (tabs[2] as Button).tooltip_text == "Choose a room type first")
 	var kitchen: Button = _card_button("Kitchen")
-	_check("a room type on the surface is locked, saying why", kitchen != null
-		and kitchen.accessibility_name.contains("! Blocked: Not yet: rooms on the surface"), kitchen.accessibility_name if kitchen else "")
+	var built: Button = (panel.call(&"style_buttons") as Array)[0]
+	_check("a room type on the surface paints as a Mound; Built says why it waits", kitchen != null
+		and kitchen.accessibility_name.contains("available") and built.tooltip_text.contains("built rooms on the surface"),
+		"%s | %s" % [kitchen.accessibility_name if kitchen else "", built.tooltip_text])
 	_check("the command strip steps aside", not _shell_control("ID_COMMAND_STRIP").is_visible_in_tree())
 	_capture("build_rooms_surface")
 

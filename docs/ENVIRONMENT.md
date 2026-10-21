@@ -79,10 +79,10 @@ it. They form the **slow tier**, declared in `godot/test/slow_suites.json` with 
   decision 1895.
 
 **The local full-suite gate: `./tools/run_tests_parallel.sh` (decision 1895).** It runs CI's shards (the count
-CI's verify step uses, 10) as `./tools/run_tests.sh --shard N/COUNT --output-dir DIR`, `--jobs` at a time (default
+CI's verify step uses: 12 since decision 1943, 10 before) as `./tools/run_tests.sh --shard N/COUNT --output-dir DIR`, `--jobs` at a time (default
 4; 5 when nothing else runs on the machine), each with its own private `user://`. It then prints each shard's
 summary lines and `ci_test_shards.py verify`'s merged summary (`ok: <n> suite files executed exactly once across
-10 shards` and the counts), and exits 0 only when every shard and verify passed. Import first and move the demo
+12 shards` and the counts), and exits 0 only when every shard and verify passed. Import first and move the demo
 assets aside as for any CI-style run. `--output-dir` must be new or empty; by default it makes one and prints it.
 At `bf49943a` the complete suite took 1,397 s this way at 4 jobs; one process takes over an hour.
 
@@ -199,6 +199,11 @@ python3 tools/demo_texture_imports.py --godot godot         # the compression st
   release export flushes only on error lines. The debug template reports both as SCRIPT ERROR and carries on. The
   demo's playtest log (`user://logs/playtest-*.log`, beside `godot.log`) flushes every line, for this reason. On
   Windows it is in `%APPDATA%\Godot\app_userdata\Redwall Demo\logs`.
+- **The clean import can crash, and its exit status is the only sign** (decision 1953). On 4.7.2 macOS,
+  `godot --headless --path godot --editor --quit` after `rm -rf godot/.godot` once died with signal 11 while
+  reimporting a font (`propagate_notification()` called from a worker thread), exit 134. A suite run on that
+  half-imported project then hung for hours in a live harness (`demo_lens_live.gd`). Check the import's exit status
+  before a full run, and import again if it is not 0.
 - **A script `Logger` held in a static var aborts the process at exit** (`recursive_mutex lock failed`, status 134):
   remove it with `OS.remove_logger` and drop the last reference while the tree is still up.
 - **A screenshot stalls the clock into a CRITICAL pause.** Reading back and PNG-encoding a HiDPI frame

@@ -43,7 +43,8 @@ const PROFILE_SCRIPTS: Array[Script] = [
 const ACTOR_CONTENT: String = "res://data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/mole-worker.ugactor"
 const ACTOR_BYTES: int = 648760
 const HASH_BLOCK_BYTES: int = 16384
-## The largest runtime binary is the 1,058,772-byte claw image; a file past this refuses before it is streamed.
+## The largest runtime binary is the 1,096,408-byte wood stair-carry image (decision 1972); a file past this refuses
+## before it is streamed.
 const RUNTIME_FILE_MAX_BYTES: int = 4194304
 const BUILD_INFO: String = "res://demo/build_info.json"
 

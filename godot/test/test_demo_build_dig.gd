@@ -1,7 +1,7 @@
 extends "res://test/framework/test_case.gd"
-## The proof of concept's drawing and its trips below (decision 1912): the dug rooms drawn per level and rebuilt only
-## on a change, the stand-in figure, the ground reader reading ordered and dug cells as finished, and a trip's stages
-## for a visitor.
+## The proof of concept's drawing and its trips below (decision 1912; its look, decisions 1913 and 1914): the dug rooms
+## drawn per level and rebuilt only on a change, the stand-in figure, the ground reader reading ordered and dug cells
+## as finished, and a trip's stages for a visitor.
 
 const Works := preload("res://demo/build_panel/demo_build_works.gd")
 const Dug := preload("res://demo/build_panel/demo_build_dug.gd")
@@ -44,18 +44,19 @@ func test_the_dug_rooms_are_drawn_per_level_and_rebuilt_only_on_a_change() -> vo
 	dug.refresh(1)
 	assert_equal(dug.rebuilds, 1, "drawn once")
 	assert_true(dug.earth.visible and dug.earth.top_quads >= BOUNDS.size.y, "the level's earth drawn")
-	assert_true(dug.tags().has("Waiting for the mole: 8 cells"), "waiting cells said in words")
-	assert_true(dug.tags().has("Entrance") and dug.tags().has("Way up to the surface"), ", ".join(dug.tags()))
+	assert_true(dug.tags().has("Proof of concept, free: 8 cells wait for the crew"), "waiting cells said in words")
+	assert_true(dug.tags().has("Hatch with ladder") and dug.tags().has("Hatch with ladder: way up to the surface"),
+		", ".join(dug.tags()))
 	dug.refresh(1)
 	assert_equal(dug.rebuilds, 1, "a still frame rebuilds nothing")
 	_works.open_cell(1, Vector2i(4, 4))
 	dug.refresh(1)
 	assert_equal(dug.rebuilds, 2, "a dug cell redraws")
 	dug.refresh(-1)
-	assert_equal(dug.tags(), PackedStringArray(["Entrance"]), "no level shown: only the surface's name")
+	assert_equal(dug.tags(), PackedStringArray(["Hatch with ladder"]), "no level shown: only the surface's name")
 	dug.refresh(5)
 	assert_false(dug.earth.visible, "the bar's Overview is no underground level")
-	assert_equal(dug.tags(), PackedStringArray(["Entrance"]), "and shows only the surface's name")
+	assert_equal(dug.tags(), PackedStringArray(["Hatch with ladder"]), "and shows only the surface's name")
 
 
 func test_the_figure_shows_its_name_and_digging_state() -> void:
@@ -112,6 +113,29 @@ func test_a_visit_walks_through_dug_cells_and_stays() -> void:
 	assert_false(walker.indoors, "and the resident out")
 
 
+func test_a_hatch_on_a_mound_floor_is_gone_down_from_its_doors_yard() -> void:
+	"""Decision 2002: a trip down a given way starts where it is told (a Mound's door yard), its landing the way's;
+	that way has no burrow mouth or Entrance name on the surface (the Mound's drawing has it)."""
+	_works.order_room(0, PackedInt32Array([10, 10, 11, 10, 10, 11, 11, 11]), 2)
+	_works.open_cell(0, Vector2i(10, 10))
+	assert_true(_works.order_way_down(0, Vector2i(10, 10)), "a hatch on the Mound's floor")
+	var dug: Dug = Dug.new()
+	_nodes.append(dug)
+	dug.configure(_works, FLOORS, Vector2i.ZERO, BOUNDS)
+	assert_false(dug.on_mound(0), "the Entrance is on open ground")
+	assert_true(dug.on_mound(1), "the hatch is on a Mound's floor")
+	dug.refresh(-1)
+	assert_equal(dug.tags(), PackedStringArray(["Hatch with ladder"]), "only the entrance named on the surface")
+	var figure: Figure = Figure.new()
+	_nodes.append(figure)
+	var trip: BelowTask = BelowTask.new(_works, figure, FLOORS, Vector2i.ZERO, BelowTask.MODE_VISIT, Vector3i(1, 10, 10),
+		"Wenna", 1, Vector2(11.0, 7.0))
+	assert_equal(trip.site(null), Vector2(11.0, 7.0), "the door's yard")
+	var first: BelowTask = BelowTask.new(_works, figure, FLOORS, Vector2i.ZERO, BelowTask.MODE_VISIT, Vector3i(1, 6, 4),
+		"Wenna")
+	assert_equal(first.site(null), Vector2(5.0, 5.0), "no way given: the first Entrance")
+
+
 func test_a_dig_waits_before_the_cell_opens() -> void:
 	"""M1: a cell opens only after DIG_SECONDS of digging."""
 	var figure: Figure = Figure.new()
@@ -127,52 +151,58 @@ func test_a_dig_waits_before_the_cell_opens() -> void:
 	assert_equal(trip.dug, 1, "opened")
 
 
-func test_a_dug_cell_is_a_pit_in_the_earth() -> void:
-	"""Decision 1913: the top is cut away over a dug cell (its row split round it, a floor instead), a wall, a shade and
-	a lip on each side that is not dug, the ordered cells pegged out in chalk; the earth reads the World's ground per
-	tile (a wet tile is not earth)."""
+func test_a_dug_cell_is_a_rounded_pit_in_the_earth() -> void:
+	"""Decisions 1913 and 1914: nothing dug, nothing is rounded and the ordered cells are pegged out in chalk; one dug
+	cell is a floor DEPTH_M down, the eight cells round it drawn as wall patches -- the earth beside it rounded into, the
+	ordered ones kept square at the top -- and the earth reads the World's ground per tile (a wet tile is not earth)."""
 	var earth: Earth = Earth.new()
 	_nodes.append(earth)
 	earth.configure(Vector2i.ZERO, BOUNDS)
 	earth.draw(_works, 1, -4.5, Earth.NO_CELL)
-	var top: int = earth.top_quads
-	assert_equal(earth.wall_quads, 0, "nothing dug: no wall")
+	assert_equal(earth.patch_count, 0, "nothing dug: nothing rounded")
+	assert_equal(earth.floor_quads, 0, "and no floor")
 	assert_equal(earth.mark_quads, 8 * 4, "eight ordered cells pegged out, four chalk lines each")
 	_works.open_cell(1, Vector2i(6, 4))
 	earth.draw(_works, 1, -4.5, Earth.NO_CELL)
-	assert_equal(earth.top_quads, top + 1, "row 4's top split round the pit")
 	assert_equal(earth.floor_quads, 1, "the pit's floor")
-	assert_equal(earth.wall_quads, 4, "a wall on each side: earth or ordered, none dug")
-	assert_equal(earth.mark_quads, 7 * 4 + 4 * 2, "seven cells pegged out; a shade and a lip at each wall")
+	assert_equal(earth.patch_count, 8, "the eight cells round it, as walls")
+	assert_equal(earth.mark_quads, 7 * 4, "seven cells pegged out")
+	assert_true(is_equal_approx(earth.height_at(Vector2(6.5, 4.5)), -5.5), "the floor, a room's depth down")
+	assert_true(is_equal_approx(earth.height_at(Vector2(7.5, 4.5)), -4.5), "an ordered cell stays square at the top")
+	var rounded: float = earth.height_at(Vector2(6.5, 3.5))
+	assert_true(rounded > -5.5 and rounded < -4.5, "the earth beside it is rounded into: %f" % rounded)
 	var kinds: PackedByteArray = PackedByteArray()
 	kinds.resize(Earth.World.TILE_COUNT)
 	kinds.fill(Earth.World.TERRAIN_LAND)
 	kinds[Earth.World.MAP_TILES_X * 5 + 5] = Earth.World.TERRAIN_LAKE
 	earth.set_kinds(kinds)
 	earth.draw(_works, 1, -4.5, Earth.NO_CELL)
-	assert_equal(earth.top_mesh().get_surface_count(), 2, "the earth's top, and the lake's tile in its own mark")
+	assert_equal(earth.ground_mesh().get_surface_count(), 4, "the top, the floor, the walls, and the lake's tile mark")
 
 
 func test_the_cell_being_dug_deepens() -> void:
-	"""The digging cell is cut out of the top and drawn as a pit scaled by the dig's progress; its step down to a dug
-	neighbour shrinks as it deepens; "Digging" says so, and the waiting count leaves it out."""
+	"""Decision 1914: the digging cell is drawn by a wall patch that moves from the top to its dug floor as the dig goes
+	on -- a uniform a frame, no rebuild -- meeting the dug landing cell's floor at their edge; "Digging" says so, and
+	the waiting count leaves it out."""
 	_works.open_cell(1, Vector2i(4, 4))
 	var dug: Dug = Dug.new()
 	_nodes.append(dug)
 	dug.configure(_works, FLOORS, Vector2i.ZERO, BOUNDS)
 	dug.refresh(1, Vector3i(1, 5, 4))
 	assert_equal(dug.earth.digging(), Vector3i(1, 5, 4), "drawn as being dug")
+	var rebuilds: int = dug.earth.rebuilds
 	dug.set_progress(0.25)
-	var pit: MeshInstance3D = dug.earth.digging_nodes()[0]
-	var step: MeshInstance3D = dug.earth.digging_nodes()[1]
-	assert_true(pit.visible and is_equal_approx(pit.scale.y, 0.25), "a quarter dug: a quarter deep")
-	assert_true(is_equal_approx(step.scale.y, 0.75), "the step down to the dug landing cell: what is left")
-	assert_equal(dug.earth.wall_quads, 3, "no wall between the dug cell and the one being dug")
-	assert_equal(dug.earth.mark_quads, 6 * 4 + 3 * 2, "six cells pegged out (not the one being dug); shade and lips")
-	assert_equal((step.mesh as ArrayMesh).get_surface_count(), 1, "one dug neighbour, one step face")
-	assert_true(dug.tags().has("Digging") and dug.tags().has("Waiting for the mole: 6 cells"), ", ".join(dug.tags()))
+	var top: float = FLOORS[1] / Earth.UNITS_PER_M
+	assert_true(is_equal_approx(dug.earth.height_at(Vector2(5.5, 4.5)), top - 0.25), "a quarter dug: a quarter deep")
+	assert_true(is_equal_approx(dug.earth.height_at(Vector2(5.0, 4.5)), top - Earth.DEPTH_M),
+		"its edge with the dug landing cell is that cell's floor")
+	dug.set_progress(1.0)
+	assert_true(is_equal_approx(dug.earth.height_at(Vector2(5.5, 4.5)), top - Earth.dug_depth_m(1.0)), "nearly through")
+	assert_equal(dug.earth.rebuilds, rebuilds, "deepening rebuilds nothing")
+	assert_equal(dug.earth.mark_quads, 6 * 4, "six cells pegged out (not the one being dug)")
+	assert_true(dug.tags().has("Digging") and dug.tags().has("Proof of concept, free: 6 cells wait for the crew"), ", ".join(dug.tags()))
 	dug.refresh(1)
-	assert_false(pit.visible, "not digging: no pit drawn")
+	assert_equal(dug.earth.digging(), Earth.NO_CELL, "not digging: none drawn")
 	dug.refresh(2, Vector3i(1, 5, 4))
 	assert_false(dug.tags().has("Digging"), "a cell dug on another level is not this level's")
 	dug.earth.draw(_works, 1, -4.5, Vector3i(2, 5, 4))
@@ -226,6 +256,28 @@ func test_tags_spread_upward_only_as_far_as_they_must() -> void:
 	assert_equal(Tags.first_hit(Rect2(0, 0, 10, 10), [Rect2()], gap), -1, "an empty rect is never met")
 
 
+func test_a_fixed_size_tags_drawn_size_grows_with_its_depth() -> void:
+	"""Decision 2002: a tag drawn at a constant screen size (the Surface's) is measured at its drawn size -- its world
+	size grows with its depth, so it stays the same on screen; a plain tag's world size is its own at any depth."""
+	var fixed: Label3D = _tag(true)
+	var near: Vector2 = Tags.world_size(fixed, 10.0)
+	assert_true(near.x > 0.0 and near.y > 0.0, "measured")
+	assert_true(Tags.world_size(fixed, 20.0).is_equal_approx(near * 2.0), "twice as far: twice the size")
+	var plain: Label3D = _tag(false)
+	assert_true(Tags.world_size(plain, 20.0).is_equal_approx(Tags.world_size(plain, 10.0)), "plain: its own size")
+
+
+func _tag(fixed: bool) -> Label3D:
+	"""A tag reading "Way down", fixed size or not."""
+	var tag: Label3D = Label3D.new()
+	_nodes.append(tag)
+	tag.text = "Way down"
+	tag.font_size = 36
+	tag.pixel_size = 0.0006 if fixed else 0.01
+	tag.fixed_size = fixed
+	return tag
+
+
 func test_a_trip_says_which_cell_it_digs_and_how_far() -> void:
 	"""digging_cell and dig_share: the target while digging, nothing otherwise."""
 	var figure: Figure = Figure.new()
@@ -242,18 +294,23 @@ func test_a_trip_says_which_cell_it_digs_and_how_far() -> void:
 
 
 func test_the_top_covers_everything_but_the_pits() -> void:
-	"""Review M5: the earth's top covers the planning area and its apron exactly, less each dug cell and the cell being
-	dug (a strip lost inside or beside the works' box would leave a hole)."""
+	"""Review M5 (decision 1913), as rounded (decision 1914): the earth's top covers the planning area, the cell round
+	it and the apron exactly, less each dug cell and each cell a wall patch draws (a strip lost inside or beside the
+	works' box would leave a hole; one drawn twice would fight)."""
 	var earth: Earth = Earth.new()
 	_nodes.append(earth)
 	earth.configure(Vector2i.ZERO, BOUNDS)
-	var whole: float = (BOUNDS.size.x + 2.0 * Earth.APRON_M) * (BOUNDS.size.y + 2.0 * Earth.APRON_M)
+	var side: float = BOUNDS.size.x + 2.0 + 2.0 * Earth.APRON_M
+	var whole: float = side * side
 	earth.draw(_works, 1, -4.5, Earth.NO_CELL)
-	assert_true(is_equal_approx(_top_area(earth), whole), "nothing dug: all covered (%f)" % _top_area(earth))
+	assert_true(is_equal_approx(_area(earth.built()[0]), whole), "nothing dug: all covered (%f)" % _area(earth.built()[0]))
 	_works.open_cell(1, Vector2i(6, 4))
 	_works.open_cell(1, Vector2i(7, 5))
 	earth.draw(_works, 1, -4.5, Vector3i(1, 4, 4))
-	assert_true(is_equal_approx(_top_area(earth), whole - 3.0), "two pits and the digging cell cut out (%f)" % _top_area(earth))
+	var cut: float = 2.0 + earth.patch_count
+	assert_true(is_equal_approx(_area(earth.built()[0]), whole - cut),
+		"two pits and %d wall patches cut out (%f)" % [earth.patch_count, _area(earth.built()[0])])
+	assert_true(is_equal_approx(_area(earth.built()[1]), 2.0), "and the two floors drawn")
 
 
 func test_a_way_down_has_stairs_only_once_dug_through() -> void:
@@ -276,8 +333,8 @@ func test_a_way_down_has_stairs_only_once_dug_through() -> void:
 	dug.refresh(1)
 	assert_equal(dug.stairs_shown(), 2, "dug through: its stairs down too")
 	assert_true(Earth.stairs_down_at(_works, 1, Vector2i(11, 11)), "and no floor under them")
-	var floors: int = dug.earth.floor_quads
-	assert_equal(floors, 4 + 4 - 4, "the landing's floors; none under the stairs down (%d)" % floors)
+	var floors: float = _area(dug.earth.built()[1])
+	assert_true(is_equal_approx(floors, 4.0 + 4.0 - 4.0), "the landing's floors; none under the stairs down (%f)" % floors)
 
 
 func test_the_mole_stands_on_the_floor_dug_so_far() -> void:
@@ -317,7 +374,8 @@ func test_staged_art_stands_in_for_the_procedural_pieces() -> void:
 	bare.load_from({})
 	dug.use_props(bare)
 	assert_equal(dug.art, PackedStringArray(), "an art-free table (CI): still the procedural pieces")
-	assert_true(dug.earth.looks()[0] is ShaderMaterial and dug.earth.looks()[2] is ShaderMaterial, "and surfaces")
+	assert_false(dug.earth.surface().get_shader_parameter(&"floor_textured")
+		or dug.earth.surface().get_shader_parameter(&"wall_textured"), "and the procedural earth")
 	var box: BoxMesh = BoxMesh.new()
 	box.size = Vector3(1.9, 0.5, 1.7)
 	dug.set_art(box, Transform3D.IDENTITY, box, Transform3D.IDENTITY)
@@ -366,30 +424,29 @@ static func _highest(mesh: ArrayMesh, surface: int) -> Vector3:
 
 
 func test_staged_textures_dress_the_earth() -> void:
-	"""Decision 1913: a staged floor texture dresses the top (darkened) and the dug floors; a missing wall texture
-	leaves the walls procedural."""
+	"""Decision 1913, as one surface (decision 1914): a staged floor texture dresses the top (darkened) and the dug
+	floors; a missing wall texture leaves the walls procedural."""
 	var earth: Earth = Earth.new()
 	_nodes.append(earth)
 	earth.configure(Vector2i.ZERO, BOUNDS)
 	var texture: ImageTexture = ImageTexture.create_from_image(Image.create(4, 4, false, Image.FORMAT_RGB8))
 	earth.set_textures(texture, null)
-	var top: StandardMaterial3D = earth.looks()[0] as StandardMaterial3D
-	assert_true(top != null and top.albedo_texture == texture and top.albedo_color == Earth.TOP_TINT, "the top")
-	assert_true((earth.looks()[1] as StandardMaterial3D).albedo_color == Color.WHITE, "the dug floor, full")
-	assert_true(earth.looks()[2] is ShaderMaterial, "no wall texture: the procedural wall")
+	var surface: ShaderMaterial = earth.surface()
+	assert_true(surface.get_shader_parameter(&"floor_texture") == texture
+		and surface.get_shader_parameter(&"floor_textured") == true, "the floors and the top wear it")
+	assert_equal(surface.get_shader_parameter(&"top_tint"), Earth.TOP_TINT, "the top darkened")
+	assert_equal(surface.get_shader_parameter(&"wall_textured"), false, "no wall texture: the procedural wall")
 	earth.draw(_works, 1, -4.5, Earth.NO_CELL)
-	assert_true(earth.top_mesh().surface_get_material(0) == top, "drawn with it")
+	assert_true(earth.ground_mesh().surface_get_material(0) == surface, "drawn with it")
 
 
-func _top_area(earth: Earth) -> float:
-	"""The area (m²) of the earth top's land surface, from its triangles."""
-	var arrays: Array = earth.top_mesh().surface_get_arrays(0)
-	var points: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
-	var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
+static func _area(built: Earth.Burrow) -> float:
+	"""The area (m²) a surface's level quads cover, from their triangles."""
 	var area: float = 0.0
-	for at: int in range(0, indices.size(), 3):
-		var a: Vector3 = points[indices[at]]
-		area += (points[indices[at + 1]] - a).cross(points[indices[at + 2]] - a).length() / 2.0
+	for at: int in range(0, built.indices.size(), 3):
+		var a: Vector3 = built.vertices[built.indices[at]]
+		var b: Vector3 = built.vertices[built.indices[at + 1]]
+		area += (b - a).cross(built.vertices[built.indices[at + 2]] - a).length() / 2.0
 	return area
 
 

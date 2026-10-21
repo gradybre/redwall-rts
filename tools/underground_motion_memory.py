@@ -19,7 +19,8 @@ EXPECTED = {
 }
 
 # ADR1217 step 5: the shared Motion/Profile/Level/Session/retirement reserve (was 262,144 through content 6).
-PROFILE_BYTES = 278528
+# Decision 1972 (P-1972-2 (a)): +4,096 for content 12.
+PROFILE_BYTES = 282624
 
 def require(condition, message):
     if not condition:
@@ -148,7 +149,8 @@ def build(index):
     # ADR1212: content 6 (42 rows, 377 boxes, 4 sources) replaced content 3 (29, 271, 1): +8,676 profile bytes.
     # ADR1217 step 5: content 9 (60 rows, 517 boxes, 6 sources) replaces content 6: +11,496 profile bytes.
     # ADR1229: content 10 (67 rows, 547 boxes, 6 sources) replaces content 9: +3,052 profile bytes.
-    require((profile, one_bank, joint, maximum_joint) == (76980, 70860, 262128, 444284), 'exact joint formula')
+    # Decision 1972: content 12 (85 rows, 637 boxes, 8 sources) replaces content 10: +8,696 profile bytes.
+    require((profile, one_bank, joint, maximum_joint) == (85676, 70860, 270824, 444284), 'exact joint formula')
     require(joint <= PROFILE_BYTES < maximum_joint, 'configured coexistence, no independent maxima')
     return {
         'source_sha256': hashlib.sha256(source.encode()).hexdigest(),
@@ -205,7 +207,7 @@ def joint_sources(index, memory):
     require(per_profile == resolve('underground_profiles', 'PROFILE_WIRE_BYTES') == 98, 'Profile row width')
     catalog = index['mole_profile_catalog']
     counts = tuple(resolve(catalog.name, key) for key in ('PROFILE_COUNT', 'BOX_COUNT', 'SOURCE_COUNT'))
-    require(counts == (67, 547, 6), 'current accepted publication configuration') # ADR1229: content 10
+    require(counts == (85, 637, 8), 'current accepted publication configuration') # Decision 1972: content 12
     session = index['underground_session'].text
     require('const PROFILE_SOURCE_COUNT: int = Catalog.SOURCE_COUNT' in session
             and '_profiles.configure(Catalog.PROFILE_COUNT, Catalog.BOX_COUNT, PROFILE_SOURCE_COUNT,' in session,

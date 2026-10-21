@@ -1,14 +1,17 @@
 extends Node3D
 ## THE DUG ROOMS, DRAWN (decision 1912's proof of concept; its look, decision 1913). On the level the build panel
 ## shows (the World view's marks layer, demo_build_world.gd), from demo_build_works.gd:
-##   THE EARTH     the level as a cutaway block of earth with each dug cell a pit in it, ordered cells pegged out in
-##                 chalk and the cell being dug deepening as it goes (demo_build_earth.gd), what was dug lit by this
-##                 view's own sun and the earth's top by a dim fill, so the rooms stand out of the mass;
-##   WAYS DOWN     where one stands on the level, stairs cut down into the floor; where one lands, stairs rising out of
-##                 it (demo_build_ways.gd), once the landing is dug;
-##   TAGS          "Way down", "Way up", "Way up to the surface", "Waiting for the mole: N cells", "Digging", in words;
-## and on the surface (the village's own layers, seen without the panel) each confirmed Entrance as a burrow mouth named
-## "Entrance". Rebuilt only when the works, the level shown or the cell being dug change. The tags are drawn over
+##   THE EARTH     the level as a cutaway block of earth with the dug cells a pit in it, its walls rounded and hand-dug
+##                 (decision 1914), ordered cells pegged out in chalk and the cell being dug deepening as it goes
+##                 (demo_build_earth.gd, rebuilt on a worker and shown by `refresh` when done), what was dug lit by
+##                 this view's own sun and the earth's top by a dim fill, so the rooms stand out of the mass;
+##   WAYS DOWN     per family (decision 2021), once dug: where one stands on the level, its stairs or ramp cut down
+##                 into the floor or its hatch; where one comes out, its stairs or ramp rising out of the floor or its
+##                 ladder (demo_build_ways.gd), each turned the way the way was placed;
+##   TAGS          "<name>: way down", "<name>: way up", "<name>: way up to the surface", "Waiting for the mole: N
+##                 cells", "Digging", in words;
+## and on the surface (the village's own layers, seen without the panel) each confirmed entrance as its family draws it
+## -- a burrow mouth, a hatch, a stair-head -- named. Rebuilt only when the works, the level shown or the cell being dug change. The tags are drawn over
 ## everything with their outline under their text (a tag drawn the other way round read as doubled), and are kept
 ## off each other by demo_build_tags.gd. Presentation only.
 
@@ -18,6 +21,7 @@ const Ways := preload("res://demo/build_panel/demo_build_ways.gd")
 const Layers := preload("res://demo/demo_layers.gd")
 const Look := preload("res://demo/world/world_look.gd")
 const Props := preload("res://demo/props/demo_props.gd")
+const Families := preload("res://scripts/ui/build_connector_families.gd")
 
 const LAYER: int = 256
 const UNITS_PER_M: float = 1024.0
@@ -26,8 +30,12 @@ const TAG_PRIORITY: int = 5
 const TAG_PIXEL: float = 0.01
 ## A surface tag's size at a constant screen size (tunnel_overlay.gd LABEL_PIXEL).
 const SURFACE_TAG_PIXEL: float = 0.0006
-const WAITING: String = "Waiting for the mole: %d cells"
+const WAITING: String = "Proof of concept, free: %d cells wait for the crew"
 const DIGGING: String = "Digging"
+## A way's tags on a level (decision 2021: by its family's name).
+const WAY_DOWN: String = "%s: way down"
+const WAY_UP: String = "%s: way up"
+const WAY_UP_TOP: String = "%s: way up to the surface"
 ## Over the earth's top: a way's name, the waiting cells' and the digging cell's (m).
 const WAY_TAG_M: float = 1.1
 const WAITING_TAG_M: float = 0.6
@@ -59,6 +67,12 @@ var _paint: StandardMaterial3D = null
 var _mouth: ArrayMesh = null
 var _up: ArrayMesh = null
 var _down: ArrayMesh = null
+## Decision 2021's per-family pieces: the ramp up and down, the hatch, the ladder, the Surface's stair-head.
+var _ramp_up: ArrayMesh = null
+var _ramp_down: ArrayMesh = null
+var _hatch: ArrayMesh = null
+var _ladder: ArrayMesh = null
+var _stair_head: ArrayMesh = null
 var _mouths: Array[MeshInstance3D] = []
 var _stairs: Array[MeshInstance3D] = []
 var _tags: Array[Label3D] = []
@@ -91,7 +105,7 @@ func configure(works: Works, floors: PackedInt32Array, datum: Vector2i, bounds: 
 	_sun.shadow_blur = 1.5
 	_sun.directional_shadow_max_distance = 80.0
 	add_child(_sun)
-	_fill = _make_light("BuildDugFill", Vector3.UP + Vector3(0.0, 0.0, 0.01), FILL_ENERGY, Earth.TOP_LAYER)
+	_fill = _make_light("BuildDugFill", Earth.FILL_TOWARD, FILL_ENERGY, Earth.TOP_LAYER)
 	add_child(_fill)
 
 
@@ -134,6 +148,7 @@ func set_art(mouth: Mesh, mouth_fit: Transform3D, stairs: Mesh, stairs_fit: Tran
 		art.append("mouth")
 	_up = Ways.stairs_up_mesh(_paint, Earth.DEPTH_M)
 	_down = Ways.stairs_down_mesh(_paint)
+	_family_meshes()
 	if stairs == null or not (stairs_fit * stairs.get_aabb()).has_volume():
 		return
 	var up_fit: Transform3D = stretched(stairs.get_aabb(), stairs_fit)
@@ -145,6 +160,15 @@ func set_art(mouth: Mesh, mouth_fit: Transform3D, stairs: Mesh, stairs_fit: Tran
 	_down.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, cut.surface_get_arrays(0))
 	_down.surface_set_material(_down.get_surface_count() - 1, _paint)
 	art.append("stairs")
+
+
+func _family_meshes() -> void:
+	"""The per-family pieces, procedural (no staged art: decision 2021 asks for none)."""
+	_ramp_up = Ways.ramp_mesh(_paint, Earth.DEPTH_M, false)
+	_ramp_down = Ways.ramp_mesh(_paint, Earth.DEPTH_M, true)
+	_hatch = Ways.hatch_mesh(_paint)
+	_ladder = Ways.ladder_mesh(_paint, Earth.DEPTH_M + 0.6)
+	_stair_head = Ways.stair_head_mesh(_paint)
 
 
 static func stretched(bound: AABB, fit: Transform3D) -> Transform3D:
@@ -190,7 +214,9 @@ func has_kinds() -> bool:
 
 
 func refresh(level: int, digging: Vector3i = Earth.NO_CELL) -> void:
-	"""Redraw when the works, the level shown (-1: none) or the cell being dug (level, x, z) changed."""
+	"""Redraw when the works, the level shown (-1: none) or the cell being dug (level, x, z) changed; each frame, show
+	the earth's rebuild once it is done (demo_build_earth.gd `poll`)."""
+	earth.poll()
 	var below: bool = underground(level)
 	var on_level: bool = digging.x == level and below
 	var key: Vector4i = Vector4i(_works.revision, level, digging.y if on_level else -1, digging.z if on_level else -1)
@@ -202,7 +228,7 @@ func refresh(level: int, digging: Vector3i = Earth.NO_CELL) -> void:
 	_sun.visible = below
 	_fill.visible = below
 	if below:
-		earth.draw(_works, level, top_m(level), digging)
+		earth.request(_works, level, top_m(level), digging)
 	_place_mouths()
 	_place_stairs(level)
 	_place_tags(level, digging if on_level else Earth.NO_CELL)
@@ -224,29 +250,69 @@ func top_m(level: int) -> float:
 
 
 func _place_mouths() -> void:
-	"""A burrow mouth on the surface for each confirmed Entrance."""
+	"""Each confirmed entrance on the surface as its family draws it -- a burrow mouth opening toward its top, a hatch,
+	a stair-head -- (not on a Mound room's floor: the Mound's drawing has it, decision 2002)."""
 	var used: int = 0
 	for row: int in _works.way_count():
-		if _works.way_level(row) == 0:
-			var mouth: MeshInstance3D = _pooled(_mouths, used, _mouth, Layers.SURFACE)
-			mouth.position = _corner(_works.way_cell(row) + Vector2i.ONE, 0.0)
+		if _works.way_live(row) and _works.way_level(row) == 0 \
+				and not (on_mound(row) and _works.way_family(row) == Families.LADDER_HATCH):
+			var mesh: ArrayMesh = _surface_mesh(_works.way_family(row))
+			var mouth: MeshInstance3D = _pooled(_mouths, used, mesh, Layers.SURFACE)
+			var turn: Vector2i = -_works.down_dir(row) if mesh == _mouth else _works.down_dir(row)
+			mouth.transform = _turned(_works.way_cell(row), 0.0, turn, mesh == _mouth)
 			used += 1
 	for k: int in range(used, _mouths.size()):
 		_mouths[k].visible = false
 
 
+func _surface_mesh(family: int) -> ArrayMesh:
+	"""What an entrance of `family` looks like on the surface."""
+	if family == Families.LADDER_HATCH:
+		return _hatch
+	return _stair_head if family == Families.EARTH_TIMBER else _mouth
+
+
+func _turned(corner: Vector2i, y: float, facing: Vector2i, centred: bool) -> Transform3D:
+	"""A piece drawn over the 2 × 2 at `corner`, at height `y`, turned so what faces north (the mouth: south) faces
+	`facing`; a `centred` piece (the mouth) is drawn about its own origin at the 2 × 2's middle."""
+	var middle: Vector3 = _corner(corner + Vector2i.ONE, y)
+	if centred:
+		return Transform3D(Basis(Vector3.UP, atan2(float(facing.x), float(facing.y))), middle)
+	var turn: Basis = Basis(Vector3.UP, atan2(-float(facing.x), -float(facing.y)))
+	return Transform3D(turn, middle - turn * Vector3(1.0, 0.0, 1.0))
+
+
+func on_mound(row: int) -> bool:
+	"""Whether way down `row` stands on a Mound room's floor (decision 2002: the works' Surface cells)."""
+	return _works.way_level(row) == 0 and _works.state(0, _works.way_cell(row)) != Works.EARTH
+
+
 func _place_stairs(level: int) -> void:
-	"""Stairs down where a dug way stands on `level`, stairs up where one lands on it."""
+	"""Each dug way's piece going down where it stands on `level`, and rising (or its ladder) where it comes out."""
 	var used: int = 0
 	for row: int in _works.way_count():
 		var top: int = _works.way_level(row)
-		if not underground(level) or (top != level and top + 1 != level) or not Earth.way_open(_works, row):
+		if not _works.way_live(row) or not underground(level) or (top != level and top + 1 != level) \
+				or not Earth.way_open(_works, row):
 			continue
-		var stairs: MeshInstance3D = _pooled(_stairs, used, _down if top == level else _up, LAYER)
-		stairs.position = _corner(_works.way_cell(row), top_m(level) - Earth.DEPTH_M)
+		var down: bool = top == level
+		var stairs: MeshInstance3D = _pooled(_stairs, used, _level_mesh(_works.way_family(row), down), LAYER)
+		var corner: Vector2i = _works.way_cell(row) if down else Vector2i(_works.landing_of(row).y,
+			_works.landing_of(row).z)
+		var facing: Vector2i = _works.down_dir(row) if down else _works.rise_dir(row)
+		stairs.transform = _turned(corner, top_m(level) - Earth.DEPTH_M, facing, false)
 		used += 1
 	for k: int in range(used, _stairs.size()):
 		_stairs[k].visible = false
+
+
+func _level_mesh(family: int, down: bool) -> ArrayMesh:
+	"""The piece a way of `family` shows below the surface, going down or coming out."""
+	if family == Families.LADDER_HATCH:
+		return _hatch if down else _ladder
+	if family == Families.RAMP:
+		return _ramp_down if down else _ramp_up
+	return _down if down else _up
 
 
 func _pooled(pool: Array[MeshInstance3D], at: int, mesh: ArrayMesh, layer: int) -> MeshInstance3D:
@@ -284,12 +350,17 @@ func _way_tags(used: int, level: int) -> int:
 	""""Entrance" over each mouth on the surface; "Way down" / "Way up" / "Way up to the surface" on the level shown."""
 	for row: int in _works.way_count():
 		var top: int = _works.way_level(row)
+		if not _works.way_live(row):
+			continue
+		var way_name: String = Families.name_of(_works.way_family(row))
 		var at: Vector3 = _corner(_works.way_cell(row) + Vector2i.ONE, 0.0)
-		if top == 0:
-			used = _tag(used, "Entrance", at + Vector3(0.0, ENTRANCE_TAG_M, 0.0), Layers.SURFACE_MARKS)
+		if top == 0 and not (on_mound(row) and _works.way_family(row) == Families.LADDER_HATCH):
+			used = _tag(used, way_name, at + Vector3(0.0, ENTRANCE_TAG_M, 0.0), Layers.SURFACE_MARKS)
 		if underground(level) and (top == level or top + 1 == level):
-			var words: String = "Way down" if top == level else "Way up to the surface" if top == 0 else "Way up"
-			used = _tag(used, words, at + Vector3(0.0, top_m(level) + WAY_TAG_M, 0.0), LAYER)
+			var landing: Vector3i = _works.landing_of(row)
+			var over: Vector3 = at if top == level else _corner(Vector2i(landing.y, landing.z) + Vector2i.ONE, 0.0)
+			var words: String = WAY_DOWN if top == level else WAY_UP_TOP if top == 0 else WAY_UP
+			used = _tag(used, words % way_name, over + Vector3(0.0, top_m(level) + WAY_TAG_M, 0.0), LAYER)
 	return used
 
 

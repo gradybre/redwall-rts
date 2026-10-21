@@ -46,6 +46,34 @@ const REFUSE_BINDING: StringName = &"WORLD_ROUTE_BINDING"
 const REFUSE_CONTEXT: StringName = &"WORLD_ROUTE_CONTEXT"
 const REFUSE_BUDGET: StringName = &"WORLD_ROUTE_COLD_LEASE"
 const REFUSE_BUSY: StringName = &"WORLD_ROUTE_BUSY"
+## Decision 1952 (P-1951-1): the room itinerary's per-edge profile choice is remembered per (edge, anchor) while every
+## input it reads is unchanged. A slot: epoch, edge, anchor, chosen row (-1 none), spent checks, descriptor written,
+## that descriptor's profile, revision, content, mode and posture, then the edge's own inputs as read: its graph
+## generation, its certificate generation, geometry and content, and its 32 mask bytes as four words. Those are
+## compared again on every answer, so an edge's certificate edited in place is never answered from the memo.
+const EDGE_MEMO_SLOTS: int = 16
+const EDGE_MEMO_STRIDE: int = 19
+const EDGE_MEMO_INPUTS: int = 11
+const EDGE_MEMO_STAMP: int = 6
+## Decision 1952: the endpoint-proof memo. `_profile_endpoint_refusal`'s per-box containment checks are a pure function
+## of the observed endpoint's air and support boxes, the profile's boxes, the point and the Domain. An entry (by Location
+## slot) keeps the observed boxes as ENDPOINT_ENTRY_WORDS int32 (point 3, envelope 6, support 6, air count 1, air 18);
+## each entry has one result word per profile row: (entry generation << 16) | (boxes checked << 4) | answer index.
+## Decision 1953: the per-preparation pace memo, PACE_SLOTS direct-mapped slots of PACE_WORDS int64: preparation
+## serial, profile, profile revision, family, variant, paced value (the answer's code is kept in `_pace_codes`).
+const PACE_SLOTS: int = 256
+const PACE_WORDS: int = 6
+## Decision 1953: what `pace_into` reads beyond its arguments, stamped per preparation: Profiles' load token, the level
+## pack's content revision, and each Movement profile's revision and speed.
+const PACE_INPUT_WORDS: int = 10
+## Decision 1953: a kept observation's key words: compile serial, Location slot, generation, point x, y, z.
+const OBSERVED_KEY: int = 6
+const ENDPOINT_MEMO_ENTRIES: int = 64
+const ENDPOINT_ENTRY_WORDS: int = 34
+const ENDPOINT_MEMO_STAMP: int = 9
+const ENDPOINT_SERIAL_MAX: int = 1 << 46
+const ENDPOINT_ANSWERS: Array[StringName] = [&"", &"WORLD_ROUTE_ENDPOINT_SUPPORT", &"WORLD_ROUTE_ENDPOINT_BODY",
+	&"WORLD_ROUTE_PROFILE_BOUNDS"]
 const REFUSE_COVERAGE: StringName = &"WORLD_ROUTE_COVERAGE"
 
 
@@ -318,9 +346,35 @@ var _witness_content: int = 0
 @warning_ignore("unused_private_class_variable")
 var _witness_work: int = 0
 var _descriptor: Profiles.Descriptor = Profiles.Descriptor.new()
+var _edge_memo: PackedInt64Array = PackedInt64Array() # Decision 1952: EDGE_MEMO_SLOTS slots of EDGE_MEMO_STRIDE.
+var _edge_memo_stamp: PackedInt64Array = PackedInt64Array() # Graph, its publication, certificates, geometry, bank, load.
+@warning_ignore("unused_private_class_variable")
+var _edge_memo_epoch: int = 1
+@warning_ignore("unused_private_class_variable")
+var _certificate_revision: int = 1 # Decision 1952: moves on every certificate bank swap; never saved.
+@warning_ignore("unused_private_class_variable")
+var _descriptor_writes: int = 0 # Decision 1952: successful `_reach_descriptor` writes.
+var _endpoint_memo: PackedInt64Array = PackedInt64Array() # Decision 1952: ENTRIES x MAX_PROFILES result words.
+var _endpoint_entries: PackedInt32Array = PackedInt32Array() # ENTRIES x ENDPOINT_ENTRY_WORDS observed boxes.
+var _endpoint_entry_tags: PackedInt64Array = PackedInt64Array() # ENTRIES x (epoch, generation).
+var _endpoint_memo_stamp: PackedInt64Array = PackedInt64Array() # Bank, load revision, content, Domain bounds.
+var _endpoint_memo_epoch: int = 1
+var _endpoint_memo_serial: int = 0
 var _body: Profiles.Box = Profiles.Box.new()
 var _stance: Profiles.Box = Profiles.Box.new()
 var _endpoint: Locations.Record = Locations.Record.new()
+## Decision 1953: within one edge compile (`_observe_serial`), each endpoint is observed once. The two successful
+## prepared observations are kept (key: serial, Location slot and generation, point) and copied back into `_endpoint`
+## on a repeat, with the same spend. Runtime only, never saved; reset by every compile.
+var _observed: Array[Locations.Record] = [Locations.Record.new(), Locations.Record.new()]
+var _observed_key: PackedInt64Array = PackedInt64Array()
+var _observe_serial: int = 1
+var _observe_next: int = 0
+## Decision 1953: `_catalog.pace_into` as last answered in this preparation (`_pace_serial` moves per `_begin_proof`).
+var _pace_memo: PackedInt64Array = PackedInt64Array()
+var _pace_codes: Array[StringName] = []
+var _pace_serial: int = 1
+var _pace_inputs: PackedInt64Array = PackedInt64Array()
 var _section: Owner.Region = Owner.Region.new()
 var _edge: Routes.Edge = Routes.Edge.new()
 var _pace: IntMath.IntResult = IntMath.IntResult.new()
@@ -407,8 +461,21 @@ func _allocate_scratch() -> void:
 	_first_point.resize(3)
 	_last_point.resize(3)
 	_envelope.resize(6)
+	_edge_memo.resize(EDGE_MEMO_SLOTS * EDGE_MEMO_STRIDE)
+	_edge_memo_stamp.resize(EDGE_MEMO_STAMP)
+	_endpoint_memo.resize(ENDPOINT_MEMO_ENTRIES * Profiles.MAX_PROFILES)
+	_endpoint_entries.resize(ENDPOINT_MEMO_ENTRIES * ENDPOINT_ENTRY_WORDS)
+	_endpoint_entry_tags.resize(2 * ENDPOINT_MEMO_ENTRIES)
+	_endpoint_memo_stamp.resize(ENDPOINT_MEMO_STAMP)
 	_endpoint.envelope.resize(6)
 	_endpoint.support.resize(6)
+	_observed_key.resize(2 * OBSERVED_KEY)
+	_pace_memo.resize(PACE_SLOTS * PACE_WORDS)
+	_pace_codes.resize(PACE_SLOTS)
+	_pace_inputs.resize(PACE_INPUT_WORDS)
+	for record: Locations.Record in _observed:
+		record.envelope.resize(6)
+		record.support.resize(6)
 	_section.box.resize(6)
 
 
@@ -537,7 +604,10 @@ static func workpiece_occupancy_refusal(actual: RefCounted, bounds: PackedInt32A
 	var code: StringName = _reach_stores_refusal(actual, graph, owner, locations)
 	if code != &"": return code
 	if workpiece_occupancy_checks(actual) > checks: return REFUSE_BUDGET
-	for row: int in Routes.RESIDENT_CAPACITY:
+	var row: int = -1
+	while true:
+		row = Routes.next_occupancy_row(graph, row + 1, false) # Decision 1952: no extent test precedes standing.
+		if row >= Routes.RESIDENT_CAPACITY: break
 		if graph._resident_ref(row) == Routes.NULL_REF:
 			code = Routes.unregistered_occupant_refusal(graph, row, Vector3i(bounds[0], bounds[1], bounds[2]),
 				Vector3i(bounds[3], bounds[4], bounds[5]))
@@ -730,10 +800,7 @@ static func publish_installation(actual: RefCounted, context: Locations.Installa
 
 static func _commit_preflighted_certificates(actual: RefCounted, catalog_revision: int) -> void:
 	"""The matching concrete graph receipt has already published; this tail only exchanges banks and clears pins."""
-	var previous: Certificates = actual._live
-	actual._live = actual._stage
-	actual._stage = previous
-	actual._live_catalog_revision = catalog_revision
+	_swap_certificates(actual, catalog_revision)
 	actual._proof = null
 	actual._route_token = 0
 	actual._space_token = 0
@@ -786,6 +853,8 @@ func _pin_preparation(token: int, cold_token: int, space_token: int, location_to
 
 func _begin_proof() -> StringName:
 	"""No snapshot or fragments allocate before the exact lease and finite coexistence peak are admitted."""
+	_pace_serial = _next_revision(_pace_serial) # Decision 1953: a new preparation keeps no pace answer.
+	_pace_inputs_hold(true)
 	if _domain._checks < 3 * SOURCE_PASS_CHECKS:
 		return &"WORLD_ROUTE_CHECK_CAPACITY"
 	var code: StringName = _preparation_refusal()
@@ -842,12 +911,46 @@ func _carry_eligible(edge: Routes.Edge) -> bool:
 			or _since <= 0 or _since > _base_revision or _since < _owner()._journal.floor_revision():
 		return false
 	_relevant = _owner()._journal.count_after(_since) + _proof.change_count
+	if _carry_hull_clean(edge): return true # Decision 2044 (P-2044-1 (a)): the edge-bound prefilter.
 	for profile: int in _profiles.profile_count(_content_revision):
 		if not _proof.spend() or _profiles.descriptor_into(profile, _content_revision, _descriptor) != &"":
 			return false
-		if _kind_matches(edge) and not _profile_sweeps_clean(edge):
-			return false
+		if edge.family < 0 and Routes.Stair.is_rooted(profile) and _stair_row(profile): continue # Decision 1972.
+		if not _kind_matches(edge): continue
+		if not _profile_sweeps_clean(edge): return false
+		# Decision 2044 (P-2044-15): a stair row's fixture decks too, so a carried stair row's volumes are unchanged.
+		var program: int = _routes()._stair_motion.program_of(profile) if _stair_row(profile) else -1
+		for ordinal: int in (_routes()._stair_motion.deck_count(program) if program >= 0 and _relevant > 0 else 0):
+			if not _proof.spend(1 + _relevant) \
+					or not _routes()._stair_motion.deck_into(program, ordinal, _point(edge, 0), _envelope) \
+					or not _owner()._journal.clean(_envelope, _since, CLEARANCE_INERT_ROLE) or _staged_change_meets(_envelope):
+				return false
 	return true
+
+
+func _carry_hull_clean(edge: Routes.Edge) -> bool:
+	"""Decision 2044 (P-2044-1 (a), the edge-bound prefilter): one box holding every serving profile's every box swept
+	along every segment, and every stair row's fixture decks; when no change since the certificate meets it, none can
+	meet any sweep it holds, so the per-profile test would carry the edge too. Its descriptor reads are charged as that
+	test charges them, and each swept box and deck one check; the change test is charged once, not once per profile,
+	segment and box. The hull is held in `_support`, the stance scratch, free while an edge's carry is decided."""
+	var hull: PackedInt32Array = _support
+	for axis: int in 6: hull[axis] = 2147483647 if axis < 3 else -2147483648
+	var motion: Routes.StairMotion = _routes()._stair_motion
+	for profile: int in _profiles.profile_count(_content_revision):
+		if not _proof.spend() or _profiles.descriptor_into(profile, _content_revision, _descriptor) != &"": return false
+		if (edge.family < 0 and Routes.Stair.is_rooted(profile) and _stair_row(profile)) or not _kind_matches(edge): continue
+		for segment: int in edge.point_count - 1:
+			for ordinal: int in _descriptor.box_count:
+				if not _proof.spend() or _profile_box_into(ordinal, _body) != &"" \
+						or _sweep_into(_body, _point(edge, segment), _point(edge, segment + 1), _envelope) != &"": return false
+				for axis: int in 6: hull[axis] = mini(hull[axis], _envelope[axis]) if axis < 3 else maxi(hull[axis], _envelope[axis])
+		var program: int = motion.program_of(profile) if _stair_row(profile) else -1
+		for ordinal: int in (motion.deck_count(program) if program >= 0 else 0):
+			if not _proof.spend() or not motion.deck_into(program, ordinal, _point(edge, 0), _envelope): return false
+			for axis: int in 6: hull[axis] = mini(hull[axis], _envelope[axis]) if axis < 3 else maxi(hull[axis], _envelope[axis])
+	if hull[0] > hull[3] or not _proof.spend(1 + _relevant): return false
+	return _owner()._journal.clean(hull, _since, CLEARANCE_INERT_ROLE) and not _staged_change_meets(hull)
 
 
 func _profile_sweeps_clean(edge: Routes.Edge) -> bool:
@@ -923,6 +1026,7 @@ func edge_refusal(edge: Routes.Edge, route_token: int, space_token: int, locatio
 
 func _compile_edge(edge: Routes.Edge) -> StringName:
 	"""Each finite profile qualifies separately, so a narrow valid mouse route does not promise badger clearance."""
+	_observe_serial = _next_revision(_observe_serial) # Decision 1953: a new compile; saturated (0) keeps nothing.
 	if edge == null or edge.ref.x < 0 or edge.ref.x >= EDGE_CAPACITY or edge.ref.y <= 0 \
 			or edge.geometry_revision != _target_revision or edge.content_revision != _content_revision:
 		return REFUSE_CONTEXT
@@ -944,18 +1048,49 @@ func _compile_edge(edge: Routes.Edge) -> StringName:
 
 
 func _compile_profiles(edge: Routes.Edge) -> StringName:
-	"""Each profile is proved on its own; a carried edge skips only what its unchanged inputs already proved."""
+	"""Each profile is proved on its own; a carried edge skips only what its unchanged inputs already proved.
+	Decision 1953: a profile of another kind is refused from the bank's own columns without writing `_descriptor`;
+	if it is the last profile proved, its descriptor is written before returning, as the full proof would have."""
 	var accepted: int = 0
+	var skipped: int = -1
 	for profile: int in _profiles.profile_count(_content_revision):
 		if not _proof.spend():
-			return _proof.error
+			return _restored_descriptor(skipped, _proof.error)
+		if _other_kind(profile, edge):
+			skipped = profile
+			continue
+		skipped = -1
 		var code: StringName = _profile_edge_refusal(profile, edge)
 		if _proof.error != &"":
 			return _proof.error
 		if code == &"":
 			_stage.admit(edge.ref.x, profile)
 			accepted += 1
-	return &"" if accepted > 0 else &"WORLD_ROUTE_NO_FITTING_PROFILE"
+	return _restored_descriptor(skipped, &"" if accepted > 0 else &"WORLD_ROUTE_NO_FITTING_PROFILE")
+
+
+func _other_kind(profile: int, edge: Routes.Edge) -> bool:
+	"""Decision 1953: whether `descriptor_into` would succeed and `_kind_matches` then fail, read from the bank's own
+	columns (the same ones `descriptor_into` copies). With the framework's cache checks on, the full proof runs and the
+	answer is compared."""
+	var bank: Profiles.Bank = _profiles._live
+	if _content_revision <= 0 or _content_revision != _profiles.content_revision() or profile < 0 \
+			or profile >= bank.header[1]: return false
+	var stride: int = _profiles._profile_capacity
+	var family_mask: int = bank.fields[Profiles.F_FAMILIES * stride + profile]
+	var other: bool = bank.flags[profile] != Profiles.CERT_REQUIRED or bank.fields[Profiles.F_MODE * stride + profile] != edge.mode \
+		or bank.fields[Profiles.F_POSTURE * stride + profile] != edge.posture \
+		or (edge.family >= 0 and (family_mask & (1 << edge.family)) == 0)
+	if not other or not Profiles.CacheChecks.enabled: return other
+	if _profile_edge_refusal(profile, edge) != &"WORLD_ROUTE_PROFILE_KIND":
+		Profiles.CacheChecks.report("profile kind", "profile %d is not refused on kind" % profile)
+	return true
+
+
+func _restored_descriptor(skipped: int, code: StringName) -> StringName:
+	"""Decision 1953: write the skipped last profile's descriptor, which its full proof would have left."""
+	if skipped >= 0: _profiles.descriptor_into(skipped, _content_revision, _descriptor)
+	return code
 
 
 func _path_refusal(edge: Routes.Edge) -> StringName:
@@ -990,13 +1125,12 @@ func _profile_edge_refusal(profile: int, edge: Routes.Edge) -> StringName:
 		return code
 	if not _kind_matches(edge):
 		return &"WORLD_ROUTE_PROFILE_KIND"
-	if _stair_row(profile): return _stair_edge_refusal(profile, edge)
 	_carried = _carry_edge and _live.admits(edge.ref.x, profile) and not _may_excuse_pending()
-	code = _catalog.pace_into(profile, _descriptor.profile_revision, _content_revision,
-		edge.family, edge.variant, _catalog_revision, _pace)
+	if _stair_row(profile): return _stair_edge_refusal(profile, edge) # Decision 2044: carried as ground rows are.
+	code = _compile_pace(profile, edge.family, edge.variant)
 	if code != &"":
 		return code
-	if Routes.ShortStep.uses(_profiles) and Routes.ShortStep.is_short(profile):
+	if Routes.ShortStep.is_short(profile) and Routes._step_closure(_profiles): # Decisions 1951 and 1952.
 		code = Routes.ShortStep.span_refusal(profile, _point(edge, 0), _point(edge, edge.point_count - 1), edge.point_count, _pace.value)
 		if code != &"": return code
 	if not _carried:
@@ -1006,7 +1140,8 @@ func _profile_edge_refusal(profile: int, edge: Routes.Edge) -> StringName:
 
 
 func _stair_row(profile: int) -> bool:
-	"""ADR1229: content 10's source-proved travel rows (steps, descent, ascent, half-turn), once the tables are bound."""
+	"""ADR1229: the source-proved travel rows (steps, descent, ascent, half-turn), and decision 1972: content 12's
+	rooted stair-carry rows, once the tables are bound."""
 	return _routes()._stair_motion != null and Routes.Stair.owns(_profiles, profile)
 
 
@@ -1020,15 +1155,22 @@ func _stair_edge_refusal(profile: int, edge: Routes.Edge) -> StringName:
 	var first: Vector3i = _point(edge, 0)
 	if program < 0 or edge.point_count != 2 or edge.rotation != 0 or _point(edge, 1) - first != motion.end_of(program):
 		return &"WORLD_ROUTE_STAIR_SPAN"
-	var code: StringName = _catalog.pace_into(profile, _descriptor.profile_revision, _content_revision,
-		edge.family, edge.variant, _catalog_revision, _pace)
+	var code: StringName = _compile_pace(profile, edge.family, edge.variant)
 	if code != &"": return code
 	var intervals: int = motion.key_count(program) - 1 if motion.rooted(program) else Routes.Stair.STEP_CLIP_INTERVALS
 	if Routes.Stair.key_step(intervals, Routes.Stair.ticks_for(edge.length_u, _pace.value)) < 0:
 		return &"WORLD_ROUTE_STAIR_PACE"
 	code = _endpoint_observation_refusal(edge.from_location, first)
 	if code == &"": code = _endpoint_observation_refusal(edge.to_location, _point(edge, 1))
-	if code == &"": code = _stair_decks_refusal(motion, program, first, edge.room)
+	if code == &"" and (not _carried or Profiles.CacheChecks.enabled):
+		var spent: int = _proof.remaining
+		var decks: StringName = _stair_decks_refusal(motion, program, first, edge.room)
+		if not _carried: code = decks
+		elif decks != &"" and _proof.error == &"":
+			Profiles.CacheChecks.report("carried stair decks", "edge %d row %d" % [edge.ref.x, profile])
+		if _carried: # The checked proof is not charged: a checked run spends what an unchecked one does.
+			_proof.remaining = spent
+			_proof.error = &""
 	return _stair_bodies_refusal(first, edge.room) if code == &"" else code
 
 
@@ -1059,7 +1201,11 @@ func _subtract_room_support(room: Vector2i) -> bool:
 
 
 func _stair_bodies_refusal(first: Vector3i, room: Vector2i) -> StringName:
-	"""Each body and recovery box at the start root: no exclusion, no foreign or pending matter, and full cover."""
+	"""Each body and recovery box at the start root: no exclusion, no foreign or pending matter, and full cover.
+	Decision 2044 (P-2044-15, "Exact cost fixes"): a carried row (`_carried`) re-observes only its unjournaled terrain
+	exclusions; the Space volumes its blocked and covered proofs read are unchanged since its certificate, which
+	`_carry_eligible` proved, and its exterior remainder's natural floor is static terrain. With CacheChecks on, the
+	full proof also runs, unspent, and a carried answer it contradicts is reported."""
 	for ordinal: int in _descriptor.box_count:
 		if not _proof.spend(): return _proof.error
 		var code: StringName = _profile_box_into(ordinal, _body)
@@ -1067,9 +1213,17 @@ func _stair_bodies_refusal(first: Vector3i, room: Vector2i) -> StringName:
 		if _body.role != Profiles.BODY_HELD_LOAD and _body.role != Profiles.TURN_RECOVERY: continue
 		code = _sweep_into(_body, first, first, _bounds)
 		if code == &"": code = _terrain.exclusions_refusal(_bounds)
-		if code == &"" and _stair_blocked(room): code = _proof.error if _proof.error != &"" else &"WORLD_ROUTE_STAIR_BLOCKED"
-		if code == &"": code = _stair_covered_refusal(room)
 		if code != &"": return code
+		if _carried and not Profiles.CacheChecks.enabled: continue
+		var spent: int = _proof.remaining
+		var volumes: StringName = (_proof.error if _proof.error != &"" else &"WORLD_ROUTE_STAIR_BLOCKED") \
+			if _stair_blocked(room) else _stair_covered_refusal(room)
+		if not _carried:
+			if volumes != &"": return volumes
+			continue
+		if volumes != &"" and _proof.error == &"": Profiles.CacheChecks.report("carried stair body", "box %d" % ordinal)
+		_proof.remaining = spent # The checked proof is not charged: a checked run spends what an unchecked one does.
+		_proof.error = &""
 	return &""
 
 
@@ -1103,8 +1257,23 @@ func _stair_covered_refusal(room: Vector2i) -> StringName:
 
 
 func _endpoint_observation_refusal(location: Vector2i, point: Vector3i) -> StringName:
-	"""The endpoint is live, refreshed to this proof's revision and still at the path's end; its payload is immutable."""
+	"""The endpoint is live, refreshed to this proof's revision and still at the path's end; its payload is immutable.
+	Decision 1953: inside one edge compile a repeated successful prepared observation is answered from `_observed`
+	(the same spend first); with the framework's cache checks on it is observed live and compared."""
 	if not _proof.spend(Locations.PREPARED_OBSERVATION_CHECKS): return _proof.error
+	var slot: int = _observed_slot(location, point)
+	if slot >= 0 and not Profiles.CacheChecks.enabled:
+		_copy_record(_observed[slot], _endpoint)
+		return &""
+	var code: StringName = _observe_endpoint(location, point)
+	if slot >= 0 and (code != &"" or not _records_equal(_observed[slot], _endpoint)):
+		Profiles.CacheChecks.report("endpoint observation", "location %d changed inside one compile" % location.x)
+	if code == &"" and slot < 0: _remember_observation(location, point)
+	return code
+
+
+func _observe_endpoint(location: Vector2i, point: Vector3i) -> StringName:
+	"""The observation itself: the prepared (or live) record, then its World, revision, point and payload checks."""
 	var code: StringName = _prepared_endpoint_into(self, location, _endpoint) \
 		if _location_token != 0 else _locations().read_location_into(location, _endpoint)
 	if code != &"": return code
@@ -1115,16 +1284,190 @@ func _endpoint_observation_refusal(location: Vector2i, point: Vector3i) -> Strin
 	return &""
 
 
+func _compile_pace(profile: int, family: int, variant: int) -> StringName:
+	"""Decision 1953: `_catalog.pace_into` for this edge's family and variant. Within one preparation (sealed owners,
+	one catalog and Movement) the same arguments give the same answer, so a repeat is answered from `_pace_memo`; a
+	refusal leaves `_pace` untouched and an answer sets it, as the call does. Checked live while CacheChecks is on."""
+	var slot: int = posmod(profile * 31 + family * 7 + variant, PACE_SLOTS)
+	var at: int = slot * PACE_WORDS
+	var hit: bool = _compiling and _pace_serial > 0 and _pace_memo.size() == PACE_SLOTS * PACE_WORDS \
+		and _pace_memo[at] == _pace_serial and _pace_memo[at + 1] == profile \
+		and _pace_memo[at + 2] == _descriptor.profile_revision and _pace_memo[at + 3] == family and _pace_memo[at + 4] == variant \
+		and _pace_inputs_hold(false)
+	if hit and not Profiles.CacheChecks.enabled: return _replay_pace(at)
+	var code: StringName = _catalog.pace_into(profile, _descriptor.profile_revision, _content_revision,
+		family, variant, _catalog_revision, _pace)
+	if hit and (code != _pace_codes[slot] or (code == &"" and _pace.value != _pace_memo[at + 5])):
+		Profiles.CacheChecks.report("pace", "profile %d changed inside one preparation" % profile)
+	if _compiling and _pace_serial > 0 and _pace_memo.size() == PACE_SLOTS * PACE_WORDS:
+		_remember_pace(at, profile, family, variant, code)
+	return code
+
+
+func _pace_inputs_hold(stamp: bool) -> bool:
+	"""Decision 1953: whether everything `pace_into` reads beyond its arguments still equals this preparation's stamp
+	(`stamp` true writes it). An unbound catalog or a poisoned Profiles load token never holds."""
+	var movement: Movement = _catalog._movement if _catalog != null else null
+	if movement == null or _catalog._levels == null or _profiles.load_revision() == 0 \
+			or _pace_inputs.size() != PACE_INPUT_WORDS: return false
+	var held: bool = _pace_input(0, _profiles.load_revision(), stamp)
+	held = _pace_input(1, _catalog._levels.content_revision(), stamp) and held
+	for profile: int in Movement.PROFILE_COUNT:
+		held = _pace_input(2 + 2 * profile, movement.profile_revision_of(profile), stamp) and held
+		held = _pace_input(3 + 2 * profile, movement._profile_speed_u_per_s[profile], stamp) and held
+	return held
+
+
+func _pace_input(at: int, value: int, stamp: bool) -> bool:
+	"""Decision 1953: one stamped input word, written when stamping; whether it equals `value`."""
+	if stamp: _pace_inputs[at] = value
+	return _pace_inputs[at] == value
+
+
+func _replay_pace(at: int) -> StringName:
+	"""Decision 1953: the kept answer; an answer sets `_pace` exactly as `IntResult.succeed` does."""
+	@warning_ignore("integer_division") var code: StringName = _pace_codes[at / PACE_WORDS]
+	if code == &"": _pace.succeed(_pace_memo[at + 5])
+	return code
+
+
+func _remember_pace(at: int, profile: int, family: int, variant: int, code: StringName) -> void:
+	"""Decision 1953: keep one pace answer for the rest of this preparation."""
+	_pace_memo[at] = _pace_serial
+	_pace_memo[at + 1] = profile
+	_pace_memo[at + 2] = _descriptor.profile_revision
+	_pace_memo[at + 3] = family
+	_pace_memo[at + 4] = variant
+	_pace_memo[at + 5] = _pace.value if code == &"" else 0
+	@warning_ignore("integer_division") var slot: int = at / PACE_WORDS
+	_pace_codes[slot] = code
+
+
+func _observed_slot(location: Vector2i, point: Vector3i) -> int:
+	"""Decision 1953: the kept observation of `location` at `point` in this compile, or -1. Only the prepared path
+	(sealed staged Locations, which cannot change during a compile) is kept."""
+	if not _compiling or _location_token == 0 or _observe_serial <= 0: return -1
+	for slot: int in 2:
+		var at: int = slot * OBSERVED_KEY
+		if _observed_key[at] == _observe_serial and _observed_key[at + 1] == location.x \
+				and _observed_key[at + 2] == location.y and _observed_key[at + 3] == point.x \
+				and _observed_key[at + 4] == point.y and _observed_key[at + 5] == point.z: return slot
+	return -1
+
+
+func _remember_observation(location: Vector2i, point: Vector3i) -> void:
+	"""Decision 1953: keep a successful prepared observation for the rest of this compile."""
+	if not _compiling or _location_token == 0 or _observe_serial <= 0: return
+	var slot: int = _observe_next
+	_observe_next = 1 - _observe_next
+	var at: int = slot * OBSERVED_KEY
+	_observed_key[at] = _observe_serial
+	_observed_key[at + 1] = location.x
+	_observed_key[at + 2] = location.y
+	_observed_key[at + 3] = point.x
+	_observed_key[at + 4] = point.y
+	_observed_key[at + 5] = point.z
+	_copy_record(_endpoint, _observed[slot])
+
+
+static func _copy_record(from: Locations.Record, to: Locations.Record) -> void:
+	"""Every field a successful observation writes (`_copy_route_observation` overwrites them all)."""
+	to.point = from.point
+	to.room = from.room
+	to.section = from.section
+	to.level = from.level
+	to.role = from.role
+	to.world = from.world
+	to.payload_revision = from.payload_revision
+	to.geometry_revision = from.geometry_revision
+	to.air_count = from.air_count
+	for axis: int in 6:
+		to.envelope[axis] = from.envelope[axis]
+		to.support[axis] = from.support[axis]
+	for index: int in 6 * Locations.MAX_AIR_EXTRA:
+		to.air[index] = from.air[index]
+
+
+static func _records_equal(a: Locations.Record, b: Locations.Record) -> bool:
+	"""Decision 1953, checks on: whether two observed records hold the same values."""
+	return a.point == b.point and a.room == b.room and a.section == b.section and a.level == b.level \
+		and a.role == b.role and a.world == b.world and a.payload_revision == b.payload_revision \
+		and a.geometry_revision == b.geometry_revision and a.air_count == b.air_count \
+		and a.envelope == b.envelope and a.support == b.support and a.air == b.air
+
+
 func _profile_endpoint_refusal(location: Vector2i, point: Vector3i) -> StringName:
 	"""A source mask never promises arrival at an endpoint which cannot contain its full body and held tool."""
 	var code: StringName = _endpoint_observation_refusal(location, point)
-	if code != &"": return code
+	return code if code != &"" else _endpoint_boxes_refusal(location, point)
+
+
+func _endpoint_boxes_refusal(location: Vector2i, point: Vector3i) -> StringName:
+	"""Decision 1952: the per-box checks, answered from the endpoint memo with their exact spend (and the exact failure
+	state of a budget that runs out part way); with the framework's cache checks on, read live and compared."""
+	var entry: int = _endpoint_entry(location, point)
+	var word: int = _endpoint_word(entry)
+	if word != 0 and not Profiles.CacheChecks.enabled: return _replay_endpoint_boxes(word)
+	if word != 0: return _checked_endpoint_boxes(entry, word, point)
+	var before: int = _proof.remaining
+	var code: StringName = _endpoint_boxes_live(point)
+	var answer: int = _endpoint_answer(code, before - _proof.remaining)
+	if entry >= 0 and answer != 0:
+		_endpoint_memo[entry * Profiles.MAX_PROFILES + _descriptor.profile_id] = (_endpoint_entry_tags[2 * entry + 1] << 16) | answer
+	return code
+
+
+func _endpoint_boxes_live(point: Vector3i) -> StringName:
+	"""Every profile box against the observed endpoint's air and support, one chunk of spend per box."""
+	var code: StringName = &""
 	for ordinal: int in _descriptor.box_count:
 		if not _proof.spend(1 + _descriptor.box_count): return _proof.error
 		code = _profile_box_into(ordinal, _body)
 		if code == &"": code = _compiled_endpoint_box_refusal(point)
 		if code != &"": return code
 	return &""
+
+
+func _endpoint_answer(code: StringName, spent: int) -> int:
+	"""Decision 1952: (boxes checked << 4) | answer index, or 0 when the answer is not one the memo keeps (a budget
+	fault or a Profiles refusal)."""
+	var chunk: int = 1 + _descriptor.box_count
+	var index: int = ENDPOINT_ANSWERS.find(code)
+	@warning_ignore("integer_division") var boxes: int = spent / chunk
+	if index < 0 or spent < 0 or spent % chunk != 0 or boxes > _descriptor.box_count or boxes >= 4096: return 0
+	return (boxes << 4) | (index + 1)
+
+
+func _checked_endpoint_boxes(entry: int, word: int, point: Vector3i) -> StringName:
+	"""Decision 1952, checks on: run the replay the game would run and keep what it leaves, put the proof budget back,
+	then run the live checks (whose answer is used) and report any difference. The word is then refreshed."""
+	var before: int = _proof.remaining
+	var fault: StringName = _proof.error
+	var replayed: StringName = _replay_endpoint_boxes(word)
+	var replayed_remaining: int = _proof.remaining
+	var replayed_fault: StringName = _proof.error
+	_proof.remaining = before
+	_proof.error = fault
+	var code: StringName = _endpoint_boxes_live(point)
+	if code != replayed or _proof.remaining != replayed_remaining or _proof.error != replayed_fault:
+		Profiles.CacheChecks.report("endpoint proof", "entry %d: an input changed without moving its token" % entry)
+	var answer: int = _endpoint_answer(code, before - _proof.remaining)
+	if answer != 0:
+		_endpoint_memo[entry * Profiles.MAX_PROFILES + _descriptor.profile_id] = (_endpoint_entry_tags[2 * entry + 1] << 16) | answer
+	return code
+
+
+func _replay_endpoint_boxes(word: int) -> StringName:
+	"""Decision 1952: spend what the checks spent, chunk by chunk as they did, and answer as they did."""
+	var chunk: int = 1 + _descriptor.box_count
+	var spent: int = ((word >> 4) & 0xFFF) * chunk
+	if spent <= _proof.remaining:
+		_proof.remaining -= spent
+		return ENDPOINT_ANSWERS[(word & 0xF) - 1]
+	@warning_ignore("integer_division") var whole: int = _proof.remaining / chunk
+	_proof.remaining -= whole * chunk
+	_proof.spend(chunk) # Fails exactly as the live check's next chunk would, and records the same fault.
+	return _proof.error
 
 
 static func _prepared_endpoint_into(actual: RefCounted, location: Vector2i, out: Locations.Record) -> StringName:
@@ -1455,10 +1798,7 @@ func publish(token: int) -> StringName:
 	if code != &"":
 		return code
 	assert(_routes().last_published_token() == token, "Only this exact actual route swap promotes its certificates")
-	var previous: Certificates = _live
-	_live = _stage
-	_stage = previous
-	_live_catalog_revision = _catalog_revision
+	_swap_certificates(self, _catalog_revision)
 	_clear_preparation()
 	return &""
 
@@ -1499,8 +1839,8 @@ func _selection_refusal(selection: Profiles.Selection) -> StringName:
 			or _descriptor.rig != selection.rig or _descriptor.mode != selection.mode \
 			or _descriptor.posture != selection.posture or _descriptor.yaw_kind != selection.orientation \
 			or (_descriptor.yaw_kind != Profiles.YAW_ALL and _descriptor.yaw != selection.yaw \
-				and Profiles.selection_policy_leaf(_profiles, selection.profile_id, selection.profile_revision,
-					selection.content_revision) != Profiles.POLICY_STAIR_TURN) \
+				and not Profiles.is_table_turn(Profiles.selection_policy_leaf(_profiles, selection.profile_id,
+					selection.profile_revision, selection.content_revision))) \
 			or _descriptor.certificate_flags != Profiles.CERT_REQUIRED:
 		return &"WORLD_ROUTE_PROFILE_STALE"
 	return &""
@@ -1819,7 +2159,222 @@ static func _reach_descriptor(actual: RefCounted, row: int, revision: int, conte
 	descriptor.content_revision = content
 	descriptor.mode = mode
 	descriptor.posture = bank.fields[Profiles.F_POSTURE * capacity + row]
+	actual._descriptor_writes += 1
 	return &""
+
+
+func _endpoint_entry(location: Vector2i, point: Vector3i) -> int:
+	"""Decision 1952: the memo entry holding exactly the observed endpoint's boxes (refilled when they differ), or -1."""
+	if _endpoint_memo.size() != ENDPOINT_MEMO_ENTRIES * Profiles.MAX_PROFILES or not _endpoint_epoch_current() \
+			or _endpoint.air_count < 0 or _endpoint.air_count > Locations.MAX_AIR_EXTRA or _endpoint.point != point \
+			or not _endpoint_descriptor_current(): return -1
+	var entry: int = posmod(location.x, ENDPOINT_MEMO_ENTRIES)
+	if _endpoint_entry_tags[2 * entry] == _endpoint_memo_epoch and _endpoint_entry_matches(entry * ENDPOINT_ENTRY_WORDS):
+		return entry
+	if _endpoint_memo_serial < 0 or _endpoint_memo_serial >= ENDPOINT_SERIAL_MAX: return -1 # Saturated: unusable.
+	_endpoint_memo_serial += 1
+	_endpoint_entry_fill(entry * ENDPOINT_ENTRY_WORDS)
+	_endpoint_entry_tags[2 * entry] = _endpoint_memo_epoch
+	_endpoint_entry_tags[2 * entry + 1] = _endpoint_memo_serial
+	return entry
+
+
+func _endpoint_descriptor_current() -> bool:
+	"""Decision 1952: the descriptor is the bank's own current row for the compiled content (as `descriptor_into` left
+	it), so its profile row identifies the boxes the checks read."""
+	var row: int = _descriptor.profile_id
+	return row >= 0 and row < Profiles.MAX_PROFILES and row < _profiles._profile_capacity \
+		and _descriptor.content_revision == _content_revision and _descriptor.content_revision == _profiles._live.header[0] \
+		and _descriptor.profile_revision == _profiles._live.quantities[row] \
+		and _descriptor.box_count == _profiles._live.fields[Profiles.F_BOX_COUNT * _profiles._profile_capacity + row]
+
+
+func _endpoint_word(entry: int) -> int:
+	"""Decision 1952: the profile's result word in `entry` when it belongs to the entry's generation, else 0."""
+	if entry < 0: return 0
+	var word: int = _endpoint_memo[entry * Profiles.MAX_PROFILES + _descriptor.profile_id]
+	return word if word != 0 and (word >> 16) == _endpoint_entry_tags[2 * entry + 1] else 0
+
+
+func _endpoint_epoch_current() -> bool:
+	"""Decision 1952: the Profiles bank and load revision, the compiled content and the Domain bounds the memo was
+	filled under; a change starts a new epoch, which retires every entry. False while any of them is unusable."""
+	if _profiles == null or _profiles._loading or _profiles._live == null or _profiles.load_revision() == 0 \
+			or _domain == null or _endpoint_memo_epoch == 0: return false
+	var stamp: PackedInt64Array = _endpoint_memo_stamp
+	var same: bool = stamp[0] == _profiles._live.get_instance_id() and stamp[1] == _profiles.load_revision() \
+		and stamp[2] == _content_revision
+	for axis: int in 6: same = same and stamp[3 + axis] == _domain._bounds[axis]
+	if same: return true
+	stamp[0] = _profiles._live.get_instance_id()
+	stamp[1] = _profiles.load_revision()
+	stamp[2] = _content_revision
+	for axis: int in 6: stamp[3 + axis] = _domain._bounds[axis]
+	_endpoint_memo_epoch = _next_revision(_endpoint_memo_epoch)
+	return _endpoint_memo_epoch != 0
+
+
+func _endpoint_entry_matches(at: int) -> bool:
+	"""Decision 1952: the entry holds exactly the boxes the checks read: point, envelope, support and the live air."""
+	var words: PackedInt32Array = _endpoint_entries
+	if words[at] != _endpoint.point.x or words[at + 1] != _endpoint.point.y or words[at + 2] != _endpoint.point.z \
+			or words[at + 15] != _endpoint.air_count: return false
+	for axis: int in 6:
+		if words[at + 3 + axis] != _endpoint.envelope[axis] or words[at + 9 + axis] != _endpoint.support[axis]: return false
+	for index: int in 6 * _endpoint.air_count:
+		if words[at + 16 + index] != _endpoint.air[index]: return false
+	return true
+
+
+func _endpoint_entry_fill(at: int) -> void:
+	"""Decision 1952: copy the observed boxes into an entry (unused air words zero)."""
+	_endpoint_entries[at] = _endpoint.point.x
+	_endpoint_entries[at + 1] = _endpoint.point.y
+	_endpoint_entries[at + 2] = _endpoint.point.z
+	_endpoint_entries[at + 15] = _endpoint.air_count
+	for axis: int in 6:
+		_endpoint_entries[at + 3 + axis] = _endpoint.envelope[axis]
+		_endpoint_entries[at + 9 + axis] = _endpoint.support[axis]
+	for index: int in 18:
+		_endpoint_entries[at + 16 + index] = _endpoint.air[index] if index < 6 * _endpoint.air_count else 0
+
+
+static func _swap_certificates(actual: RefCounted, catalog_revision: int) -> void:
+	"""Promote the private bank, keeping the old live one as the next private bank; decision 1952: every swap moves
+	`_certificate_revision`, which the itinerary memo's epoch reads."""
+	var previous: Certificates = actual._live
+	actual._live = actual._stage
+	actual._stage = previous
+	actual._certificate_revision = _next_revision(actual._certificate_revision)
+	actual._live_catalog_revision = catalog_revision
+
+
+static func _next_revision(revision: int) -> int:
+	"""Decision 1952: a runtime token's next value; it saturates and then reads as unusable (zero)."""
+	return revision + 1 if revision > 0 and revision < Routes.I64_MAX else 0
+
+
+static func edge_memo_epoch(actual: RefCounted, graph: Routes) -> int:
+	"""Decision 1952: the memo epoch for the current inputs (a changed input starts a new one); zero when unusable."""
+	var profiles: Profiles = actual._profiles
+	if actual._edge_memo.size() != EDGE_MEMO_SLOTS * EDGE_MEMO_STRIDE or graph == null or graph._owner == null \
+			or graph._last_published_token <= 0 or actual._certificate_revision <= 0 or profiles == null \
+			or profiles._loading or profiles._live == null or profiles.load_revision() == 0: return 0
+	var stamp: PackedInt64Array = actual._edge_memo_stamp
+	if stamp[0] != graph.get_instance_id() or stamp[1] != graph._last_published_token \
+			or stamp[2] != actual._certificate_revision or stamp[3] != graph._owner._header[17] \
+			or stamp[4] != profiles._live.get_instance_id() or stamp[5] != profiles.load_revision():
+		stamp[0] = graph.get_instance_id()
+		stamp[1] = graph._last_published_token
+		stamp[2] = actual._certificate_revision
+		stamp[3] = graph._owner._header[17]
+		stamp[4] = profiles._live.get_instance_id()
+		stamp[5] = profiles.load_revision()
+		actual._edge_memo_epoch = _next_revision(actual._edge_memo_epoch)
+	return actual._edge_memo_epoch
+
+
+static func edge_memo_hit(actual: RefCounted, graph: Routes, edge: int, anchor: int) -> int:
+	"""Decision 1952: the offset of the slot that answers this choice, or -1. Only inside the original search, with no
+	recorded fault and enough budget for the whole remembered spend. It writes nothing but the epoch stamp."""
+	if graph == null or graph._operation_error != &"" or graph._bindings != actual or not actual._reading \
+			or not graph._searching: return -1
+	var epoch: int = edge_memo_epoch(actual, graph)
+	var at: int = _edge_memo_slot(edge, anchor) * EDGE_MEMO_STRIDE
+	var memo: PackedInt64Array = actual._edge_memo
+	if epoch == 0 or memo[at] != epoch or memo[at + 1] != edge or memo[at + 2] != anchor or memo[at + 4] > graph._remaining \
+			or not _edge_inputs_match(actual, graph, edge, memo, at + EDGE_MEMO_INPUTS):
+		return -1
+	return at
+
+
+static func replay_edge_profile(actual: RefCounted, graph: Routes, at: int) -> int:
+	"""Decision 1952: answer from slot `at` (from `edge_memo_hit`): its spend, its descriptor write, its row."""
+	var memo: PackedInt64Array = actual._edge_memo
+	graph._remaining -= memo[at + 4]
+	if memo[at + 5] == 1: _replay_descriptor(actual, memo, at)
+	return memo[at + 3]
+
+
+static func search_state(actual: RefCounted, graph: Routes) -> PackedInt64Array:
+	"""Decision 1952, checks on only (never on the game's path): what a choice can leave behind, the search budget and
+	the five search-descriptor fields, as one comparable packet."""
+	var d: Profiles.Descriptor = actual._descriptor
+	return PackedInt64Array([graph._remaining, d.profile_id, d.profile_revision, d.content_revision, d.mode, d.posture])
+
+
+static func restore_search_state(actual: RefCounted, graph: Routes, state: PackedInt64Array) -> void:
+	"""Decision 1952, checks on only: put back a packet from `search_state`."""
+	var d: Profiles.Descriptor = actual._descriptor
+	graph._remaining = state[0]
+	d.profile_id = state[1]
+	d.profile_revision = state[2]
+	d.content_revision = state[3]
+	d.mode = state[4]
+	d.posture = state[5]
+
+
+static func _edge_inputs_match(actual: RefCounted, graph: Routes, edge: int, memo: PackedInt64Array, at: int) -> bool:
+	"""The edge's graph generation and its whole certificate row are what the remembered choice read."""
+	if edge < 0 or edge >= EDGE_CAPACITY or edge >= graph._edge_capacity: return false
+	var bank: Certificates = actual._live
+	if memo[at] != graph._live.fields[Routes.E_GENERATION * graph._edge_capacity + edge] or memo[at + 1] != bank.generations[edge] \
+			or memo[at + 2] != bank.geometry[edge] or memo[at + 3] != bank.content[edge]: return false
+	for word: int in 4:
+		if memo[at + 4 + word] != bank.masks.decode_s64(edge * MASK_BYTES + 8 * word): return false
+	return true
+
+
+static func _remember_edge_inputs(actual: RefCounted, graph: Routes, edge: int, memo: PackedInt64Array, at: int) -> bool:
+	"""Copy the edge's own inputs beside the remembered choice; false when the edge is outside the banks."""
+	if edge < 0 or edge >= EDGE_CAPACITY or edge >= graph._edge_capacity: return false
+	var bank: Certificates = actual._live
+	memo[at] = graph._live.fields[Routes.E_GENERATION * graph._edge_capacity + edge]
+	memo[at + 1] = bank.generations[edge]
+	memo[at + 2] = bank.geometry[edge]
+	memo[at + 3] = bank.content[edge]
+	for word: int in 4:
+		memo[at + 4 + word] = bank.masks.decode_s64(edge * MASK_BYTES + 8 * word)
+	return true
+
+
+static func _edge_memo_slot(edge: int, anchor: int) -> int:
+	"""A direct-mapped slot; a collision is only a miss."""
+	return posmod(edge * 7 + anchor, EDGE_MEMO_SLOTS)
+
+
+static func _replay_descriptor(actual: RefCounted, memo: PackedInt64Array, at: int) -> void:
+	"""Write the five search fields exactly as the remembered last `_reach_descriptor` call did."""
+	var descriptor: Profiles.Descriptor = actual._descriptor
+	descriptor.profile_id = memo[at + 6]
+	descriptor.profile_revision = memo[at + 7]
+	descriptor.content_revision = memo[at + 8]
+	descriptor.mode = memo[at + 9]
+	descriptor.posture = memo[at + 10]
+	actual._descriptor_writes += 1
+
+
+static func remember_edge_profile(actual: RefCounted, graph: Routes, edge: int, anchor: int, row: int, spent: int,
+		wrote: bool, epoch: int) -> void:
+	"""Keep one completed choice computed at `epoch` (unchanged since), with no fault; a fault is never remembered."""
+	if epoch == 0 or graph._operation_error != &"" or spent < 0 or edge_memo_epoch(actual, graph) != epoch: return
+	var descriptor: Profiles.Descriptor = actual._descriptor
+	var memo: PackedInt64Array = actual._edge_memo
+	var at: int = _edge_memo_slot(edge, anchor) * EDGE_MEMO_STRIDE
+	if not _remember_edge_inputs(actual, graph, edge, memo, at + EDGE_MEMO_INPUTS):
+		memo[at] = 0
+		return
+	memo[at] = epoch
+	memo[at + 1] = edge
+	memo[at + 2] = anchor
+	memo[at + 3] = row
+	memo[at + 4] = spent
+	memo[at + 5] = 1 if wrote else 0
+	memo[at + 6] = descriptor.profile_id
+	memo[at + 7] = descriptor.profile_revision
+	memo[at + 8] = descriptor.content_revision
+	memo[at + 9] = descriptor.mode
+	memo[at + 10] = descriptor.posture
 
 
 static func _reach_sources_refusal(actual: RefCounted, graph: Routes, owner: Owner,
@@ -2494,7 +3049,10 @@ static func _turn_box_into(profiles: Profiles, selection: Profiles.Selection, or
 static func _turn_occupants(actual: RefCounted, graph: Routes, owner: Owner, locations: Locations, except_row: int) -> StringName:
 	"""Direct final actor facts prevent a late observer from hiding a changed occupant profile or pose."""
 	if not graph._spend(16 * Routes.RESIDENT_CAPACITY): return graph._operation_error
-	for row: int in Routes.RESIDENT_CAPACITY:
+	var row: int = -1
+	while true:
+		row = Routes.next_occupancy_row(graph, row + 1) # Decision 1952: rows answering "" are passed over.
+		if row >= Routes.RESIDENT_CAPACITY: break
 		if row == except_row: continue
 		if graph._resident_ref(row) == NULL_REF:
 			var missing: StringName = Routes.unregistered_body_refusal(graph, row, Vector3i(graph._checked_selection.x,
@@ -2657,10 +3215,7 @@ func restore_state_bytes(cold_token: int, bytes: PackedByteArray) -> StringName:
 	if code == &"": code = _owner()._location_journal.image_refusal(bytes, at + Journal.WIRE_BYTES, _owner().revision())
 	if code != &"":
 		return code
-	var previous: Certificates = _live
-	_live = _stage
-	_stage = previous
-	_live_catalog_revision = catalog_revision
+	_swap_certificates(self, catalog_revision)
 	_witness_work = 0 # A fresh World has no remembered reachability search; neither does a loaded one.
 	_owner()._location_journal.read_from(bytes, _owner()._journal.read_from(bytes, at))
 	return &""

@@ -59,7 +59,7 @@ const UNMOUNTED_OWNERS: Array[String] = ["underground_space_owner", "excavation_
 	"excavation_sites", "inventory", "modular_projects", "room_layout", "room_projects", "spoil_tips",
 	"underground_connector_contacts", "underground_connector_placements",
 	"underground_connector_workpieces", "underground_entry_progress", "underground_locations",
-	"underground_mount", "underground_routes", "underground_world_routes"]
+	"underground_mount", "underground_room_progress", "underground_routes", "underground_world_routes"]
 
 var _nodes: Array[Node] = []
 var _fingerprint: Fingerprint = Fingerprint.new()

@@ -647,14 +647,14 @@ func test_an_entrance_gives_level_one_its_way_in_and_orders_first() -> void:
 	assert_equal(_batch.items().landings(1), PackedInt32Array([24, 20, 25, 20, 24, 21, 25, 21]), "its landing")
 	assert_equal(_batch.operation_kind(0), Validity.KIND_CAN_BUILD, "the Pantry is reached")
 	assert_equal(_batch.pending_count(), 2, "two changes")
-	assert_equal(_batch.undo_label(), "Undo Place Entrance", "the step named")
+	assert_equal(_batch.undo_label(), "Undo Place Hatch with ladder", "the step named (decision 2021: by family)")
 	assert_true(_batch.undo(), "undone")
 	assert_equal(_batch.operation_reason(0), Validity.no_way_in(), "no way in again")
 	assert_true(_batch.redo(), "redone")
 	var order: Array = []
 	var result: PackedInt32Array = _batch.confirm_all(func(_d: Draft, level: int, _t: int) -> Dictionary:
 		order.append("room %d" % level)
-		return {"ok": true}, func(level: int, cell: Vector2i) -> Dictionary:
+		return {"ok": true}, func(level: int, cell: Vector2i, _family: int, _turn: int, _removal: bool) -> Dictionary:
 		order.append("way down %d %s" % [level, cell])
 		return {"ok": true})
 	assert_equal(order, ["way down 0 (24, 20)", "room 1"], "the way in first")
@@ -668,13 +668,14 @@ func test_a_way_down_is_judged_where_it_stands_and_lands() -> void:
 	past level 3 or leave the planning area ("X", dropped in words)."""
 	_bind_ground()
 	assert_equal(_batch.place_item(1, Vector2i(30, 30)), Validity.KIND_BLOCKED, "nothing under it yet")
-	assert_equal(_batch.item_reason(0), Validity.needs_floor("Way down"), "says so")
+	assert_equal(_batch.item_reason(0), Validity.needs_passage("Hatch with ladder"), "says so (P-D1-5 (a))")
 	assert_equal(_batch.first_invalid_item(), 0, "it holds Confirm all back")
 	assert_equal(_batch.invalid_count(), 1, "counted")
 	_paint(BuildCatalog.CORRIDOR, 1, Vector2i(30, 30), Vector2i(33, 31))
 	assert_equal(_batch.item_kind(0), Validity.KIND_CAN_BUILD, "a Passage under it")
 	assert_equal(_batch.place_item(1, Vector2i(31, 30)), Validity.KIND_NOT_POSSIBLE, "overlapping")
-	assert_equal(_batch.last_dropped(), Validity.line(Validity.KIND_NOT_POSSIBLE, Validity.overlaps_way_down("Way down")), "words")
+	assert_equal(_batch.last_dropped(), Validity.line(Validity.KIND_NOT_POSSIBLE,
+		Validity.overlaps_way_down("Hatch with ladder")), "words")
 	_ground[Vector2i(40, 40)] = Cells.CELL_WATER
 	_batch.bind_ground(func(_level: int, cell: Vector2i) -> int: return int(_ground.get(cell, Cells.CELL_OK)),
 		func() -> int: return _ground_revision)

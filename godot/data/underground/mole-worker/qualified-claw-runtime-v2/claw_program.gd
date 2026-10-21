@@ -6,14 +6,20 @@ extends RefCounted
 ## Every equation is v1's: protocol 6's phase encoding, the claw image's clock domain (stand key 8, walk 45 keys,
 ## entry/recovery 31 keys, stroke and work 33; the tread tap's clips have the tap's lengths) and Brendan's fade rule
 ## (ADR 1217 step 4d). The image is the claw v2 image (content 10 source 4). Stateless: Routes owns the clock.
+## Decision 1972 (P-1972-1 (a)): content 12 (`qualified-stair-carry-v13`) is content 10's successor, with rows 0-66,
+## boxes 0-546 and sources 0-5 byte for byte, so this program also serves it and owns content 11's claw wall rows
+## 67-70 (decision 1971: M1's dig clips struck at a wall, yaws 0..49152). `serves` is the one content predicate every
+## content-10 program and certificate reads.
 
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Step := preload("res://data/underground/mole-worker/work-step-v1/source_program.gd")
-const Pins := preload("res://data/underground/mole-worker/qualified-claw-stairs-v11/catalog_source.gd")
+const Pins := preload("res://data/underground/mole-worker/qualified-stair-carry-v13/catalog_source.gd")
 const CONTENT: int = 10
+## Decision 1972: the successor content this program also serves.
+const SUCCESSOR_CONTENT: int = 12
 const SOURCE: int = 4
 const FIRST: int = 42
-const LAST: int = 64
+const LAST: int = 70
 const ONE: int = 65536
 const READY_TIME: int = Pins.CLAW_READY_KEY * ONE
 const FADE_TIME: int = Step.Parent.FADE_TIME
@@ -48,9 +54,22 @@ static func owns(actual: Profiles, profile: int) -> bool:
 		and _digest_matches(actual)
 
 
+static func serves(content: int) -> bool:
+	"""Content 10, or its successor content 12 (decision 1972), whose rows 0-66 and sources 0-5 are content 10's."""
+	return content == CONTENT or content == SUCCESSOR_CONTENT
+
+
 static func in_block(profile: int) -> bool:
-	"""Rows 42-50 and 56-64; the stair and step rows 51-55 between them are the stair program's."""
-	return profile >= FIRST and profile <= LAST and (profile < Pins.CLAW_STEP_BACK_ROW or profile > Pins.CLAW_TURN_ROW)
+	"""Rows 42-50, 56-64 and the wall rows 67-70; the stair and step rows 51-55 are the stair program's and the paw
+	rows 65/66 the paw program's."""
+	if is_wall(profile): return true
+	return profile >= FIRST and profile <= Pins.CLAW_TREAD_TAP_ROW \
+		and (profile < Pins.CLAW_STEP_BACK_ROW or profile > Pins.CLAW_TURN_ROW)
+
+
+static func is_wall(profile: int) -> bool:
+	"""Decision 1971: the claw stroke's wall rows 67-70 (content 11 onward)."""
+	return profile >= Pins.CLAW_WALL_ROWS[0] and profile <= Pins.CLAW_WALL_ROWS[3]
 
 
 static func is_travel(profile: int) -> bool:
@@ -92,10 +111,11 @@ static func _policy(profile: int) -> int:
 
 
 static func yaw_of(profile: int) -> int:
-	"""Each block runs yaw 0, 16384, 32768, 49152; WALK 42 admits every heading (word 0)."""
+	"""Each block runs yaw 0, 16384, 32768, 49152 (the wall rows too); WALK 42 admits every heading (word 0)."""
 	if profile == FIRST: return 0
 	if is_travel(profile): return ((profile - Pins.CLAW_APPROACH_ROWS[0]) % 4) * 16384
 	if profile == Pins.CLAW_TREAD_TAP_ROW: return 0
+	if is_wall(profile): return (profile - Pins.CLAW_WALL_ROWS[0]) * 16384
 	@warning_ignore("integer_division") var heading: int = (profile - Pins.CLAW_DIG_ROWS[0]) / 2
 	return heading * 16384
 
@@ -200,7 +220,8 @@ static func advance(phase: int, time: int, old: int) -> Vector3i:
 
 
 static func clip(profile: int, phase: int) -> int:
-	"""Claw image clip of a phase: stand and walk for travel; entry, stroke or work, recovery for dig and tap."""
+	"""Claw image clip of a phase: stand and walk for travel; entry, stroke or work, recovery for dig and tap. A wall
+	row plays M1's dig clips (decision 1971)."""
 	if is_travel(profile): return CLIP_WALK if phase == WALK or phase == FADE_WALK else CLIP_STAND
 	var entry: int = CLIP_DIG_ENTRY
 	if is_tap(profile): entry = CLIP_TREAD_TAP_ENTRY if profile == Pins.CLAW_TREAD_TAP_ROW else CLIP_TAP_ENTRY

@@ -1,11 +1,26 @@
 # 2092 — Stair-leg Delivery phase 1: the leg helper, and gate G0 stopped at the surface
 
-Date: 2026-10-21 · Status: Accepted, but **stopped at gate G0** (P-2092-1 waits for Brendan). Built under decision
-2091's rulings, P-2091-1 to -8 (a) ("Approve, start phase 1"). No new ruling is made here; the choices made while
-building are recorded below.
+Date: 2026-10-21 · Status: Accepted. Phase 1 stopped at gate G0. Brendan ruled P-2092-1 (a) on 2026-10-21: the
+stair-head store (see "Brendan's rulings"). Built under decision 2091's rulings, P-2091-1 to -8 (a) ("Approve, start
+phase 1"); the choices made while building are recorded below.
 
 Branch `feat/stair-leg-delivery`, cut from `docs/stair-leg-delivery` (which is cut from M5's `ea9c7ed6`). Number range
 2092–2099; analyzer port 6519. Not pushed.
+
+## Brendan's rulings (2026-10-21)
+
+Relayed by the coordinator: Brendan answered in chat through AskUserQuestion.
+
+| Proposal | Ruling | What it means |
+|---|---|---|
+| P-2092-1 | **(a)**, the stair-head store | A small store beside the stair head, off the centre line, whose stand is the yaw-0 grip facing down the flight, published with the way in. Village haulers stock it (P-2052-7's labelled stand-in now, HAUL-H3+ later); the stair runner lifts there and walks straight down. **Amends P-2052-2 (a)'s "Staging is the surface R": staging for level-1 rooms is the stair-head store** |
+| Decision 2101 P-2101-3 (a), as it applies here | **(a)**, "Approve all" | The stair runner works at the entry's ~10× time scale (DEC-050's pace amended for the runner, as P-2081-2 amends it for the entry crew: about 443 ticks a trip, about 40 units a game day) and keeps a **standing 24 wood + 24 stone** in the level-1 store from the moment the way in binds. **Amends P-2091-2 (a)** (the runner stocks a standing level as well as confirmed rooms' bills) **and P-2091-8 (a)** (not today's rates) |
+| Decision 2101 P-2101-5 (a), as it applies here | **(a)**, "Approve all" | Spoil goes to the foot pile now; once 2b-2 lands, the runner carries earth up on its way back (5 U a trip) |
+
+**Who places the stands.** The coordinator passes both stands to D2 phase 2, which publishes the way in: the stair-head
+store and its yaw-0 stand, and the level-1 store's yaw-0 stand (§2.2: stand z ≥ −26,869, at most 71 u past F′(5) on the
+centre line), with F′'s and H′'s air built as an envelope plus ADR 1215's extra box (§2). This lane's phase 2 waits for
+M5's merge.
 
 ## Decision
 
@@ -222,15 +237,20 @@ because rows 32 and 37 are square.
 
 ## 6. What phase 2 inherits
 
-- **P-2092-1's ruling, first.** Without it, the surface join has no stand to start from.
+- **The stair-head store (P-2092-1 (a)) and both yaw-0 stands come from D2 phase 2** with the way in. G0's surface
+  check is redone first on the store's published point: the join from its stand to H must meet no part and run down
+  the flight at yaw 0 the whole way.
 - **Publishing the loaded edges at way-in bind** (P-2091-4 (a)). That is `StairPath.carry_plan`'s down-only extension,
-  plus the surface join from the stand P-2092-1 settles. Both are in M5's files, so this happens after M5 merges.
+  plus the surface join from the stair-head store's stand to H. Both are in M5's files, so this happens after M5
+  merges.
 - **Widening F′'s and H′'s air** as envelope plus extra box (§2).
 - **The probe at `STEP_DONE`.** If H′ is retired, the join ends at A0′ and G0's checks are redone first.
 - **The cost gates G1/G2** of decision 2091 §9, on a level-1 checkpoint once P-2045-14's fix lands.
-- **`test_loaded_landing_clearance.py` runs by hand.** CI does not run it, and it does not run
-  `test_landing_clearance.py` either. A CI step for the prefix's Python tests would be a small change to the shared
-  workflow, worth proposing with phase 2.
+- **A CI step for the clearance tests.** `test_loaded_landing_clearance.py` and `test_landing_clearance.py` run by
+  hand today; CI runs neither. Phase 2 adds one step to `.github/workflows/tests.yml`'s contracts job running both
+  (each takes well under a second). It is a shared file, so the step goes in as its own small commit, named in the PR.
+- **The runner's pace and stock** (decision 2101 P-2101-3 (a)): phase 4's runner works at about 10× and keeps 24 + 24
+  standing in the level-1 store; spoil rides up on its return once 2b-2 lands (P-2101-5 (a)).
 
 ## Source
 

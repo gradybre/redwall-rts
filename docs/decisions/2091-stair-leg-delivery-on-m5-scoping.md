@@ -1,7 +1,8 @@
 # 2091 — Stair-leg Delivery on M5's flight: scoping (stopped for rulings)
 
 Date: 2026-10-21 · Status: Accepted. Brendan ruled P-2091-1 to P-2091-8 (a), as recommended, on 2026-10-21 (see
-"Brendan's rulings"). Phase 1 is recorded in decision 2092.
+"Brendan's rulings"). **Amended the same day** by P-2092-1 (a) and decision 2101's P-2101-3 (a) and P-2101-5 (a): see
+"Amendments". Phase 1 is recorded in decision 2092.
 
 **Number.** The coordinator allocated 2091–2099 to this lane, with 2091 for this record. 2091 is free on every local
 and remote ref (`git log --all -- 'docs/decisions/209*'` finds nothing), and `decision_numbers.py` passes. Branch
@@ -20,6 +21,17 @@ Relayed by the coordinator: Brendan answered in chat through AskUserQuestion, sa
 | Proposal | Ruling | What it means |
 |---|---|---|
 | P-2091-1 to P-2091-8 | **(a)**, as recommended | Slice D owns stair-leg Delivery; one stair runner per World; a one-pass static leg reach; loaded edges published when the way in binds; down-only, 2b-2 next; derived leg lists on load, the runner's cursor in the room record; D2 phase 2 adds the store's grip stand and its CARRY span; today's rates, with the figures handed to the room-pace study (which starts separately) |
+
+## Amendments (2026-10-21)
+
+Brendan's later rulings change this plan as follows; where the text below still says otherwise, these win.
+
+| Ruling | Changes | Now |
+|---|---|---|
+| P-2092-1 (a), the stair-head store (decision 2092) | §2 F8, §3 item 3, §4, P-2091-2 | Materials start at a **stair-head store**: a small surface store beside the stair head, off the centre line, whose stand is the yaw-0 grip facing down the flight, published with the way in. Village haulers stock it (P-2052-7's stand-in now, HAUL-H3+ later); the runner lifts there and walks straight down. Staging for level-1 rooms is this store, not R (P-2052-2 (a) amended). R's quarter stand cannot start a stair trip: a loaded mover would reach H turned (2092 §2.1) |
+| Decision 2101 P-2101-3 (a) | P-2091-2 (a), P-2091-8 (a), §6 | The runner works at the entry's **~10× time scale** (DEC-050's pace amended for the runner): about 443 ticks a round trip instead of 4,425, about 40 units a game day instead of four. It keeps a **standing 24 wood + 24 stone** in the level-1 store from the moment the way in binds, as well as confirmed rooms' bills |
+| Decision 2101 P-2101-5 (a) | P-2091-5 (a), §4 | Spoil goes to the foot pile now. **Once 2b-2 lands, the runner carries earth up on its way back** (5 U a trip): 2b-2 adds the loaded ascent to the runner's return, rather than a separate earth hauler |
+| D2 phase 2 places the stands (the coordinator) | P-2091-7 (a), §8 | D2 phase 2 publishes the stair-head store and its yaw-0 stand, and the level-1 store's yaw-0 stand (z ≥ −26,869, at most 71 u past F′(5) on the centre line; 2092 §2.2), with F′'s and H′'s air as an envelope plus ADR 1215's extra box |
 
 ## Decision
 
@@ -418,10 +430,14 @@ coordinator agrees ownership with Slice C.
 - Plus the focused suites, the analyzer (0 warnings, on the coordinator's port), `decision_numbers.py`, and
   `git diff --name-only` naming no held file.
 
-**Phase 2 — after M5 merges, after its P-2045-14 fix (F10), and with D2 phase 2's bind hook.**
+**Phase 2 — after M5 merges, after its P-2045-14 fix (F10), and with D2 phase 2's bind hook and stands.**
 1. Probe at `STEP_DONE`: which stops survive the walk-out (H′, P′, D, R′, F, U and F′ at each landing).
    - If H′ is gone, the join's end moves to A0′, and the clearance is redone first.
-2. Publish the loaded edges at bind (P-2091-4 (a)).
+2. Redo G0's surface check on the stair-head store's published stand (P-2092-1 (a)), and the level-1 one on the
+   store's yaw-0 stand (2092 §2.2).
+3. Publish the loaded edges at bind (P-2091-4 (a)), the surface join starting at the stair-head store's stand.
+4. Add a CI step to the contracts job that runs `test_loaded_landing_clearance.py` and `test_landing_clearance.py`
+   (2092 §6).
 - **G1.** M5's SHA trace is byte-identical through `STEP_DONE`, and the checkpoints match.
 - **G2.** Measured:
   - the bind publication's WorldRoutes and Locations peaks;
@@ -437,7 +453,7 @@ coordinator agrees ownership with Slice C.
   - A held step still stops (`ENTRY_HAUL_ROUTE_HELD`).
   - A broken leg refuses with its own code.
 
-**Phase 4 — the runner and the builder's wait.**
+**Phase 4 — the runner and the builder's wait** (the runner at ~10× and a standing 24 + 24, P-2101-3 (a)).
 - **G4.**
   - A level-1 room is dug end to end from the runner's stock, with the recipe's direct stocking removed.
   - `ROOM_HAUL_NO_STAIR_CARRY` is still raised on a level with no proved way.

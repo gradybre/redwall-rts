@@ -1,6 +1,6 @@
 {
 	"engine": "4.7.2.stable",
-	"fingerprint": "f2cebea5448bcf29df3747bf994439fee6da7cc09b8ccb7d4a1bf351e02c410b",
+	"fingerprint": "8af1cb01d83e22e1efbacd77433fc3dd12aeb888777a731be062a44c6f7687cf",
 	"name": "underground_flight",
 	"points": {
 		"finish": {
@@ -322,7 +322,7 @@
 		"res://scripts/core/underground_entry_foreman.gd": "b93b2371d0c8ee4590e213fcc1db173efa5e88e5aeaf8043a65043251859e60c",
 		"res://scripts/core/underground_entry_frontier.gd": "0b03b90115fa00e44fb5399f11f3033474a6b135d15771dcfc0f92fa0363f1f0",
 		"res://scripts/core/underground_entry_hauler.gd": "c71060073bc27b698776bad45294c89fb2dffb801edfa51bec419afcc708603e",
-		"res://scripts/core/underground_entry_installer.gd": "41e7b83d26ff5e5a406fbfb74d164afecec6f155b094301bf0329a2eb01039bd",
+		"res://scripts/core/underground_entry_installer.gd": "4e93256b3d2aeac8da60707fe6bc5ac589c04d0a8da8e28a2f2be1e7e6c7e541",
 		"res://scripts/core/underground_entry_plan.gd": "2103c7a93431b3bc6acfe4dc7934aaaabe557c1d978e5d2db5152ea2816aac7e",
 		"res://scripts/core/underground_entry_progress.gd": "c92310a991433a341f00805cf9ed43f45b7c686fcd0908d64bc8649755ae2fe8",
 		"res://scripts/core/underground_entry_runtime.gd": "5f7200ba4811187fcb595744351d143c8c4d00372d317dda3a4b3e50270f2200",

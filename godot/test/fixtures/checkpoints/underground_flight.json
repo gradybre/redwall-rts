@@ -1,6 +1,6 @@
 {
 	"engine": "4.7.2.stable",
-	"fingerprint": "b629a921c5a740a123be88e36cb5e4d1058930e471e6b0a900f26fe82c9a79e5",
+	"fingerprint": "e6a07651abafa33c959945db73da8a5c7e7dab90e03302d0793e1877f29413ad",
 	"name": "underground_flight",
 	"points": {
 		"finish": {
@@ -369,9 +369,9 @@
 		"res://scripts/core/underground_stair_motion.gd": "f3585fd4c17aba9c5c57031e1581b49d1fee80aedc40858adbe378362852c2b9",
 		"res://scripts/core/underground_surface_anchor.gd": "00f2ba73e64a50e4d6236a9c0c99a11391f192255c309d554d8b4a976ddfe2f5",
 		"res://scripts/core/underground_terrain.gd": "41ef346c2aa3835d24da18b2f3ffaa15a7e523178ecdc2815369c49a65ec93b8",
-		"res://scripts/core/underground_way_foot.gd": "6e5ac43f52df1d1fa94c47ce88d5f7066aa10109a7314c8dcc5b89019ba15180",
+		"res://scripts/core/underground_way_foot.gd": "c113d8e446defd8f0da23dce5ac36345c60354e31ce2401f4fcc9311cdda7207",
 		"res://scripts/core/underground_way_in.gd": "9dc8f3d84dad546024dc68a89bff1b37733b11b41dbed5c38c8ef055747ac433",
-		"res://scripts/core/underground_way_in_foot_prep.gd": "8e30142311db10f08d94805e768f7df532e53c4ad535b3c1a7c5d7b6d79bc2cb",
+		"res://scripts/core/underground_way_in_foot_prep.gd": "b014ba8016760f6b258598010196aaf446507fc083e06673e658b2bfeeb35a52",
 		"res://scripts/core/underground_way_in_front.gd": "21617641026df9fbd30c68b83a50a55659c32e5388c28536e023b6e665ca36bd",
 		"res://scripts/core/underground_way_landings.gd": "b04ee1a4991b81b97f61b7297163265fe1319cbf22c0e783fef1846f10259861",
 		"res://scripts/core/underground_work_face.gd": "1ad3eab1c62df90f0e41c78f0ccf484f4d04b630ca825b50dedcca2a6be4f731",

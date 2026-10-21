@@ -1,48 +1,48 @@
 {
 	"engine": "4.7.2.stable",
-	"fingerprint": "360775da7abe73fd68e38d4f790b9293c294cbe0761c56424ae91763388fd5ed",
+	"fingerprint": "21da89af05f805bd57dc041585a46e618e422cc0a1a4e819fcf458a729ff6d7c",
 	"name": "underground_spare",
 	"points": {
 		"install_0_stage_10": {
 			"bytes": 67122303,
 			"file": "underground_spare-install_0_stage_10.rwlsave.gz",
-			"sha256": "dc46acabf3a684fc3d727a53c9345a2628a2420a6942b558a86ea655fcbaf41c",
+			"sha256": "1a1e47e2ad8dedefce463ee6384665341fccd1795ebf65353d1d4d53ac044a50",
 			"tick": 1491
 		},
 		"install_0_stage_2": {
 			"bytes": 67122163,
 			"file": "underground_spare-install_0_stage_2.rwlsave.gz",
-			"sha256": "9fee9f3fcfaf0a69132f0984bd5d74acea30872ee25f1e938029e8516bf6b338",
+			"sha256": "c6342a7502d6a44badb0603aa1ae59c0c0381c2fec07138b8dc506bcde2d9639",
 			"tick": 1763
 		},
 		"install_0_stage_4": {
 			"bytes": 67122163,
 			"file": "underground_spare-install_0_stage_4.rwlsave.gz",
-			"sha256": "f1710282515d2f8ba82adae238747a2d352030023303353797d679759534c14d",
+			"sha256": "f32b12f20a0e371132fffd295348fc0ef249cf3260cce0013797a081d27eb8f8",
 			"tick": 1794
 		},
 		"install_0_stage_5": {
 			"bytes": 67122163,
 			"file": "underground_spare-install_0_stage_5.rwlsave.gz",
-			"sha256": "f6962a3c8ad39a46a47e108572b1cdeb58357240003b8329236607918b4ebd50",
+			"sha256": "65e71d6b727e3f501faa0ff0acd96d7417fc169e5635bfd4a170b45342e3475e",
 			"tick": 1855
 		},
 		"install_0_stage_6": {
 			"bytes": 67122163,
 			"file": "underground_spare-install_0_stage_6.rwlsave.gz",
-			"sha256": "5fc0c642ca8b1010d5916ca1fa22e5b3f1d2448809deb299bb53dd0918552304",
+			"sha256": "a474d3aeab7d2a562cc1d33276a12a64b9dfcf23b22fa9faab041347e02adb61",
 			"tick": 1885
 		},
 		"install_0_stage_7": {
 			"bytes": 67122163,
 			"file": "underground_spare-install_0_stage_7.rwlsave.gz",
-			"sha256": "5282cf10c21f1ee3bdfc61f0d38484c9b57876ce911ed5921d509d02a4b09369",
+			"sha256": "ac029c4c0ae10363cdbff16c481efac29ceddade2654b7c7ddd1653c3bd18019",
 			"tick": 2245
 		},
 		"install_1_stage_9": {
 			"bytes": 67121855,
 			"file": "underground_spare-install_1_stage_9.rwlsave.gz",
-			"sha256": "ba80a60bdffe31f606392fb4e4420ff156d441d58796ecf0680ef64a06fa71c7",
+			"sha256": "b7d050824d7c735324eab50cb8f617edec208edf4b6a608e269c8aa05ebfd336",
 			"tick": 3107
 		}
 	},
@@ -98,7 +98,7 @@
 		"res://data/underground/mole-worker/qualified-m5-runtime-v1/tread_geometry.gd": "a52bff1279e439b6d25f186a68477149ca56134304f9a898c30760a4d616c0ac",
 		"res://data/underground/mole-worker/qualified-stair-carry-motion-v1/catalog_source.gd": "af3626029831a8fff7a24504599fd25a32d0712a27e659fda0741cf68d4f18dc",
 		"res://data/underground/mole-worker/qualified-stair-carry-motion-v1/stair-motion.ugstair": "e039b6c8124b2b5c7e6d23cccc02c67f2c1260fd788fe48500c3280ccabd1f60",
-		"res://data/underground/mole-worker/qualified-stair-carry-v13/catalog_source.gd": "87741f4794d13dda95422e002fc2f8b7113ee419fcc6e82452af9ca93d909bc4",
+		"res://data/underground/mole-worker/qualified-stair-carry-v13/catalog_source.gd": "8dc33b9bd323ee66ffa0ed5c3b4d6dad8c717ba64808de3bcc50022b3fe1d435",
 		"res://data/underground/mole-worker/qualified-stair-carry-v13/mole-worker.ugprof": "fa96acbeac96ca3860f2368c88c9287a51a5eadba29cd9530ea14c6c5e95e202",
 		"res://data/underground/mole-worker/qualified-stone-v7/catalog_source.gd": "ddd48b8fedc78dac0b1c2a541f0e9781634e6f9261a25ff78893ef116274ad95",
 		"res://data/underground/mole-worker/qualified-stone-v7/grip_certificate.gd": "3797ac7d4312e45217257380df1475d5d6d0732a41a2b0327c381e1af2876f87",
@@ -169,7 +169,7 @@
 		"res://scripts/core/room_space.gd": "8887db4e534e591217aa96fda0c6f7ad7c0c72ed104e6b211abfd8861e04e624",
 		"res://scripts/core/runtime_cache_checks.gd": "ae9574eb9a25bc97b1971b27185c4a4c7c1a257f30185012f4c9768b65fc88b0",
 		"res://scripts/core/save_aux_adapters.gd": "65b20ff6d6a11f9ea7a2fa7c9989a40c6c48d2a30bca3e86ccc0a20905bb33af",
-		"res://scripts/core/save_auxiliary_state_schema.gd": "375de0a3f6d968467c8244155e69936d700073fc4b4c433c7364819057fdfa4c",
+		"res://scripts/core/save_auxiliary_state_schema.gd": "7b79c9929e640badb20527bdc8fdda68e82de387d8516d3f7766b3fa333a4e28",
 		"res://scripts/core/save_child_arenas_schema.gd": "35106b7c8050b37fd2d392977c8d29fc133b7317a8f719d4610a0cb13abed6a9",
 		"res://scripts/core/save_codec.gd": "f5a6fb8d442fcb0bc7240de71566522b911537a42a00e3380050ed2d8e76432a",
 		"res://scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
@@ -255,10 +255,10 @@
 		"res://scripts/core/underground_entry_cut_map.gd": "6e72d422ec66cd4faced91f8608a571739a0c7f010748297684b336ff7122a9e",
 		"res://scripts/core/underground_entry_foreman.gd": "b93b2371d0c8ee4590e213fcc1db173efa5e88e5aeaf8043a65043251859e60c",
 		"res://scripts/core/underground_entry_frontier.gd": "0b03b90115fa00e44fb5399f11f3033474a6b135d15771dcfc0f92fa0363f1f0",
-		"res://scripts/core/underground_entry_hauler.gd": "c71060073bc27b698776bad45294c89fb2dffb801edfa51bec419afcc708603e",
-		"res://scripts/core/underground_entry_installer.gd": "e867a1661d122d0ff37f43ab15583b044c2b0589117fbdf47f7f55e1df311a20",
+		"res://scripts/core/underground_entry_hauler.gd": "58f7917f309d7411408baf85e49b4c5ebb202bd7dbfb339fa67079e693e710d4",
+		"res://scripts/core/underground_entry_installer.gd": "5ba62105012af6bf796675c7d54564fa36f1af3f9d78a98de63b5e2f0e1802c2",
 		"res://scripts/core/underground_entry_plan.gd": "2103c7a93431b3bc6acfe4dc7934aaaabe557c1d978e5d2db5152ea2816aac7e",
-		"res://scripts/core/underground_entry_progress.gd": "bdc5fd9d391aadacd1da40ae324ed3e1578d486c7575160e32f8d03c0ce7b6bd",
+		"res://scripts/core/underground_entry_progress.gd": "df14a0e4dc07770c4a70281acc1bb10a7c173099d2e007d3c185eb1f97c85fa9",
 		"res://scripts/core/underground_entry_runtime.gd": "5f7200ba4811187fcb595744351d143c8c4d00372d317dda3a4b3e50270f2200",
 		"res://scripts/core/underground_entry_site.gd": "cd48e099c28e8b37323d79d14f0d2b63fdfbe980db8ab138b22df708a776816c",
 		"res://scripts/core/underground_entry_stair_path.gd": "f9d91e987f1e1476691f1adec9964c7ae37942c70becc1487ba004a73c334b5e",
@@ -274,7 +274,7 @@
 		"res://scripts/core/underground_profiles.gd": "4684fce53085b62f4fea85a26a862bd6a99b881dec10827a4802f8d5d0119bdc",
 		"res://scripts/core/underground_room_approach.gd": "e011cfea993f2534b876baba249a30c462b21a50e2e6d52323fdbccffcbf702b",
 		"res://scripts/core/underground_room_bindings.gd": "599a60a94cfc369c3e0c7ec0d0c8321d5048975c7aa77272a78db6fd8b161b28",
-		"res://scripts/core/underground_room_builder.gd": "538e4d2e3de30ebf43114511f815a147805a9dc65226facb03244bab4786d7d1",
+		"res://scripts/core/underground_room_builder.gd": "797f779803fbb8842bcd829bfd4a2d623ab265750ea9542a891807fce91a3e1d",
 		"res://scripts/core/underground_room_claim.gd": "fa19049ec3f481ea91f673482363e2910f5f2311d0feb540971362715dd2d159",
 		"res://scripts/core/underground_room_composer.gd": "3f55cdc137682bff65d30fde2350a46a43d1eac86ee8f49cf4b8124ef9095bd7",
 		"res://scripts/core/underground_room_composition.gd": "fe9e3bd89b64290309520c54f7ea1c353de10e414b926f9979ca8f84fc91beff",
@@ -305,7 +305,7 @@
 		"res://scripts/core/underground_work_face.gd": "1ad3eab1c62df90f0e41c78f0ccf484f4d04b630ca825b50dedcca2a6be4f731",
 		"res://scripts/core/underground_world_bindings.gd": "f7c3b9ca5202ef758d9697ca4bd692580f3dc4b58557701c4192323143ff4cf7",
 		"res://scripts/core/underground_world_retirement.gd": "9ad293e84928ff8cd5c6c3bf4c8c534577b6afea3efc1c4adf202a7c8a80dd0f",
-		"res://scripts/core/underground_world_routes.gd": "35c7a2bc181950ae474970398466088c9312a20e8ca0f14ed90b01e801093eea",
+		"res://scripts/core/underground_world_routes.gd": "f80cc81175f6329ca6b132b28555f24b3f3aa6313e44ccfa19fb223469ccc149",
 		"res://scripts/core/underground_world_structure_scope.gd": "bce7c50627fb80689681a43543669c93688e3f1309b5570d958f144aafbdd57a",
 		"res://scripts/core/weather.gd": "f8f4ff5f3d1a68bd062a27ce28d75ee3b21663f4e829deab09586df784b5111e",
 		"res://scripts/core/work.gd": "5fa066d25328b0c871d77c949164c5ebaec2f98fd985ddd8cd40570f866c7310",

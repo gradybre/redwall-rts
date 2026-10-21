@@ -112,9 +112,10 @@ static func _crosses_taken(owners: RefCounted, request: Request, at: Vector3i, p
 	stands on a taken parking's way, leaves a builder walled in (ROOM_FOREMAN_CREW_BLOCKED before the first cube): a
 	second parking three cells out behind the first one two cells out on the same line. Bodies are both travel rows'
 	extents; the ways are the straight spans this script publishes (an authored parking's own spans are taken as the
-	straight line to the access)."""
+	straight line to the access). Coordinates are int32 section points, so every cross product below fits int64."""
 	var lateral: bool = _lateral(owners.profiles, request, at, point)
 	for taken: Vector2i in request.taken:
+		if not owners.locations._live_ref(owners.locations._live, taken): continue # No body stands at a dead ref.
 		var other: Vector3i = _point(owners.locations, taken.x)
 		var body: PackedInt32Array = _travel_body(owners.profiles, request,
 			lateral or _lateral(owners.profiles, request, at, other))
@@ -143,7 +144,7 @@ static func _beside_the_way(profiles: Profiles, request: Request, at: Vector3i, 
 	(another body in the way) and the builder stalls (ROOM_BUILDER_STALLED). `_between` tests only the root. Asked of
 	lateral parkings only (the ones decision 1970 made reachable), with the ground row's body; a parking in line with
 	the heading keeps decision 1991's rule unchanged."""
-	var body: PackedInt32Array = _travel_body(profiles, request)
+	var body: PackedInt32Array = _travel_body(profiles, request, true)
 	var parked: PackedInt32Array = PackedInt32Array([point.x + body[0], point.z + body[2], point.x + body[3], point.z + body[5]])
 	@warning_ignore("integer_division") var half: int = CELL_U / 2
 	var way: PackedInt32Array = PackedInt32Array([mini(at.x, request.room_box[0] + half) + body[0],
@@ -204,6 +205,8 @@ static func _parking_at(owners: RefCounted, request: Request, access: Locations.
 	"""An endpoint at the point (existing, not WORK and not taken, or newly published), joined to the access."""
 	var found: Vector2i = _existing(owners.locations, access, point)
 	if found != NULL_REF and _routed_elsewhere(owners.routes, found, request.access): return NULL_REF
+	if found != NULL_REF and _lateral(owners.profiles, request, access.point, point) \
+			and not _ground_footed(owners, request, found): return NULL_REF
 	if found == NULL_REF and _occupied(owners.locations, point): return NULL_REF
 	if found == NULL_REF: found = _publish_endpoint(owners, request, access, point)
 	if found == NULL_REF or request.taken.has(found) or request.keep_clear.has(found): return NULL_REF
@@ -212,6 +215,17 @@ static func _parking_at(owners: RefCounted, request: Request, access: Locations.
 	# never published again; the candidate is passed over, so a failed parking adds nothing on later orders.
 	if _span_between(owners.routes, found, request.access): return NULL_REF
 	return found if _publish_spans(owners, request, found, access) else NULL_REF
+
+
+static func _ground_footed(owners: RefCounted, request: Request, found: Vector2i) -> bool:
+	"""Decision 1970: an existing lateral endpoint's stored support covers the lateral footing (with the ground row's
+	stance). One published before decision 1970 carries the READY rows' stance alone; its spans never certify, so it is
+	passed over rather than asked to publish them again on every order."""
+	var stored: Locations.Record = _record()
+	if owners.locations.read_location_into(found, stored) != &"": return false
+	var needed: Locations.Record = _record()
+	needed.point = stored.point
+	return _footing(owners.profiles, request, needed, true) and Space.contains_box(stored.support, needed.support)
 
 
 static func _span_between(routes: Routes, a: Vector2i, b: Vector2i) -> bool:
@@ -310,7 +324,8 @@ static func _footing(profiles: Profiles, request: Request, row: Locations.Record
 
 static func _lateral(profiles: Profiles, request: Request, at: Vector3i, point: Vector3i) -> bool:
 	"""Decision 1970: the point lies off the line of the forward row's exact heading through the access (a +X or -X
-	heading runs along x, a -Z or +Z one along z); an all-yaw forward row has no heading."""
+	heading runs along x, a -Z or +Z one along z); an all-yaw forward row has no heading. An exact heading that is not
+	a quarter turn (no content has one) makes every point lateral, the conservative reading."""
 	var stride: int = profiles._profile_capacity
 	if profiles._live.fields[Profiles.F_YAW_KIND * stride + request.forward] != Profiles.YAW_EXACT: return false
 	var yaw: int = profiles._live.fields[Profiles.F_YAW * stride + request.forward]

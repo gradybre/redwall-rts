@@ -192,7 +192,6 @@ func test_a_crew_of_four_digs_with_the_three_the_access_parks_and_leaves_the_fou
 	assert_equal(foreman.done_cubes(), StationTests.KITCHEN_SITES, "every cube dug")
 
 
-
 func test_a_parking_on_or_across_a_taken_parkings_way_is_refused() -> void:
 	"""The first builder parks two cells west of the access. Three cells west lies behind it (its way to the access runs
 	through that body): refused. Two cells south and three north are off every way: kept."""
@@ -210,6 +209,12 @@ func test_a_parking_on_or_across_a_taken_parkings_way_is_refused() -> void:
 		"two cells south")
 	assert_false(Parking._crosses_taken(_h.owners(), request, access, access + Vector3i(0, 0, 3 * Parking.CELL_U)),
 		"three cells north")
+	request.taken = [_h._endpoint(access + Vector3i(-3 * Parking.CELL_U, 0, 0), Locations.ROLE_TRANSIT)]
+	assert_true(Parking._crosses_taken(_h.owners(), request, access, _point(first)),
+		"two cells west stands on the way of a parking three cells west (the second clause alone)")
+	request.taken = [Vector2i(-1, 0)]
+	assert_false(Parking._crosses_taken(_h.owners(), request, access, access + Vector3i(-3 * Parking.CELL_U, 0, 0)),
+		"a dead parking ref has no body")
 
 
 func test_the_sweep_is_exact_at_tangency() -> void:
@@ -229,6 +234,8 @@ func test_the_sweep_is_exact_at_tangency() -> void:
 		"inside in x for t in (1/2, 3/4) and in z for t in (1/4, 1/2): never both")
 	assert_true(Parking._sweep_meets(Vector3i(-10, 0, -8), Vector3i(6, 0, 8), body, still),
 		"inside in x for t in (1/2, 3/4) and in z for t in (3/8, 5/8): both in (1/2, 5/8)")
+	assert_false(Parking._sweep_meets(Vector3i(2, 0, 0), Vector3i(10, 0, 0), body, still), "starts touching, moves away")
+	assert_false(Parking._sweep_meets(Vector3i(-10, 0, -2), Vector3i(10, 0, -2), body, still), "tangent on the low side")
 
 
 func test_a_lateral_parking_carries_the_ground_rows_stance() -> void:
@@ -238,7 +245,7 @@ func test_a_lateral_parking_carries_the_ground_rows_stance() -> void:
 	var access: Vector3i = _point(_h._first)
 	var request: Parking.Request = _request()
 	var profiles: Profiles = _h._profiles
-	assert_true(Parking._lateral(profiles, request, access, access + Vector3i(0, 0, 2048)), "south is lateral")
+	assert_true(Parking._lateral(profiles, request, access, access + Vector3i(0, 0, 2048)), "north (+z) is lateral")
 	assert_false(Parking._lateral(profiles, request, access, access + Vector3i(-2048, 0, 0)), "west is in line")
 	assert_equal(Parking._ground_row(profiles, request.forward, request.content), KitchenTests.CLAW_GROUND,
 		"the claws' all-yaw ground WALK")
@@ -255,8 +262,42 @@ func test_a_lateral_parking_carries_the_ground_rows_stance() -> void:
 	assert_true(inline.support[3] - inline.point.x < 406, "in line: the READY rows' narrower stance, unchanged")
 
 
+func test_an_old_lateral_endpoint_without_the_ground_stance_is_passed_over() -> void:
+	"""A lateral endpoint published before decision 1970 (the READY rows' stance alone) never certifies its spans; it is
+	passed over, nothing is published again, and a lateral endpoint with the ground row's stance is kept."""
+	if _runtime == null: return
+	var access: Vector3i = _point(_h._first)
+	var request: Parking.Request = _request()
+	var narrow: Vector2i = _narrow_endpoint(access + Vector3i(0, 0, -2 * Parking.CELL_U))
+	assert_false(Parking._ground_footed(_h.owners(), request, narrow), "the old narrow footing")
+	var edges: int = _h._routes._live.edge_count
+	var record: Locations.Record = Parking._record()
+	assert_equal(_h.endpoints.read_location_into(_h._first, record), &"", "the access")
+	assert_equal(Parking._parking_at(_h.owners(), request, record, _point(narrow)), NULL_REF, "passed over")
+	assert_equal(_h._routes._live.edge_count, edges, "no span published again")
+	var wide: Vector2i = _h._endpoint(access + Vector3i(0, 0, 3 * Parking.CELL_U), Locations.ROLE_TRANSIT)
+	assert_true(Parking._ground_footed(_h.owners(), request, wide), "a ground-row footing is kept")
+
+
+func _narrow_endpoint(point: Vector3i) -> Vector2i:
+	"""A TRANSIT endpoint in the widened Corridor with the claw READY rows' stance as its support (pre-1970 footing)."""
+	var box: PackedInt32Array = _h.corridor_box()
+	var row: Locations.Record = Locations.Record.new()
+	row.point = point; row.section = _h._floor; row.room = _h.corridor; row.level = 1; row.role = Locations.ROLE_TRANSIT
+	row.envelope = PackedInt32Array([box[0], Phase.FLOOR, box[1], box[2], Phase.FLOOR + 4096, box[3]])
+	row.support = PackedInt32Array([point.x - 249, Phase.FLOOR - 1, point.z - 274, point.x + 274, Phase.FLOOR, point.z + 299])
+	var cold: int = _h._budget.acquire(Phase.Budget.COLD_BYTES)
+	var token: int = _h.endpoints.begin_prepare(cold).token
+	var result: Locations.Result = _h.endpoints.stage_add(token, row)
+	assert_equal(result.error, &"", "a narrow endpoint")
+	assert_equal(_h.endpoints.seal(token), &"", "sealed")
+	assert_true(_h.endpoints.publish(token), "published")
+	_h._budget.release(cold)
+	return result.location
+
+
 func test_a_parking_whose_body_reaches_the_builders_floor_is_beside_the_way() -> void:
-	"""Two cells north of the access the parked body reaches into the floor between the access and the Kitchen's cell
+	"""Two cells north (+z) of the access the parked body reaches into the floor between the access and the Kitchen's cell
 	centres (z up to the far cells' centre plus a walking body): refused. Three cells north and two south are clear,
 	and so is decision 1991's authored parking 1.75 m south (the fixture's second parking in the claw suites)."""
 	if _runtime == null: return

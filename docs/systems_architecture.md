@@ -1339,7 +1339,7 @@ packed array.
 
 The table sums to **16957440 bytes**: cell grid 2949120, room rows 2867200, room index 1392640, room directory
 3194880, edge items 6553600. Folded into §2.3 it would make the planned payload 114705454, one live world plus reserve
-123094062 and the headroom below the 150 MB gate 26905938 (decision 1880, rebased by decisions 1952, 1953, 1970, 1972, 1991 and 2044; `ready07_arithmetic.py` checks all five).
+123094062 and the headroom below the 150 MB gate 26905938 (decision 1880, rebased by decisions 1952, 1953, 1970, 1972, 1991 and 2044; `ready07_arithmetic.py` checks all six).
 At fold-in the PaintedRoomDirectory rows lengthen §2.2's EntityIdentity and §3's DirectoryIndex rows (and §2.1's G)
 rather than becoming a second directory; the total is the same.
 

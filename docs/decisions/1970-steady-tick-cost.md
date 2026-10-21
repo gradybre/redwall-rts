@@ -183,10 +183,19 @@ decision 1991's four-crew test parks two: the composer's one and an authored one
     cells out. No such point exists on the floor around one access.
   - So **a named crew of four digs with three, and the fourth is left free** (decision 1991's rule for members beyond
     the access's room). A four-builder dig needs a second access, or a parking that slice D2's way in authors.
-- **Old cases are unchanged.**
+- **What changes for earlier digs, and what does not.**
   - In-line parkings keep decision 1991's rule.
-  - Lateral parkings never joined before, so no earlier dig could have used one.
+  - The composer's lateral points never joined before, so no earlier dig parked on one.
   - The benchmark does not use the composer, so the SHA trace is unaffected.
+  - **Before this fix, the composer left lateral endpoints behind.** Every order that reached a lateral point
+    published an endpoint with the READY-only footing, then failed its spans. That spent a cold lease each time and
+    left the endpoint unused.
+    - **Fresh worlds:** such an order now publishes nothing at a point that cannot join, or it joins a lateral point.
+      That can matter even for one builder, whose in-line points can all fail `_clear`.
+    - **Worlds saved before the fix:** those old endpoints are passed over (`_ground_footed`: their stored support
+      lacks the ground row's stance). They are not asked to publish their spans again on every order.
+  - **An authored lateral parking** must now also pass `_beside_the_way` and `_crosses_taken`. Fixtures author
+    parkings; no production code does. The claw suites' authored second parking passes both.
   - The parking suites pass: composer, parts, occupants, way in, stop, Confirm, Confirm host, claw Kitchen and
     foreman crews.
 - **The test:** `test_underground_room_crew_parking.gd`, on the real Confirm route with the widened Corridor (about
@@ -341,8 +350,9 @@ which the Routes lane holds.
   - WorldRoutes' `_certificate_revision`;
   - the Profiles bank instance and load revision;
   - `_live_catalog_revision`;
-  - the levels revision;
-  - `graph._location_capacity`.
+  - the levels revision.
+
+  `graph._location_capacity`, which the precharge reads, is fixed per graph instance and pinned by it.
 
 **What a hit still runs live:**
 
@@ -408,7 +418,7 @@ Tests that edit the graph in place must announce it, as the edge memo already re
 The "after" assumes about 35 µs a hit. After the first tick at a station, every search on that station is a hit
 until the next publication.
 
-**Memory.** About 32 × (128 B key + 48 B replay + 256 B chain), about 14 KB. It is runtime-only, charged as a new
+**Memory (as built).** 32 slots × 27 int64 (6,912 B), 32 chains × 64 int32 (8,192 B) and one 19-word key packet (152 B): 15,256 B. It is runtime-only, charged as a new
 census item.
 
 ### F3 — the room provider reads its binding once per scope check
@@ -528,6 +538,107 @@ WorldRoutes' held functions or M5's content.
 - **Four builders on one access (§2a).** One access parks at most three claw builders clear of each other, so a
   crew of four digs with three. A four-builder dig needs a second access, which the composer does not support (one
   access a dig, P-1936-1 (a)), or a parking authored by slice D2's way in. This is the coordinator's call.
+
+## 9. The per-row write tokens (P-1952-1 (a)): scope, for clearance
+
+**Status: scoped, not built.** Brendan's ruling builds them after F1–F4 and the re-measure (§10). Many of the files
+are shared with slice D, so the coordinator clears them first.
+
+### 9.1 What the tokens buy
+
+After F1–F4, an earning builder still pays for its own Work re-attestation every tick, and every registered actor
+still pays for its own Routes re-attestation. Each re-reads inputs that rarely change between two ticks. The tokens let
+two verdict caches answer while every input they read is provably unchanged:
+
+- **The room provider's worker and output verdict.** This is what `worker_refusal` and `output_refusal` prove after
+  the (now memoized) searches:
+  - `_ordinary_live_contact`, without its paths;
+  - `_ordinary_worker_leaf`;
+  - `_ordinary_observers`;
+  - `_ordinary_live_leaf` (terrain leaf, occupants leaf and the FinalFacts snapshot).
+
+  This is about 0.9–1.1 ms per earning builder per tick measured after F1–F4 (`claw1`: `worker_refusal` 0.90 ms plus
+  `output_refusal` 0.34 ms a tick, medium timers, minus the searches).
+- **Routes' stationary re-attestation**: `_advance_stationary_source` → `_qualify_actor_at`, `actor_admission_refusal`
+  (the endpoint boxes, terrain exclusions and occupancy) and the profile queries. This is about 0.30–0.35 ms per
+  stationary actor per tick, and about 0.6 ms when a second actor's body is within reach.
+
+**What is never cached** (cheap, or moving every tick, so it is read live on every answer):
+
+- the actor's source clock (`R_PHASE`, `R_REQUEST_TICK`), which moves every tick;
+- the Job's and the Project's `remaining_mwu` and their equality, which Work moves every earning tick;
+- the Site's phase and operation columns, the Construction lifecycle columns;
+- the cold-lease and scope checks;
+- the budget arithmetic. The per-call `_entry_remaining` and `_domain._checks` start full. An answer replays the
+  recorded spend and is used only when that spend fits, as F2 does.
+
+**Expected saving** (from the measured parts; an estimate until built):
+
+| What | Saving |
+|---|---|
+| Per earning builder per tick, on a hit | about 0.8–1.0 ms (1.1–1.3 ms on CUT ticks) |
+| Per stationary actor per tick, on a hit | about 0.25 ms |
+| Per moving actor | none (its pose changes every tick) |
+
+**Hit rate.**
+
+- With one builder, a miss comes only when something moves within reach of its station or its storage paths: about
+  90%+ hits.
+- With two to four builders taking turns at one face, every builder walking past the station is a miss for the earner.
+  Expect 50–80% hits.
+
+**Projection.** One builder's earning tick goes from about 1.8 to about 0.9 ms at p50, and to about 1.2–1.5 ms at p99.
+Two or three builders reach about 1.5–2.2 ms at p99. That would meet REQ-SET-163's 2 ms on this Mac for one or two
+builders. It is not a qualification-floor measurement.
+
+### 9.2 The tokens
+
+Every token is runtime-only and never saved, like `Transforms.mutation_revision()` and decision 1951's
+Residents, Needs and Directory tokens. Each saturates at the int64 maximum and then reads 0, which permanently disables
+the caches keyed on it. Each moves at every write of the columns it covers, including restore, reset and clear.
+
+`CacheChecks` cross-checks every answer live (compute live, answer live, report a difference), as F2 and F4 do.
+
+| # | Owner, file | Token | Covers | Write sites that move it |
+|---|---|---|---|---|
+| T1 | `godot/scripts/core/transforms.gd` | per-row pose revision `_row_revision: PackedInt64Array` (one per Transforms row) **and** a spatial cell revision grid `_cell_revision: PackedInt64Array` (hashed fixed-size buckets of a ~4 m cell; a pose write moves its old and new cells) | the worker's own pose; every occupant whose reach can meet the work box (the occupants leaf and Routes occupancy both scan every resident, so a per-row token alone is not enough: the verdict depends on who is *not* near) | `place`, `advance`, `set_yaw`, `turn_stationary_preflighted`, `unbind`, `reset`, `restore_columns`, `invalidate_runtime_caches`, and `_mark_mutated` beside them |
+| T2 | `godot/scripts/core/underground_routes.gd` | per-actor motion-row revision `_actor_revision: PackedInt64Array[RESIDENT_CAPACITY]`, **excluding** the clock words (`R_PHASE` source subphase/time and `R_REQUEST_TICK`), which are read live | each registered actor's location, edge, job, tool, profile, revision and content columns, read by `physical_selection_into`, `_ordinary_committed_contact`, `_ordinary_worker_leaf`, occupancy | `_admit_actor`, `_set_resident_pair`, `_write_selected_fields`, `_publish_route`, `_pop_route_head`, `_release_route`, `_commit_motion`, `_set_route_phase` (route-phase bits only), `_reset_source_clock`, `request_source_ready`, `hand_over_source_job`, `refresh_work_actor`, `refresh_travel_actor`, `unregister_lost_actor`, `unregister_resting_actor`, `_swap_loaded_banks`, `_allocate`. (`_advance_stationary_source`, `_advance_source_motion_clock`, `_advance_stair_clock`, `_publish_assembly_clock` and `_begin_stair_crossing` write clock words only, or also non-clock words that the build must confirm.) |
+| T3 | `godot/scripts/core/inventory.gd` | per-container revision (the spatial and policy columns `_ordinary_storage_row` reads), and per-holder carried-lot revision (tool, cargo and satchel lots that the Profiles selection reads) | the material and output containers' spatial endpoint and policy; the worker's and occupants' carried lots | `_write_new_container`, `_mint_container`, `_destroy_container_checked`, `_free_container_slot_in`, `_clear_container_rows`, `_create_ground_pile_checked`, `_create_spatial_staging_checked`, `_set_anchor_checked`, `_set_reachable_checked`, `_reduce_capacity_checked`, `_retire_empty_pile_in`, `_restore_container`, `_restore_spatial_endpoint`, `_clear_spatial_endpoint_in`, `_clear_spatial_endpoints`, `promote_to_ground_pile`, `promote_to_spatial_ground_pile`, `_allocate_container_columns`, `_allocate_spatial_arena`; plus every lot move, split, merge or consume that changes a lot's holder (to be enumerated by a write-site test, as decision 1951 did for its counters) |
+| T4 | `godot/scripts/core/gear.gd` | per-row revision | the equipped tool's owner, claim, equip state and durability | `_write_new_row`, `_publish_row`, `_blank_row`, `_free_row`, `_apply_equip`, `_apply_unequip`, `_set_durability`, `claim_for_job`, `_release_claim`, `set_owner`, `clear_owner`, `clear`, `restore_row`, `_allocate_columns` |
+| T5 | `godot/scripts/core/work.gd` | per-resident tool-binding revision | `_tool_lot_*`, `_tool_job_*` | `claim_tool_for_work`, `_clear_tool_binding`, `clear`, `_allocate_columns` |
+| T6 | `godot/scripts/core/jobs.gd` | per-job-row and per-agent revision, **excluding** `_remaining_mwu` (read live) | kind, coordinator, worker, requester, tool gate, agent job and persistent id | `_write_new_job_row`, `_clear_job_row`, `_clear_job_columns`, `destroy_job`, `make_coordinator`, `spawn_agent`, `despawn_agent`, `_clear_agents`, `_rebuild_persistent_ids`, the restore path (`_worker_slot = columns...`), and the assignment and tool-gate writers (`_tool_gate` writes near lines 915 and 980; the worker assignment helper), to be enumerated by the write-site test |
+| T7 | `godot/scripts/core/resource_nodes.gd` | a revision (global, or per tile) | the terrain leaf's `_local_resource` (stock and identity "visible immediately, even with an unchanged sparse revision") | `_write_created_row`, `harvest_into`, `regrow`, `destroy`, `clear`, `_allocate_columns` |
+| T8 | `godot/scripts/core/buildings.gd` | a footprint and room revision | the terrain leaf's `_local_building` footprints; the section Room facts F2 re-reads (`_r_*`) | `_write_room_row_preflighted`, `publish_spatial_room_preflighted`, `_retire_room_row`, `_clear_room_columns`, `_allocate_room_columns`, `restore_section_1_columns`, and every footprint writer (to be enumerated) |
+| T9 | `godot/scripts/core/world_init.gd` | none needed | terrain kinds are written only by `_allocate_columns`, `_reset_published` and `section_1_published_seed`, so the World instance and its published seed identify them | — |
+
+Residents (`identity_revision`), Needs (`life_revision`), Directory (`mutation_revision`), Profiles (load revision),
+SpaceOwner, Locations and Routes (publication receipts) and WorldRoutes (`_certificate_revision`) already carry tokens.
+
+### 9.3 The consumers
+
+| File | Functions | Change |
+|---|---|---|
+| `godot/scripts/core/underground_room_world_bindings.gd` (Slice C) | `worker_refusal`, `output_refusal`; new `_verdict_key_into`, `_verdict_memo_at`, `_replay_verdict`, `_remember_verdict`, `_checked_verdict` | Answer the verdict's slow part from a per-binding memo keyed on: T1 (worker row and the cells of the work box's and occupant reach), T2 (worker and every registered actor in those cells), T3–T8, the existing tokens, and the call's arguments. The cheap leaves listed in §9.1 run live |
+| `godot/scripts/core/underground_world_routes.gd` | `actor_admission_refusal` (not slice D-held; M5 changes nearby hunks) | The same key over the actor's endpoint boxes, terrain exclusions and occupancy |
+| `godot/scripts/core/underground_routes.gd` | `_advance_stationary_source`, `_qualify_actor_at` | Use the admission memo. The clock step and its checks stay live |
+| `godot/scripts/core/underground_terrain.gd` | `exclusions_refusal`, `_local_refusal` (read only) | Expose the T7/T8 tokens it reads; no behaviour change |
+| Census and registry | `tools/underground_current_census.py`, its test, `docs/persistence_state_registry.md`, the memory pack, `ready07_arithmetic.py`, `docs/systems_architecture.md` | About 4 KB per-row tokens on Transforms (it has 512+ rows; the exact count is set by its capacity), 32 KB cell grid, 4 KB Routes, Inventory/Gear/Jobs per-row columns at their capacities, and the two memos (estimated 30–60 KB in all) |
+
+### 9.4 Risks and proof
+
+- **Write-site completeness is the whole risk.** A write that forgets its token gives a stale answer. Two defences:
+  - every token gets a write-site test that pokes each covered column through each public writer, as decision 1951
+    did for Residents, Needs and Directory;
+  - `CacheChecks` cross-checks every answer live in the whole suite, so a missed site fails the suite that exercises
+    it.
+- **Tests and other lanes' code that write these columns directly**, outside their owner, must announce the edit
+  (`invalidate_runtime_caches()`, or a token bump), as the edge memo already requires. One is known already:
+  `underground_connector_delivery.gd` writes `Jobs._remaining_mwu` directly. That column is read live, so it needs no
+  token, but the build lane must grep for every such direct write.
+- **Proof:** the SHA trace byte-identical; checkpoints with identical bytes; next-checkpoint save/load parity; the
+  differential tests; mutation testing; the full suite with `CacheChecks` on.
+- **Size:** about 1,500–2,500 changed lines across about twelve files. Transforms, Inventory, Gear, Work, Jobs,
+  ResourceNodes, Buildings, Routes and WorldRoutes are all shared with slice D or the surface lanes.
 
 ## Source
 

@@ -138,8 +138,8 @@ func test_the_allowance_one_check_short_refuses_and_stays_spent() -> void:
 
 
 func test_a_stale_stop_generation_or_a_wrong_row_is_refused() -> void:
-	"""A leg whose end stop's generation is stale matches no edge; a resolved WALK leg certified for a row its edge does
-	not admit is refused by the certificate."""
+	"""A leg whose start or end stop's generation is stale matches no edge; a WALK leg on a WALK row its edge does not
+	admit resolves (the mode matches) but is refused by the certificate, alone and through `legs_refusal`."""
 	if not _load(): return
 	var legs: PackedInt32Array = PackedInt32Array()
 	Legs.empty_up_into(_stops, 1, legs)
@@ -149,16 +149,24 @@ func test_a_stale_stop_generation_or_a_wrong_row_is_refused() -> void:
 	assert_equal(Legs.resolve_into(_o.routes, _o.profiles, stale, edges, PackedInt32Array([Space.MAX_CHECKS])),
 		Legs.REFUSE_UNJOINED, "stale end")
 	assert_true(edges[0] < 0 and edges[2] >= 0, "only the stale leg is unmatched")
-	assert_equal(Legs.resolve_into(_o.routes, _o.profiles, legs, edges, PackedInt32Array([Space.MAX_CHECKS])), &"", "fresh")
+	stale = legs.duplicate()
+	stale[1] += 1
+	assert_equal(Legs.resolve_into(_o.routes, _o.profiles, stale, edges, PackedInt32Array([Space.MAX_CHECKS])),
+		Legs.REFUSE_UNJOINED, "stale start")
+	assert_equal(Legs.resolve_into(_o.routes, _o.profiles, legs, edges, PackedInt32Array([Space.MAX_CHECKS])), &"",
+		"fresh")
 	var wrong: PackedInt32Array = legs.duplicate()
 	wrong[4] = StairPath.StairPins.CLAW_DESCENT_ROW # The back-up's edge carries 72, not the descent.
 	assert_true(Legs.certify_refusal(_o.world_routes, _o.profiles, wrong, edges, _o.profiles.content_revision()) != &"",
 		"a row the edge does not admit")
+	var code: StringName = Legs.legs_refusal(_o.world_routes, _o.routes, _o.profiles, wrong, edges,
+		PackedInt32Array([Space.MAX_CHECKS]))
+	assert_true(code != &"" and code != Legs.REFUSE_UNJOINED, "resolved by mode, refused by its certificate: %s" % code)
 
 
 func test_malformed_lists_and_missing_owners_refuse() -> void:
-	"""A list not a whole number of legs, a row outside the profile bank, an edge list of the wrong size, or a missing
-	owner refuses before anything is read."""
+	"""An empty list, a list not a whole number of legs, a row outside the profile bank, an edge list of the wrong size,
+	or a missing owner refuses before anything is read or charged."""
 	if not _load(): return
 	var edges: PackedInt32Array = PackedInt32Array()
 	var budget: PackedInt32Array = PackedInt32Array([Space.MAX_CHECKS])
@@ -166,8 +174,12 @@ func test_malformed_lists_and_missing_owners_refuse() -> void:
 		"words")
 	assert_equal(Legs.resolve_into(_o.routes, _o.profiles, PackedInt32Array([1, 1, 2, 1, 100000]), edges, budget),
 		Legs.REFUSE_SHAPE, "row")
+	assert_equal(Legs.resolve_into(_o.routes, _o.profiles, PackedInt32Array(), edges, budget), Legs.REFUSE_SHAPE, "empty")
+	assert_equal(Legs.legs_refusal(_o.world_routes, _o.routes, _o.profiles, PackedInt32Array(), edges, budget),
+		Legs.REFUSE_SHAPE, "empty, whole check")
+	assert_equal(budget[0], Space.MAX_CHECKS, "nothing charged")
 	assert_equal(Legs.resolve_into(null, _o.profiles, PackedInt32Array(), edges, budget), Legs.REFUSE_OWNER, "routes")
-	assert_equal(Legs.certify_refusal(_o.world_routes, _o.profiles, PackedInt32Array([1, 1, 2, 1, 72]), PackedInt32Array(),
-		1), Legs.REFUSE_SHAPE, "edges")
+	assert_equal(Legs.certify_refusal(_o.world_routes, _o.profiles, PackedInt32Array([1, 1, 2, 1, 72]),
+		PackedInt32Array(), 1), Legs.REFUSE_SHAPE, "edges")
 	assert_equal(Legs.certify_refusal(null, _o.profiles, PackedInt32Array(), PackedInt32Array(), 1), Legs.REFUSE_OWNER,
 		"binding")

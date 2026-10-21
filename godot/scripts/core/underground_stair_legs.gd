@@ -74,15 +74,21 @@ static func row_of(legs: PackedInt32Array, leg: int) -> int:
 static func _append(out: PackedInt32Array, from: Vector2i, to: Vector2i, row: int) -> bool:
 	"""Add one leg; false when either stop is not live."""
 	if from == NULL_REF or to == NULL_REF: return false
-	out.append_array(PackedInt32Array([from.x, from.y, to.x, to.y, row]))
+	out.append(from.x)
+	out.append(from.y)
+	out.append(to.x)
+	out.append(to.y)
+	out.append(row)
 	return true
 
 
 static func loaded_down_into(stops: StairPath.Stops, item: int, landing: int, out: PackedInt32Array,
 		source_stand: Vector2i = NULL_REF, destination_stand: Vector2i = NULL_REF) -> StringName:
 	"""The loaded way from H down to landing `landing`'s F' (1..MODULES), module by module; with a source stand, a
-	first ground leg from it to H, and with a destination stand, a last ground leg from that F' to it, both on the item's
-	ground CARRY row. `out` is cleared, and left empty on a refusal."""
+	first ground leg from it to H, and with a destination stand, a last ground leg from that F' to it, both on the
+	item's ground CARRY row. A loaded mover keeps the heading it lifted at (no loaded turn), so both stands must be
+	yaw-0 grips, facing down the flight (decision 2092 G0); this plan cannot see a stand's yaw, and an edge that does
+	not exist refuses at resolution. `out` is cleared, and left empty on a refusal."""
 	out.clear()
 	var rows: PackedInt32Array = stair_rows(item)
 	if rows.is_empty(): return REFUSE_ITEM
@@ -116,7 +122,7 @@ static func empty_up_into(stops: StairPath.Stops, landing: int, out: PackedInt32
 	out.clear()
 	if stops == null or landing < 1 or landing > StairPath.MODULES: return REFUSE_LANDING
 	var at: Vector2i = stops.fp[landing]
-	var ok: bool = at != NULL_REF
+	var ok: bool = true
 	for hop: Array in StairPath.hops_up_from_walk_off(stops, landing):
 		if not ok: break
 		var next: Vector2i = hop[0]
@@ -161,19 +167,21 @@ static func _first_from(legs: PackedInt32Array, order: PackedInt32Array, slot: i
 static func resolve_into(routes: Routes, profiles: Profiles, legs: PackedInt32Array, edges_out: PackedInt32Array,
 		remaining: PackedInt32Array) -> StringName:
 	"""Match every leg to its live edge in one pass over the edge table: `edges_out` gets the edge (slot, generation)
-	of each leg, or NULL_REF's words where no live edge with its stops and its row's mode reads. Refuses the first
-	unmatched leg's ROUTE_NOT_CONNECTED, or the allowance's STAIR_LEGS_CHECKS."""
+	of each leg, or NULL_REF's words where no live edge with its stops and its row's mode reads. Refuses an empty or
+	malformed list (STAIR_LEGS_SHAPE, before anything is charged), the allowance's STAIR_LEGS_CHECKS, or the first
+	unmatched leg's ROUTE_NOT_CONNECTED."""
 	edges_out.clear()
 	if routes == null or profiles == null or profiles._live == null: return REFUSE_OWNER
-	if legs.size() % LEG_WORDS != 0: return REFUSE_SHAPE
 	var count: int = leg_count(legs)
-	if not _spend(remaining, routes._edge_capacity + count): return REFUSE_BUDGET
+	if count == 0 or legs.size() % LEG_WORDS != 0: return REFUSE_SHAPE
 	var modes: PackedInt32Array = PackedInt32Array()
 	for leg: int in count:
 		var row: int = row_of(legs, leg)
 		if row < 0 or row >= profiles._profile_capacity: return REFUSE_SHAPE
 		modes.append(profiles._live.fields[Profiles.F_MODE * profiles._profile_capacity + row])
-		edges_out.append_array(PackedInt32Array([NULL_REF.x, NULL_REF.y]))
+		edges_out.append(NULL_REF.x)
+		edges_out.append(NULL_REF.y)
+	if not _spend(remaining, routes._edge_capacity + count): return REFUSE_BUDGET
 	var order: PackedInt32Array = PackedInt32Array()
 	_order_by_from(legs, order)
 	var edge: Routes.Edge = Routes.Edge.new()
@@ -189,7 +197,8 @@ static func _match_edge(routes: Routes, row: int, legs: PackedInt32Array, modes:
 	"""Give live edge `row` to every still-unmatched leg with its stops and mode, once its metadata reads."""
 	var stride: int = routes._edge_capacity
 	var fields: PackedInt32Array = routes._live.fields
-	var from: Vector2i = Vector2i(fields[Routes.E_FROM_SLOT * stride + row], fields[Routes.E_FROM_GENERATION * stride + row])
+	var from: Vector2i = Vector2i(fields[Routes.E_FROM_SLOT * stride + row],
+		fields[Routes.E_FROM_GENERATION * stride + row])
 	var to: Vector2i = Vector2i(fields[Routes.E_TO_SLOT * stride + row], fields[Routes.E_TO_GENERATION * stride + row])
 	var mode: int = fields[Routes.E_MODE * stride + row]
 	var ref: Vector2i = Vector2i(row, fields[Routes.E_GENERATION * stride + row])
@@ -221,6 +230,8 @@ static func certify_refusal(binding: WorldRoutes, profiles: Profiles, legs: Pack
 
 static func legs_refusal(binding: WorldRoutes, routes: Routes, profiles: Profiles, legs: PackedInt32Array,
 		edges_out: PackedInt32Array, remaining: PackedInt32Array) -> StringName:
-	"""The whole static check of one leg list: one resolving pass, then every leg's certificate."""
+	"""The whole static check of one leg list: one resolving pass, then every leg's certificate. Like Contacts'
+	`_legs_refusal` before its last `_scope_leaf`, it reads no owner scope: the caller (Delivery, the hauler, the
+	runner) runs its own scope leaf after it, inside the same operation."""
 	var code: StringName = resolve_into(routes, profiles, legs, edges_out, remaining)
 	return code if code != &"" else certify_refusal(binding, profiles, legs, edges_out, profiles.content_revision())

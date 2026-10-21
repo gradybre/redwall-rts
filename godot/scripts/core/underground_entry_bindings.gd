@@ -18,6 +18,9 @@ const ENTRY_FIXED_BYTES: int = 4096
 const ENTRY_EPISODE_FIELDS: int = 19
 const ENTRY_BEARING_FIELDS: int = 9
 const TIMBER_SCOPE_CHECKS: int = 2048
+## Decision 2045 (review): the scope re-check after each terrain window, charged what it reads (the owner and source
+## leaves and the 32 digest words), not the leaf's whole 2,048 precharge again; it still runs after every window.
+const TIMBER_SCOPE_RECHECKS: int = 64
 ## Decision 1972: natural earth under a landing is retained to the natural bearings' depth (ADR 1209: y -1152..-1024
 ## under a floor at -1024), which holds every stair fixture deck that stands on the floor under the landing.
 const NATURAL_DEPTH_U: int = 128
@@ -932,9 +935,9 @@ static func _next_region_row(owner: Owner, from: int, staged: bool) -> int:
 	return at if at >= 0 and at < owner._region_capacity else owner._region_capacity
 
 
-func _timber_scope_leaf(proof: TimberClearance = null) -> StringName:
+func _timber_scope_leaf(proof: TimberClearance = null, checks: int = TIMBER_SCOPE_CHECKS) -> StringName:
 	"""Precharge all bounded immutable-owner/hash leaves before observing the original operation scope."""
-	if not (proof.spend(TIMBER_SCOPE_CHECKS) if proof != null else _entry_spend(TIMBER_SCOPE_CHECKS)):
+	if not (proof.spend(checks) if proof != null else _entry_spend(checks)):
 		return REFUSE_MASK_BUDGET
 	var p: Placements = _entry_placements
 	if _entry_poisoned or p == null or _timber_token <= 0 or p._budget != _budget \
@@ -1381,22 +1384,10 @@ func _timber_terrain(proof: TimberClearance, bounds: PackedInt32Array, purpose: 
 				if space_token == 0 else terrain.prepared_local_facts_refusal(_region.box, purpose,
 					_entry_placements._base_geometry_revision, space_token, _timber_token)
 			if code != &"": return code
-			_terrain_scope_checked(proof)
+			code = _timber_scope_leaf(proof, TIMBER_SCOPE_RECHECKS) # Decision 2045: after every window, as before.
+			if code != &"": return code
 		z = next_z
 	return &""
-
-
-func _terrain_scope_checked(proof: TimberClearance) -> void:
-	"""Decision 2045 ("Exact cost fixes"): a terrain read changes no part of the operation scope, and every operation
-	that reads terrain re-checks its scope on entry and once more before it returns (`_timber_physical`,
-	`_workpiece_physical`), so the re-check that followed each window (2,048 checks a window) is not charged. With the
-	cache checks on it still runs after every window, unspent, and a refusal is reported."""
-	if not CacheChecks.enabled: return
-	var spent: int = proof.remaining
-	var fault: StringName = proof.error
-	if _timber_scope_leaf(proof) != &"" and proof.error == fault: CacheChecks.report("timber scope", "after a terrain read")
-	proof.remaining = spent
-	proof.error = fault
 
 
 func _timber_region_box(row: int, staged: bool, out: PackedInt32Array) -> void:

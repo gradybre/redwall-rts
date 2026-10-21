@@ -4,6 +4,7 @@ extends "res://test/framework/test_case.gd"
 ## landing; P-2044-14 (a) publishes no floor walk-off or back-up and joins a landing to its module on ground rows.
 
 const StairPath := preload("res://scripts/core/underground_entry_stair_path.gd")
+const Progress := preload("res://scripts/core/underground_entry_progress.gd")
 const Tread := preload("res://data/underground/mole-worker/qualified-m5-runtime-v1/tread_geometry.gd")
 const StairPins := preload("res://data/underground/mole-worker/qualified-stair-carry-v13/catalog_source.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
@@ -175,3 +176,20 @@ func test_deep_stations_classify_by_landing_row_and_column() -> void:
 	assert_equal(StairPath.classify_deep(Vector3i(0, -1024 * landing, z)), Vector3i(-1, 0, 0), "not a column")
 	assert_equal(StairPath.classify_deep(Vector3i(-300, -1024 * landing, z + 1)), Vector3i(-1, 0, 0), "off the row")
 	assert_equal(StairPath.classify_deep(Vector3i(-300, -1024 * StairPath.MODULES, z)), Vector3i(-1, 0, 0), "no floor below")
+
+
+func test_every_m5_hop_list_fits_the_saved_leg_lists() -> void:
+	"""Decision 2045: an installation plan's down, up and chain lists are saved with at most Progress.MAX_STAIR_LEGS legs
+	each; every M5 hop list (down to and up from every level, to and from every landing's walk-off) fits."""
+	var stops: StairPath.Stops = _full_stops()
+	var longest: int = 0
+	for module: int in StairPath.MODULES:
+		for level: int in range(-1, 7):
+			var at: int = StairPath.global_level(module, level)
+			longest = maxi(longest, maxi(StairPath.hops_down(stops, at).size(), StairPath.hops_up(stops, at).size()))
+	for landing: int in range(1, StairPath.MODULES):
+		longest = maxi(longest, StairPath.hops_down_to_walk_off(stops, landing).size())
+		longest = maxi(longest, StairPath.hops_up_from_walk_off(stops, landing).size())
+		longest = maxi(longest, StairPath.hops_up_from_landing(stops, landing).size())
+	assert_equal(longest, 56, "up from module 4's deepest stop to X")
+	assert_true(longest <= Progress.MAX_STAIR_LEGS, "every list fits the saved record")

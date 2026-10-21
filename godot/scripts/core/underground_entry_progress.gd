@@ -38,7 +38,9 @@ const MAX_QUEUE: int = 24
 ## up to X, the arrival and a retreat before them and M after (15), with room to spare.
 const MAX_LEGS: int = 24
 ## ADR1229: each of a tread plan's down, up and (DEC-059) chain leg lists. Decision 2044: 15 legs down to module 4.
-const MAX_STAIR_LEGS: int = 20
+## Decision 2045: M5 v2's longest list is 56 hops (up from module 4's deepest stop to X, through every landing's R');
+## a saved list of 21 could not be read back. 64, with a test that every M5 hop list fits.
+const MAX_STAIR_LEGS: int = 64
 const MAX_QUOTE_LINES: int = 4
 ## One haul at most is live: the foreman's (STAGE_HAUL) or its installation's, never both.
 const MAX_WIRE_BYTES: int = HEADER_BYTES + RUNTIME_FIXED_BYTES + MAX_ENDPOINTS * 8 + CREW_BYTES + FOREMAN_FIXED_BYTES \

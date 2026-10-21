@@ -726,8 +726,10 @@ func _write_plan(w: Progress.Writer) -> void:
 
 
 static func _write_legs(w: Progress.Writer, rows: PackedInt64Array) -> void:
-	"""ADR1229: a stair leg list, count first, each leg as Progress.LEG_BYTES."""
+	"""ADR1229: a stair leg list, count first, each leg as Progress.LEG_BYTES. Decision 2045: a list longer than the
+	reader admits refuses the capture (`overflow`) instead of writing a record that cannot be read back."""
 	@warning_ignore("integer_division") var count: int = rows.size() / 4
+	if count > Progress.MAX_STAIR_LEGS: w.overflow = true
 	w.i32(count)
 	for leg: int in count:
 		w.ref(Vector2i(rows[4 * leg], rows[4 * leg + 1]))

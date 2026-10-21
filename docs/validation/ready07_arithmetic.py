@@ -347,16 +347,18 @@ assert '| Endpoint-proof memo (WorldRoutes; runtime only) | 1 | 140872 | 140872 
 # keep their historical figures.
 # Decision2045 (slice D, the M5 round): M5's mounted Frontier raises the binding reserve 524544 -> 547583 (+23039);
 # the Locations witness pass keeps its landings' order and a fifth key word, an operation its installed-source key,
-# the record image hull and its near rows (+33416); the first-entry chain publishes M5's 59 work-area endpoints (+240). One row.
+# the record image hull and its near rows (+33416); the first-entry chain publishes M5's 59 work-area endpoints and keeps
+# M5's longer saved leg lists, MAX_STAIR_LEGS 20 -> 64 (+9744). One row.
 DECISION_2045_RESERVE=underground_pack['contributions']['BINDINGS_AND_GROWTH_BYTES']-524544
 DECISION_2045_CHAIN=underground_pack['current_source_census']['first_entry_runtime']['bytes']-36323
 DECISION_2045_LOCATIONS=underground_pack['current_source_census']['locations_controls']['bytes']-10258
 DECISION_2045_ADDED=DECISION_2045_RESERVE+DECISION_2045_CHAIN+DECISION_2045_LOCATIONS
-assert (DECISION_2045_RESERVE,DECISION_2045_CHAIN,DECISION_2045_LOCATIONS)==(23039,240,33416) and DECISION_2045_ADDED==56695
-assert "| Slice D M5: binding reserve for its Frontier, Locations pass and operation keys, M5 work area | 1 | 56695 | 56695 |" in s
+assert (DECISION_2045_RESERVE,DECISION_2045_CHAIN,DECISION_2045_LOCATIONS)==(23039,9744,33416) and DECISION_2045_ADDED==66199
+assert "| Slice D M5: binding reserve for its Frontier, Locations pass and operation keys, M5 work area and leg lists | 1 | 66199 | 66199 |" in s
 DECISION_2044_ROOM=underground_pack['current_source_census']['room_dig_runtime']['bytes']-5383814
 DECISION_2044_CHAIN=underground_pack['current_source_census']['first_entry_runtime']['bytes']-15131-DECISION_2045_CHAIN
-DECISION_2044_RECORD=underground_pack['current_source_census']['first_entry_runtime']['rows']['progress_record']-9192
+DECISION_2045_RECORD=5280 # MAX_STAIR_LEGS 20 -> 64: three more lists of 44 legs x 20 B in each of the two record images
+DECISION_2044_RECORD=underground_pack['current_source_census']['first_entry_runtime']['rows']['progress_record']-9192-DECISION_2045_RECORD
 DECISION_2044_LOCATIONS=underground_pack['current_source_census']['locations_controls']['bytes']-6362-DECISION_2045_LOCATIONS
 DECISION_2044_ADDED=DECISION_2044_ROOM+DECISION_2044_CHAIN+DECISION_2044_LOCATIONS
 assert (DECISION_2044_ROOM,DECISION_2044_CHAIN,DECISION_2044_RECORD,DECISION_2044_LOCATIONS)==(263168,21192,13432,3896)
@@ -374,7 +376,7 @@ assert DECISION_1229_ADDED==22565
 assert '| Stair runtime: T1-T6 entry plan and record, claw stair tables, witness-pass cache | 1 | 22565 | 22565 |' in s
 ENTRY_CHAIN_BEFORE_1229=underground_pack['current_source_census']['first_entry_runtime']['bytes']-DECISION_2045_CHAIN-DECISION_2044_CHAIN-(15131-5128-3219)
 DECISION_1218_RECORD=5128
-assert underground_pack['current_source_census']['first_entry_runtime']['rows']['progress_record']-DECISION_2044_RECORD-4064==DECISION_1218_RECORD
+assert underground_pack['current_source_census']['first_entry_runtime']['rows']['progress_record']-DECISION_2045_RECORD-DECISION_2044_RECORD-4064==DECISION_1218_RECORD
 assert '| First-entry progress record images | 1 | 5128 | 5128 |' in s
 # Decision1223: the entry runtime's one IntResult of dispatch read scratch grows the chain from 3210 to 3219 (+9).
 DECISION_1223_ADDED=ENTRY_CHAIN_BEFORE_1229-DECISION_1218_RECORD-3210
@@ -551,8 +553,8 @@ DECISION_1023_ADDED=DECISION_1023_RECORD+DECISION_1023_SCRATCH
 # decision 1023 adds one (39 -> 40); decision 1053 folds into Auxiliary payload and adds none.
 assert len(allocations)==67 and sum(allocations)==DECISION_2045_ADDED+DECISION_2044_ADDED+DECISION_1953_ADDED+DECISION_1972_CARRY+DECISION_1972_PROFILE+DECISION_1952_ADDED+DECISION_1936_RUNTIME+DECISION_1229_ADDED+DECISION_1217_PROFILE+DECISION_1221_IMAGES+DECISION_1223_ADDED+DECISION_1219_ADDED+DECISION_1218_RECORD+DECISION_1212_MUTABLE+DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED+DECISION_0131_ADDED+DECISION_0138_REMOVED+DECISION_0145_ADDED+DECISION_0167_CLAIM_SLOT+DECISION_0169_ADDED+DECISION_0531_ANCHOR+DECISION_0532_ADDED+DECISION_0521_ADDED+DECISION_0534_ADDED+DECISION_0536_ADDED+DECISION_0537_ADDED+DECISION_1031_ADDED+DECISION_0996_ADDED+DECISION_1023_ADDED+DECISION_1053_ADDED+DECISION_1066_ADDED+DECISION_1068_ADDED+DECISION_1071_MUTABLE+DECISION_1072_MUTABLE+DECISION_1102_MUTABLE+LATER_UNDERGROUND_MUTABLE
 payload=sum(allocations);reserve=8388608;candidate=payload-(3670016+2097152+262144+131072+55200+DECISION_0127_ADDED+DECISION_0169_ADDED);live=payload+reserve
-assert payload==97789453 # decision 2045: +56,695; decision 2044: +288,256; decision 1952: +140,872; decision 1972: +37,880; decision 1953: +19,048; decision 1991: +34,426
-assert live==106178061 and candidate==91536799 and live+candidate==197714860
+assert payload==97798957 # decision 2045: +66,199; decision 2044: +288,256; decision 1952: +140,872; decision 1972: +37,880; decision 1953: +19,048; decision 1991: +34,426
+assert live==106187565 and candidate==91546303 and live+candidate==197733868
 GATE=underground_pack['gate_bytes'] # REQ-SET-163 as amended by DEC-053 (supersedes DEC-051): 150 MB.
 assert GATE==150000000
 assert live==underground_pack['live_with_reserve_bytes']
@@ -622,7 +624,7 @@ assert [tuple(c[:7]) for c in budget_rows]==[(t,m,a,str(w),str(len(m.split(', ')
 assert sum(int(c[6]) for c in budget_rows)==DECISION_1880_PLANNED
 assert f'The table sums to **{DECISION_1880_PLANNED} bytes**' in s
 DECISION_1880_LIVE=live+DECISION_1880_PLANNED
-assert (payload+DECISION_1880_PLANNED,DECISION_1880_LIVE,GATE-DECISION_1880_LIVE)==(114746893,123135501,26864499) # decision 2045: +56,695; decision 2044: +288,256; decision 1972: +37,880; decision 1953: +19,048; decision 1991: +34,426
+assert (payload+DECISION_1880_PLANNED,DECISION_1880_LIVE,GATE-DECISION_1880_LIVE)==(114756397,123145005,26854995) # decision 2045: +66,199; decision 2044: +288,256; decision 1972: +37,880; decision 1953: +19,048; decision 1991: +34,426
 assert DECISION_1880_LIVE<GATE
 for label,value in [('Painted-room budget held outside the live total (decision 1880)',DECISION_1880_PLANNED),
                     ('One live world plus reserve with decision 1880 folded in',DECISION_1880_LIVE),
@@ -671,10 +673,10 @@ assert (DECISION_1880_Q1_BYTES,DECISION_1880_STORE_CONTAINERS)==(23265280,811008
 # when G is designed. C+G's projection without it (the 1880 budget and Q1's projects and containers) leaves this
 # much for G. It is a figure, not an allowance.
 DECISION_1880_LEFT_FOR_G=GATE-DECISION_1880_LIVE-DECISION_1880_Q1_BYTES
-assert DECISION_1880_LEFT_FOR_G==3599219>0 # decision 2045: -56,695; decision 2044: -288,256; decision 1952: -140,872; decision 1972: -37,880; decision 1953: -19,048; decision 1991: -34,426
+assert DECISION_1880_LEFT_FOR_G==3589715>0 # decision 2045: -66,199; decision 2044: -288,256; decision 1952: -140,872; decision 1972: -37,880; decision 1953: -19,048; decision 1991: -34,426
 for text in ['projects ≤ 81920 items + 81920 rooms + 1024 outdoor items = 164864','containers ≤ 164864 + 18432 = 183296',
-             'that is 23265280 bytes. Slice G sizes its store containers','leaves 3599219 bytes for slice G','projects ≤81920+81920+1024=164864',
-             'containers ≤183296','164864 projects and 183296 containers','headroom is 26864499 bytes (26.9 MB)']:
+             'that is 23265280 bytes. Slice G sizes its store containers','leaves 3589715 bytes for slice G','projects ≤81920+81920+1024=164864',
+             'containers ≤183296','164864 projects and 183296 containers','headroom is 26854995 bytes (26.9 MB)']:
  assert text in s,text
 catalog=json.loads((r/'godot/data/catalog_ids.json').read_text())['domains']['ItemDefinition']
 bindings={'resource': ['wood','stone','iron'],'forage':['berries','nuts','mushrooms','herb','roots'],'fish':['trout','dace','salmon','perch','carp','whitefish','herring','mackerel','mussel']}

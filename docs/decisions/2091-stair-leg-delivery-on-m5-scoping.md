@@ -1,6 +1,7 @@
 # 2091 — Stair-leg Delivery on M5's flight: scoping (stopped for rulings)
 
-Date: 2026-10-21 · Status: Proposed. Docs only; nothing is built. P-2091-1 to P-2091-8 wait for Brendan.
+Date: 2026-10-21 · Status: Accepted. Brendan ruled P-2091-1 to P-2091-8 (a), as recommended, on 2026-10-21 (see
+"Brendan's rulings"). Phase 1 is recorded in decision 2092.
 
 **Number.** The coordinator allocated 2091–2099 to this lane, with 2091 for this record. 2091 is free on every local
 and remote ref (`git log --all -- 'docs/decisions/209*'` finds nothing), and `decision_numbers.py` passes. Branch
@@ -12,7 +13,15 @@ and remote ref (`git log --all -- 'docs/decisions/209*'` finds nothing), and `de
   None of the four is on this branch.
 - Code paths are under `godot/scripts/core/` unless given in full.
 
-## Decision (proposed)
+## Brendan's rulings (2026-10-21)
+
+Relayed by the coordinator: Brendan answered in chat through AskUserQuestion, saying **"Approve, start phase 1"**.
+
+| Proposal | Ruling | What it means |
+|---|---|---|
+| P-2091-1 to P-2091-8 | **(a)**, as recommended | Slice D owns stair-leg Delivery; one stair runner per World; a one-pass static leg reach; loaded edges published when the way in binds; down-only, 2b-2 next; derived leg lists on load, the runner's cursor in the room record; D2 phase 2 adds the store's grip stand and its CARRY span; today's rates, with the figures handed to the room-pace study (which starts separately) |
+
+## Decision
 
 Build stair-leg Delivery once, on M5's real flight, as decision 1941 §2 lists. The list changes in five ways:
 

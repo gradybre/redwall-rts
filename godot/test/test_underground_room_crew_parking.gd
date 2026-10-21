@@ -309,3 +309,25 @@ func test_a_parking_whose_body_reaches_the_builders_floor_is_beside_the_way() ->
 	assert_false(Parking._beside_the_way(profiles, request, access, access + Vector3i(-2048, 0, 0)), "two west")
 	assert_false(Parking._beside_the_way(profiles, request, access, access + Vector3i(0, 0, -2048)), "two south")
 	assert_false(Parking._beside_the_way(profiles, request, access, KitchenTests.SECOND_PARKING), "the authored second")
+
+
+func test_the_composer_skips_a_lateral_point_beside_the_way() -> void:
+	"""`find_into` itself refuses a lateral point whose body reaches the builders' floor: with west and north taken and the
+	room's cells reaching down toward the south parking's line, two cells south is beside the way; three cells south
+	is found."""
+	if _runtime == null: return
+	var foreman: Foreman = _ordered(1)
+	if foreman == null: return
+	var access: Vector3i = _point(_h._first)
+	var request: Parking.Request = _request()
+	var north: Vector2i = _h._endpoint(access + Vector3i(0, 0, 3 * Parking.CELL_U), Locations.ROLE_TRANSIT)
+	request.taken = [foreman.builders()[0].crew().parking, north] # West and north are taken: south is what is left.
+	request.room_box = PackedInt32Array([Phase.X + 2048, Phase.Z - 1024, Phase.X + 4096, Phase.Z + 2048])
+	var south: Vector3i = access + Vector3i(0, 0, -2 * Parking.CELL_U)
+	assert_false(Parking._between(access, request.room_box, south), "not between the access and the room")
+	assert_true(Parking._beside_the_way(_h._profiles, request, access, south), "but beside the way")
+	var found: Array[Vector2i] = []
+	assert_equal(Parking.find_into(_h.owners(), request, found), &"", "a parking further south")
+	if found.is_empty(): return
+	assert_true(_point(found[0]) != south, "the point beside the way is not the parking found")
+	assert_equal(_point(found[0]), access + Vector3i(0, 0, -3 * Parking.CELL_U), "three cells south, clear of the way")

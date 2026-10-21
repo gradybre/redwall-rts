@@ -237,6 +237,17 @@ func test_every_section_the_chain_crosses_is_read_again() -> void:
 	graph._live.fields[Routes.E_SECTION_SLOT * cap + row] = was.x
 	graph._live.fields[(Routes.E_SECTION_SLOT + 1) * cap + row] = was.y
 	assert_true(Itinerary._sections_hold(_h._binding, graph, _h._first, at), "restored")
+	var to: Vector2i = graph._edge_pair(graph._live, Routes.E_TO_SLOT, row)
+	var locations: Locations = _h.endpoints
+	var stride: int = locations._capacity
+	var section: Vector2i = Vector2i(locations._live.i32[Locations.SECTION_SLOT * stride + to.x],
+		locations._live.i32[(Locations.SECTION_SLOT + 1) * stride + to.x])
+	locations._live.i32[Locations.SECTION_SLOT * stride + to.x] = -1
+	locations._live.i32[(Locations.SECTION_SLOT + 1) * stride + to.x] = 0
+	assert_false(Itinerary._sections_hold(_h._binding, graph, _h._first, at), "a reached endpoint's dead section fails it")
+	locations._live.i32[Locations.SECTION_SLOT * stride + to.x] = section.x
+	locations._live.i32[(Locations.SECTION_SLOT + 1) * stride + to.x] = section.y
+	assert_true(Itinerary._sections_hold(_h._binding, graph, _h._first, at), "restored again")
 
 
 func test_the_provider_reads_its_binding_once_with_the_same_revision() -> void:

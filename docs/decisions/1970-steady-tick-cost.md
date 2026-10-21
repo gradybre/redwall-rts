@@ -640,6 +640,57 @@ SpaceOwner, Locations and Routes (publication receipts) and WorldRoutes (`_certi
 - **Size:** about 1,500–2,500 changed lines across about twelve files. Transforms, Inventory, Gear, Work, Jobs,
   ResourceNodes, Buildings, Routes and WorldRoutes are all shared with slice D or the surface lanes.
 
+## 10. F1–F4 measured (alternating rounds)
+
+**Method.** The base is `fe85b96a`: master plus the §2a parking fix, which every three-builder scenario needs. The
+after case is `6f705a0e` (F1–F4). The same scratch scenarios as §1 were run, plus the committed dig benchmark, in
+three alternating rounds (base, after; after, base; base, after) on the development Mac. The load average was 6–21
+during the rounds, so read the means of the rounds rather than any one round. The table gives the mean of the three
+rounds' p50, p95 and p99, in microseconds, ordinary ticks only:
+
+| Scenario, tick | Before p50 / p95 / p99 | After p50 / p95 / p99 | Change |
+|---|---|---|---|
+| `claw1` (1 builder), earning | 2,094 / 4,108 / 4,766 | 1,612 / 2,454 / 2,985 | −23% / −40% / −37% |
+| `claw1`, travel | 551 / 645 / 763 | 480 / 541 / 605 | −13% / −16% / −21% |
+| `claw1`, stationary | 457 / 553 / 637 | 384 / 443 / 510 | −16% / −20% / −20% |
+| `crew2` (2 builders, the real Confirm route, widened Corridor), earning | 2,881 / 5,563 / 5,915 | 2,250 / 3,170 / 3,667 | −22% / −43% / −38% |
+| `crew2`, travel | 873 / 992 / 1,096 | 753 / 878 / 962 | −14% / −11% / −12% |
+| `crew3` (3 builders), earning | 3,103 / 5,700 / 6,014 | 2,490 / 3,360 / 4,098 | −20% / −41% / −32% |
+| `crew3`, travel | 891 / 1,084 / 1,274 | 786 / 958 / 1,106 | −12% / −12% / −13% |
+| `big2` (2 builders, 4×4 room), earning | 2,931 / 5,737 / 6,104 | 2,223 / 3,093 / 3,841 | −24% / −46% / −37% |
+| `entry` prefix (live settlement), ordinary | 789 / 10,615 / 12,888 | 711 / 10,419 / 12,546 | −10% / −2% / −3% |
+| Benchmark `room1` (content 6), earning | 2,326 / 3,600 / 4,019 | 2,104 / 2,972 / 3,275 | −10% / −17% / −19% |
+| Benchmark `entry1`, foreman tick | 597 / 10,412 / 14,649 | 533 / 10,349 / 13,096 | −11% / −1% / −11% |
+
+**What moved.**
+
+- **The CUT ticks fell the most.** The output check's repeated searches are now memo hits, which takes 32–46% off
+  the earning p95 and p99.
+- **The searches are cheaper but not free.** A first run with temporary counters measured 94% of searches answered
+  from the memo (3,872 of 4,104 on `claw1`). An answered search costs about 76 µs, against about 167 µs. Of that,
+  `WorldRoutes._reach_stores_refusal`, the store and binding check run at both boundaries of every query, is about
+  41 µs. It is not in this lane's cleared functions.
+- **Every Routes tick is about 30–70 µs cheaper**, from F1 and F4's digest memo.
+- **The content-6 benchmark gains less.** Its searches take WorldRoutes' automatic-row path, which its witness already
+  memoizes, so F2 does not apply there.
+- **The entry is set by slice D's costs:** the handling proof and Contacts' re-proof (§3.4).
+- **Cold ticks were unchanged** in the clean rounds (−3% to +2%).
+
+**Where REQ-SET-163 stands.** The 2 ms simulation tick at 1x (p99) is still missed.
+
+- One earning builder is at 1.6 / 2.5 / 3.0 ms. That is better than §5's estimate at p99 (2.1 ms) and worse at p50
+  (1.3 ms): the answered search's fixed cost is larger than estimated.
+- Two or three builders are at 2.2–2.5 ms p50 and 3.7–4.1 ms p99.
+- What remains is the work §9's tokens cache: the worker and output live leaves, about 1 ms per earning builder, and
+  Routes' per-actor re-attestation, about 0.35 ms an actor.
+
+**Exactness (F1–F4).**
+
+- **SHA trace:** byte-identical to master `e0e7065a`, for room1's 7,988 lines and entry1's 3,464 lines.
+- **Checkpoints:** regenerated with the same bytes (every `.rwlsave.gz` is identical; only the two manifests moved).
+- **Live cross-checks:** with CacheChecks on, `test_underground_route_memos.gd`, `test_underground_room_search_memo.gd`
+  and `test_underground_claw_digest_memo.gd` pass, as does every suite in the full run (§11).
+
 ## Source
 
 - REQ-SET-163 (`docs/game_gdd.md`); decisions 1951, 1952 (P-1952-1 and its ruling), 1953 §6–§7, 1954 §3.3, 1942,

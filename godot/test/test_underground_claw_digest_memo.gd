@@ -55,8 +55,11 @@ func test_a_poisoned_verdict_is_followed_then_retired_by_a_moved_token() -> void
 	assert_equal(Claw2._digest_matches(profiles), not live, "the remembered verdict answers")
 	profiles.invalidate_runtime_caches()
 	assert_equal(Claw2._digest_matches(profiles), live, "a moved token reads afresh")
+	var bank_word: int = profiles._claw_digest_memo[Profiles.CLAW_DIGEST_V2 * Profiles.CLAW_DIGEST_STRIDE + 1]
 	profiles._claw_digest_memo[Profiles.CLAW_DIGEST_V2 * Profiles.CLAW_DIGEST_STRIDE + 1] = 1
 	assert_equal(profiles.remembered_digest(Profiles.CLAW_DIGEST_V2), -1, "another bank is never answered")
+	profiles._claw_digest_memo[Profiles.CLAW_DIGEST_V2 * Profiles.CLAW_DIGEST_STRIDE + 1] = bank_word
+	assert_true(profiles.remembered_digest(Profiles.CLAW_DIGEST_V2) >= 0, "its own bank is answered")
 	profiles._loading = true
 	assert_equal(profiles.remembered_digest(Profiles.CLAW_DIGEST_V2), -1, "a loading store is never answered")
 	profiles._loading = false

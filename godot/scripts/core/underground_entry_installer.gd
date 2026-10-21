@@ -156,9 +156,9 @@ func progress_marker() -> int:
 	return marker_of(_stage, _stair_leg, _hauler._leg, _hauler.stage(), _hauler.trips())
 
 
-static func marker_of(stage: int, stair_leg: int, haul_leg: int, haul_stage: int, trips: int) -> int:
+static func marker_of(installer_stage: int, stair_leg: int, haul_leg: int, haul_stage: int, trips: int) -> int:
 	"""Decision 2045: `progress_marker`'s packing, each part clamped to its width."""
-	return (((clampi(stage, 0, 15) * 32 + clampi(stair_leg, 0, 31)) * 32 + clampi(haul_leg, 0, 31)) * 8
+	return (((clampi(installer_stage, 0, 15) * 32 + clampi(stair_leg, 0, 31)) * 32 + clampi(haul_leg, 0, 31)) * 8
 		+ clampi(haul_stage, 0, 7)) * 16384 + clampi(trips, 0, 16383)
 
 

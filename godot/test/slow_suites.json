@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "note": "The slow tier (decision 1240): suites measured over threshold_seconds in a full run, plus test_checkpoint_equivalence.gd, which replays every checkpoint recipe from tick 0 by design. ./tools/run_tests.sh --fast skips them, --slow runs only them; the default run and CI run everything. Values are whole seconds measured on Brendan's Mac in the full parallel run at bf49943a (10 shards, 4 at a time; decision 1895); the suites decision 1895 changed (test_settlement_save_parity_1-6, which replace test_settlement_save_parity.gd, test_underground_host_crew_loss.gd and test_checkpoint_equivalence.gd) measured in focused runs three at a time. Re-measure and edit this list when a suite crosses the threshold either way. test_demo_build_furnish_live.gd (decision 1921) measured in a focused run: 102 s. test_demo_build_mound_live.gd (decision 2002) measured in a focused run: 152 s. test_underground_room_progress.gd (decision 1937, every-tick restore parity of five room digs) measured in a focused run: 183 s. test_underground_entry_crew_leaves.gd (decision 1940, two runs of the whole entry to its finish) and test_underground_room_claw_kitchen.gd (decision 1939) measured in the full parallel run at 7393c891: 165 s and 64 s. test_underground_room_station_retirement.gd (decision 1942: a 6x4 room dug with and without retirement, and every-tick restore parity): 580 s. Decision 1943's coverage matrix (test_underground_room_multi_heading.gd and the test_underground_room_matrix_*.gd suites; the 7 x 7 room dug its full 4 m, the others their floor band) measured in a paired full parallel run at a6dd9264 (two 10-shard runs at once): 113-452 s; the L-shaped and first room-type suites (34 s and 52 s) are fast. test_underground_room_confirm.gd (decision 1991: the real Confirm route, its Kitchen digs and stops end to end, about 2,900 fixed ticks a whole dig) measured in a focused run at 0c7061e5: 172 s. Decision 2044 (CI time) split the M2 flight's suites and measured them in focused runs on a loaded Mac: test_underground_host_whole_chain.gd 330 s (its restored flight runs beside it in a second process), test_underground_entry_crew_leaves.gd 313 s and test_underground_entry_crew_lost_at_finish.gd 315 s (one whole flight each), test_underground_host_prefix_restored.gd 76 s, test_underground_host.gd 68 s, test_underground_host_crew_replaced.gd 100 s, test_underground_host_rest.gd 63 s, and test_underground_paid_assembly_handling.gd, _install, _foreman and _progress 80, 82, 82 and 80 s. Decision 2045: test_underground_m5_rest_wait.gd (the M5 chain to its first rest-hour wait, 47,000 ticks) measured in a focused run: 1,012 s; over CI's shard guard until it starts from a checkpoint.",
+  "note": "The slow tier (decision 1240): suites measured over threshold_seconds in a full run, plus test_checkpoint_equivalence.gd, which replays every checkpoint recipe from tick 0 by design. ./tools/run_tests.sh --fast skips them, --slow runs only them; the default run and CI run everything. Values are whole seconds measured on Brendan's Mac in the full parallel run at bf49943a (10 shards, 4 at a time; decision 1895); the suites decision 1895 changed (test_settlement_save_parity_1-6, which replace test_settlement_save_parity.gd, test_underground_host_crew_loss.gd and test_checkpoint_equivalence.gd) measured in focused runs three at a time. Re-measure and edit this list when a suite crosses the threshold either way. test_demo_build_furnish_live.gd (decision 1921) measured in a focused run: 102 s. test_demo_build_mound_live.gd (decision 2002) measured in a focused run: 152 s. test_underground_room_progress.gd (decision 1937, every-tick restore parity of five room digs) measured in a focused run: 183 s. test_underground_entry_crew_leaves.gd (decision 1940, two runs of the whole entry to its finish) and test_underground_room_claw_kitchen.gd (decision 1939) measured in the full parallel run at 7393c891: 165 s and 64 s. test_underground_room_station_retirement.gd (decision 1942: a 6x4 room dug with and without retirement, and every-tick restore parity): 580 s. Decision 1943's coverage matrix (test_underground_room_multi_heading.gd and the test_underground_room_matrix_*.gd suites; the 7 x 7 room dug its full 4 m, the others their floor band) measured in a paired full parallel run at a6dd9264 (two 10-shard runs at once): 113-452 s; the L-shaped and first room-type suites (34 s and 52 s) are fast. test_underground_room_confirm.gd (decision 1991: the real Confirm route, its Kitchen digs and stops end to end, about 2,900 fixed ticks a whole dig) measured in a focused run at 0c7061e5: 172 s. Decision 2044 (CI time) split the M2 flight's suites and measured them in focused runs on a loaded Mac: test_underground_host_whole_chain.gd 330 s (its restored flight runs beside it in a second process), test_underground_entry_crew_leaves.gd 313 s and test_underground_entry_crew_lost_at_finish.gd 315 s (one whole flight each), test_underground_host_prefix_restored.gd 76 s, test_underground_host.gd 68 s, test_underground_host_crew_replaced.gd 100 s, test_underground_host_rest.gd 63 s, and test_underground_paid_assembly_handling.gd, _install, _foreman and _progress 80, 82, 82 and 80 s. Decision 2045: test_underground_m5_rest_wait.gd now starts from the underground_flight checkpoint at tick 45,000 (3 s, fast tier). The whole M5 flight's segment suites (test_underground_flight_00-17.gd) were measured six at a time beside other work at 46a20449: 65-547 s; 15-17 (from tick 80,000) cannot load their start until P-2045-14 and are entered at 600 s, a placeholder. The deep stages re-prove a deep station's whole reach on every Work tick (decision 2045, P-2045-15), so several segments are over CI's per-suite guard.",
   "threshold_seconds": 60,
   "slow": {
     "test_checkpoint_equivalence.gd": 105,
@@ -27,7 +27,6 @@
     "test_underground_host_prefix_restored.gd": 76,
     "test_underground_host_rest.gd": 63,
     "test_underground_host_whole_chain.gd": 330,
-    "test_underground_m5_rest_wait.gd": 1012,
     "test_underground_paid_assembly_foreman.gd": 82,
     "test_underground_paid_assembly_handling.gd": 80,
     "test_underground_paid_assembly_install.gd": 82,
@@ -41,6 +40,24 @@
     "test_underground_room_matrix_wide.gd": 148,
     "test_underground_room_multi_heading.gd": 116,
     "test_underground_room_progress.gd": 183,
-    "test_underground_room_station_retirement.gd": 580
+    "test_underground_room_station_retirement.gd": 580,
+    "test_underground_flight_00.gd": 114,
+    "test_underground_flight_01.gd": 92,
+    "test_underground_flight_02.gd": 98,
+    "test_underground_flight_03.gd": 93,
+    "test_underground_flight_04.gd": 65,
+    "test_underground_flight_05.gd": 119,
+    "test_underground_flight_06.gd": 262,
+    "test_underground_flight_07.gd": 356,
+    "test_underground_flight_08.gd": 84,
+    "test_underground_flight_09.gd": 348,
+    "test_underground_flight_10.gd": 509,
+    "test_underground_flight_11.gd": 124,
+    "test_underground_flight_12.gd": 547,
+    "test_underground_flight_13.gd": 356,
+    "test_underground_flight_14.gd": 161,
+    "test_underground_flight_15.gd": 600,
+    "test_underground_flight_16.gd": 600,
+    "test_underground_flight_17.gd": 600
   }
 }

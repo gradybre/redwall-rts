@@ -9,9 +9,15 @@ const Session := preload("res://scripts/core/underground_session.gd")
 const Content := preload("res://demo/cast/underground_actor_content.gd")
 const Residents := preload("res://scripts/core/residents.gd")
 const Jobs := preload("res://scripts/core/jobs.gd")
+const Needs := preload("res://scripts/core/needs.gd")
 
 ## The live chain's suggested entry site (`test_underground_host.gd`).
 const NEAR: Vector3i = Vector3i(60 * 2048 + 512, 512, 50 * 2048 + 512)
+## Decision 2044: the whole-flight stand-ins (`sustain`). Every 20 ticks the needs are refilled; every 50 ticks a
+## staged input below 3,000 milli gets 3,000. The generated cohort has no kitchen or stores yet (G9).
+const SUSTAIN_NEEDS_EVERY: int = 20
+const SUSTAIN_STOCK_EVERY: int = 50
+const SUSTAIN_STOCK_MILLI: int = 3000
 
 
 static func load_content() -> Content:
@@ -117,3 +123,31 @@ static func spare_of(host: Node) -> Vector2i:
 				and not residents.has_equipped_tool(slot) and residents.ref_of(slot) != crew:
 			found.append(residents.ref_of(slot))
 	return found[0] if found.size() == 1 else Vector2i(-1, 0)
+
+
+static func sustain(o: Session.Retirement.Owners, output: Vector2i, tick: int) -> StringName:
+	"""Decision 2044: the whole-flight stand-ins, run before tick `tick`: every present resident's hunger and rest
+	refilled, and R's staged wood and stone topped up (`output` is R's ground-staging container). Decision 2045: a free
+	Needs row is left zero, as the save requires (a spawn writes the whole row, so the run is the same)."""
+	if tick % SUSTAIN_NEEDS_EVERY == 0:
+		var needs: RefCounted = o.residents.needs()
+		for slot: int in needs._present.size():
+			if needs._present[slot] == 0: continue
+			needs._need_value[slot * Needs.NEED_COUNT + Needs.NEED_HUNGER] = Needs.NEED_MAX
+			needs._need_value[slot * Needs.NEED_COUNT + Needs.NEED_REST] = Needs.NEED_MAX
+	if tick % SUSTAIN_STOCK_EVERY != 1: return &""
+	for key: StringName in [&"wood", &"stone"]:
+		if staged_milli(o, output, o.items.compiled_id(key)) < SUSTAIN_STOCK_MILLI:
+			var code: StringName = _stage(o, output, key, SUSTAIN_STOCK_MILLI)
+			if code != &"": return code
+	return &""
+
+
+static func staged_milli(o: Session.Retirement.Owners, container: Vector2i, item: int) -> int:
+	"""Unreserved milli of `item` in `container`."""
+	var total: int = 0
+	var lot: Vector2i = o.inventory.container_first_lot(container)
+	while lot != Vector2i(-1, 0):
+		if o.inventory.lot_item_id(lot) == item: total += o.inventory.lot_available_milli(lot)
+		lot = o.inventory.container_next_lot(lot)
+	return total

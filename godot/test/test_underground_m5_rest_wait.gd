@@ -3,21 +3,30 @@ extends "res://test/underground_host_case.gd"
 ## order and reaches X in a rest hour (tick 45,414 on the generated settlement). Holding the order's Job it waits there
 ## for a work hour, then carries on with the same order: the chain never ends with STEP2_ACTIVITY_FORBIDS_WORK and the
 ## order is not restarted. Needs and R's stock are sustained as the whole-flight suites sustain them; the schedule is not.
+## The flight starts from the committed underground_flight checkpoint at tick 45,000 (decision 1240; its segments are
+## proved by test_underground_flight_<k>.gd), not from tick 0.
 
 const Installer := preload("res://scripts/core/underground_entry_installer.gd")
-## Past the rest hour that the climb reaches at tick 45,414, and the work hour after it.
+## The checkpoint the flight starts from, and a limit past the rest hour the climb reaches at tick 45,414 and the
+## work hour after it.
+const START_TICK: int = 45000
 const WAIT_TICK_LIMIT: int = 50000
 
 
 func test_a_crew_back_at_x_in_a_rest_hour_waits_and_resumes_the_same_order() -> void:
 	"""The crew waits at X with the order's Job through the rest hour, then the same order goes on to its haul."""
-	var live: Array = _begin_live_entry()
-	var o: Session.Retirement.Owners = live[0]
-	var entry: Settlement.UndergroundEntryRuntime = live[1]
+	_checkpoint_loaded = true
+	var point: String = Recipes.flight_point(Recipes.FLIGHT_TICKS.find(START_TICK))
+	var refusal: String = Store.load_into(_host, GameManager, Recipes.FLIGHT, point, _content)
+	assert_equal(refusal, "", "the underground_flight %s checkpoint loads" % point)
+	if refusal != "": return
+	var o: Session.Retirement.Owners = _host.underground_session()._retirement_owners
+	var entry: Settlement.UndergroundEntryRuntime = _host.underground_entry()
 	var waited: int = 0
 	var order: Vector2i = Vector2i(-1, 0)
 	var resumed: bool = false
-	var tick: int = 1
+	var tick: int = GameManager.clock().completed_tick() + 1
+	assert_equal(tick, START_TICK + 1, "the flight goes on from tick %d" % START_TICK)
 	while entry.is_running() and tick < WAIT_TICK_LIMIT and not resumed:
 		_sustain(o, entry, tick)
 		assert_true(_host.run_tick(tick), "tick %d" % tick)

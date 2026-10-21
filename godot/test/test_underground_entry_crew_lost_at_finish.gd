@@ -1,6 +1,7 @@
 extends "res://test/underground_host_case.gd"
 ## Decision 1940: a finished crew lost before it leaves is removed from the underground route roster where it lies.
-## Runs the whole entry to its finishing tick first (DESCENT_DONE_TICK), so this suite is in the slow tier. Split from
+## Starts from the whole entry's finishing tick (DESCENT_DONE_TICK; decision 2045: the committed underground_flight
+## checkpoint's finish). Split from
 ## test_underground_entry_crew_leaves.gd so CI can shard the two whole flights apart (decision 2044, CI time).
 
 
@@ -8,6 +9,7 @@ func test_a_finished_crew_lost_before_it_leaves_is_removed_from_the_roster() -> 
 	"""Decision 1940, ADR1225: a crew that dies on its last station is removed from the roster where it lies; it walks
 	nowhere, and the entry stops leaving and reserving it."""
 	var done: Array = _finished_entry()
+	if done.is_empty(): return
 	var o: Session.Retirement.Owners = done[0]
 	var entry: Settlement.UndergroundEntryRuntime = done[1]
 	var worker: Vector2i = done[2]

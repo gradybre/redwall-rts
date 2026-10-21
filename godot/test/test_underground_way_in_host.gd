@@ -193,7 +193,8 @@ func test_the_finishing_tick_binds_the_way_in() -> void:
 	assert_true(_host._underground_way_in is WayIn.StairWayIn, "bound on the finishing tick")
 	var way: WayIn.StairWayIn = _host._underground_way_in as WayIn.StairWayIn
 	assert_equal(way.foot.stair, h, "its stair stop")
-	assert_equal(way.foot.staging, staging, "staging is R")
+	assert_equal(way.foot.staging, NULL_REF, "staging is the stair-head store's, made with the foot (P-2092-1 (a))")
+	assert_true(staging != NULL_REF, "not the entry's R")
 	assert_equal(_host._bind_finished_way_in(), &"", "bound once: asking again changes nothing")
 	assert_true(_host._underground_way_in == way, "the same way in")
 

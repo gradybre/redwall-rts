@@ -10,10 +10,11 @@ extends RefCounted
 ##   F' by two straight spans down the flight;
 ## - one parking for the crew (decision 2052 §2.2 row 8: the planner's own candidates leave the 2 m slot), joined to the
 ##   hub on the retreat row's family, which the parking planner then takes as an authored parking;
-## - the level-1 store and the spoil pile (P-2052-2 (a)), ground staging at their points; and the store's grip stand at
-##   `Grip.stock_offset(QUARTER)` from it with one CARRY span entering it on the grip heading (P-2091-7 (a), Brendan
-##   2026-10-21, for stair-leg Delivery), from the hub: F''s own air holds no loaded row (decision 2054 §2). No new
-##   motion: the content's own rows.
+## - the level-1 store and the spoil pile (P-2052-2 (a)), ground staging at their points; and the store's yaw-0 grip
+##   stand with one CARRY span from F' straight on into it (P-2091-7 (a), refined by decision 2092 §2.2; it waits for
+##   F''s air to hold a loaded row, decision 2054 B3);
+## - on the land, the stair-head store and its yaw-0 grip stand (P-2092-1 (a)): the rooms' staging, in place of R.
+## No new motion: the content's own rows.
 ## On the claw Kitchen fixture (phase 1) the access is given; only the store and the pile are made, joined to it.
 
 const Locations := preload("res://scripts/core/underground_locations.gd")
@@ -61,7 +62,11 @@ class Foot extends RefCounted:
 	var parking_rows: PackedInt32Array = PackedInt32Array() # Empty: no parking is made.
 	var store_rows: PackedInt32Array = PackedInt32Array() # The store's footing; empty: the ground row's.
 	var stand_rows: PackedInt32Array = PackedInt32Array() # Empty: no stand is made.
+	var stand_yaw: int = Grip.QUARTER # The stands' grip yaw: 0 at a stair's foot and head (decision 2092).
 	var join_containers: bool = true # Join the store and the pile to the access by straight ground spans.
+	## P-2092-1 (a): the stair-head store on the land, the rooms' staging (`staging` is set once it is made).
+	var surface: Vector2i = NULL_REF # The land's section is read from this Location (the work area's H).
+	var surface_store_point: Vector3i = Vector3i.ZERO
 
 	func refusal() -> StringName:
 		"""REFUSE_FOOT unless every field a room order reads is set and the heading rows pair up."""
@@ -124,6 +129,7 @@ static func containers_into(owners: Builder.Owners, foot: Foot, order: Composer.
 	output. The store's grip stand is `stand_ready`'s, which no room order needs."""
 	var air: Locations.Record = Front.record()
 	var code: StringName = air_record(owners, foot, air)
+	if code == &"": code = surface_ready(owners, foot) # P-2092-1 (a): the rooms' staging.
 	if code != &"": return code
 	var rows: PackedInt32Array = foot.store_rows if not foot.store_rows.is_empty() else PackedInt32Array([foot.ground])
 	order.storage = _container_at(owners, foot, air, foot.store_point, rows)
@@ -139,26 +145,27 @@ static func _container_at(owners: Builder.Owners, foot: Foot, air: Locations.Rec
 	var spot: Vector2i = Front.endpoint_at(owners, foot, air, point, Locations.ROLE_STORAGE, rows, made)
 	if spot == NULL_REF: return NULL_REF
 	if foot.join_containers and not Front.span_pair(owners, foot, air, foot.access, spot): return NULL_REF
-	var found: Vector2i = owners.inventory.spatial_ground_container_at(spot)
-	if found != NULL_REF: return found
-	var created: Inventory.OpResult = owners.inventory.create_spatial_ground_staging(spot)
-	return created.ref if created.ok else NULL_REF
+	return _staging_at(owners, spot)
 
 
 static func stand_point(foot: Foot) -> Vector3i:
-	"""The store's grip stand: the certified stand offset from its stock point, where the hauler and Delivery look
-	(`underground_entry_hauler.gd` `_stand_beside`; the worker faces -X onto the stock)."""
-	return foot.store_point - Grip.stock_offset(Grip.QUARTER)
+	"""The level-1 store's grip stand: the certified stand offset from its stock point at the foot's grip yaw (yaw 0:
+	576 u up the flight, the worker facing down it onto the stock; decision 2092 §2.2)."""
+	return foot.store_point - Grip.stock_offset(foot.stand_yaw)
+
+
+static func surface_stand_point(foot: Foot) -> Vector3i:
+	"""The stair-head store's grip stand, the same offset from its stock point (P-2092-1 (a))."""
+	return foot.surface_store_point - Grip.stock_offset(foot.stand_yaw)
 
 
 static func stand_ready(owners: Builder.Owners, foot: Foot) -> StringName:
-	"""P-2091-7 (a): the store's grip stand (a WORK endpoint with the grip and carry rows' footing) and the one CARRY
-	span into it on the grip heading, each made only when missing. The span leaves the hub, not F'(5): F''s surveyed
-	air holds no loaded row (the 2054 probe; widening it is M5's, decision 2054 §2), and the hub, joined to F', has the
-	run-out's. REFUSE_STAND when the stand cannot stand there; REFUSE_LOADED_SPAN when WorldRoutes certifies no loaded
-	row on the span. Call after `access_ready`."""
+	"""P-2091-7 (a) as refined by decision 2092 §2.2: the level-1 store's yaw-0 grip stand (a WORK endpoint with the
+	grip and carry rows' footing) and the one CARRY span from the stair stop F'(5) straight on down the flight into it,
+	each made only when missing. REFUSE_STAND when the stand cannot stand there; REFUSE_LOADED_SPAN when WorldRoutes
+	certifies no loaded row on the span: today F''s surveyed air holds no loaded row (decision 2054 B3), so this waits
+	for M5 to widen it (an envelope and ADR 1215's extra box, decision 2092 §2)."""
 	if foot.stand_rows.is_empty() or foot.stair == NULL_REF: return &""
-	if foot.access == NULL_REF: return REFUSE_HUB
 	var air: Locations.Record = Front.record()
 	var code: StringName = air_record(owners, foot, air)
 	if code != &"": return code
@@ -166,7 +173,47 @@ static func stand_ready(owners: Builder.Owners, foot: Foot) -> StringName:
 	var stand: Vector2i = Front.endpoint_at(owners, foot, air, stand_point(foot), Locations.ROLE_WORK, foot.stand_rows,
 		made)
 	if stand == NULL_REF: return REFUSE_STAND
-	return &"" if carry_span(owners, foot, air, foot.access, stand) else REFUSE_LOADED_SPAN
+	return &"" if carry_span(owners, foot, air, foot.stair, stand) else REFUSE_LOADED_SPAN
+
+
+static func surface_ready(owners: Builder.Owners, foot: Foot) -> StringName:
+	"""P-2092-1 (a): the stair-head store on the land (STORAGE, ground staging) and its yaw-0 grip stand (WORK), each in
+	its own rows' air on the work area's section, made only when missing; the foot's staging becomes the store. No
+	span: the loaded join from the stand to H is the stair carry's (decision 2092 §6)."""
+	if foot.surface == NULL_REF: return &""
+	var land: Locations.Record = Front.record()
+	var code: StringName = owners.locations.read_location_into(foot.surface, land)
+	if code != &"": return code
+	var made: PackedInt32Array = PackedInt32Array()
+	_air_of(owners, foot.stand_rows, surface_stand_point(foot), land)
+	if Front.endpoint_at(owners, foot, land, surface_stand_point(foot), Locations.ROLE_WORK, foot.stand_rows,
+			made) == NULL_REF: return REFUSE_STAND
+	var rows: PackedInt32Array = PackedInt32Array([foot.ground])
+	_air_of(owners, rows, foot.surface_store_point, land)
+	var spot: Vector2i = Front.endpoint_at(owners, foot, land, foot.surface_store_point, Locations.ROLE_STORAGE,
+		foot.store_rows, made)
+	foot.staging = _staging_at(owners, spot)
+	return &"" if foot.staging != NULL_REF else REFUSE_CONTAINER
+
+
+static func _air_of(owners: Builder.Owners, rows: PackedInt32Array, point: Vector3i, out: Locations.Record) -> void:
+	"""The union of the rows' bodies standing at the point, above its floor: an endpoint's air on the land."""
+	var box: PackedInt32Array = Front.extent(owners.profiles, rows[0], point)
+	for row: int in rows:
+		var more: PackedInt32Array = Front.extent(owners.profiles, row, point)
+		for axis: int in 3:
+			box[axis] = mini(box[axis], more[axis]); box[axis + 3] = maxi(box[axis + 3], more[axis + 3])
+	box[1] = point.y
+	for axis: int in 6: out.envelope[axis] = box[axis]
+
+
+static func _staging_at(owners: Builder.Owners, spot: Vector2i) -> Vector2i:
+	"""The ground staging on a STORAGE endpoint, made when missing; NULL_REF without the endpoint."""
+	if spot == NULL_REF: return NULL_REF
+	var found: Vector2i = owners.inventory.spatial_ground_container_at(spot)
+	if found != NULL_REF: return found
+	var created: Inventory.OpResult = owners.inventory.create_spatial_ground_staging(spot)
+	return created.ref if created.ok else NULL_REF
 
 
 static func carry_span(owners: Builder.Owners, foot: Foot, air: Locations.Record, from: Vector2i,

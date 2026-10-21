@@ -5,6 +5,15 @@ of them in M5's held files. Branch `feat/slice-d2-phase2`, cut from M5's pushed 
 (`feat/slice-d-m5-full`) with origin/master `e0e7065a` merged (D2 phase 1, #281; the pacing record, #280). Number
 range 2054–2060 (2051 and 2061 are other branches').
 
+## Brendan's rulings during the phase (2026-10-21, relayed by the coordinator)
+
+| Ruling | What it means here |
+|---|---|
+| **P-2091-7 (a)** | D2 phase 2 adds the level-1 store's grip stand and the CARRY span from F′ to it |
+| **P-2092-1 (a)**, the stair-head store (decision 2092) | A small store beside the stair head, off the centre line, its stand the yaw-0 grip facing down the flight, published with the way in; village haulers stock it. **Replaces P-2052-2 (a)'s "staging is the surface R"**: the rooms' staging is the stair-head store |
+| P-2091-7 refined by decision 2092 §2.2 | The level-1 store's stand is the yaw-0 grip, the stock 576 u further down the flight; on the centre line, stand z ≥ −26,869 (at most 71 u past F′(5)). F′'s and H′'s air are an envelope plus ADR 1215's extra box. Both stands proved by clearance tests, content 12's stair-carry rows, no new motion |
+| Decision 2101 (room pace), as it applies | The level-1 store holds a standing 24 wood + 24 stone, topped up by a stair runner; size the store for at least that |
+
 ## Decision
 
 Phase 2 of decision 2052 (§6), with decision 2053 §3's inheritance and P-2091-7 (a) (Brendan, 2026-10-21, relayed by
@@ -13,7 +22,7 @@ the coordinator: "D2 phase 2 adds the level-1 store's grip stand and the CARRY s
 | Piece | Where | Rule |
 |---|---|---|
 | The finished flight's Foot, derived from the entry record (`step`, `origin`, `crew`) and the live Locations; the panel's landing and shape readers | `scripts/core/underground_way_foot.gd` (new) | 2052 §2.1, §2.3, E1 |
-| The foot made ready in the run-out's floor air: a hub joined to F′(5), a parking, the level-1 store and pile, the store's grip stand and a CARRY span into it | `scripts/core/underground_way_in_foot_prep.gd` (new) | P-2052-1/-2 (a), 2052 §2.2 rows 4, 8, 9, 12; P-2091-7 (a) |
+| The foot made ready in the run-out's floor air: a hub joined to F′(5), a parking, the level-1 store (its yaw-0 grip stand, and the CARRY span from F′ into it, which waits for F′'s air: B3) and pile; on the land the stair-head store with its yaw-0 stand, the rooms' staging | `scripts/core/underground_way_in_foot_prep.gd` (new) | P-2052-1/-2 (a), 2052 §2.2 rows 4, 8, 9, 12; P-2091-7 (a) with decision 2092 §2.2; P-2092-1 (a) |
 | `StairWayIn`: kept fronts, retired once a room's record is released, recalled from the rooms' Sites after a load; `order_into` (Resume); the foot made ready only once a front is found | `scripts/core/underground_way_in.gd` | 2053 §3; 1991 M-4; P-2052-5 (a) |
 | Fronts: the heading's own retreat row; the corner must hold the ground row's turn; a reused station or corner joined to anything else is refused | `scripts/core/underground_way_in_front.gd` | 2053 §3 (review M3) |
 | Host: bind on the finishing tick (with P-2052-11's notice) and after `restore_underground_entry`; `settle` after every confirm and Resume; retire fronts each tick; check a loaded record's contacts against the way in's access (`ROOM_DIG_OTHER_ACCESS`); `resume_underground_room`; `underground_way_landings` / `underground_way_shapes`; a busy session named | `scripts/systems/settlement_system.gd` | 2052 §2.1, §2.3, §2.5 |
@@ -54,10 +63,13 @@ the host's `order_painted_room` crashed on that null (fixed here: the session's 
 `underground_level1` checkpoint recipe, the S7 restore-rebind fixture and a committed live-dig suite cannot start from a
 level-1 point (the probe flew 17,559 ticks, about 7 minutes, instead). Not built.
 
-**B3 — F′(5)'s air holds no loaded row (M5's stop geometry).** P-2091-7 (a) asked for the CARRY span *from F′*. It
-cannot be certified while F′'s air is one empty-gait body (§1). Built instead: the span **from the hub** (joined to F′,
-82 u down the flight), which WorldRoutes certifies. A loaded runner still cannot get from F′ to the hub; stair-leg
-Delivery needs F′'s air widened by M5 (with the loaded rows' landing clearance its own phase 1 owes, 2091 F8).
+**B3 — F′(5)'s air holds no loaded row (M5's stop geometry).** P-2091-7 (a) asks for the CARRY span *from F′* into
+the level-1 store's yaw-0 stand. It cannot be certified while F′'s air is one empty-gait body (§1): a span from F′
+refuses `WORLD_ROUTE_NO_FITTING_PROFILE`, loaded or empty, across the flight or down it. The stand is published; the
+span is attempted by `prepare()` and refused `WAY_IN_LOADED_SPAN` until M5 widens F′'s (and H′'s) air to an envelope
+plus ADR 1215's extra box (decision 2092 §2). That is M5's stair path and bundle, so this phase stops there. (A first
+build put the span on the hub instead, which WorldRoutes certified; decision 2092 §2.2 then required the yaw-0 stand
+straight on from F′, and the hub's span was removed.)
 
 **B4 — No front station in M5's run-out both strikes one cube and can be turned into (geometry).** Proved by
 `test_no_front_station_at_m5s_foot_both_strikes_one_cube_and_is_turned_into` and confirmed live:
@@ -111,13 +123,19 @@ for any 2-cell slot. D2 refuses it, named, and changes nothing.
   (Slice C's, which proves bodies in the access's air) and every front would refuse at F′. The hub (82 u down the flight
   from F′, where the all-yaw row turns) carries the run-out's floor air (2 cells × `RUN_OUT`, one cube high) and is
   joined to F′ both ways. Every order's access is the hub, so `ROOM_DIG_OTHER_ACCESS` still never fires on one foot.
-- **E2 — The 2054 layout,** in u from the end wall on the centre line: hub (0, 768), parking (0, 948), store (−832, 714),
-  stand (−256, 714), pile (600, 1,088). Each is held by a clearance test against the walls and the sill; the margins
-  are tight (64 u off and the stand meets a wall; one unit off and the turn spot is gone).
+- **E2 — The 2054 layout,** in u from the end wall on the centre line: hub (0, 712), parking (0, 948), level-1 store
+  (0, 224) with its yaw-0 stand (0, 800), 50 u past F′ (850), pile (600, 1,088). On the land, from the stair top: the
+  stair-head store (1,536, 24) with its yaw-0 stand (1,536, 600), east of the centre line, clear of the work area's M,
+  R, their stands and H on the west, so the runner moves across at its heading and straight down onto H (0, −1,536).
+  Each is held by a clearance test (the walls, the sill, the stock's reach, the work area's points); the margins are
+  tight (64 u nearer the end wall and stone's stock meets it; one unit off and the turn spot is gone).
+- **E2a — Store capacity.** Each store is ground staging of `GROUND_PILE_MAX_MASS_G` 400 kg; decision 2101's standing
+  24 wood + 24 stone at 5 kg a unit is 240 kg, leaving 160 kg (32 units) for the rooms' bills.
 - **E3 — The retreat row the contacts bind is 49** (yaw 32768): the parking must lie up the flight from the hub, out of
   the way of a room at the end wall (`_between`), and 45/49 reach it there.
-- **E4 — The CARRY span bends once:** down the flight to the stand's line, then −X, so it enters the stand on the grip
-  heading (as the work area's `_carry_approach` does).
+- **E4 — A loaded span keeps the heading the mover lifted at:** `loaded_span` runs straight when the two stops share a
+  line, else along z to the destination's line and then along x (a ground carry moves sideways at a fixed heading,
+  decision 2092 §2.2). The level-1 store's span from F′ is straight down the centre line.
 - **E5 — Fronts are found before anything is published,** from the hub's record as it will be published, so a refused
   order makes nothing at the foot.
 - **E6 — Kept fronts,** one per admitted room, are retired once the room's record is released (dug, or stopped with its

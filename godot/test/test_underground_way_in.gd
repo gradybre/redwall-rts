@@ -806,3 +806,16 @@ func test_a_shared_station_stays_and_a_refused_retirement_waits_for_the_records_
 	assert_equal(_runtime.order_room(other, _h.material, _h.material), &"", "the records change")
 	assert_equal(_way.retire_fronts(_runtime), 1, "offered again: retired")
 	assert_false(_h.endpoints._live_ref(_h.endpoints._live, station), "gone")
+
+
+func test_a_ground_staging_store_holds_the_runners_standing_stock() -> void:
+	"""Decision 2101 (as it applies to D2): a store the way in makes is ground staging of 400 kg, which holds the stair
+	runner's standing 24 wood + 24 stone (240 kg) and 32 more units, and refuses the unit past that."""
+	if _runtime == null: return
+	var order: Composer.Order = Composer.Order.new()
+	assert_equal(_way.approach_into(_request(Phase.Z), order), &"", "the pile made")
+	var store: Vector2i = order.output
+	for key: StringName in [&"wood", &"stone"]:
+		assert_true(_h._inventory.create_lot(store, _h._items.compiled_id(key), 24000, 1, 0, -1, 0, 0).ok, "24 %s" % key)
+	assert_true(_h._inventory.create_lot(store, _h._items.compiled_id(&"wood"), 32000, 1, 0, -1, 0, 0).ok, "32 more")
+	assert_false(_h._inventory.create_lot(store, _h._items.compiled_id(&"stone"), 1000, 1, 0, -1, 0, 0).ok, "full")

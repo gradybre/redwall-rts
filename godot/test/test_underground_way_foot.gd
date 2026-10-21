@@ -18,15 +18,23 @@ const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const StairPath := preload("res://scripts/core/underground_entry_stair_path.gd")
 const EntryRuntime := preload("res://scripts/core/underground_entry_runtime.gd")
 const Grip := preload("res://data/underground/mole-worker/qualified-claw-runtime-v1/grip_certificate.gd")
+const Front := preload("res://scripts/core/underground_way_in_front.gd")
 const Confirm := preload("res://scripts/core/underground_room_confirm.gd")
 ## The chain fixture's entry origin (`underground_entry_chain.gd` NEAR on the cube grid; the probe's origin).
 const ORIGIN: Vector3i = Vector3i(122880, 512, 102400)
 ## The turning spot: where the all-yaw ground row's turn sweep (+-712) clears the side walls, end wall and sill.
 const TURN_X: Vector2i = Vector2i(-312, 312)
 const TURN_Z: Vector2i = Vector2i(712, 824)
-## The store's grip stand, and where the loaded span from the hub bends onto its line.
-const STAND: Vector2i = Vector2i(-256, 714)
-const BEND: Vector2i = Vector2i(0, 714)
+## The level-1 store's yaw-0 grip stand (decision 2092 §2.2), on the centre line 50 u past F'(5).
+const STAND: Vector2i = Vector2i(0, 800)
+## The stair-head store's stand on the land (P-2092-1 (a)), H on L0, and the work area's west points: M, R, their
+## stands and its H (`underground_entry_work_area.gd` `point`), in the stair top's frame.
+const SURFACE_STAND: Vector2i = Vector2i(1536, 600)
+const STAIR_H: Vector2i = Vector2i(0, -1536)
+const WORK_POINTS: Array[Vector2i] = [Vector2i(-832, 2048), Vector2i(-832, 1536), Vector2i(-256, 2048),
+	Vector2i(-256, 1536), Vector2i(-832, 512)]
+## The yaw-0 grip rows: wood 33/35, stone 38/40; their carry rows 32/37.
+const GRIP_ROWS: PackedInt32Array = [33, 35, 38, 40]
 
 var _host: Node = null
 
@@ -113,8 +121,13 @@ func test_the_layout_is_measured_from_the_flights_own_end_wall() -> void:
 		Vector2i(StairPath.KIND_FP, StairPath.MODULES), "the stair path's own F'(5)")
 	var foot: WayIn.Foot = WayIn.Foot.new()
 	foot.store_point = WayFoot.at(ORIGIN, WayFoot.STORE)
-	assert_equal(Prep.stand_point(foot) - foot.store_point, -Grip.stock_offset(Grip.QUARTER), "the grip stand")
-	assert_equal(Prep.stand_point(foot), WayFoot.at(ORIGIN, STAND), "west of the hub's line")
+	foot.stand_yaw = WayFoot.STAND_YAW
+	assert_equal(Prep.stand_point(foot) - foot.store_point, Vector3i(0, 0, 576), "the yaw-0 grip: 576 u up the flight")
+	assert_equal(Prep.stand_point(foot), WayFoot.at(ORIGIN, STAND), "on the centre line")
+	assert_true(STAND.y < WayFoot.STAIR.y and WayFoot.STAIR.y - STAND.y <= 71, "at most 71 u past F'(5) (2092 §2.2)")
+	foot.surface_store_point = ORIGIN + WayFoot.SURFACE_STORE
+	assert_equal(Prep.surface_stand_point(foot), ORIGIN + Vector3i(SURFACE_STAND.x, 0, SURFACE_STAND.y),
+		"the stair-head store's stand, 576 u up the flight from its stock")
 
 
 func test_the_rows_are_content_12s_claw_rows_at_their_headings() -> void:
@@ -139,14 +152,55 @@ func test_the_rows_are_content_12s_claw_rows_at_their_headings() -> void:
 		assert_equal([d.mode, d.yaw_kind], [Profiles.MODE_CARRY, Profiles.YAW_ALL], "carry row %d" % row)
 
 
-func test_the_stand_and_its_loaded_span_clear_the_walls_and_the_sill() -> void:
-	"""P-2091-7 (a): the grip rows at the stand, and both carry rows at the hub, the bend and the stand (each leg runs
-	along one axis, so its sweep is the union of its ends), clear the side and end walls and the last sill; the span's
-	last leg runs -X, so it enters the stand on the grip heading (the worker faces -X onto the stock)."""
-	_clear(PackedInt32Array([34, 36]), STAND)
-	for at: Vector2i in [WayFoot.HUB, BEND, STAND]:
+func _stock_clear(row: int, at: Vector2i) -> String:
+	"""The reason a grip row's stock (its WORK_STROKE boxes, where the held unit rests) at the stand meets a wall or
+	the sill, or ""."""
+	var p: Profiles = _profiles()
+	var box: Profiles.Box = Profiles.Box.new()
+	var d: Profiles.Descriptor = Profiles.Descriptor.new()
+	p.descriptor_into(row, WayFoot.CLAW_CONTENT, d)
+	for ordinal: int in d.box_count:
+		p.box_into(row, d.profile_revision, WayFoot.CLAW_CONTENT, ordinal, box)
+		if box.role != Profiles.WORK_STROKE: continue
+		if at.y + box.low.z < 0: return "row %d's stock meets the end wall" % row
+		if absi(at.x + box.low.x) > Flight.HALF_WIDTH or absi(at.x + box.high.x) > Flight.HALF_WIDTH:
+			return "row %d's stock meets a side wall" % row
+	return ""
+
+
+func test_the_level_one_stand_and_its_loaded_span_clear_the_walls_and_the_sill() -> void:
+	"""P-2091-7 (a) as refined by decision 2092 §2.2: the yaw-0 grip rows at the stand, their stock 576 u down the
+	flight, and both carry rows at F'(5) and at the stand (the span runs straight down the centre line between them)
+	clear the side and end walls and the last sill; 64 u nearer the end wall, stone's stock meets it."""
+	_clear(GRIP_ROWS, STAND)
+	for row: int in GRIP_ROWS:
+		assert_equal(_stock_clear(row, STAND), "", "row %d's stock" % row)
+	for at: Vector2i in [WayFoot.STAIR, STAND]:
 		_clear(PackedInt32Array([32, 37]), at)
-	assert_true(BEND.x == WayFoot.HUB.x and BEND.y == STAND.y and STAND.x < BEND.x, "down the flight, then -X")
+	assert_true(_stock_clear(38, STAND + Vector2i(0, -64)).contains("end wall"), "64 u nearer the wall: stone's stock")
+	assert_equal(WayFoot.STAIR.x, STAND.x, "on F''s line: straight on down the flight, no turn")
+
+
+func _meets(row: int, at: Vector2i, point: Vector2i) -> bool:
+	"""Whether the row's body standing at `at` covers the point (in x and z)."""
+	var box: PackedInt32Array = Front.extent(_profiles(), row, Vector3i(at.x, 0, at.y))
+	return point.x >= box[0] and point.x < box[3] and point.y >= box[2] and point.y < box[5]
+
+
+func test_the_stair_head_stand_and_its_join_to_h_keep_clear_of_the_work_area() -> void:
+	"""P-2092-1 (a): the stair-head store sits off the centre line on the east; a loaded runner lifts at its yaw-0
+	stand, moves across at that heading to the centre line and straight down the flight onto H's approach, and neither
+	leg's carry bodies (the union of each straight leg's ends) nor the stand's grip bodies cover the work area's M, R,
+	their stands or its H on the west."""
+	var bend: Vector2i = Vector2i(0, SURFACE_STAND.y)
+	for row: int in [32, 37, 33, 35, 38, 40]:
+		for point: Vector2i in WORK_POINTS:
+			for at: Vector2i in [SURFACE_STAND, bend, STAIR_H]:
+				if row in [32, 37] or at == SURFACE_STAND:
+					assert_false(_meets(row, at, point), "row %d at %s clears %s" % [row, at, point])
+	var stock: Vector2i = Vector2i(WayFoot.SURFACE_STORE.x, WayFoot.SURFACE_STORE.z)
+	assert_false(_meets(43, Vector2i(0, stock.y), stock), "the stock is off the centre line's walk")
+	assert_true(bend.y > STAIR_H.y and SURFACE_STAND.x > bend.x, "across, then down the flight onto H")
 
 
 func test_the_hub_and_parking_clear_the_walls_and_the_sill() -> void:
@@ -193,16 +247,13 @@ func test_no_front_station_at_m5s_foot_both_strikes_one_cube_and_is_turned_into(
 
 
 func test_the_bounds_are_tight_where_the_layout_needs_them() -> void:
-	"""Why the hub exists, and the margins: the all-yaw ground row cannot stand on F' (its turn meets the sill); F''s
-	surveyed air (M5's, the claw endpoint certificate's: row 43's body, the 2054 probe) holds neither carry row nor a
-	walk across the flight, so no loaded or sideways span can leave F' (decision 2054 §2); the stand 64 u nearer
-	either wall meets it."""
+	"""Why the hub exists: the all-yaw ground row cannot stand on F' (its turn meets the sill); F''s surveyed air (M5's,
+	the claw endpoint certificate's: row 43's body, the 2054 probe) holds neither carry row nor a walk across the
+	flight, so no loaded or sideways span can leave F' until M5 widens it (decision 2054 B3)."""
 	assert_true(_blocked(WayFoot.GROUND_ROW, WayFoot.STAIR).contains("sill"), "no turn on F'")
 	for row: int in [32, 37, 44, 46]:
 		assert_false(_within(row, 43), "row %d's body does not fit F''s surveyed air (row 43's body)" % row)
 	assert_true(_within(47, 43), "the retreat down the flight does")
-	assert_true(_blocked(32, STAND + Vector2i(0, -64)).contains("end wall"), "the stand 64 u nearer the end wall")
-	assert_true(_blocked(32, STAND + Vector2i(-64, 0)).contains("side wall"), "the stand 64 u west")
 
 
 func test_the_foot_is_refused_before_the_flight_is_done() -> void:

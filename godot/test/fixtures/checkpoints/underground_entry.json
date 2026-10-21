@@ -1,6 +1,6 @@
 {
 	"engine": "4.7.2.stable",
-	"fingerprint": "99bf09e9c7091f2a02b5c2ed15af5e56afc28f97da1f48ee15ddcac06e4516a1",
+	"fingerprint": "4d027b1d4fa71f73524e375f1b6d677e969194ecd231635256026fdd5d4d7e71",
 	"name": "underground_entry",
 	"points": {
 		"first_brace_after_2000": {
@@ -257,7 +257,7 @@
 		"res://scripts/core/underground_room_frontier_publication.gd": "dbee5f1e8f6d5e6508a5dbfd0d35dd8d32f81c87af4f4f96cc22810e92027a7b",
 		"res://scripts/core/underground_room_itinerary.gd": "a71ee6c38a68487aaa77c32940625f6d926afd0c01b106dce3b3dbca74bbd153",
 		"res://scripts/core/underground_room_orders.gd": "b9eedf8978c45fcfe362ea49a5d80645f34a537618fbb1dac0ee519582b6320a",
-		"res://scripts/core/underground_room_parking.gd": "9aac013b027145df9d7d89c99e4a9e8bcd5194958b3c91fbb902251146820387",
+		"res://scripts/core/underground_room_parking.gd": "fd8b9906470b0946079b7e410a7bb305d5c9f0aaebbe3c224c1ff260286fca3e",
 		"res://scripts/core/underground_room_progress.gd": "f9500e235f47991d5eb827799b6768b6a8e007d6257d1dd7c7ac9e6e7dac23bc",
 		"res://scripts/core/underground_room_runtime.gd": "6f6ba586aecdf1a8527427398316f2fa905e87a4aa53623952448664088603c1",
 		"res://scripts/core/underground_room_station_planner.gd": "ef46e45a5a7424c62b93c2174a1f1b987d25f16d43076b74e27f227bb4167188",

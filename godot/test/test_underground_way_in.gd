@@ -11,6 +11,8 @@ const StationTests := preload("res://test/test_underground_room_station_planner.
 const Phase := preload("res://test/test_underground_room_world_phases.gd")
 const WayIn := preload("res://scripts/core/underground_way_in.gd")
 const Front := preload("res://scripts/core/underground_way_in_front.gd")
+const Builder := preload("res://scripts/core/underground_room_builder.gd")
+const Prep := preload("res://scripts/core/underground_way_in_foot_prep.gd")
 const Confirm := preload("res://scripts/core/underground_room_confirm.gd")
 const Composer := preload("res://scripts/core/underground_room_composer.gd")
 const Runtime := preload("res://scripts/core/underground_room_runtime.gd")
@@ -54,6 +56,7 @@ class FootKitchen extends KitchenTests.ClawKitchen:
 		out.ground = KitchenTests.CLAW_GROUND; out.content = KitchenTests.CLAW_CONTENT
 		out.wall_rows = PackedInt32Array([KitchenTests.CLAW_WALL])
 		out.forward_rows = PackedInt32Array([KitchenTests.CLAW_FORWARD])
+		out.backward_rows = PackedInt32Array([KitchenTests.CLAW_BACKWARD])
 		out.store_point = KitchenTests.CLAW_STORE_POINT; out.pile_point = PILE_POINT
 		return out
 
@@ -534,3 +537,168 @@ func test_a_patch_reaching_past_its_cube_is_not_on_the_face() -> void:
 	assert_false(Front.patch_on_face(c, point + Vector3i(1, 0, 0), cube, cube.x), "off the face plane")
 	c.patch_high.y = 1025
 	assert_false(Front.patch_on_face(c, point, cube, cube.x), "one unit past its top")
+
+
+# --- decision 2054 (phase 2): fronts kept, retired and recalled; Resume; the reuse guard; a stair's hub ---------------
+
+func _north_admitted() -> Confirm.Result:
+	"""The north room confirmed through the way in and settled with its room."""
+	var result: Confirm.Result = Confirm.confirm(_h.orders, _runtime, _h.placements, _way, _h._world_ref,
+		_h._owner.revision(), _painted(NORTH_Z))
+	assert_equal(result.code, &"", "confirmed and ordered")
+	assert_equal(_way.settle(result.admitted, result.room), &"", "settled with its room")
+	return result
+
+
+func _fronts_of(way: WayIn.StairWayIn) -> Array[Vector3i]:
+	"""The kept fronts' (station point, corner point) as points, room by room."""
+	var out: Array[Vector3i] = []
+	var fronts: PackedInt32Array = way.fronts()
+	for at: int in range(0, fronts.size(), 6):
+		out.append_array([_point(Vector2i(fronts[at + 2], fronts[at + 3])), _point(Vector2i(fronts[at + 4], fronts[at + 5]))])
+	return out
+
+
+func test_an_admitted_rooms_front_is_kept_and_retired_once_its_record_is_released() -> void:
+	"""Decision 2054 (2053 §3): settled with its room, the front is kept while the room digs, and retired (station and
+	corner) once the record is released; a second pass retires nothing."""
+	if _runtime == null: return
+	var result: Confirm.Result = _north_admitted()
+	assert_equal(_fronts_of(_way), [NORTH_STATION, NORTH_CORNER], "kept: the north room's station and corner")
+	assert_equal(_way.retire_fronts(_runtime), 0, "not while its room is kept")
+	assert_equal(_dig_to_the_end(result.room), [] as Array[StringName], "dug")
+	var endpoints: int = _endpoints()
+	assert_equal(_way.retire_fronts(_runtime), 1, "released: retired")
+	assert_false(Front.occupied(_h.endpoints, NORTH_STATION), "the station is gone")
+	assert_false(Front.occupied(_h.endpoints, NORTH_CORNER), "the corner is gone")
+	assert_equal(_way.fronts(), PackedInt32Array(), "nothing kept")
+	assert_equal(_endpoints(), endpoints - 2, "those two only (the room's own stations follow decision 1942)")
+	assert_equal(_way.retire_fronts(_runtime), 0, "nothing more")
+
+
+func test_a_front_kept_twice_or_for_an_unknown_room_follows_the_rules() -> void:
+	"""One front per room; a front another kept front shares keeps its endpoints until the last goes; the access is
+	never retired."""
+	if _runtime == null: return
+	assert_equal(_way.approach_into(_request(NORTH_Z), Composer.Order.new()), &"", "the north front")
+	var station: Vector2i = Front.existing(_h.endpoints, _access(), NORTH_STATION, Locations.ROLE_WORK)
+	var corner: Vector2i = Front.existing(_h.endpoints, _access(), NORTH_CORNER, Locations.ROLE_TRANSIT)
+	assert_equal(_way.settle(true, Vector2i(7, 1)), &"", "kept for an unknown room")
+	_way._keep(Vector2i(7, 1), station, corner)
+	_way._keep(Vector2i(8, 1), station, _h._first)
+	assert_equal(_way.fronts().size(), 12, "one front per room")
+	assert_true(_way._shared(0, station) and not _way._shared(0, corner), "the station is shared, the corner not")
+	assert_equal(_way.retire_fronts(_runtime), 2, "both rooms are unknown: both fronts retired")
+	assert_false(Front.occupied(_h.endpoints, NORTH_STATION), "the station went with the last front")
+	assert_true(_h.endpoints._live_ref(_h.endpoints._live, _h._first), "the access stays")
+
+
+func test_the_fronts_are_recalled_from_the_rooms_sites_after_a_load() -> void:
+	"""Decision 2054: a new way in over the same foot (as the host binds after a load) finds the admitted room's front
+	again from its Sites, publishing nothing; Prep reads the room's cells back as painted."""
+	if _runtime == null: return
+	var result: Confirm.Result = _north_admitted()
+	var counts: Array[int] = [_endpoints(), _spans()]
+	var again: WayIn.StairWayIn = WayIn.StairWayIn.new()
+	assert_equal(again.configure(_runtime.bound_owners(), _h.foot()), &"", "configured")
+	assert_equal(again.recall_fronts(_runtime), 1, "one front found")
+	assert_equal(again.fronts(), _way.fronts(), "the same front")
+	assert_equal(again.recall_fronts(_runtime), 0, "only once")
+	assert_equal([_endpoints(), _spans()], counts, "nothing published")
+	assert_true(Prep.rooms_on_level(_h.sites, Phase.FLOOR).has(result.room), "its room is on the floor")
+	var read: Approach.Request = Prep.request_of_room(_h.sites, result.room, 1)
+	assert_equal(read.origin_u, Vector3i(Phase.X + 2048, Phase.FLOOR, NORTH_Z), "its lowest corner")
+	var cells: Array = Array(read.cells)
+	assert_equal(cells.size(), 8, "four cells")
+	for at: int in range(0, 8, 2):
+		assert_true(Front.has_cell(read, Vector2i(_painted(NORTH_Z).cells[at], _painted(NORTH_Z).cells[at + 1])),
+			"cell %d" % (at >> 1))
+	assert_null(Prep.request_of_room(_h.sites, Vector2i(9999, 1), 1), "no Sites: no room")
+
+
+func test_resume_re_orders_a_stopped_room_whole_and_pays_each_brace_once() -> void:
+	"""Decision 1991 M-4, P-2052-5 (a): a stopped room is ordered again through the way in (its front published again
+	once retired), and the dig finishes with one BRACE's wood a cube in all."""
+	if _runtime == null: return
+	var wood: int = _h.free_milli(_h.material, &"wood")
+	var result: Confirm.Result = _north_admitted()
+	for step: int in 400: _tick()
+	assert_equal(_runtime.stop_room(result.room), &"", "stopped")
+	for step: int in TICK_BOUND:
+		_tick()
+		if _runtime.state_of(result.room) == Runtime.RECORD_NONE: break
+	assert_equal(_way.retire_fronts(_runtime), 1, "its front retired once its record is released")
+	var order: Composer.Order = Composer.Order.new()
+	assert_equal(_way.order_into(result.room, order), &"", "the way in again")
+	assert_false(_way.pending().is_empty(), "the front published again")
+	assert_equal([order.room, order.access, order.travel], [result.room, _h._first, _h.provider._ordinary_travel],
+		"the room, the foot's access and retreat row")
+	assert_equal(Composer.order(_runtime, _h.placements, order), &"", "ordered again")
+	assert_equal(_way.settle(true, result.room), &"", "kept")
+	var foreman: Foreman = _runtime.foreman_of(result.room)
+	assert_equal(_dig_to_the_end(result.room), [] as Array[StringName], "no refusal")
+	assert_equal(foreman.done_cubes() > 0, true, "dug on")
+	assert_equal(wood - _h.free_milli(_h.material, &"wood"), StationTests.KITCHEN_SITES * Contract.BRACE_WOOD_MILLI,
+		"every BRACE paid once")
+	assert_equal(_way.order_into(Vector2i(9999, 1), Composer.Order.new()), WayIn.REFUSE_NO_ROOM, "no such room")
+
+
+func test_a_reused_front_endpoint_routed_elsewhere_is_never_taken_over() -> void:
+	"""Decision 2054 (2053 review M3): once the north corner is joined to anything but the access and its station, a
+	new order of the room refuses rather than reuse it."""
+	if _runtime == null: return
+	assert_equal(_way.approach_into(_request(NORTH_Z), Composer.Order.new()), &"", "the north front")
+	assert_equal(_way.settle(true), &"", "kept")
+	var corner: Vector2i = Front.existing(_h.endpoints, _access(), NORTH_CORNER, Locations.ROLE_TRANSIT)
+	assert_false(Front.routed_elsewhere(_h._routes, corner, [_h._first, corner,
+		Front.existing(_h.endpoints, _access(), NORTH_STATION, Locations.ROLE_WORK)]), "joined to its own only")
+	assert_true(Front.span_pair(_runtime.bound_owners(), _h.foot(), _access(), corner, _h.storage), "a foreign span")
+	assert_true(Front.routed_elsewhere(_h._routes, corner, [_h._first, corner]), "now routed elsewhere")
+	assert_equal(_way.approach_into(_request(NORTH_Z), Composer.Order.new()), Front.REFUSE_UNJOINED, "not taken over")
+
+
+func test_a_stairs_hub_is_made_once_joined_and_found_again_publishing_nothing() -> void:
+	"""Decision 2054 on the fixture: a foot with a stair stop gets its hub at its point in the foot's air, joined to the
+	stop both ways; `access_found` publishes nothing and finds it only once made."""
+	if _runtime == null: return
+	var foot: WayIn.Foot = _h.foot()
+	foot.stair = _h._first; foot.access = NULL_REF
+	foot.hub_point = PILE_POINT + Vector3i(0, 0, -1024)
+	foot.hub_rows = PackedInt32Array([KitchenTests.CLAW_GROUND])
+	foot.open = _access().envelope.duplicate()
+	assert_equal(foot.refusal(), &"", "a stair's foot")
+	var owners: Builder.Owners = _runtime.bound_owners()
+	var counts: Array[int] = [_endpoints(), _spans()]
+	assert_false(Prep.access_found(owners, foot), "no hub yet")
+	assert_equal([_endpoints(), _spans()], counts, "nothing published")
+	assert_equal(Prep.access_ready(owners, foot), &"", "the hub made")
+	assert_true(foot.access != NULL_REF and _point(foot.access) == foot.hub_point, "at its point")
+	assert_true(Front.span_between(_h._routes, _h._first, foot.access) and Front.span_between(_h._routes, foot.access,
+		_h._first), "joined to the stop both ways")
+	var made: Array[int] = [_endpoints(), _spans()]
+	assert_equal(made, [counts[0] + 1, counts[1] + 2], "one endpoint, two spans")
+	var hub: Vector2i = foot.access
+	foot.access = NULL_REF
+	assert_true(Prep.access_found(owners, foot) and foot.access == hub, "found again")
+	assert_equal(Prep.access_ready(owners, foot), &"", "again")
+	assert_equal([_endpoints(), _spans()], made, "nothing more")
+	assert_equal(Prep.stand_ready(owners, foot), &"", "no stand rows: no stand")
+
+
+func test_a_loaded_span_enters_its_stand_along_x() -> void:
+	"""P-2091-7 (a): from a point off the stand's line, down to that line and then along x (three points); on its
+	line, straight; always CARRY."""
+	if _runtime == null: return
+	var owners: Builder.Owners = _runtime.bound_owners()
+	var foot: WayIn.Foot = _h.foot()
+	var a: Vector3i = _point(_h._first)
+	var b: Vector3i = _point(_h._last)
+	var edge: RefCounted = Prep.loaded_span(owners, foot, _access(), _h._first, _h._last)
+	assert_equal(edge.mode, Profiles.MODE_CARRY, "loaded")
+	if a.x != b.x and a.z != b.z:
+		assert_equal(edge.points, PackedInt32Array([a.x, a.y, a.z, a.x, a.y, b.z, b.x, b.y, b.z]), "bent onto the line")
+		assert_equal(edge.length_u, absi(b.z - a.z) + absi(b.x - a.x), "the legs' length")
+	else:
+		assert_equal(edge.point_count, 2, "straight")
+	var straight: RefCounted = Prep.loaded_span(owners, foot, _access(), _h._first, _h._first)
+	assert_equal(straight.point_count, 2, "one point's span stays straight")

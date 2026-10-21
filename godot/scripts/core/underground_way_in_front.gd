@@ -40,6 +40,8 @@ class Candidate extends RefCounted:
 	var wall_revision: int = 0
 	var forward: int = -1
 	var forward_revision: int = 0
+	var backward: int = -1 # Decision 2054: the heading's own retreat row (the station back to its corner).
+	var ground: int = -1 # Decision 2054: the all-yaw row a corner turns on (it joins the access on the ground row).
 	var yaw: int = -1
 	var axis: int = -1 # The patch's planar axis (0 x, 2 z): the heading's axis.
 	var ahead: int = 0 # +1 or -1: the patch lies ahead of the root along `axis` (set by `place`).
@@ -50,6 +52,7 @@ class Candidate extends RefCounted:
 	var point: Vector3i = Vector3i.ZERO
 	var corner: Vector3i = Vector3i.ZERO
 	var station: Vector2i = NULL_REF # Once published (or found): the station's endpoint.
+	var corner_ref: Vector2i = NULL_REF # Decision 2054: the corner's endpoint (the access when none), once joined.
 
 
 static func record() -> Locations.Record:
@@ -76,14 +79,22 @@ static func heading_into(profiles: Profiles, foot: RefCounted, heading: int, out
 	must walk at the wall row's yaw (the approach's own rule); its patch read from the published boxes."""
 	var wall: Profiles.Descriptor = Profiles.Descriptor.new()
 	var walk: Profiles.Descriptor = Profiles.Descriptor.new()
+	var back: Profiles.Descriptor = Profiles.Descriptor.new()
 	var code: StringName = profiles.descriptor_into(foot.wall_rows[heading], foot.content, wall)
 	if code == &"": code = profiles.descriptor_into(foot.forward_rows[heading], foot.content, walk)
+	if code == &"": code = profiles.descriptor_into(foot.backward_rows[heading], foot.content, back)
 	if code != &"": return code
-	if wall.mode != Profiles.MODE_WORK or (walk.yaw_kind != Profiles.YAW_ALL and walk.yaw != wall.yaw):
+	if wall.mode != Profiles.MODE_WORK or not _walks_at(walk, wall.yaw) or not _walks_at(back, wall.yaw):
 		return REFUSE_NO_FRONT
 	out.wall = wall.profile_id; out.wall_revision = wall.profile_revision; out.yaw = wall.yaw
 	out.forward = walk.profile_id; out.forward_revision = walk.profile_revision
+	out.backward = back.profile_id; out.ground = foot.ground
 	return patch_into(profiles, foot.content, wall, out)
+
+
+static func _walks_at(walk: Profiles.Descriptor, yaw: int) -> bool:
+	"""A travel row the approach accepts for a wall row at `yaw`: it walks at that yaw, or at every yaw."""
+	return walk.yaw_kind == Profiles.YAW_ALL or walk.yaw == yaw
 
 
 static func patch_into(profiles: Profiles, content: int, wall: Profiles.Descriptor, out: Candidate) -> StringName:
@@ -130,28 +141,44 @@ static func cube_of(request: Approach.Request, at: int) -> Vector3i:
 static func place(profiles: Profiles, request: Approach.Request, access: Locations.Record, at: int,
 		out: Candidate) -> bool:
 	"""Whether the heading's station can face the cell at `at`: the cell is on the room's edge on the station's side,
-	the patch lies exactly on its face, the station and its corner stand on the access's floor in its surveyed air off
-	the room, and the station lies ahead of the corner. Fills the cube, face, station point and corner."""
+	the patch lies exactly on its face, the station stands on the cell's centre line (as a station chain does, so the
+	wall row's stroke strikes that cube alone: `underground_work_face.gd` `stroke_refusal`), the station and its corner
+	stand on the access's floor in its surveyed air off the room, the corner holds the ground row's turn (decision
+	2054), and the station lies ahead of the corner. Fills the cube, face, station point and corner."""
 	out.ahead = 1 if out.patch_low[out.axis] > 0 else -1
 	if not cell_in_range(request, at): return false
 	var cube: Vector3i = cube_of(request, at)
 	var behind: Vector2i = Vector2i(request.cells[at], request.cells[at + 1])
 	behind[out.axis >> 1] -= out.ahead
 	if has_cell(request, behind) or access.point.y != cube.y: return false
+	return _place_at(profiles, request, access, cube, cube[2 - out.axis] + (CELL_U >> 1), out)
+
+
+static func _place_at(profiles: Profiles, request: Approach.Request, access: Locations.Record, cube: Vector3i,
+		across_at: int, out: Candidate) -> bool:
+	"""`place` with the station `across_at` across the heading."""
 	var plane: int = cube[out.axis] + (0 if out.ahead > 0 else CELL_U)
-	var across: int = 2 - out.axis
 	var point: Vector3i = Vector3i(0, cube.y, 0)
 	point[out.axis] = plane - out.patch_low[out.axis]
-	point[across] = cube[across] + (CELL_U >> 1) # On the cell's centre line, as a station chain stands.
+	point[2 - out.axis] = across_at
 	if not patch_on_face(out, point, cube, plane): return false
 	var corner: Vector3i = point
 	corner[out.axis] = access.point[out.axis]
 	if (point[out.axis] - corner[out.axis]) * out.ahead <= 0: return false # Review M1: never on its corner.
 	if not body_clear(profiles, out.forward, request, access, point): return false
-	if corner != access.point and not body_clear(profiles, out.forward, request, access, corner): return false
+	if out.backward >= 0 and not body_clear(profiles, out.backward, request, access, point): return false
+	if corner != access.point and not _corner_clear(profiles, request, access, corner, out): return false
 	out.cube = cube; out.point = point; out.corner = corner
 	out.face = out.axis * 2 + (0 if out.ahead > 0 else 1)
 	return true
+
+
+static func _corner_clear(profiles: Profiles, request: Approach.Request, access: Locations.Record, corner: Vector3i,
+		c: Candidate) -> bool:
+	"""The forward row's body at the corner, and (decision 2054) the ground row's, which joins it to the access and
+	turns there, lie in the access's surveyed air off the room."""
+	if not body_clear(profiles, c.forward, request, access, corner): return false
+	return c.ground < 0 or body_clear(profiles, c.ground, request, access, corner)
 
 
 static func has_cell(request: Approach.Request, cell: Vector2i) -> bool:
@@ -197,28 +224,51 @@ static func extent(profiles: Profiles, row: int, point: Vector3i) -> PackedInt32
 	return out
 
 
-static func publish_into(owners: Builder.Owners, foot: RefCounted, access: Locations.Record, c: Candidate,
-		published: PackedInt32Array) -> Vector2i:
-	"""The station and its corner (existing or published) and the straight spans joining the access, the corner and
-	the station; the forward row must reach the station from the corner and the retreat row the corner from the
-	station (the approach's and the builder's own rows; WorldRoutes certifies which rows walk the access-corner span).
-	Returns the corner (the admission's access), or NULL_REF with every endpoint this call published listed in
-	`published`."""
+static func publish_into(owners: Builder.Owners, foot: RefCounted, access: Locations.Record, hub: Vector2i,
+		c: Candidate, published: PackedInt32Array) -> Vector2i:
+	"""The station and its corner (existing or published) and the straight spans joining the access (`hub`, the live
+	endpoint `access` was read from), the corner and the station; the forward row must reach the station from the
+	corner and the heading's retreat row the corner from the station (the approach's and the builder's own rows;
+	WorldRoutes certifies which rows walk the access-corner span). Returns the corner (the admission's access), or
+	NULL_REF with every endpoint this call published listed in `published`."""
 	# The station's footing holds every row that stands on it, as a planner's WORK station's does (decision 1161):
 	# both travel rows and the wall row.
-	var rows: PackedInt32Array = PackedInt32Array([c.forward, foot.travel, c.wall])
+	var rows: PackedInt32Array = PackedInt32Array([c.forward, c.backward, c.wall])
 	var station: Vector2i = endpoint_at(owners, foot, access, c.point, Locations.ROLE_WORK, rows, published)
-	var corner: Vector2i = foot.access
+	var corner: Vector2i = hub
 	if station != NULL_REF and c.corner != access.point:
 		corner = endpoint_at(owners, foot, access, c.corner, Locations.ROLE_TRANSIT,
-			PackedInt32Array([foot.ground]), published)
+			PackedInt32Array([foot.ground, c.forward, c.backward]), published)
 	if station == NULL_REF or corner == NULL_REF: return NULL_REF
+	# Decision 2054 (review M3 of 2053): an endpoint reused by its point must be no other route's node.
+	for ref: Vector2i in [station, corner]:
+		if ref != hub and not _listed(published, ref) and routed_elsewhere(owners.routes, ref, [hub, corner, station]):
+			return NULL_REF
 	if not span_pair(owners, foot, access, corner, station): return NULL_REF
-	if corner != foot.access and not span_pair(owners, foot, access, foot.access, corner): return NULL_REF
-	if not joined(owners, foot, corner, station, c.forward) or not joined(owners, foot, station, corner, foot.travel):
+	if corner != hub and not span_pair(owners, foot, access, hub, corner): return NULL_REF
+	if not joined(owners, foot, corner, station, c.forward) or not joined(owners, foot, station, corner, c.backward):
 		return NULL_REF
 	c.station = station
 	return corner
+
+
+static func _listed(pairs: PackedInt32Array, ref: Vector2i) -> bool:
+	"""Whether the (slot, generation) pairs hold `ref`."""
+	for at: int in range(0, pairs.size() - 1, 2):
+		if pairs[at] == ref.x and pairs[at + 1] == ref.y: return true
+	return false
+
+
+static func routed_elsewhere(routes: Routes, found: Vector2i, allowed: Array[Vector2i]) -> bool:
+	"""Some live span touches `found` and runs to or from an endpoint outside `allowed` (parking's own guard,
+	decision 1991 review H-1): another route's TRANSIT node, which a front must never take over."""
+	for row: int in routes._edge_capacity:
+		if routes._live.present[row] != 1: continue
+		var from: Vector2i = routes._edge_pair(routes._live, Routes.E_FROM_SLOT, row)
+		var to: Vector2i = routes._edge_pair(routes._live, Routes.E_TO_SLOT, row)
+		if from == found and not allowed.has(to): return true
+		if to == found and not allowed.has(from): return true
+	return false
 
 
 static func endpoint_at(owners: Builder.Owners, foot: RefCounted, access: Locations.Record, point: Vector3i, role: int,
@@ -332,7 +382,7 @@ static func span_between(routes: Routes, from: Vector2i, to: Vector2i) -> bool:
 
 static func span(owners: Builder.Owners, foot: RefCounted, access: Locations.Record, from: Vector2i,
 		to: Vector2i) -> Routes.Edge:
-	"""One straight ground span in the access's section."""
+	"""One straight ground WALK span in the access's section."""
 	var first: Vector3i = point_of(owners.locations, from.x)
 	var last: Vector3i = point_of(owners.locations, to.x)
 	var edge: Routes.Edge = Routes.Edge.new()

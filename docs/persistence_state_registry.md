@@ -2331,6 +2331,18 @@ as source-qualified motion. No composed save adapter is claimed here.
 |---|---|---:|---|---|:-:|---|---|
 | Stateless front-station planner | -- | -- | -- | No members; the Candidate packet and the published list are caller-owned | 3 | -- | Decision 2052 P-2052-1 (a): finds, publishes or withdraws a room's front WORK station, its corner and their spans at a way down's foot through Locations' and WorldRoutes' staging calls (withdrawal through decision 1942's retirement). What it publishes is Locations' and Routes' own saved state. |
 
+### `godot/scripts/core/underground_way_in_foot_prep.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Stateless foot preparation | -- | -- | -- | No module members; the Foot packet is host-held, one live at a time | 3 | -- | Decision 2054: makes a way down's foot ready for rooms (M5's floor hub, the parking, the level-1 store with its grip stand and the CARRY span from F' (P-2091-7 (a)), the spoil pile) through Locations', WorldRoutes' and Inventory's staging calls, each found again by its point. What it publishes is their own saved state; nothing here is saved. |
+
+### `godot/scripts/core/underground_way_foot.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Stateless foot derivation and readers | -- | -- | -- | No members; output packets are caller-owned | 3 | -- | Decision 2054: derives the finished M5 flight's Foot from the entry record (`step`, `origin`, `crew`) and the live Locations at the finish and after every load (decision 2052 §2.1, E1), and answers the host's landing and shape readers. Reads nothing saved beyond its arguments. |
+
 ### `godot/scripts/core/underground_way_landings.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

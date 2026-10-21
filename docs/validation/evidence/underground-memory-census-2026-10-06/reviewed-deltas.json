@@ -3145,6 +3145,11 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "decision 1991 (slice C3): the way-in seam slice D2 fills (UndergroundRoomConfirm.WayIn.new, an empty RefCounted; native overhead), held by the host, reset to a fresh base WayIn at every mount and release (review H-3: one live at a time) and bound again by D2 after each mount; order_painted_room returns a transient Result; the painted Confirm route itself is stateless"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "decision 2054 (slice D2 phase 2): the bound way in is a StairWayIn and its Foot (UndergroundWayIn.StairWayIn.new, UndergroundWayIn.Foot.new), derived when the entry finishes and again after a load, never saved, one live at a time in the same seam field; its kept-front list (six int32 a front, one front per admitted room, retired with the room's record, at most MAX_KEPT rooms: native overhead of a host-held PackedInt32Array); resume_underground_room's transient Composer.Order; the landing and shape readers' small output arrays, built on a panel's call, never per tick"
     }
    ],
    "delta": {
@@ -3175,7 +3180,8 @@
      ]
     ],
     "allocation_sites": {
-     ".new(": 10
+     ".new(": 13,
+     "PackedInt32Array(": 3
     }
    }
   },

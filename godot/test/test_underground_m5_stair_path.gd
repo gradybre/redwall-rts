@@ -6,6 +6,7 @@ extends "res://test/framework/test_case.gd"
 const StairPath := preload("res://scripts/core/underground_entry_stair_path.gd")
 const Progress := preload("res://scripts/core/underground_entry_progress.gd")
 const Installer := preload("res://scripts/core/underground_entry_installer.gd")
+const Hauler := preload("res://scripts/core/underground_entry_hauler.gd")
 const Tread := preload("res://data/underground/mole-worker/qualified-m5-runtime-v1/tread_geometry.gd")
 const StairPins := preload("res://data/underground/mole-worker/qualified-stair-carry-v13/catalog_source.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
@@ -217,3 +218,29 @@ func test_a_leg_list_the_reader_admits_round_trips_and_a_longer_one_refuses_the_
 	assert_equal(rows.size(), 4 * Progress.MAX_STAIR_LEGS, "every leg")
 	assert_equal(rows[rows.size() - 1], 1000 + Progress.MAX_STAIR_LEGS - 1, "in order")
 	assert_true(_legs_record(Progress.MAX_STAIR_LEGS + 1).overflow, "one leg more refuses the capture")
+
+
+class NoJobs extends RefCounted:
+	## The writer's owners packet when its haul holds no Job (it reads no handle).
+	var jobs: RefCounted = null
+
+
+func _haul_record(count: int) -> Progress.Writer:
+	"""An entry haul of `count` legs, written as the hauler writes it."""
+	var hauler: Hauler = Hauler.new()
+	hauler._o = NoJobs.new()
+	for index: int in count:
+		var leg: Hauler.Leg = Hauler.Leg.new()
+		leg.target = Vector2i(index, 1)
+		hauler._legs.append(leg)
+	var w: Progress.Writer = Progress.Writer.new()
+	hauler.write_state(w)
+	return w
+
+
+func test_an_entry_haul_of_the_longest_climb_writes_and_a_longer_one_refuses() -> void:
+	"""Decision 2045 (the review's H2): the entry hauler writes up to MAX_HAUL_LEGS legs and refuses one more, the
+	reader's bound; the room builders' records keep MAX_LEGS."""
+	assert_false(_haul_record(Progress.MAX_HAUL_LEGS).overflow, "the longest admitted haul writes")
+	assert_true(_haul_record(Progress.MAX_HAUL_LEGS + 1).overflow, "one leg more refuses the capture")
+	assert_true(Progress.MAX_LEGS < Progress.MAX_HAUL_LEGS, "the room builders' bound is the smaller")

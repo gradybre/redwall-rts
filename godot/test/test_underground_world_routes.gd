@@ -1992,3 +1992,23 @@ func test_a_lookup_that_could_cost_a_full_scan_scans_every_row_as_master() -> vo
 	assert_equal(proof.first_row(PackedInt32Array([0, 0, 0, 10, 10, 6400]), selection, 0), 0, "the whole image")
 	assert_equal(proof._deferred[0], 0, "is scanned as master scans it")
 	assert_equal(selection.size(), 0, "with no selection")
+
+
+func test_a_rewind_to_another_images_mark_forgets_the_index() -> void:
+	"""Decision 2045 (the review's L): a mark taken while the index held one image does not keep an index of another;
+	an empty image selects nothing."""
+	var a: Binding.Clearance = _indexed(_z_rows([Vector2i(0, 100), Vector2i(6300, 6400)]),
+		PackedInt32Array([Space.SUPPORT, Space.SUPPORT]), true)
+	var b: Binding.Clearance = _indexed(_z_rows([Vector2i(0, 200), Vector2i(3000, 3100), Vector2i(6300, 6400)]),
+		PackedInt32Array([Space.SUPPORT, Space.SUPPORT, Space.SUPPORT]), true)
+	assert_false(a.blocked(PackedInt32Array([0, 0, 0, 10, 10, 50])), "image A indexed")
+	var mark: Array = a.index_mark()
+	assert_true(mark[0] != null, "the mark holds image A")
+	a.image = b.image
+	assert_false(a.blocked(PackedInt32Array([0, 0, 0, 10, 10, 50])), "image B indexed")
+	assert_true(a.index_mark()[0] != null and a.index_mark()[0] != mark[0], "the index holds image B")
+	a.index_rewind(mark)
+	assert_true(a.index_mark()[0] == null, "a rewind to A's mark forgets B's index")
+	var empty: Binding.Clearance = _indexed([] as Array[PackedInt32Array], PackedInt32Array(), true)
+	var selection: PackedInt32Array = PackedInt32Array()
+	assert_equal(empty.first_row(PackedInt32Array([0, 0, 0, 10, 10, 10]), selection, 0), -1, "an empty image: no row")

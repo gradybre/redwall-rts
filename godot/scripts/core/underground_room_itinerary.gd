@@ -11,6 +11,16 @@ const SourceProgram := preload("res://data/underground/mole-worker/work-approach
 const StepProgram := preload("res://data/underground/mole-worker/work-step-v1/source_program.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const REFUSE_FAMILY: StringName = &"ROOM_ITINERARY_SOURCE_FAMILY"
+## Decision 1970 (F2): a search memo slot's layout (WorldRoutes.SEARCH_MEMO_STRIDE words): SEARCH_KEY key words, then
+## the spend, the chain length, the descriptor's five fields and the descriptor-write count.
+const SEARCH_KEY: int = 19
+const S_SPENT: int = 19
+const S_COUNT: int = 20
+const S_DESCRIPTOR: int = 21
+const S_WRITES: int = 26
+
+## Decision 1970 (F2): one fixed key packet the memo compares against (SEARCH_KEY words), allocated once.
+static var _search_key: PackedInt64Array = PackedInt64Array()
 
 
 static func reachability_refusal(actual: WorldRoutes, first: Vector2i, last: Vector2i,
@@ -54,12 +64,204 @@ static func _search(actual: WorldRoutes, first: Vector2i, last: Vector2i,
 	if code == &"": code = _anchor_refusal(actual._profiles, anchor, revision, content)
 	if code == &"" and (not locations._live_ref(locations._live, first) or not locations._live_ref(locations._live, last)):
 		code = &"ROUTE_LOCATION_STALE"
-	if code == &"": code = _find(actual, first, last, anchor)
-	if code == &"": code = graph._path_chain_refusal(first, last, owner._header[17], content, actual)
-	if code == &"": code = _sources(actual, first, anchor)
+	if code == &"": code = _chain_refusal(actual, graph, first, last, anchor, revision, content)
 	if code != &"": return code
 	if not graph._spend(WorldRoutes.REACH_SCOPE_CHECKS): return graph._operation_error
 	return WorldRoutes._reach_stores_refusal(actual, graph, owner, locations)
+
+
+static func _chain_refusal(actual: WorldRoutes, graph: Routes, first: Vector2i, last: Vector2i,
+		anchor: int, revision: int, content: int) -> StringName:
+	"""Decision 1970 (F2): the chain search, check and source re-reads, answered from the search memo (its spend and
+	scratch replayed) while every input it read is unchanged; with the framework's cache checks on, replayed, put back,
+	run live and compared."""
+	var at: int = _search_memo_at(actual, graph, first, last, anchor, revision, content)
+	if at >= 0 and not Profiles.CacheChecks.enabled:
+		_replay_search(actual, graph, at)
+		return &""
+	if at >= 0: return _checked_search(actual, graph, first, last, anchor, revision, content, at)
+	return _remembered_search(actual, graph, first, last, anchor, revision, content)
+
+
+static func _live_chain(actual: WorldRoutes, graph: Routes, first: Vector2i, last: Vector2i,
+		anchor: int, content: int) -> StringName:
+	"""The search itself: Dijkstra, the collected chain's check, then every endpoint, section and edge choice again."""
+	var owner: Owner = actual._owner_ref.get_ref() as Owner
+	var code: StringName = _find(actual, first, last, anchor)
+	if code == &"": code = graph._path_chain_refusal(first, last, owner._header[17], content, actual)
+	if code == &"": code = _sources(actual, first, anchor)
+	return code
+
+
+static func _remembered_search(actual: WorldRoutes, graph: Routes, first: Vector2i, last: Vector2i,
+		anchor: int, revision: int, content: int) -> StringName:
+	"""Decision 1970: the live search; a success is remembered with its spend and what it left."""
+	var before: int = graph._remaining
+	var writes: int = actual._descriptor_writes
+	var code: StringName = _live_chain(actual, graph, first, last, anchor, content)
+	if code == &"" and graph._operation_error == &"":
+		_remember_search(actual, graph, first, last, anchor, revision, content, before - graph._remaining,
+			actual._descriptor_writes - writes)
+	return code
+
+
+static func _search_key_into(actual: WorldRoutes, graph: Routes, first: Vector2i, last: Vector2i,
+		anchor: int, revision: int, content: int, out: PackedInt64Array) -> bool:
+	"""Decision 1970: the inputs the search reads, as WorldRoutes' witness keys them (each owner's instance and
+	publication receipt), plus the certificates, the Profiles bank and load token, the catalog and levels revisions and
+	the query; false when any receipt is unavailable (zero after a restore, or a loading store)."""
+	var owner: Owner = actual._owner_ref.get_ref() as Owner
+	var locations: Locations = actual._locations_ref.get_ref() as Locations
+	var profiles: Profiles = actual._profiles
+	if owner == null or locations == null or profiles == null or profiles._loading or profiles._live == null \
+			or graph._last_published_token <= 0 or owner._last_published_token <= 0 \
+			or locations._last_published_token <= 0 or actual._certificate_revision <= 0 \
+			or profiles.load_revision() == 0 or actual._levels == null: return false
+	if out.size() != SEARCH_KEY: out.resize(SEARCH_KEY)
+	out[0] = graph.get_instance_id(); out[1] = graph._last_published_token; out[2] = owner.get_instance_id()
+	out[3] = owner._last_published_token; out[4] = owner._header[17]; out[5] = locations.get_instance_id()
+	out[6] = locations._last_published_token; out[7] = actual._certificate_revision
+	out[8] = profiles._live.get_instance_id(); out[9] = profiles.load_revision(); out[10] = actual._live_catalog_revision
+	out[11] = actual._levels._revision; out[12] = first.x; out[13] = first.y; out[14] = last.x; out[15] = last.y
+	out[16] = anchor; out[17] = revision; out[18] = content
+	return true
+
+
+static func _search_memo_slot(first: Vector2i, last: Vector2i, anchor: int) -> int:
+	"""A direct-mapped slot; a collision is only a miss."""
+	return posmod(first.x * 31 + last.x * 7 + anchor, WorldRoutes.SEARCH_MEMO_SLOTS)
+
+
+static func _search_memo_at(actual: WorldRoutes, graph: Routes, first: Vector2i, last: Vector2i,
+		anchor: int, revision: int, content: int) -> int:
+	"""Decision 1970: the offset of the slot that answers this search, or -1. Only with no recorded fault, a budget that
+	covers the whole remembered spend, the same key, and every Room the chain's sections name still the one the search
+	resolved (Buildings and the Directory carry no publication receipt, so `_sections_hold` re-reads them)."""
+	var memo: PackedInt64Array = actual._search_memo
+	if memo.size() != WorldRoutes.SEARCH_MEMO_SLOTS * WorldRoutes.SEARCH_MEMO_STRIDE or graph._operation_error != &"" \
+			or not _search_key_into(actual, graph, first, last, anchor, revision, content, _search_key):
+		return -1
+	var at: int = _search_memo_slot(first, last, anchor) * WorldRoutes.SEARCH_MEMO_STRIDE
+	for index: int in SEARCH_KEY:
+		if memo[at + index] != _search_key[index]: return -1
+	if memo[at + S_SPENT] > graph._remaining: return -1
+	return at if _sections_hold(actual, graph, first, at) else -1
+
+
+static func _sections_hold(actual: WorldRoutes, graph: Routes, first: Vector2i, at: int) -> bool:
+	"""Decision 1970: the same `Locations._resolve_section_refusal` calls `_sources` made for this chain, in its order
+	and with its arguments (so Locations' source hint is left as the live search leaves it), each still passing."""
+	var owner: Owner = actual._owner_ref.get_ref() as Owner
+	var locations: Locations = actual._locations_ref.get_ref() as Locations
+	var section: Vector2i = locations._ref_at(locations._live, Locations.SECTION_SLOT, first.x)
+	if not _section_holds(owner, locations, section): return false
+	var count: int = actual._search_memo[at + S_COUNT]
+	@warning_ignore("integer_division") var chain: int = (at / WorldRoutes.SEARCH_MEMO_STRIDE) * 2 * WorldRoutes.SEARCH_CHAIN_EDGES
+	for index: int in count:
+		var row: int = actual._search_chains[chain + (count - index - 1) * 2]
+		var next: Vector2i = graph._edge_pair(graph._live, Routes.E_SECTION_SLOT, row)
+		if next != section:
+			if not _section_holds(owner, locations, next): return false
+			section = next
+		var to: Vector2i = graph._edge_pair(graph._live, Routes.E_TO_SLOT, row)
+		var reached: Vector2i = locations._ref_at(locations._live, Locations.SECTION_SLOT, to.x)
+		if reached != section and not _section_holds(owner, locations, reached): return false
+		section = reached
+	return true
+
+
+static func _section_holds(owner: Owner, locations: Locations, section: Vector2i) -> bool:
+	"""`WorldRoutes._reach_section_refusal`'s leaf without its precharge (the replay charges the whole spend)."""
+	if not owner._region_live(section, false): return false
+	var room: Vector2i = Vector2i(owner._r_owner_slot[section.x], owner._r_owner_generation[section.x])
+	if room == locations._world: room = NULL_REF
+	return locations._resolve_section_refusal(room, section, owner._r_level[section.x],
+		Vector3i(owner._r_lo_x[section.x], owner._r_lo_y[section.x], owner._r_lo_z[section.x])) == &""
+
+
+static func _replay_search(actual: WorldRoutes, graph: Routes, at: int) -> void:
+	"""Decision 1970: what the live chain search leaves that anything reads afterwards: the spend, the path serial
+	step `_find` takes, the proposed chain, and the search descriptor as its last write left it. The distance,
+	predecessor, heap and state scratch is read outside a search only by `_witness_chain_matches`, which the serial
+	step (with `reachability_refusal`'s zeroed witness serial) keeps from matching, as after a live search."""
+	var memo: PackedInt64Array = actual._search_memo
+	graph._remaining -= memo[at + S_SPENT]
+	if graph._path_serial > 0: graph._path_serial = 0 if graph._path_serial == Routes.I64_MAX else graph._path_serial + 1
+	var count: int = memo[at + S_COUNT]
+	@warning_ignore("integer_division") var chain: int = (at / WorldRoutes.SEARCH_MEMO_STRIDE) * 2 * WorldRoutes.SEARCH_CHAIN_EDGES
+	for index: int in 2 * count: graph._proposed_edges[index] = actual._search_chains[chain + index]
+	graph._proposed_count = count
+	var descriptor: Profiles.Descriptor = actual._descriptor
+	descriptor.profile_id = memo[at + S_DESCRIPTOR]
+	descriptor.profile_revision = memo[at + S_DESCRIPTOR + 1]
+	descriptor.content_revision = memo[at + S_DESCRIPTOR + 2]
+	descriptor.mode = memo[at + S_DESCRIPTOR + 3]
+	descriptor.posture = memo[at + S_DESCRIPTOR + 4]
+	actual._descriptor_writes += memo[at + S_WRITES]
+
+
+static func _remember_search(actual: WorldRoutes, graph: Routes, first: Vector2i, last: Vector2i, anchor: int,
+		revision: int, content: int, spent: int, writes: int) -> void:
+	"""Decision 1970: keep one successful search; a chain longer than a slot holds is not kept."""
+	var memo: PackedInt64Array = actual._search_memo
+	if memo.size() != WorldRoutes.SEARCH_MEMO_SLOTS * WorldRoutes.SEARCH_MEMO_STRIDE or spent < 0 \
+			or graph._proposed_count < 0 or graph._proposed_count > WorldRoutes.SEARCH_CHAIN_EDGES \
+			or not _search_key_into(actual, graph, first, last, anchor, revision, content, _search_key): return
+	var at: int = _search_memo_slot(first, last, anchor) * WorldRoutes.SEARCH_MEMO_STRIDE
+	for index: int in SEARCH_KEY: memo[at + index] = _search_key[index]
+	memo[at + S_SPENT] = spent
+	memo[at + S_COUNT] = graph._proposed_count
+	var descriptor: Profiles.Descriptor = actual._descriptor
+	memo[at + S_DESCRIPTOR] = descriptor.profile_id
+	memo[at + S_DESCRIPTOR + 1] = descriptor.profile_revision
+	memo[at + S_DESCRIPTOR + 2] = descriptor.content_revision
+	memo[at + S_DESCRIPTOR + 3] = descriptor.mode
+	memo[at + S_DESCRIPTOR + 4] = descriptor.posture
+	memo[at + S_WRITES] = writes
+	@warning_ignore("integer_division") var chain: int = (at / WorldRoutes.SEARCH_MEMO_STRIDE) * 2 * WorldRoutes.SEARCH_CHAIN_EDGES
+	for index: int in 2 * graph._proposed_count: actual._search_chains[chain + index] = graph._proposed_edges[index]
+
+
+static func search_scratch(actual: WorldRoutes, graph: Routes) -> PackedInt64Array:
+	"""Decision 1970, checks on only (never on the game's path): what a chain search leaves that is read afterwards,
+	as one comparable packet: budget, fault, serial, descriptor fields, and the proposed chain. The descriptor-write
+	count is not in it: only its change within one edge choice is ever read (`_remembered_edge_profile`), and an edge
+	choice answered from the edge memo writes once where the live choice wrote once per row it tried."""
+	var d: Profiles.Descriptor = actual._descriptor
+	var out: PackedInt64Array = PackedInt64Array([graph._remaining, 1 if graph._operation_error != &"" else 0,
+		graph._path_serial, d.profile_id, d.profile_revision, d.content_revision, d.mode, d.posture,
+		graph._proposed_count])
+	for index: int in 2 * maxi(graph._proposed_count, 0): out.append(graph._proposed_edges[index])
+	return out
+
+
+static func _restore_scratch(actual: WorldRoutes, graph: Routes, state: PackedInt64Array) -> void:
+	"""Decision 1970, checks on only: put back a packet from `search_scratch` (the fault was empty: checked hits only)."""
+	var d: Profiles.Descriptor = actual._descriptor
+	graph._remaining = state[0]
+	graph._path_serial = state[2]
+	d.profile_id = state[3]
+	d.profile_revision = state[4]
+	d.content_revision = state[5]
+	d.mode = state[6]
+	d.posture = state[7]
+	graph._proposed_count = state[8]
+	for index: int in state.size() - 9: graph._proposed_edges[index] = state[9 + index]
+
+
+static func _checked_search(actual: WorldRoutes, graph: Routes, first: Vector2i, last: Vector2i,
+		anchor: int, revision: int, content: int, at: int) -> StringName:
+	"""Decision 1970, checks on: run the replay the game would run and keep what it leaves, put it back, then search
+	live (the answer used) and report any difference."""
+	var before: PackedInt64Array = search_scratch(actual, graph)
+	_replay_search(actual, graph, at)
+	var replayed: PackedInt64Array = search_scratch(actual, graph)
+	_restore_scratch(actual, graph, before)
+	var code: StringName = _remembered_search(actual, graph, first, last, anchor, revision, content)
+	var live: PackedInt64Array = search_scratch(actual, graph)
+	if code != &"" or live != replayed:
+		Profiles.CacheChecks.report("itinerary search", "an input changed without moving its receipt (%s)" % code)
+	return code
 
 
 static func _anchor_refusal(profiles: Profiles, anchor: int, revision: int, content: int) -> StringName:

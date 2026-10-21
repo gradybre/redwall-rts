@@ -121,7 +121,20 @@ static func yaw_of(profile: int) -> int:
 
 
 static func _digest_matches(actual: Profiles) -> bool:
-	"""Source 4 is the complete claw image, compared byte by byte without decoding a buffer."""
+	"""Source 4 is the complete claw image. Decision 1970 (F4): the verdict is remembered on the store against its
+	bank and load revision (as `Routes._step_closure`); with the cache checks on it is read live and a remembered
+	verdict that differs is reported."""
+	var known: int = actual.remembered_digest(Profiles.CLAW_DIGEST_V2)
+	if known >= 0 and not Profiles.CacheChecks.enabled: return known == 1
+	var matched: bool = _digest_live(actual)
+	if known >= 0 and (known == 1) != matched:
+		Profiles.CacheChecks.report("claw digest", "Profiles bank edited in place without invalidate_runtime_caches()")
+	actual.remember_digest(Profiles.CLAW_DIGEST_V2, matched)
+	return matched
+
+
+static func _digest_live(actual: Profiles) -> bool:
+	"""Source 4 compared byte by byte with the pinned claw image digest, without decoding a buffer."""
 	for byte: int in 32:
 		var high: int = Pins.CLAW_SOURCE_SHA.unicode_at(byte * 2)
 		var low: int = Pins.CLAW_SOURCE_SHA.unicode_at(byte * 2 + 1)

@@ -232,6 +232,12 @@ func qualification_revision() -> int:
 	return _ordinary_revision_for(_ordinary_config.locations._last_published_token, _ordinary_config.routes._last_published_token)
 
 
+func _ordinary_bound_revision() -> int:
+	"""Decision 1970 (F3): `qualification_revision()` for a caller whose own `_ordinary_binding_leaf()` has just passed
+	with nothing between that the leaf reads, so its second read of the binding is not repeated."""
+	return _ordinary_revision_for(_ordinary_config.locations._last_published_token, _ordinary_config.routes._last_published_token)
+
+
 func _ordinary_revision_for(location_token: int, route_token: int) -> int:
 	"""Every included source is monotone on these exact owners; restore clears the required Location receipt."""
 	if location_token <= 0 or route_token < 0: return 0
@@ -280,7 +286,7 @@ func _ordinary_pin(site: Vector2i, operation: int, stage: int, room: Vector2i) -
 	_ordinary_worker = _ordinary_assigned_worker()
 	_entry_operation = operation
 	_entry_stage = stage
-	_entry_revision = qualification_revision()
+	_entry_revision = _ordinary_bound_revision() # Decision 1970 (F3): the binding passed above; nothing read since.
 	_entry_cold_token = _phase_token
 	_entry_origin = sites.origin_of(site)
 	_entry_remaining = _domain._checks
@@ -294,7 +300,7 @@ func _ordinary_pin(site: Vector2i, operation: int, stage: int, room: Vector2i) -
 func _ordinary_scope_leaf() -> StringName:
 	"""Scope and source checks use original full refs and the original lease, never a copied success flag."""
 	if not _ordinary_mode or _entry_poisoned or _ordinary_binding_leaf() != &"" \
-			or _entry_revision < 1 or _entry_revision != qualification_revision(): return ROOM_REFUSE_SOURCE
+			or _entry_revision < 1 or _entry_revision != _ordinary_bound_revision(): return ROOM_REFUSE_SOURCE
 	var sites: Sites = _ordinary_config.sources._construction._excavation_authority.get_ref() as Sites
 	if not _entry_site_leaf(sites) or Vector2i(sites._room_slot[_entry_site.x], sites._room_generation[_entry_site.x]) != _entry_room \
 			or Vector2i(sites._project_slot[_entry_site.x], sites._project_generation[_entry_site.x]) != _entry_project:
@@ -1096,7 +1102,7 @@ func worker_refusal(origin: Vector3i, operation: int, room: Vector2i, job: Vecto
 	if not _entry_enter(): return ENTRY_REFUSE_BUSY
 	if _ordinary_binding_leaf() != &"": return _entry_leave(ROOM_REFUSE_BINDING)
 	var code: StringName = ROOM_REFUSE_SOURCE
-	if geometry_revision == _ordinary_config.owner._header[17] and source_revision == qualification_revision():
+	if geometry_revision == _ordinary_config.owner._header[17] and source_revision == _ordinary_bound_revision():
 		code = _ordinary_live_contact(origin, operation, room, _ordinary_worker_stage(origin))
 	if code == &"" and (worker != _ordinary_worker or job != _ordinary_job): code = ROOM_REFUSE_WORKER
 	if code == &"": code = _ordinary_worker_leaf(_entry_cold_token == 0)

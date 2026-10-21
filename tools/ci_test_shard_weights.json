@@ -507,6 +507,7 @@
     "test_underground_room_composition.gd": 14441677,
     "test_underground_room_confirm.gd": 174661963,
     "test_underground_room_confirm_host.gd": 5293298,
+    "test_underground_room_crew_parking.gd": 41963001,
     "test_underground_room_cut_map.gd": 425182,
     "test_underground_room_dig_order.gd": 2833963,
     "test_underground_room_footprint.gd": 17175,

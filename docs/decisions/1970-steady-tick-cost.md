@@ -1,10 +1,31 @@
 # 1970 — Steady-tick cost: where an ordinary underground tick goes, and the exact fixes (phase 1)
 
-Date: 2026-10-21 · Status: **Proposed (phase 1: measured and named; nothing built).** The functions to edit (§7) wait
-for the coordinator to clear them.
+Date: 2026-10-21 · Status: **Accepted.** Brendan ruled "Fixes now, then tokens" on 2026-10-21 (see "Brendan's ruling").
+F1–F4 are cleared and being built. The per-row tokens are scoped in §9 and wait for their files to be cleared.
 
 Lane STEADY-TICK (Slice C), branch `perf/steady-tick`, cut from master `e0e7065a`. Decision number 1970 is this
 lane's. Analyzer port 6443.
+
+## Brendan's ruling (2026-10-21), relayed by the coordinator
+
+**"Fixes now, then tokens."**
+
+- Build F1–F4 now (§5), then re-measure.
+- Then build P-1952-1 (a)'s per-row write tokens. Its "Later, if needed" condition is now met: the 2 ms target is
+  still missed after activation and phase-spreading stage 1.
+- The tokens are scoped in this record first (§9), naming every file and function. The coordinator clears them with
+  slice D before anything is built.
+
+**The coordinator's clearances:**
+
+- F1 and F3 were cleared with the ruling.
+- F2's WorldRoutes members and `_allocate_scratch`, and F4's two claw programs and the Profiles member, were cleared
+  after slice D agreed.
+- The 3.4 ms `paw_physical_certificate` cost inside `advance_tick` (§3.4) belongs to slice D's M5 Contacts work
+  (P-2044-9's successor). This lane does not touch it.
+
+**The coordinator's first task:** find out why three- and four-builder crews froze (§2a) before any performance
+work.
 
 ## The problem
 
@@ -110,17 +131,75 @@ runs; phase 2's before/after runs are alternating rounds on the same scenarios.
 | `flight` (M5, first 30,000 ticks) | 891 / 1,194 / 1,749 | 997 / 14,022 / 17,697 |
 | `idle` (underground mounted, no entry) | 149 / 218 / 319 | — |
 
-**Three and four builders cannot be measured on any fixture today. This is BLOCKED.** With a third or fourth claw
-mole parked in the Corridor:
+**Three and four builders froze in phase 1.** My hand-placed parkings froze the crew with
+`ROOM_FOREMAN_CREW_BLOCKED`, `ROOM_BUILDER_STALLED` or `ROOM_BUILDER_STUCK_UNDERGROUND`. §2a gives the cause (a
+fixture fault, and three parking defects behind it) and the fixes. A crew of three now digs to the end. One access
+parks at most three builders, so a crew of four digs with three.
 
-- the Kitchen stops with `ROOM_FOREMAN_CREW_BLOCKED` at cube 5;
-- the 4×4 room stops at cube 16 with three builders;
-- with four builders it stalls (`ROOM_BUILDER_STALLED`, then `ROOM_BUILDER_STUCK_UNDERGROUND`).
+## 2a. The three- and four-builder freeze: three parking defects, fixed
 
-Before blocking, three builders' 250 earning ticks measured p50 3.4–3.7 ms. The cost is per builder: each earning
-builder adds about 0.7–1.1 ms of Work, and each registered actor adds about 0.35–0.45 ms of Routes. So four
-builders earning at once would cost roughly 2.5 ms plus 3 × (0.8 + 0.4) ms, about 6 ms before the fixes and about
-3.5 ms after.
+Before any performance work, the coordinator asked whether the freezes in §2 were a production defect or a fixture
+fault. **It was both.**
+
+**The fixture fault.** My phase 1 fixtures parked the third and fourth moles by hand on Corridor points I chose,
+bypassing the composer. Those points broke decision 1991's H-1 rules, which forbid parking on a builder's way or on
+the storage's location.
+
+**The production defects.** With the composer's own parking (`Composer.order`, the real Confirm route), crews still
+froze. The case is an access whose floor has room for more than one parking: the claw Kitchen with its old Corridor
+widened west, south and north. The plain Kitchen Corridor has room for only one composer parking. That is why
+decision 1991's four-crew test parks two: the composer's one and an authored one. There are three defects, all in
+`underground_room_parking.gd`:
+
+1. **A parking walled in behind another (`ROOM_FOREMAN_CREW_BLOCKED` at 0 of 16 cubes, crew of two).**
+   - The composer tries points two and three cells from the access along each direction. With the first builder
+     parked two cells west, the second took the point three cells west, behind it.
+   - Its only way to the access runs through the first builder's body. The crew's walk-in froze.
+   - **Fix:** `_crosses_taken` refuses a candidate whose straight way to the access sweeps through a taken parking's
+     body, and one whose body stands on a taken parking's way. It is an exact integer test, `_sweep_meets`: the
+     segment is tested against the Minkowski box, slab by slab, in integer fractions.
+2. **Lateral parkings could never be joined (`WORLD_ROUTE_NO_FITTING_PROFILE`).**
+   - The claw READY travel rows walk only along their heading (+X in the Kitchen). A span across it is walked on the
+     source's canonical ground row (42), whose stance is ±406 u.
+   - The parking endpoint's footing was the READY rows' stance alone (−249…274 by −274…299), so the ground row never
+     fitted. Every north or south parking span was refused, and the endpoint was left behind unused.
+   - So the only parkings ever offered lay on the heading line, which is exactly where defect 1 bites.
+   - **Fix:** `_footing` adds the ground row's stance for a lateral point (`_lateral`, `_ground_row`, using the
+     itinerary's own compatibility rule). In-line parkings keep their footing unchanged.
+3. **A lateral parking in a station chain's way (`ROOM_BUILDER_STALLED` at 6 of 16 cubes, crew of three).**
+   - With 2 fixed, the third builder parked two cells north. Its body (±712 u with the ground row) reached the floor
+     where the chains to the northern cubes' stations run.
+   - Routes held the walking builder ("another body in the way") until the 1,200-tick stall bound. The foreman's own
+     footprint check does not see this, because it uses the narrower stance.
+   - **Fix:** `_beside_the_way` refuses a lateral parking whose body overlaps the box spanned by the access and the
+     room's cell centres, grown by a walking body. This is the body-sized version of `_between`, which tests only the
+     root. It is asked of lateral parkings only, so every in-line parking keeps decision 1991's rule.
+
+**Consequences.**
+
+- **One access now parks at most three claw builders clear of each other**: two cells west, two cells south and three
+  cells north on the widened Kitchen.
+  - A fourth would need a point whose straight way to the access misses three ±712 u bodies standing two or three
+    cells out. No such point exists on the floor around one access.
+  - So **a named crew of four digs with three, and the fourth is left free** (decision 1991's rule for members beyond
+    the access's room). A four-builder dig needs a second access, or a parking that slice D2's way in authors.
+- **Old cases are unchanged.**
+  - In-line parkings keep decision 1991's rule.
+  - Lateral parkings never joined before, so no earlier dig could have used one.
+  - The benchmark does not use the composer, so the SHA trace is unaffected.
+  - The parking suites pass: composer, parts, occupants, way in, stop, Confirm, Confirm host, claw Kitchen and
+    foreman crews.
+- **The test:** `test_underground_room_crew_parking.gd`, on the real Confirm route with the widened Corridor (about
+  42 s, with its shard weight).
+  - A crew of three parks apart and digs the Kitchen 16 of 16 with no refusal, each builder digging.
+  - A crew of four digs with three and leaves the fourth free.
+  - Unit cases cover the walled-in parking, the sweep's exactness at tangency, the lateral footing and the
+    beside-the-way rule.
+- **Measured afterwards on the widened Kitchen:**
+  - A crew of three takes 4,827 ticks and digs 3, 5 and 8 cubes.
+  - A crew of two takes 3,962 ticks.
+  - The 2×2 Kitchen never lets two builders earn on the same tick: they take turns at its one face. Concurrent earning
+    is measured on the 4×4 room (§10).
 
 ## 3. Where the time goes
 
@@ -446,8 +525,9 @@ WorldRoutes' held functions or M5's content.
 - **The surface (needs, jobs).** The idle settlement's needs sweep is about 8 µs a resident, so about 2 ms at 256
   residents, before any underground work. REQ-SET-163's 2 ms cannot be met at 256 residents while that holds. It
   should be measured on a 256-resident fixture.
-- **Fixtures.** No fixture can hold three or four claw builders today (§2, BLOCKED). C3 or a test lane would need a
-  Corridor with room for four parkings that do not freeze the crew.
+- **Four builders on one access (§2a).** One access parks at most three claw builders clear of each other, so a
+  crew of four digs with three. A four-builder dig needs a second access, which the composer does not support (one
+  access a dig, P-1936-1 (a)), or a parking authored by slice D2's way in. This is the coordinator's call.
 
 ## Source
 

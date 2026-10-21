@@ -1131,7 +1131,7 @@ func _tread_role_volume(role: int, source_profile: int) -> StringName:
 	var piece: int = _own_piece_region() if source_profile >= 0 or _certified_tap(source_profile) else -1
 	for region: int in owner._region_capacity:
 		if not _fragments.spend(): return REFUSE_CAPACITY
-		if owner._r_present[region] == 0: continue
+		if owner._r_present[region] == 0 or not _region_meets_bounds(owner, region): continue
 		_copy_region_box(region, _scratch)
 		if not Space.overlaps(_bounds, _scratch) or Handling.own_room_marker(owner, region, _location.room): continue
 		var kind: int = owner._r_role[region]
@@ -1140,6 +1140,14 @@ func _tread_role_volume(role: int, source_profile: int) -> StringName:
 		elif kind != Space.FLOOR_DATUM and kind != Space.PROTECTED_ACCESS: return REFUSE_GEOMETRY
 	if not _subtract_stances(source_profile): return REFUSE_CAPACITY if _fragments.failed else REFUSE_GEOMETRY
 	return _exterior_fragments()
+
+
+func _region_meets_bounds(owner: Owner, region: int) -> bool:
+	"""Decision 2045 (P-2045-15): `Space.overlaps(_bounds, region)` read from the live columns in place, so a region that
+	cannot meet the body is passed over without copying its box (the same rows pass, at the same charge)."""
+	return owner._r_lo_z[region] < _bounds[5] and _bounds[2] < owner._r_hi_z[region] \
+		and owner._r_lo_x[region] < _bounds[3] and _bounds[0] < owner._r_hi_x[region] \
+		and owner._r_lo_y[region] < _bounds[4] and _bounds[1] < owner._r_hi_y[region]
 
 
 func _exterior_fragments() -> StringName:
@@ -1428,14 +1436,27 @@ func _stair_reach_refusal() -> StringName:
 		stops.a[level + 1], stops.u[level + 1], StairPins.CLAW_TURN_ROW])
 	legs.append_array(_hop_legs(stops.u[level + 1], StairPath.hops_up(stops, level)))
 	var retracted: bool = stops.a[level + 1] == NULL_REF
+	if code != &"": return code
+	return _tread_legs_refusal(legs, retracted, stops.u[level + 1])
+
+
+func _tread_legs_refusal(legs: Array, retracted: bool, retracted_from: Vector2i) -> StringName:
+	"""The tread order's legs in order, a retracted stop's legs skipped. Decision 2045 (P-2045-15, as `_legs_refusal`):
+	the legs share one ascending edge scan and one scope leaf after the last leg checked; with the cache checks on the
+	leaves skipped run unspent."""
+	var found: Dictionary = {}
+	var cursor: PackedInt32Array = PackedInt32Array([0])
+	var checked: bool = false
 	for at: int in range(0, legs.size(), 3):
-		if code != &"": break
 		var first: Vector2i = legs[at]
 		var last: Vector2i = legs[at + 1]
-		if retracted and (first == NULL_REF or last == NULL_REF or first == stops.u[level + 1]): continue
+		if retracted and (first == NULL_REF or last == NULL_REF or first == retracted_from): continue
 		if first == NULL_REF or last == NULL_REF: return REFUSE_ENDPOINT
-		code = _row_path_refusal(first, last, legs[at + 2])
-	return code
+		if checked and CacheChecks.enabled: _check_skipped_leaf()
+		var code: StringName = _leg_refusal(first, last, legs[at + 2], found, cursor)
+		if code != &"": return code
+		checked = true
+	return _scope_leaf() if checked else &""
 
 
 ## Decision 2044: M5's stations below its stair top, reached leg by leg from the crossing arrival X.

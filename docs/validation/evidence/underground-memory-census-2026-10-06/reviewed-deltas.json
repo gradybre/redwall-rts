@@ -771,8 +771,8 @@
      "([": 3,
      ".new(": 4,
      "=[": 2,
-     "={": 1,
-     "PackedInt32Array(": 2,
+     "={": 2,
+     "PackedInt32Array(": 3,
      "range(": 2,
      "return[": 1
     }

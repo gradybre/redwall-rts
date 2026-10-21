@@ -856,7 +856,12 @@
     {
      "bytes": 128,
      "carried_by": "new contribution",
-     "store": "Decision 2045 (P-2045-8 (a), P-2045-13 (a)): the operation source key (_sources_key, 12 int64 = 96 B), _landing_key's fifth word (8 B) and the record image hull (_near_hull, 6 int32 = 24 B); never saved. The record image's row index is a local of _record_geometry_refusal, at most one int32 a row, charged in cold_peak_bytes (72 + 16 + 4 bytes a region), not retained; SOURCES_KEY_CHECKS is a check count"
+     "store": "Decision 2045 (P-2045-8 (a), P-2045-13 (a)): the operation source key (_sources_key, 12 int64 = 96 B), _landing_key's fifth word (8 B) and the record image hull (_near_hull, 6 int32 = 24 B); never saved. SOURCES_KEY_CHECKS is a check count"
+    },
+    {
+     "bytes": 32776,
+     "carried_by": "new contribution",
+     "store": "Decision 2045 (P-2045-13 (a)): the record image's near rows (_near, NEAR_ROWS 8192 int32 = 32,768 B, sized once at configure) and their count (_near_count, 8 B), kept by _record_obstacles_refusal's own scan for _covered; never saved"
     }
    ],
    "delta": {
@@ -906,6 +911,14 @@
       "bool"
      ],
      [
+      "_near",
+      "PackedInt32Array"
+     ],
+     [
+      "_near_count",
+      "int"
+     ],
+     [
       "_near_hull",
       "PackedInt32Array"
      ],
@@ -939,6 +952,7 @@
      "_landing_boxes.resize(7 * PASS_LANDINGS)",
      "_landing_key.resize(5)",
      "_landing_sorted.resize(PASS_LANDINGS)",
+     "_near.resize(NEAR_ROWS)",
      "_prism_boxes.resize(6 * ConnectorCatalog.MAX_PARTS)",
      "_prism_key.resize(8)",
      "_prism_tops.resize(ConnectorCatalog.MAX_PARTS)",
@@ -973,6 +987,10 @@
      [
       "MAX_AIR_SLOTS",
       "256"
+     ],
+     [
+      "NEAR_ROWS",
+      "Budget.REGION_CAPACITY + Budget.SOURCE_CAPACITY"
      ],
      [
       "PASS_LANDINGS",
@@ -2519,7 +2537,7 @@
     {
      "bytes": 0,
      "carried_by": "WorldRoutes cold lease (COLD_BYTES +INDEX_BYTES)",
-     "store": "Decision 2045 (P-2045-12 (a)): the route-image row index inside each proof's Clearance packet: INDEX_BANDS 64 band bitsets and two candidate sets of INDEX_WORDS 256 int32 each (INDEX_BYTES 67,584 B) plus a six-word query box; cold, released with the proof; WorldRoutes COLD_BYTES 379,648 -> 447,232, inside Budget.COLD_BYTES 1,048,960; SCAN_SPENT is a sentinel"
+     "store": "Decision 2045 (P-2045-12 (a)): the route-image row index inside each proof's Clearance packet: INDEX_BANDS 64 band bitsets and two candidate sets of INDEX_WORDS 256 int32 each, and the bands' 65 row-count prefix words (INDEX_BYTES 67,844 B), plus a six-word query box; cold, released with the proof; WorldRoutes COLD_BYTES 379,648 -> 447,492, inside Budget.COLD_BYTES 1,048,960; SCAN_SPENT is a sentinel"
     }
    ],
    "delta": {
@@ -2634,6 +2652,7 @@
      ]
     ],
     "resizes_added": [
+     "_band_prefix.resize(INDEX_BANDS + 1)",
      "_bands.resize(INDEX_BANDS * words)",
      "_edge_memo.resize(EDGE_MEMO_SLOTS * EDGE_MEMO_STRIDE)",
      "_edge_memo_stamp.resize(EDGE_MEMO_STAMP)",
@@ -2647,6 +2666,7 @@
      "_pace_inputs.resize(PACE_INPUT_WORDS)",
      "_pace_memo.resize(PACE_SLOTS * PACE_WORDS)",
      "changes.resize(Journal.STAGED_STRIDE * CHANGE_CAPACITY)",
+     "out.resize(0)",
      "out.resize(0)",
      "out.resize(CERT_WIRE_BYTES)",
      "out.resize(_index_words)",
@@ -2725,7 +2745,7 @@
      ],
      [
       "INDEX_BYTES",
-      "4 * INDEX_WORDS * INDEX_BANDS + 4 * INDEX_WORDS * INDEX_SETS"
+      "4 * INDEX_WORDS * INDEX_BANDS + 4 * INDEX_WORDS * INDEX_SETS + 4 * INDEX_BANDS + 4"
      ],
      [
       "INDEX_ROWS",
@@ -2819,6 +2839,10 @@
        ]
       ],
       [
+       [
+        "_band_prefix",
+        "PackedInt32Array"
+       ],
        [
         "_bands",
         "PackedInt32Array"
@@ -2921,9 +2945,9 @@
     "allocation_sites": {
      ".new(": 2,
      "=[": 3,
-     "PackedInt32Array(": 7,
+     "PackedInt32Array(": 9,
      "PackedInt64Array(": 11,
-     "range(": 4
+     "range(": 3
     }
    }
   },

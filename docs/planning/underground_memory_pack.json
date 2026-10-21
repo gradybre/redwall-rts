@@ -4226,7 +4226,7 @@
         "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
         "godot/scripts/core/underground_profiles.gd": "4684fce53085b62f4fea85a26a862bd6a99b881dec10827a4802f8d5d0119bdc",
         "godot/scripts/core/underground_routes.gd": "b6b570efc04ea821915f7e43be7f1f98f2ffdac21d7dda67867ea4fd8c1d9dbc",
-        "godot/scripts/core/underground_world_routes.gd": "3ba4c6b2ce77bf177e3f4afb0649cb0d526016f9b63cdeb73d3349aabd8c32d4"
+        "godot/scripts/core/underground_world_routes.gd": "97d515cfc49fb17b05f7887c74b61224b73ff7e9cdc5512da663f197534d5190"
       }
     },
     "current_profile_control": {
@@ -42453,7 +42453,12 @@
           {
             "bytes": 128,
             "carried_by": "new contribution",
-            "store": "Decision 2045 (P-2045-8 (a), P-2045-13 (a)): the operation source key (_sources_key, 12 int64 = 96 B), _landing_key's fifth word (8 B) and the record image hull (_near_hull, 6 int32 = 24 B); never saved. The record image's row index is a local of _record_geometry_refusal, at most one int32 a row, charged in cold_peak_bytes (72 + 16 + 4 bytes a region), not retained; SOURCES_KEY_CHECKS is a check count"
+            "store": "Decision 2045 (P-2045-8 (a), P-2045-13 (a)): the operation source key (_sources_key, 12 int64 = 96 B), _landing_key's fifth word (8 B) and the record image hull (_near_hull, 6 int32 = 24 B); never saved. SOURCES_KEY_CHECKS is a check count"
+          },
+          {
+            "bytes": 32776,
+            "carried_by": "new contribution",
+            "store": "Decision 2045 (P-2045-13 (a)): the record image's near rows (_near, NEAR_ROWS 8192 int32 = 32,768 B, sized once at configure) and their count (_near_count, 8 B), kept by _record_obstacles_refusal's own scan for _covered; never saved"
           }
         ],
         "delta": {
@@ -42503,6 +42508,14 @@
               "bool"
             ],
             [
+              "_near",
+              "PackedInt32Array"
+            ],
+            [
+              "_near_count",
+              "int"
+            ],
+            [
               "_near_hull",
               "PackedInt32Array"
             ],
@@ -42536,6 +42549,7 @@
             "_landing_boxes.resize(7 * PASS_LANDINGS)",
             "_landing_key.resize(5)",
             "_landing_sorted.resize(PASS_LANDINGS)",
+            "_near.resize(NEAR_ROWS)",
             "_prism_boxes.resize(6 * ConnectorCatalog.MAX_PARTS)",
             "_prism_key.resize(8)",
             "_prism_tops.resize(ConnectorCatalog.MAX_PARTS)",
@@ -42570,6 +42584,10 @@
             [
               "MAX_AIR_SLOTS",
               "256"
+            ],
+            [
+              "NEAR_ROWS",
+              "Budget.REGION_CAPACITY + Budget.SOURCE_CAPACITY"
             ],
             [
               "PASS_LANDINGS",
@@ -44116,7 +44134,7 @@
           {
             "bytes": 0,
             "carried_by": "WorldRoutes cold lease (COLD_BYTES +INDEX_BYTES)",
-            "store": "Decision 2045 (P-2045-12 (a)): the route-image row index inside each proof's Clearance packet: INDEX_BANDS 64 band bitsets and two candidate sets of INDEX_WORDS 256 int32 each (INDEX_BYTES 67,584 B) plus a six-word query box; cold, released with the proof; WorldRoutes COLD_BYTES 379,648 -> 447,232, inside Budget.COLD_BYTES 1,048,960; SCAN_SPENT is a sentinel"
+            "store": "Decision 2045 (P-2045-12 (a)): the route-image row index inside each proof's Clearance packet: INDEX_BANDS 64 band bitsets and two candidate sets of INDEX_WORDS 256 int32 each, and the bands' 65 row-count prefix words (INDEX_BYTES 67,844 B), plus a six-word query box; cold, released with the proof; WorldRoutes COLD_BYTES 379,648 -> 447,492, inside Budget.COLD_BYTES 1,048,960; SCAN_SPENT is a sentinel"
           }
         ],
         "delta": {
@@ -44231,6 +44249,7 @@
             ]
           ],
           "resizes_added": [
+            "_band_prefix.resize(INDEX_BANDS + 1)",
             "_bands.resize(INDEX_BANDS * words)",
             "_edge_memo.resize(EDGE_MEMO_SLOTS * EDGE_MEMO_STRIDE)",
             "_edge_memo_stamp.resize(EDGE_MEMO_STAMP)",
@@ -44244,6 +44263,7 @@
             "_pace_inputs.resize(PACE_INPUT_WORDS)",
             "_pace_memo.resize(PACE_SLOTS * PACE_WORDS)",
             "changes.resize(Journal.STAGED_STRIDE * CHANGE_CAPACITY)",
+            "out.resize(0)",
             "out.resize(0)",
             "out.resize(CERT_WIRE_BYTES)",
             "out.resize(_index_words)",
@@ -44322,7 +44342,7 @@
             ],
             [
               "INDEX_BYTES",
-              "4 * INDEX_WORDS * INDEX_BANDS + 4 * INDEX_WORDS * INDEX_SETS"
+              "4 * INDEX_WORDS * INDEX_BANDS + 4 * INDEX_WORDS * INDEX_SETS + 4 * INDEX_BANDS + 4"
             ],
             [
               "INDEX_ROWS",
@@ -44416,6 +44436,10 @@
                 ]
               ],
               [
+                [
+                  "_band_prefix",
+                  "PackedInt32Array"
+                ],
                 [
                   "_bands",
                   "PackedInt32Array"
@@ -44518,9 +44542,9 @@
           "allocation_sites": {
             ".new(": 2,
             "=[": 3,
-            "PackedInt32Array(": 7,
+            "PackedInt32Array(": 9,
             "PackedInt64Array(": 11,
-            "range(": 4
+            "range(": 3
           }
         }
       },
@@ -45116,7 +45140,7 @@
       "joint pack (the reserve is a pack contribution)": 23295,
       "BINDINGS_AND_GROWTH_BYTES (fully assigned, 524,544)": 256,
       "none (new)": 163,
-      "new contribution": 15220,
+      "new contribution": 47996,
       "Profiles CONTROL_RESERVE": 384,
       "LOCATION_AND_TOPOLOGY_BYTES unassigned remainder (recounted)": 5376,
       "Room publication CONTROL_BYTES (11,450 of 12,288) inside Budget.COLD_BYTES": 3400,
@@ -45142,9 +45166,9 @@
       "bytes": 4322
     },
     "locations_controls": {
-      "carry_and_air_controls_bytes": 10786,
+      "carry_and_air_controls_bytes": 43562,
       "contact_retirement_context_numeric_bytes": 112,
-      "bytes": 10898,
+      "bytes": 43674,
       "scope": "The context exists only during one cold retirement; it is charged as retained, conservatively."
     },
     "first_entry_runtime": {
@@ -45194,7 +45218,7 @@
     },
     "world_routes_cold": {
       "staged_change_bytes": 1792,
-      "world_routes_cold_bytes": 447232,
+      "world_routes_cold_bytes": 447492,
       "shared_cold_bytes": 1048960
     },
     "contact_retirement_cold": {
@@ -45302,7 +45326,7 @@
     },
     "new_retained_bytes": {
       "geometry_journals": 4322,
-      "locations_carry_and_retirement_controls": 10898,
+      "locations_carry_and_retirement_controls": 43674,
       "first_entry_runtime_chain": 36563,
       "cold_load_images": 196694,
       "claw_stair_tables": 43364,
@@ -45310,7 +45334,7 @@
       "world_routes_endpoint_memo": 140872,
       "world_routes_compile_memos": 19048
     },
-    "new_contribution_bytes": 6098743,
+    "new_contribution_bytes": 6131519,
     "runtime_qualified": false,
     "native_measured": false
   },
@@ -45322,7 +45346,7 @@
     "connector_workpieces": 29928,
     "guarded_haul_transfers": 3072,
     "connector_delivery": 4096,
-    "current_census_new_retained": 6098743,
+    "current_census_new_retained": 6131519,
     "space_banks_and_indexes": 1104160,
     "phase_proof_cache_and_candidate": 17724,
     "shared_geometry_cold_peak": 1048960,
@@ -45337,12 +45361,12 @@
     "LAYOUT_COLD_BYTES": 262144,
     "BINDINGS_AND_GROWTH_BYTES": 547583
   },
-  "new_mutable_and_reserved_bytes": 11149559,
+  "new_mutable_and_reserved_bytes": 11182335,
   "declaration_bytes": 26534,
   "declaration_delta_bytes": 5349,
-  "live_with_reserve_bytes": 106145285,
+  "live_with_reserve_bytes": 106178061,
   "gate_bytes": 150000000,
-  "headroom_bytes": 43854715,
+  "headroom_bytes": 43821939,
   "source_sha256": {
     "godot/scripts/core/construction.gd": "48a6d74a8e1e26e7959ac9af9046ca6dce014f0cfe3ab177de383bc34b980fa4",
     "godot/scripts/core/entity_directory.gd": "1b1eb7ab8b145dfbfce6f2558a7e71b9cef5fc1601dcb4355f73e4dc7580ffbf",
@@ -45379,7 +45403,7 @@
     "godot/scripts/core/underground_entry_structure.gd": "7af358c244f576419d123ae40aaa9b7bee701df4a78afe1c25b523981c988c79",
     "godot/scripts/core/underground_entry_world_bindings.gd": "f7c89ea91adbaba9e2091ad12446019848977d4af6789be3eb9f14fb4351783c",
     "godot/scripts/core/underground_level_catalog.gd": "c067c3e052db011f5b3cc1329dd676d5f01e9db7b1a2f968f5e0ad51d96b519f",
-    "godot/scripts/core/underground_locations.gd": "b27d0cbab870912ea154982b99722d8befefd4384343e0623ead0d78605ca59d",
+    "godot/scripts/core/underground_locations.gd": "9ef980e36ce1c49bf8b75621fa4b1222d8379d0d9d38dfc84f52e472b3ef2d79",
     "godot/scripts/core/underground_motion_catalog.gd": "315633cb8b3c12e1c5ee8f0d22d76cbad4132428c9a509721a565af1f5de7901",
     "godot/scripts/core/underground_motion_clock.gd": "3e0668d8afae1ba6bd1228078b60f9cada97ef94be3870f6db4c87cd0279a776",
     "godot/scripts/core/underground_phase_structure.gd": "8ca9a827a4002f5ceaf73869548ea5cb61bcc39d0cc618deab33773aca4e2a7c",
@@ -45394,10 +45418,10 @@
     "godot/scripts/core/underground_terrain.gd": "41ef346c2aa3835d24da18b2f3ffaa15a7e523178ecdc2815369c49a65ec93b8",
     "godot/scripts/core/underground_work_face.gd": "1ad3eab1c62df90f0e41c78f0ccf484f4d04b630ca825b50dedcca2a6be4f731",
     "godot/scripts/core/underground_world_retirement.gd": "9ad293e84928ff8cd5c6c3bf4c8c534577b6afea3efc1c4adf202a7c8a80dd0f",
-    "godot/scripts/core/underground_world_routes.gd": "3ba4c6b2ce77bf177e3f4afb0649cb0d526016f9b63cdeb73d3349aabd8c32d4",
+    "godot/scripts/core/underground_world_routes.gd": "97d515cfc49fb17b05f7887c74b61224b73ff7e9cdc5512da663f197534d5190",
     "godot/scripts/core/work.gd": "5fa066d25328b0c871d77c949164c5ebaec2f98fd985ddd8cd40570f866c7310"
   },
-  "registry_sha256": "e873eddb1957f4cb77d94e0807111a8d0223d8ae880f01ba1a78a90f9341e6fc",
+  "registry_sha256": "cc37468090fcd4c6df08c056203209d4dcf521fdd3d91195ab175bb35910c0a8",
   "limitations": [
     "Constructor limits alone are not joint runtime admission.",
     "Actual consumers must share the exact cold arena and charge nested coexistence before allocating.",

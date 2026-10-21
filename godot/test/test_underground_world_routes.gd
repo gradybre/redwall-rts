@@ -1899,9 +1899,33 @@ func test_an_overlapping_pending_obstacle_still_pays_its_span_proof() -> void:
 		binding._descriptor.profile_id = 2
 		binding._installation = Locations.InstallationContext.new()
 		var z: int = 10 if touching else 5
-		binding._proof = _indexed([PackedInt32Array([0, 0, z, 10, 10, z + 10]), PackedInt32Array([0, 0, 6000, 10, 10, 6010])],
-			PackedInt32Array([Space.OBSTACLE, Space.SUPPORTED_VOID]), true)
+		var boxes: Array[PackedInt32Array] = [PackedInt32Array([0, 0, z, 10, 10, z + 10])]
+		var roles: PackedInt32Array = PackedInt32Array([Space.OBSTACLE])
+		for far: int in 40:
+			boxes.append(PackedInt32Array([0, 0, 6000 + 10 * far, 10, 10, 6005 + 10 * far]))
+			roles.append(Space.SUPPORTED_VOID)
+		binding._proof = _indexed(boxes, roles, true)
 		var spent: int = binding._proof.remaining
 		assert_equal(binding._body_blocked(Vector3i.ZERO, Vector3i(0, 0, -1)), not touching, "touching %s" % touching)
 		spent -= binding._proof.remaining
 		assert_equal(spent >= 4096, not touching, "the span proof's 4096 checks, touching %s (%d)" % [touching, spent])
+
+
+func test_an_indexed_lookup_never_costs_more_than_the_full_scan() -> void:
+	"""Decision 2045 (P-2045-12 (a), the review's H1): a lookup whose band words and band rows could reach the image's
+	row count scans every row instead, at master's one check a row, so after the one build per image no scan costs more
+	than master's; and an index built by an uncharged checked rerun is forgotten (`index_rewind`), so the next charged
+	scan builds and pays for it as an unchecked run does."""
+	var boxes: Array[PackedInt32Array] = _z_rows([Vector2i(0, 100), Vector2i(6300, 6400)])
+	var roles: PackedInt32Array = PackedInt32Array([Space.SUPPORTED_VOID, Space.SUPPORTED_VOID])
+	var proof: Binding.Clearance = _indexed(boxes, roles, true)
+	var mark: Space.Volumes = proof.index_mark()
+	assert_false(proof.blocked(PackedInt32Array([0, 0, 0, 10, 10, 6400])), "nothing blocks")
+	var built: int = 1048576 - proof.remaining
+	assert_true(proof.index_mark() != null, "the first lookup built the index")
+	assert_false(proof.blocked(PackedInt32Array([0, 0, 0, 10, 10, 6400])), "every band: the full scan")
+	assert_equal(1048576 - proof.remaining - built, 2, "one check a row, as master")
+	proof.index_rewind(mark)
+	assert_true(proof.index_mark() == null, "a rewind to before the build forgets it")
+	proof.index_rewind(proof.index_mark())
+	assert_true(proof.index_mark() == null, "rewinding to the present changes nothing")

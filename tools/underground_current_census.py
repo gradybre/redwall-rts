@@ -92,7 +92,7 @@ def delta(before: str, after: str) -> dict:
 
 EVIDENCE = Path("docs/validation/evidence/underground-memory-census-2026-10-06")
 REVIEWED = EVIDENCE / "reviewed-deltas.json"
-REVIEWED_SHA = "71f4927e499bcb0d0bbb6374c736938a3e6f93e612b768b70b35d7ca09346a42"
+REVIEWED_SHA = "b941f3ef9499fea2e989db29d16ac8ac31d1c0e9a27293cf46a5a9186c6338c6"
 # ADR1217 step 5: the runtime Frontier is the claw bundle's (same row census as qualified-stone-v5's).
 # ADR1229: the mounted T1-T6 bundle's Frontier (ADR1217 step 5 mounted qualified-claw-v6's).
 # DEC-059 (P3): qualified-stairs-v9, the same rows with T1-T6 fastened in 5,640 mWU.
@@ -200,13 +200,16 @@ def locations_controls(memory, index: dict) -> dict:
     require(members.get("_landing_sorted") == "PackedInt64Array"
             and re.findall(r"^\t_landing_sorted\.resize\((.+)\)$", source, re.M) == ["PASS_LANDINGS"]
             and "var _sources_key: PackedInt64Array = PackedInt64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])" in source
-            and "var _near_hull: PackedInt32Array = PackedInt32Array([0, 0, 0, 0, 0, 0])" in source,
-            "decision 2045 pass and operation keys")
+            and "var _near_hull: PackedInt32Array = PackedInt32Array([0, 0, 0, 0, 0, 0])" in source
+            and members.get("_near") == "PackedInt32Array" and members.get("_near_count") == "int"
+            and re.findall(r"^\t_near\.resize\((.+)\)$", source, re.M) == ["NEAR_ROWS"],
+            "decision 2045 pass and operation keys, the record image's near rows")
+    near = memory.resolve(index, "underground_locations", "NEAR_ROWS")
     parts = memory.resolve(index, "underground_connector_catalog", "MAX_PARTS")
     landings = memory.resolve(index, "underground_locations", "PASS_LANDINGS")
     numeric = sum(WIDTH[kind] for kind in added.values()) + 4 * 6 \
         + sum(WIDTH[kind] for kind in passes.values()) + 4 * 6 * parts + 8 * 8 + 8 * parts + 4 * 7 * landings + 8 * 5 \
-        + 8 * landings + 8 * 12 + 4 * 6
+        + 8 * landings + 8 * 12 + 4 * 6 + 4 * near + 8
     context = packet(memory, index, relative, "ContactRetirementContext")
     return {"carry_and_air_controls_bytes": numeric, "contact_retirement_context_numeric_bytes": context,
             "bytes": numeric + context,
@@ -295,7 +298,7 @@ def world_routes_cold(memory, index: dict) -> dict:
     changes = 4 * stride * memory.resolve(index, "underground_geometry_journal", "CAPACITY")
     cold = memory.resolve(index, "underground_world_routes", "COLD_BYTES")
     shared = memory.resolve(index, "underground_budget", "COLD_BYTES")
-    require(changes == 1792 and cold == 447232 and cold <= shared, "WorldRoutes cold lease inside the shared arena")
+    require(changes == 1792 and cold == 447492 and cold <= shared, "WorldRoutes cold lease inside the shared arena")
     return {"staged_change_bytes": changes, "world_routes_cold_bytes": cold, "shared_cold_bytes": shared}
 
 

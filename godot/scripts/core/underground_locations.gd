@@ -32,6 +32,8 @@ const I32_FIELDS: int = 22
 const I64_FIELDS: int = 2
 const ROW_BYTES: int = 106
 const MAX_LOCATIONS: int = 4096 # An engineering allocation ceiling, not a player room limit.
+## Decision 2045 (P-2045-13 (a)): the most image rows `_near` keeps, one int32 each (a larger image is scanned whole).
+const NEAR_ROWS: int = Budget.REGION_CAPACITY + Budget.SOURCE_CAPACITY
 const STORAGE_CELL_U: int = 2048 # Existing 2m placement-pile identity, with a real floor namespace.
 const WORLD_COPY_CONTROL_BYTES: int = 256 # Private116B record plus guards coexist with the admitted observation.
 const RESOLVE_CONTROL_BYTES: int = 512 # Caller frame36B/ref8B plus bounded scalar lookup frames; no image or array allocation.
@@ -393,9 +395,12 @@ const PASS_LANDINGS: int = 64 # M5's 41 LANDING regions; a variant with more tak
 var _landing_sorted: PackedInt64Array = PackedInt64Array() # Sized at configure.
 var _remaining: int = 0
 var _snapshot: Space.Snapshot = null
-## Decision 2045 (P-2045-13 (a)): the hull of the record whose image `_record_geometry_refusal` indexed (see
-## `_index_record_image`); fixed scratch, its rows a local of that call.
+## Decision 2045 (P-2045-13 (a)): the record image's rows near the record. `_record_obstacles_refusal` already reads
+## every row of the record's image; it keeps, ascending, those meeting the hull of the record's envelope, support and
+## air (`_near`, `_near_count`; -1 when not kept), and `_covered` reads only those. Sized once at configure.
 var _near_hull: PackedInt32Array = PackedInt32Array([0, 0, 0, 0, 0, 0])
+var _near: PackedInt32Array = PackedInt32Array()
+var _near_count: int = -1
 var _region: Owner.Region = Owner.Region.new()
 var _record: Record = Record.new()
 var _math: IntMath.IntResult = IntMath.IntResult.new()
@@ -466,6 +471,7 @@ func _allocate_banks(capacity: int, arena_bytes: int) -> void:
 	_landing_boxes.resize(7 * PASS_LANDINGS)
 	_landing_key.resize(5)
 	_landing_sorted.resize(PASS_LANDINGS)
+	_near.resize(NEAR_ROWS)
 	_live.allocate(capacity, _air_slots)
 	_stage.allocate(capacity, _air_slots)
 
@@ -716,9 +722,8 @@ func wire_bytes() -> int:
 
 
 func cold_peak_bytes() -> int:
-	"""One complete snapshot plus two half-limit fragment arrays and bounded box scratch, and (decision 2045,
-	P-2045-13 (a)) the record image's row index, one int32 a row."""
-	return 72 * _domain._regions + 16 * _domain._regions + 4 * _domain._regions + 384 if _domain != null else 0
+	"""One complete snapshot plus two half-limit fragment arrays and bounded box scratch."""
+	return 72 * _domain._regions + 16 * _domain._regions + 384 if _domain != null else 0
 
 
 func is_live_location(location: Vector2i) -> bool:
@@ -2066,15 +2071,13 @@ func _record_geometry_refusal(record: Record) -> StringName:
 		code = _survey_for(record)
 	if code != &"" or _carry_geometry:
 		return code
-	var near: PackedInt32Array = PackedInt32Array() # Decision 2045 (P-2045-13 (a)): this image's rows near the record.
-	if not _index_record_image(record, near): return &"LOCATION_OPERATION_BUDGET"
-	code = _record_obstacles_refusal(record, near)
+	code = _record_obstacles_refusal(record)
 	if code == &"": code = _air_obstacles_refusal(record)
 	if code != &"": return code
-	if not _covered(record.envelope, Space.SUPPORTED_VOID, near) or not _covered(record.support, Space.SUPPORT, near):
+	if not _covered(record.envelope, Space.SUPPORTED_VOID) or not _covered(record.support, Space.SUPPORT):
 		return &"LOCATION_COVERAGE_MISSING" if _remaining >= 0 else &"LOCATION_OPERATION_BUDGET"
 	for index: int in record.air_count:
-		if not _covered(_air_box_at(record, index), Space.SUPPORTED_VOID, near):
+		if not _covered(_air_box_at(record, index), Space.SUPPORTED_VOID):
 			return &"LOCATION_COVERAGE_MISSING" if _remaining >= 0 else &"LOCATION_OPERATION_BUDGET"
 	return &""
 
@@ -2103,48 +2106,53 @@ func _air_obstacles_refusal(record: Record) -> StringName:
 	return &""
 
 
-func _record_obstacles_refusal(record: Record, near: PackedInt32Array) -> StringName:
+func _record_obstacles_refusal(record: Record) -> StringName:
 	"""All blockers remain authoritative; only the exact original pending prism can receive its physical proof.
-	Decision 2045 (P-2045-13 (a)): only the image's rows near the record (`near`), in row order."""
+	Decision 2045 (P-2045-13 (a)): the same scan keeps the rows near the record for `_covered` (`_keep_near`)."""
 	var rows: Space.Volumes = _snapshot.volumes
-	_check_near(record.envelope, near)
-	for row: int in near:
+	_begin_near(record)
+	for row: int in rows.role.size():
 		if not _spend():
+			_near_count = -1
 			return &"LOCATION_OPERATION_BUDGET"
+		_keep_near(rows, row)
 		if rows.role[row] in BLOCKING_ROLES and Space.overlaps(record.envelope, rows.box_at(row)) \
 				and not _loaded_workpiece_volume(rows, row):
 			var code: StringName = _pending_entry_record_refusal(record, row)
-			if code != &"": return code
+			if code != &"":
+				_near_count = -1
+				return code
 	return &""
 
 
-func _index_record_image(record: Record, near: PackedInt32Array) -> bool:
-	"""Decision 2045 (P-2045-13 (a)): one walk of the record's image, one check a row, keeping in `near`, ascending,
-	the rows that meet the hull of the record's envelope, support and air. A box inside the hull overlaps only rows
-	that meet the hull, so nothing `Space.overlaps` accepts is left out."""
-	var rows: Space.Volumes = _snapshot.volumes
-	if not _spend(rows.role.size()): return false
+func _begin_near(record: Record) -> void:
+	"""Decision 2045: the record's hull, and no row kept yet (-1 when the image has more rows than `_near` holds)."""
 	for axis: int in 3:
 		_near_hull[axis] = mini(record.envelope[axis], record.support[axis])
 		_near_hull[axis + 3] = maxi(record.envelope[axis + 3], record.support[axis + 3])
 		for index: int in record.air_count:
 			_near_hull[axis] = mini(_near_hull[axis], record.air[6 * index + axis])
 			_near_hull[axis + 3] = maxi(_near_hull[axis + 3], record.air[6 * index + axis + 3])
-	for row: int in rows.role.size():
-		if rows.lo_x[row] < _near_hull[3] and _near_hull[0] < rows.hi_x[row] and rows.lo_y[row] < _near_hull[4] \
-				and _near_hull[1] < rows.hi_y[row] and rows.lo_z[row] < _near_hull[5] and _near_hull[2] < rows.hi_z[row]:
-			near.append(row)
-	return true
+	_near_count = 0 if _snapshot.volumes.role.size() <= _near.size() else -1
 
 
-func _check_near(box: PackedInt32Array, near: PackedInt32Array) -> void:
-	"""With the cache checks on, unspent: the hull holds `box`, and every row that overlaps `box` is in `near`."""
+func _keep_near(rows: Space.Volumes, row: int) -> void:
+	"""Keep `row` when it meets the hull (a row's box is valid: `Volumes.append` admits no other)."""
+	if _near_count >= 0 and rows.lo_x[row] < _near_hull[3] and _near_hull[0] < rows.hi_x[row] \
+			and rows.lo_y[row] < _near_hull[4] and _near_hull[1] < rows.hi_y[row] \
+			and rows.lo_z[row] < _near_hull[5] and _near_hull[2] < rows.hi_z[row]:
+		_near[_near_count] = row
+		_near_count += 1
+
+
+func _check_near(box: PackedInt32Array) -> void:
+	"""With the cache checks on, unspent: the hull holds `box`, and every row that overlaps `box` was kept."""
 	if not CacheChecks.enabled: return
 	if not Space.contains_box(_near_hull, box):
 		CacheChecks.report("record image index", "a queried box leaves the record's hull")
 	var kept: int = 0
 	for row: int in _snapshot.volumes.role.size():
-		if kept < near.size() and near[kept] == row:
+		if kept < _near_count and _near[kept] == row:
 			kept += 1
 		elif Space.overlaps(box, _snapshot.volumes.box_at(row)):
 			CacheChecks.report("record image index", "row %d overlaps a box it was not kept for" % row)
@@ -2268,16 +2276,18 @@ func _installation_snapshot_into(record: Record, physical: Sites, site: Vector2i
 	return _owner.prepared_snapshot_leased_into(_owner_token, image, _cold, _cold_token)
 
 
-func _covered(box: PackedInt32Array, role: int, near: PackedInt32Array) -> bool:
+func _covered(box: PackedInt32Array, role: int) -> bool:
 	"""Exact disjoint subtraction detects interior holes; sampled corners are insufficient.
-	Decision 2045 (P-2045-13 (a)): only the image's rows near the record (`near`, which holds every row meeting
-	`box`), in row order. Every fragment lies inside `box`; a row that misses `box` re-emits each fragment unchanged."""
+	Decision 2045 (P-2045-13 (a)): with the record's rows kept (`_near_count` >= 0, every row meeting `box`), only
+	those, in row order. Every fragment lies inside `box`; a row that misses `box` re-emits each fragment unchanged."""
 	var pending: Array[PackedInt32Array] = [box]
 	var rows: Space.Volumes = _snapshot.volumes
-	_check_near(box, near)
-	for row: int in near:
+	var near: bool = _near_count >= 0
+	if near: _check_near(box)
+	for at: int in _near_count if near else rows.role.size():
 		if not _spend():
 			return false
+		var row: int = _near[at] if near else at
 		if rows.role[row] != role:
 			continue
 		var next: Array[PackedInt32Array] = []

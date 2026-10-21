@@ -48,7 +48,7 @@ const INDEX_BANDS: int = 64
 const INDEX_WORDS: int = 256 # Bits for Budget.REGION_CAPACITY + Budget.SOURCE_CAPACITY rows (a test pins the sum).
 const INDEX_ROWS: int = 32 * INDEX_WORDS
 const INDEX_SETS: int = 2
-const INDEX_BYTES: int = 4 * INDEX_WORDS * INDEX_BANDS + 4 * INDEX_WORDS * INDEX_SETS
+const INDEX_BYTES: int = 4 * INDEX_WORDS * INDEX_BANDS + 4 * INDEX_WORDS * INDEX_SETS + 4 * INDEX_BANDS + 4
 const COLD_BYTES: int = SNAPSHOT_BYTES + 48 * FRAGMENT_CAPACITY + 28 * CHANGE_CAPACITY + INDEX_BYTES + 1024
 const SOURCE_PASS_CHECKS: int = Budget.REGION_CAPACITY + Budget.SOURCE_CAPACITY
 const REACH_SCOPE_CHECKS: int = 1024 # Fixed source/digest/Domain leaves, charged at both query boundaries.
@@ -177,6 +177,7 @@ class Clearance extends RefCounted:
 	var set_b: PackedInt32Array = PackedInt32Array() # `_body_blocked` and `_solid_contacts_covered`'s outer scan.
 	var query: PackedInt32Array = PackedInt32Array()
 	var _bands: PackedInt32Array = PackedInt32Array()
+	var _band_prefix: PackedInt32Array = PackedInt32Array()
 	var _index_volumes: Space.Volumes = null
 	var _index_rows: int = -1
 	var _index_words: int = 0
@@ -228,8 +229,16 @@ class Clearance extends RefCounted:
 			return 0 if n > 0 else -1
 		if (_index_volumes != image.volumes or _index_rows != n) and not _build_index(n):
 			return SCAN_SPENT
-		if not _select_bands(bounds, out):
+		var span: Vector2i = _band_span(bounds)
+		if span.y < span.x:
+			if Profiles.CacheChecks.enabled: _check_selection(bounds, PackedInt32Array())
+			return -1
+		if _index_words * (span.y - span.x + 1) + _band_prefix[span.y + 1] - _band_prefix[span.x] >= n:
+			out.resize(0) # The lookup could cost a full scan's rows: scan every row, as master does.
+			return 0
+		if not spend(_index_words * (span.y - span.x + 1)):
 			return SCAN_SPENT
+		_select_bands(span, out)
 		if Profiles.CacheChecks.enabled:
 			_check_selection(bounds, out)
 		return next_row(out, -1)
@@ -263,13 +272,18 @@ class Clearance extends RefCounted:
 		for row: int in n:
 			_index_low = mini(_index_low, rows.lo_z[row])
 			_index_high = maxi(_index_high, rows.hi_z[row])
-		_index_width = maxi(1, ceili(float(_index_high - _index_low) / INDEX_BANDS))
+		@warning_ignore("integer_division") var width: int = (_index_high - _index_low + INDEX_BANDS - 1) / INDEX_BANDS
+		_index_width = maxi(1, width)
 		_index_words = words
 		_bands.resize(INDEX_BANDS * words)
 		_bands.fill(0)
+		_band_prefix.resize(INDEX_BANDS + 1)
+		_band_prefix.fill(0)
 		for row: int in n:
 			if not _bin_row(rows, row):
 				return false
+		for band: int in INDEX_BANDS:
+			_band_prefix[band + 1] += _band_prefix[band]
 		_index_volumes = rows
 		_index_rows = n
 		return true
@@ -285,52 +299,48 @@ class Clearance extends RefCounted:
 		var bit: int = 1 << (row & 31)
 		for band: int in range(first, last + 1):
 			_bands[band * _index_words + (row >> 5)] |= bit
+			_band_prefix[band + 1] += 1 # Rows a band holds; summed into a prefix after the last row.
 		return true
 
-	func _select_bands(bounds: PackedInt32Array, out: PackedInt32Array) -> bool:
-		"""OR the bands the query's half-open z range meets, clamped to the image's; an invalid query (which
-		`Space.overlaps` never accepts) or one outside the image selects nothing."""
-		out.resize(_index_words)
+	func _band_span(bounds: PackedInt32Array) -> Vector2i:
+		"""The bands the query's half-open z range meets, clamped to the image's: (first, last), or last < first for
+		none (an invalid query, which `Space.overlaps` never accepts, or one outside the image)."""
 		var low: int = maxi(bounds[2], _index_low) if bounds.size() == 6 else 0
 		var high: int = mini(bounds[5], _index_high) if bounds.size() == 6 else 0
 		if not Space.valid_box(bounds) or low >= high:
-			out.fill(0)
-			return spend(_index_words)
+			return Vector2i(0, -1)
 		@warning_ignore("integer_division") var first: int = (low - _index_low) / _index_width
 		@warning_ignore("integer_division") var last: int = (high - 1 - _index_low) / _index_width
-		if not spend(_index_words * (last - first + 1)):
-			return false
+		return Vector2i(first, last)
+
+	func _select_bands(span: Vector2i, out: PackedInt32Array) -> void:
+		"""OR the bands of `span` into `out`, one word at a time (charged by the caller)."""
+		out.resize(_index_words)
 		for word: int in _index_words:
 			var bits: int = 0
-			for band: int in range(first, last + 1):
+			for band: int in range(span.x, span.y + 1):
 				bits |= _bands[band * _index_words + word]
 			out[word] = bits
-		return true
+
+	func index_mark() -> Space.Volumes:
+		"""Which image the index holds now (null: none), so a checked rerun that is not charged can drop an index it
+		built (`index_rewind`) and the next charged scan builds and pays for it, as an unchecked run does."""
+		return _index_volumes
+
+	func index_rewind(mark: Space.Volumes) -> void:
+		"""Forget an index built since `mark` was taken (decision 2045)."""
+		if mark == null:
+			_index_volumes = null
+			_index_rows = -1
 
 	func _check_selection(bounds: PackedInt32Array, selected: PackedInt32Array) -> void:
 		"""With the cache checks on, unspent: a row the selection left out must not overlap the query."""
 		for row: int in image.volumes.role.size():
-			if (selected[row >> 5] >> (row & 31)) & 1 == 1:
+			if not selected.is_empty() and (selected[row >> 5] >> (row & 31)) & 1 == 1:
 				continue
 			read_box(row, cut)
 			if Space.overlaps(bounds, cut):
 				Profiles.CacheChecks.report("route image index", "row %d overlaps a query it was not selected for" % row)
-
-	func fragments_hull_into(out: PackedInt32Array) -> bool:
-		"""The hull of the open fragments, one check a fragment: every row that can change them overlaps it (an
-		empty set is an invalid box, which selects nothing)."""
-		if not spend(count):
-			return false
-		if count == 0:
-			out.fill(0)
-			return true
-		for axis: int in 6:
-			out[axis] = fragments[axis]
-		for fragment: int in range(1, count):
-			for axis: int in 3:
-				out[axis] = mini(out[axis], fragments[fragment * 6 + axis])
-				out[axis + 3] = maxi(out[axis + 3], fragments[fragment * 6 + axis + 3])
-		return true
 
 	func blocked(bounds: PackedInt32Array, supporting: bool = false) -> bool:
 		"""Omitted room markers never suppress actual physical walls, unfinished work or protected access.
@@ -353,18 +363,22 @@ class Clearance extends RefCounted:
 		return false
 
 	func start(bounds: PackedInt32Array) -> void:
-		"""Keep the whole requested volume, including authored negative contact residuals."""
+		"""Keep the whole requested volume, including authored negative contact residuals. Decision 2045: an indexed
+		proof's `query` keeps it too; every later fragment lies inside it, since a subtraction only splits or drops
+		fragments. (Unindexed packets, the bindings' TimberClearance among them, have no `query`.)"""
 		count = 1
 		for axis: int in 6:
 			fragments[axis] = bounds[axis]
+		if indexed:
+			for axis: int in 6:
+				query[axis] = bounds[axis]
 
 	func subtract_role(role: int, limit: PackedInt32Array = PackedInt32Array()) -> bool:
 		"""Intersect optional authored stance with actual support; a stance is never support by itself.
-		Decision 2045 (P-2045-12 (a)): only rows the index selects for the open fragments' hull, in row order. A row
-		that misses the hull misses every fragment, and subtracting it re-emits each fragment unchanged, in order."""
+		Decision 2045 (P-2045-12 (a)): only rows the index selects for the box `start` was given, in row order. Every
+		open fragment lies inside it, so a row that misses it misses every fragment, and subtracting such a row
+		re-emits each fragment unchanged, in order."""
 		var rows: Space.Volumes = image.volumes
-		if indexed and not fragments_hull_into(query):
-			return false
 		var next: int = first_row(query, set_a)
 		while next != -1:
 			if next == SCAN_SPENT or not spend():
@@ -1355,9 +1369,11 @@ func _heading_first_refusal(profile: int, edge: Routes.Edge) -> StringName:
 	var code: StringName = _segment_headings_refusal(edge)
 	if code != &"WORLD_ROUTE_PROFILE_HEADING" or not Profiles.CacheChecks.enabled: return code
 	var spent: int = _proof.remaining
+	var mark: Space.Volumes = _proof.index_mark() # Decision 2045: an index built here is not charged either.
 	if _profile_segments_refusal(edge) == &"" and _proof.error == &"":
 		Profiles.CacheChecks.report("heading first", "edge %d row %d" % [edge.ref.x, profile])
 	_proof.remaining = spent # The checked proof is not charged: a checked run spends what an unchecked one does.
+	_proof.index_rewind(mark)
 	_proof.error = &""
 	return code
 
@@ -1400,12 +1416,14 @@ func _stair_edge_refusal(profile: int, edge: Routes.Edge) -> StringName:
 	if code == &"": code = _endpoint_observation_refusal(edge.to_location, _point(edge, 1))
 	if code == &"" and (not _carried or Profiles.CacheChecks.enabled):
 		var spent: int = _proof.remaining
+		var mark: Space.Volumes = _proof.index_mark() # Decision 2045: an index built here is not charged either.
 		var decks: StringName = _stair_decks_refusal(motion, program, first, edge.room)
 		if not _carried: code = decks
 		elif decks != &"" and _proof.error == &"":
 			Profiles.CacheChecks.report("carried stair decks", "edge %d row %d" % [edge.ref.x, profile])
 		if _carried: # The checked proof is not charged: a checked run spends what an unchecked one does.
 			_proof.remaining = spent
+			_proof.index_rewind(mark)
 			_proof.error = &""
 	return _stair_bodies_refusal(first, edge.room) if code == &"" else code
 
@@ -1452,6 +1470,7 @@ func _stair_bodies_refusal(first: Vector3i, room: Vector2i) -> StringName:
 		if code != &"": return code
 		if _carried and not Profiles.CacheChecks.enabled: continue
 		var spent: int = _proof.remaining
+		var mark: Space.Volumes = _proof.index_mark() # Decision 2045: an index built here is not charged either.
 		var volumes: StringName = (_proof.error if _proof.error != &"" else &"WORLD_ROUTE_STAIR_BLOCKED") \
 			if _stair_blocked(room) else _stair_covered_refusal(room)
 		if not _carried:
@@ -1459,6 +1478,7 @@ func _stair_bodies_refusal(first: Vector3i, room: Vector2i) -> StringName:
 			continue
 		if volumes != &"" and _proof.error == &"": Profiles.CacheChecks.report("carried stair body", "box %d" % ordinal)
 		_proof.remaining = spent # The checked proof is not charged: a checked run spends what an unchecked one does.
+		_proof.index_rewind(mark)
 		_proof.error = &""
 	return &""
 

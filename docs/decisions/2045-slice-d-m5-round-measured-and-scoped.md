@@ -754,3 +754,81 @@ Relayed by the coordinator: Brendan answered in chat through AskUserQuestion, **
 time scale. P-2081-9 (a), **"Finish M5, then batch"**: M5 completes as briefed and lands as the exact reference;
 nothing changes for pacing here. Master is `163cf5b3` (#278: twelve CI shards), merged in as `47d0a115`. Indexed in
 `docs/handoff/RULINGS.md`.
+
+## Fourth build phase (2026-10-20/21): level 1 under the bound; a level-1 save does not load
+
+**Where it stands.** With P-2045-12 (a) and -13 (a) built, and one more exact fix in this lane's Contacts code, **the
+M5 flight reaches level 1 under today's bound**. The chain ends `ENTRY_KITCHEN_UNBUILT` at tick 92,560, as the unbounded
+runs did, and every cold operation fits. Outcomes are unchanged: the dig benchmark's SHA trace is byte-identical
+before and after each fix. **But a settlement saved after about tick 78,000 cannot be loaded.** The Space owner's
+load validation checks every changed row against every region, so its charge grows with the square of the regions:
+1,280,969 at tick 80,000 and 1,768,997 at the finish. That code is outside this lane's claims (P-2045-14 below). It
+also blocks the checkpoint-based whole-flight suites from tick 80,000 on, so the lane stops here as the brief asks.
+
+### Built
+
+| Commit | What |
+|---|---|
+| `47d0a115` | Merge of master `163cf5b3` (#278: twelve CI shards). Source pins regenerated; the slow tier keeps both notes |
+| `066e787e` | The P-2045-12/-13 rulings and Slice C's six conditions, here and in RULINGS.md |
+| `1c3d8847` | **P-2045-12 (a).** `Clearance` builds a row index once per proof image: 64 bands over the image's own z range, each a bitset of the rows whose half-open z range meets it (`INDEX_WORDS` 256 bits for `REGION_CAPACITY + SOURCE_CAPACITY` rows). `blocked`, `subtract_role`, `_body_blocked` and `_solid_contacts_covered` visit only the rows the bands select, ascending (`first_row`/`next_row`). `subtract_role` selects by its open fragments' hull, since a row that misses the hull re-emits every fragment unchanged. Only WorldRoutes' own proof turns the index on, so the work face and room approach scan as before. **P-2045-13 (a).** `_record_geometry_refusal` walks the record's image once (`_index_record_image`) and keeps, ascending, the rows that meet the hull of its envelope, support and air. `_record_obstacles_refusal` and `_covered` read only those |
+| `6a4ba075` | **An exact cost fix in this lane's Contacts code** (2044's claim 13: the deep stations' reach). `_legs_refusal` checks a deep station's stair legs (up to about 45 a way on landing 4), and each leg was followed by a `_scope_leaf` (2,048 checks). The leg check (`static_profile_edge_refusal`) is a pure read, and every caller has just passed a scope leaf. So the scope cannot change between legs, and one leaf after the last leg gives the same answer as one after each. With the cache checks on, the skipped leaves run unspent and a refusal is reported. Contacts on landing 4: 1,105,317 → 921,265 |
+| `4d5c79c3` | **Fix:** `fb37ffff`'s installer progress marker overflowed the foreman's saved 32-bit `_last_install_stage` at installer stage 8 and up, so a save mid-haul refused (`ENTRY_SAVE_SHAPE`). It is now packed by width and pinned by a test |
+| `9dd5e805` | **Fix:** the entry progress record's section-6 bound was ADR 1218's 4,591 bytes, though decision 2044 raised `MAX_WIRE_BYTES` to 11,307. M5's 150-task stage could not be saved (`SAVE_S6_ELEMENT_COUNT`). Registry, schema and capacity audit regenerated |
+| `02b54943` | The census pass. Reviewed deltas; `world_routes_cold` 379,648 → 447,232 (the index's `INDEX_BYTES` 67,584 inside the cold lease); Locations controls +640; the M5 work area's endpoints +240; the bindings reserve +23,039; the memory pack regenerated. **One ledger row, +23,919 B**: live 106,145,285, headroom 43,854,715 (26,897,275 with decision 1880 folded in), slice G's remainder 3,631,995 |
+| `3cd7c13b` | **P-2045-8 (a), continued.** A cold load's Locations re-proof had no landing scope, so it re-derived every Placement row's LANDING datums for every record, twice. It now keeps them under a pass serial of its own, checked against the per-record scan under the cache checks. Loading the finish: 1,053,649 → 653,361 |
+
+**Slice C's conditions, met:**
+
+1. **Row order.** Candidates come from a bitset, walked ascending.
+2. **Superset of `Space.overlaps`.** Two positive-volume boxes that overlap in z share an integer z, and both name that z's band. A query whose box is invalid, or which lies outside the image, selects nothing (`Space.overlaps` accepts no such pair).
+   - Fixture: `test_the_row_index_keeps_every_overlapping_row_on_its_band_boundaries`. Rows touch the query's faces at the band boundaries 200 and 300, and one row straddles a boundary. Every overlapping row is selected, and `blocked`, `covered` and the fragments equal the full scan's.
+   - The cache checks also verify every selection in every test run (`_check_selection`, unspent), and every Locations index use (`_check_near`).
+3. **Spend.** The only outcome that changes is a scan that ran out of budget row by row, which now reaches its real answer (`test_the_row_index_charges_its_work_and_only_answers_where_the_full_scan_ran_out`). Every scenario under the bound is byte-identical:
+   - The dig benchmark's SHA trace (`REDWALL_DIG_TRACE`, 11,454 lines over the room loop and the entry run) is byte-identical across three revisions: before the index (`47d0a115`), with it (`1c3d8847`), and with the Contacts fix (`6a4ba075`).
+   - The unbounded M5 flight ends on the same tick with the same refusal before and after the index.
+   - The checkpoints were regenerated because their sources changed. The spare chain's points fall on the same ticks as before.
+4. **Honest charge.** Build: one check a row for the extent pass, one a band word for the clear, and one a band a row spans. Lookup: the band words it ORs, plus one check a candidate visited. The index is rebuilt when the image's `Volumes` object or row count changes; each `_begin_proof` allocates a new `Clearance` with a new snapshot, and the carry path never changes the image. Memory is a cold slice inside WorldRoutes' `COLD_BYTES`, reviewed in the census (ADR 1212).
+5. **`_endpoint_observation_refusal`** reads no image rows. Its charges (51 answered, 256 fresh) are not scans, so the index does not touch them, and the memo and a fresh observation still spend the same. `test_underground_route_memos.gd` (29 tests, the differential replay at every budget) is green.
+6. **The 4096 span proof.** `test_an_overlapping_pending_obstacle_still_pays_its_span_proof`: an OBSTACLE row that overlaps the body under an excusing profile still pays the 4,096 checks; a face-touching row is not selected.
+
+### Measured: the whole flight under the bound (cache checks off, real schedule, real hauls)
+
+| Owner | Peak | Where |
+|---|---:|---|
+| WorldRoutes | 650,174 (62 %) | the finish (was 1,395,013 on landing 4) |
+| Locations | 872,565 (83 %) | landing 4 (was 1,148,976) |
+| Bindings, entry | 971,519 (92.7 %) | module 1's sill (unchanged) |
+| Bindings, timber clearance | 404,068 | module 0's sill (unchanged) |
+| Contacts | 921,265 (88 %) | landing 4 (was 1,105,317) |
+
+The flight ends `ENTRY_KITCHEN_UNBUILT` at tick 92,560 under the real bound. Its stage ticks, plans and finish are the
+unbounded runs', so §"The flight's ticks by kind" stands.
+
+### Loading a level-1 save (the cold load, measured on the committed flight checkpoints)
+
+| Point | Space owner restore | Locations re-proof |
+|---|---:|---:|
+| tick 75,000 | 955,979 | 405,538 |
+| tick 80,000 | **1,280,969** | 552,698 |
+| tick 90,000 | **1,392,493** | 545,560 |
+| the finish (92,559) | **1,768,997** | 653,361 (was 1,053,649) |
+
+The Space owner's figure is almost all `_overlap_refusal` (1,725,282 at the finish). A load marks every row changed
+(`_mark_loaded_changes`), and each changed row is compared with every validation region. The live chain never pays
+this: it validates only the rows each stage changes. Nothing else in the load is over the bound.
+
+### Everything needed outside the claims (this phase)
+
+| # | File and function | Why | Proposal |
+|---|---|---|---|
+| O-12 | `underground_space_owner.gd` `_overlap_refusal` (the Space owner; no lane holds it for Slice D) | A load's overlap validation is quadratic in the regions. A save after about tick 78,000 cannot be loaded, and the whole-flight checkpoints from tick 80,000 on (the last three segments, the finish suites) cannot be used | P-2045-14 |
+
+### Proposals
+
+**P-2045-14 — The Space owner's load validation.**
+- **(a) The same row index for `_overlap_refusal`.** Bin the staged regions by z once per validation. For each changed row, compare only the regions its z range meets, in the same ascending order of the validation heap, so the same pairs are tested and the same first refusal is returned. Charge it the way P-2045-12 is charged, and keep the full scan under the cache checks. Slice C's six conditions apply as written. The estimated charge is about 1,300 changed rows times one landing's neighbours, roughly 0.1–0.2 M (not measured).
+- (b) Have a load skip the pairwise validation for rows the save already proved disjoint. Not exact: a save's bytes are untrusted input.
+- (c) A larger load budget. Ruled out (no `MAX_CHECKS` raise).
+
+**Recommendation: (a)**, by whichever lane the Space owner's code belongs to, or this lane if Brendan clears it.

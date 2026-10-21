@@ -1,8 +1,8 @@
 extends "res://test/underground_flight_case.gd"
-## Decision 2045: the whole M5 flight's segment 15, tick 70000 to tick 75000, restored along the way (underground_flight_case.gd).
+## Decision 2045: the whole M5 flight's segment 15, tick 68750 to tick 70000, restored along the way (underground_flight_case.gd).
 
 
 func test_segment_15_restored_along_the_way_saves_as_the_uninterrupted_flight() -> void:
-	"""From tick 70000 to tick 75000: the runtime and route owners restored on their periods, the save there equals the committed
+	"""From tick 68750 to tick 70000: the runtime and route owners restored on their periods, the save there equals the committed
 	underground_flight checkpoint byte for byte."""
 	_assert_flight_segment(15)

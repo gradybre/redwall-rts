@@ -65,10 +65,11 @@ const SPARE_LIMIT: int = 8000
 ## Decision 2045: the whole M5 flight's points. Each tick_<n> is saved when tick n completes, FINISH_POINT on the tick
 ## the entry stops (92,560 today). One segment is replayed per suite (test_underground_flight_<k>.gd: the previous
 ## point loaded, the runtime and route owners restored along the way, the next point compared byte for byte), so each
-## suite replays a stretch that fits CI's per-suite budget (the three longest stretches split at 57,500, 67,500 and 82,500).
+## suite replays a stretch that fits CI's per-suite budget (the dense cube hand-overs of
+## 55,000-60,000, 67,500-70,000 and 82,500-85,000 split further).
 ## test_underground_m5_rest_wait.gd starts at tick 45,000.
 const FLIGHT_TICKS: PackedInt32Array = [6000, 12000, 18000, 24000, 30000, 36000, 41000, 45000, 50000, 55000, 57500,
-	60000, 65000, 67500, 70000, 75000, 80000, 82500, 85000, 90000]
+	60000, 65000, 67500, 68750, 70000, 75000, 80000, 82500, 83250, 85000, 90000]
 const FINISH_POINT: String = "finish"
 ## No whole flight runs past this tick (the M5 flight stops at 92,560).
 const FLIGHT_LIMIT: int = 120000

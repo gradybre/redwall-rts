@@ -1,6 +1,6 @@
 {
 	"engine": "4.7.2.stable",
-	"fingerprint": "d1f7ed489d583f8278023414c07e7bb755777f0e4ddd4814da3cdc4e28ba7f6b",
+	"fingerprint": "df26d6904f8b58377e6a81e19fe385092ae1a5319197bb69187bb2d5553d35d1",
 	"name": "underground_flight",
 	"points": {
 		"finish": {
@@ -93,6 +93,12 @@
 			"sha256": "194308c724bcf787b33d02762d3180b0c1ef0d80b0e4223c53d3bf56a6a41db2",
 			"tick": 67500
 		},
+		"tick_068750": {
+			"bytes": 67124230,
+			"file": "underground_flight-tick_068750.rwlsave.gz",
+			"sha256": "c87144ee5d3bf3e2c2461da255835591072a98a1ce1afc082ee8d57c6a497409",
+			"tick": 68750
+		},
 		"tick_070000": {
 			"bytes": 67124222,
 			"file": "underground_flight-tick_070000.rwlsave.gz",
@@ -116,6 +122,12 @@
 			"file": "underground_flight-tick_082500.rwlsave.gz",
 			"sha256": "a3f13a9341aa111578a3d3dadad5de566932a6e96186afe7cdb79cdcf31ddbfa",
 			"tick": 82500
+		},
+		"tick_083250": {
+			"bytes": 67122614,
+			"file": "underground_flight-tick_083250.rwlsave.gz",
+			"sha256": "dc927d5bd4804d7493884db459a94e096a1de80b80451ab6378c79f4f69fd095",
+			"tick": 83250
 		},
 		"tick_085000": {
 			"bytes": 67123543,
@@ -398,7 +410,7 @@
 		"res://scripts/systems/settlement_system.gd": "6494c6cab8899780c0708ad88086b9b293c69244807d8283cf3842ec2057e4f7",
 		"res://scripts/utils/perf_timer.gd": "6d3320c3d2c2a82912e8c55296b2566c6966c4184133216bcd7ebfd15d88446c",
 		"res://test/fixtures/autoload_clock_reset.gd": "f8966f5f6aa4f22c7989fbaa49296d17cda0dcca9d977549c38490ffb3c6ac19",
-		"res://test/fixtures/checkpoint_recipes.gd": "d03db0bebe46f8d5c46b27e29102de61c3e7b7c190cd5bfca78458778db671cb",
+		"res://test/fixtures/checkpoint_recipes.gd": "53d1045529bffa65d80edd700822e3c661efc517650d59b306651f9a72895f57",
 		"res://test/fixtures/checkpoint_store.gd": "8ebcc230c59bebf867b08f104ec7b3e0cdb124eec044ff5c5d5f2c40fc2a8bab",
 		"res://test/fixtures/underground_entry_chain.gd": "ec04e09f1493d6c5e9d03a90a3ff26de38e5a835c24a1dbc14322d921092c10d"
 	},

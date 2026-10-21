@@ -1,6 +1,6 @@
 {
 	"engine": "4.7.2.stable",
-	"fingerprint": "9c59c9b71f256224045fdf9d4d160ee423abd64c512d979706dbd56826f3336c",
+	"fingerprint": "ff5ed294c9dc3364038c32ddf5e8dff0241d7c15cb3d1c41c54eb45ece25fe37",
 	"name": "underground_spare",
 	"points": {
 		"install_0_stage_10": {
@@ -314,7 +314,7 @@
 		"res://scripts/systems/settlement_system.gd": "6494c6cab8899780c0708ad88086b9b293c69244807d8283cf3842ec2057e4f7",
 		"res://scripts/utils/perf_timer.gd": "6d3320c3d2c2a82912e8c55296b2566c6966c4184133216bcd7ebfd15d88446c",
 		"res://test/fixtures/autoload_clock_reset.gd": "f8966f5f6aa4f22c7989fbaa49296d17cda0dcca9d977549c38490ffb3c6ac19",
-		"res://test/fixtures/checkpoint_recipes.gd": "d03db0bebe46f8d5c46b27e29102de61c3e7b7c190cd5bfca78458778db671cb",
+		"res://test/fixtures/checkpoint_recipes.gd": "53d1045529bffa65d80edd700822e3c661efc517650d59b306651f9a72895f57",
 		"res://test/fixtures/checkpoint_store.gd": "8ebcc230c59bebf867b08f104ec7b3e0cdb124eec044ff5c5d5f2c40fc2a8bab",
 		"res://test/fixtures/underground_entry_chain.gd": "ec04e09f1493d6c5e9d03a90a3ff26de38e5a835c24a1dbc14322d921092c10d"
 	},

@@ -3139,3 +3139,64 @@ func test_static_room_kernel_never_borrows_synthetic_authority_publication() -> 
 	assert_true(_owner.has_prepared(), "no bank swap")
 	assert_true(_owner.abort(token), "caller can discard")
 	assert_equal(budget.release(cold), &"", "original lease retained")
+
+
+## Decision 2045 (P-2045-14 (a)): twenty rows stacked in z, each touching the next only at a face; `conflict` adds
+## an UNFINISHED row overlapping the first DRY_SOLID one from the far end of the heap.
+func _overlap_rows(conflict: bool) -> Array[Owner.Region]:
+	"""Rows for the overlap index's tests."""
+	var rows: Array[Owner.Region] = []
+	for index: int in 20:
+		var z: int = -8192 + 768 * index
+		rows.append(_region([1024 * (index % 4) - 4096, 0, z, 1024 * (index % 4) - 3072, 1024, z + 768],
+			[Space.DRY_SOLID, Space.SUPPORTED_VOID, Space.SUPPORT][index % 3], _world))
+	if conflict:
+		rows.append(_region([-4096, 0, -8000, -3072, 1024, -7800], Space.UNFINISHED, _world, 2))
+	return rows
+
+
+func _seal_with(checks: int, linear: bool, rows: Array[Owner.Region]) -> StringName:
+	"""Stage `rows` on a fresh owner whose domain allows `checks`, and seal (the validation) linearly or indexed."""
+	var owner: Owner = Owner.new(_sources)
+	assert_equal(owner.configure(_new_domain(checks), R, O), &"", "domain")
+	Owner.overlap_index_from = 1 << 30 if linear else Owner.OVERLAP_INDEX_FROM
+	var begun: Owner.Result = owner.begin_stage(owner.revision())
+	var code: StringName = begun.error
+	for region: Owner.Region in rows:
+		if code == &"": code = owner.stage_add(begun.token, region).error
+	if code == &"": code = owner.seal(begun.token)
+	Owner.overlap_index_from = Owner.OVERLAP_INDEX_FROM
+	assert_eq_index_released(owner)
+	return code
+
+
+func assert_eq_index_released(owner: Owner) -> void:
+	"""The index is a cold slice: nothing of it is held once the validation returns."""
+	assert_true(owner._overlap_bands.is_empty() and owner._overlap_set.is_empty() and owner._overlap_prefix.is_empty(),
+		"the overlap index is released")
+
+
+func test_the_overlap_index_refuses_and_admits_as_the_linear_validation() -> void:
+	"""Decision 2045 (P-2045-14 (a)): with twenty or more changed rows the validation selects each row's partners by
+	z band and visits them in heap order: face-touching rows on the band boundaries pass, an overlapping
+	contradiction found from the far end of the heap is refused, both exactly as the linear validation answers."""
+	for conflict: bool in [false, true]:
+		var rows: Array[Owner.Region] = _overlap_rows(conflict)
+		var linear: StringName = _seal_with(100000, true, rows)
+		assert_equal(_seal_with(100000, false, rows), linear, "the same answer, conflict %s" % conflict)
+		assert_equal(linear, &"SPACE_SURVEY_CONTRADICTION" if conflict else &"", "and the expected one")
+
+
+func test_the_overlap_index_admits_at_the_linear_validations_exact_cost() -> void:
+	"""Decision 2045 (Slice C's min-cost rule): the indexed validation never charges more than the linear one, so at
+	the least budget the linear validation admits, the indexed one admits too."""
+	var rows: Array[Owner.Region] = _overlap_rows(false)
+	var low: int = 1
+	var high: int = 100000
+	assert_equal(_seal_with(high, true, rows), &"", "the linear validation admits with room to spare")
+	while low < high:
+		@warning_ignore("integer_division") var middle: int = (low + high) / 2
+		if _seal_with(middle, true, rows) == &"": high = middle
+		else: low = middle + 1
+	assert_equal(_seal_with(low - 1, true, rows), &"SPACE_OPERATION_BUDGET", "one check less refuses linearly")
+	assert_equal(_seal_with(low, false, rows), &"", "the indexed validation admits at the linear cost (%d)" % low)

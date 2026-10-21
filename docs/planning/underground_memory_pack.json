@@ -20,476 +20,476 @@
         "capacity": 6144,
         "bytes": 6144,
         "resize_expression": "_region_capacity",
-        "line": 2763
+        "line": 2904
       },
       "_changed_rows": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2762
+        "line": 2903
       },
       "_header": {
         "width": 8,
         "capacity": 18,
         "bytes": 144,
         "resize_expression": "HEADER_FIELDS",
-        "line": 2760
+        "line": 2901
       },
       "_o_a": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2828
+        "line": 2969
       },
       "_o_b": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2829
+        "line": 2970
       },
       "_o_c": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2830
+        "line": 2971
       },
       "_o_d": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2831
+        "line": 2972
       },
       "_o_generation": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2824
+        "line": 2965
       },
       "_o_kind": {
         "width": 1,
         "capacity": 2048,
         "bytes": 2048,
         "resize_expression": "_source_capacity",
-        "line": 2822
+        "line": 2963
       },
       "_o_parent_generation": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2827
+        "line": 2968
       },
       "_o_parent_slot": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2826
+        "line": 2967
       },
       "_o_present": {
         "width": 1,
         "capacity": 2048,
         "bytes": 2048,
         "resize_expression": "_source_capacity",
-        "line": 2821
+        "line": 2962
       },
       "_o_revision": {
         "width": 8,
         "capacity": 2048,
         "bytes": 16384,
         "resize_expression": "_source_capacity",
-        "line": 2825
+        "line": 2966
       },
       "_o_slot": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2823
+        "line": 2964
       },
       "_r_claim_generation": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2792
+        "line": 2933
       },
       "_r_claim_kind": {
         "width": 1,
         "capacity": 6144,
         "bytes": 6144,
         "resize_expression": "_region_capacity",
-        "line": 2777
+        "line": 2918
       },
       "_r_claim_slot": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2791
+        "line": 2932
       },
       "_r_generation": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2778
+        "line": 2919
       },
       "_r_hi_x": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2782
+        "line": 2923
       },
       "_r_hi_y": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2783
+        "line": 2924
       },
       "_r_hi_z": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2784
+        "line": 2925
       },
       "_r_level": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2785
+        "line": 2926
       },
       "_r_lo_x": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2779
+        "line": 2920
       },
       "_r_lo_y": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2780
+        "line": 2921
       },
       "_r_lo_z": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2781
+        "line": 2922
       },
       "_r_owner_generation": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2789
+        "line": 2930
       },
       "_r_owner_revision": {
         "width": 8,
         "capacity": 6144,
         "bytes": 49152,
         "resize_expression": "_region_capacity",
-        "line": 2790
+        "line": 2931
       },
       "_r_owner_slot": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2788
+        "line": 2929
       },
       "_r_present": {
         "width": 1,
         "capacity": 6144,
         "bytes": 6144,
         "resize_expression": "_region_capacity",
-        "line": 2774
+        "line": 2915
       },
       "_r_retired": {
         "width": 1,
         "capacity": 6144,
         "bytes": 6144,
         "resize_expression": "_region_capacity",
-        "line": 2775
+        "line": 2916
       },
       "_r_role": {
         "width": 1,
         "capacity": 6144,
         "bytes": 6144,
         "resize_expression": "_region_capacity",
-        "line": 2776
+        "line": 2917
       },
       "_r_section_generation": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2787
+        "line": 2928
       },
       "_r_section_slot": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2786
+        "line": 2927
       },
       "_region_free_heap": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2764
+        "line": 2905
       },
       "_s_header": {
         "width": 8,
         "capacity": 18,
         "bytes": 144,
         "resize_expression": "HEADER_FIELDS",
-        "line": 2761
+        "line": 2902
       },
       "_s_o_a": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2844
+        "line": 2985
       },
       "_s_o_b": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2845
+        "line": 2986
       },
       "_s_o_c": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2846
+        "line": 2987
       },
       "_s_o_d": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2847
+        "line": 2988
       },
       "_s_o_generation": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2840
+        "line": 2981
       },
       "_s_o_kind": {
         "width": 1,
         "capacity": 2048,
         "bytes": 2048,
         "resize_expression": "_source_capacity",
-        "line": 2838
+        "line": 2979
       },
       "_s_o_parent_generation": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2843
+        "line": 2984
       },
       "_s_o_parent_slot": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2842
+        "line": 2983
       },
       "_s_o_present": {
         "width": 1,
         "capacity": 2048,
         "bytes": 2048,
         "resize_expression": "_source_capacity",
-        "line": 2837
+        "line": 2978
       },
       "_s_o_revision": {
         "width": 8,
         "capacity": 2048,
         "bytes": 16384,
         "resize_expression": "_source_capacity",
-        "line": 2841
+        "line": 2982
       },
       "_s_o_slot": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2839
+        "line": 2980
       },
       "_s_r_claim_generation": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2816
+        "line": 2957
       },
       "_s_r_claim_kind": {
         "width": 1,
         "capacity": 6144,
         "bytes": 6144,
         "resize_expression": "_region_capacity",
-        "line": 2801
+        "line": 2942
       },
       "_s_r_claim_slot": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2815
+        "line": 2956
       },
       "_s_r_generation": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2802
+        "line": 2943
       },
       "_s_r_hi_x": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2806
+        "line": 2947
       },
       "_s_r_hi_y": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2807
+        "line": 2948
       },
       "_s_r_hi_z": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2808
+        "line": 2949
       },
       "_s_r_level": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2809
+        "line": 2950
       },
       "_s_r_lo_x": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2803
+        "line": 2944
       },
       "_s_r_lo_y": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2804
+        "line": 2945
       },
       "_s_r_lo_z": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2805
+        "line": 2946
       },
       "_s_r_owner_generation": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2813
+        "line": 2954
       },
       "_s_r_owner_revision": {
         "width": 8,
         "capacity": 6144,
         "bytes": 49152,
         "resize_expression": "_region_capacity",
-        "line": 2814
+        "line": 2955
       },
       "_s_r_owner_slot": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2812
+        "line": 2953
       },
       "_s_r_present": {
         "width": 1,
         "capacity": 6144,
         "bytes": 6144,
         "resize_expression": "_region_capacity",
-        "line": 2798
+        "line": 2939
       },
       "_s_r_retired": {
         "width": 1,
         "capacity": 6144,
         "bytes": 6144,
         "resize_expression": "_region_capacity",
-        "line": 2799
+        "line": 2940
       },
       "_s_r_role": {
         "width": 1,
         "capacity": 6144,
         "bytes": 6144,
         "resize_expression": "_region_capacity",
-        "line": 2800
+        "line": 2941
       },
       "_s_r_section_generation": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2811
+        "line": 2952
       },
       "_s_r_section_slot": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2810
+        "line": 2951
       },
       "_s_region_free_heap": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2765
+        "line": 2906
       },
       "_s_source_free_heap": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2767
+        "line": 2908
       },
       "_source_free_heap": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2766
+        "line": 2907
       }
     },
     "underground_space_authority": {
@@ -903,6 +903,13 @@
     "numeric_control_bytes": 16,
     "borrowed_entry_bytes_per_pair": 16,
     "scope": "Exact shared cold lease only; borrowed input is owned by the caller's separately charged packet."
+  },
+  "space_overlap_index_cold": {
+    "bytes": 50180,
+    "bands": 64,
+    "words": 192,
+    "shared_cold_bytes": 1048960,
+    "scope": "Cold: allocated per validation (loads and seals with 16 or more changed rows), empty at rest."
   },
   "connector_recipe_reservation": {
     "columns": {
@@ -43703,6 +43710,11 @@
             "bytes": 0,
             "carried_by": "none",
             "store": "decision 1951: the region and source scans walk present rows with PackedByteArray.find/count (two static helpers); no member, packet or resize"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "shared cold arena (space_overlap_index_cold)",
+            "store": "Decision 2045 (P-2045-14 (a)): the overlap validation's z-band index (_overlap_bands OVERLAP_BANDS x words, _overlap_set words, _overlap_prefix 65 int32; at most 50,180 B at REGION_CAPACITY) allocated only while one validation runs and released before _overlap_refusal returns, and its scalar controls (_overlap_words, _overlap_low, _overlap_high, _overlap_width, _overlap_debt, 40 B, and the static overlap_index_from); never saved"
           }
         ],
         "delta": {
@@ -43714,10 +43726,63 @@
             [
               "_location_journal",
               "Journal"
+            ],
+            [
+              "_overlap_bands",
+              "PackedInt32Array"
+            ],
+            [
+              "_overlap_debt",
+              "int"
+            ],
+            [
+              "_overlap_high",
+              "int"
+            ],
+            [
+              "_overlap_low",
+              "int"
+            ],
+            [
+              "_overlap_prefix",
+              "PackedInt32Array"
+            ],
+            [
+              "_overlap_set",
+              "PackedInt32Array"
+            ],
+            [
+              "_overlap_width",
+              "int"
+            ],
+            [
+              "_overlap_words",
+              "int"
+            ],
+            [
+              "overlap_index_from",
+              "int"
+            ]
+          ],
+          "resizes_added": [
+            "_overlap_bands.resize(OVERLAP_BANDS * words)",
+            "_overlap_prefix.resize(OVERLAP_BANDS + 1)",
+            "_overlap_set.resize(words)"
+          ],
+          "int_constants_added": [
+            [
+              "OVERLAP_BANDS",
+              "64"
+            ],
+            [
+              "OVERLAP_INDEX_FROM",
+              "16"
             ]
           ],
           "allocation_sites": {
-            ".new(": 2
+            ".new(": 2,
+            "PackedInt32Array(": 3,
+            "range(": 2
           }
         }
       },
@@ -45169,6 +45234,7 @@
       "Routes 48 * RESIDENT_CAPACITY occupancy reservation (unchanged)": 0,
       "presentation (outside the REQ-SET-163 simulation gate)": 0,
       "presentation set reservation (cold, demo presentation only)": 0,
+      "shared cold arena (space_overlap_index_cold)": 0,
       "SurfaceAnchor RESERVED_BYTES (asserted by the pack)": 8,
       "entry structure reservation (decision1122, 384 B)": 0,
       "WorldRoutes CONTROL_RESERVE (recounted)": 2562,
@@ -45433,7 +45499,7 @@
     "godot/scripts/core/underground_routes.gd": "b6b570efc04ea821915f7e43be7f1f98f2ffdac21d7dda67867ea4fd8c1d9dbc",
     "godot/scripts/core/underground_session.gd": "9d7794b1a78d566d51f7ea99d5832905ebb9e47d470ab0bbbaadf07927bb88bf",
     "godot/scripts/core/underground_space_authority.gd": "d06385b658b460a38ecfcb7c5839d1e4efdead623c0223cca5a1a634857041ee",
-    "godot/scripts/core/underground_space_owner.gd": "bfbad4b67a7e5cb9ccecf4f5500c322610abe8f3854f5fe364a1723a5a21aa1a",
+    "godot/scripts/core/underground_space_owner.gd": "7baa5215fcfba9b5749f77536d74dda07cc366cc2895f4b178dbe1967ef8e260",
     "godot/scripts/core/underground_surface_anchor.gd": "00f2ba73e64a50e4d6236a9c0c99a11391f192255c309d554d8b4a976ddfe2f5",
     "godot/scripts/core/underground_terrain.gd": "41ef346c2aa3835d24da18b2f3ffaa15a7e523178ecdc2815369c49a65ec93b8",
     "godot/scripts/core/underground_work_face.gd": "1ad3eab1c62df90f0e41c78f0ccf484f4d04b630ca825b50dedcca2a6be4f731",

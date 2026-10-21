@@ -2106,6 +2106,11 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "decision 1951: the region and source scans walk present rows with PackedByteArray.find/count (two static helpers); no member, packet or resize"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "shared cold arena (space_overlap_index_cold)",
+     "store": "Decision 2045 (P-2045-14 (a)): the overlap validation's z-band index (_overlap_bands OVERLAP_BANDS x words, _overlap_set words, _overlap_prefix 65 int32; at most 50,180 B at REGION_CAPACITY) allocated only while one validation runs and released before _overlap_refusal returns, and its scalar controls (_overlap_words, _overlap_low, _overlap_high, _overlap_width, _overlap_debt, 40 B, and the static overlap_index_from); never saved"
     }
    ],
    "delta": {
@@ -2117,10 +2122,63 @@
      [
       "_location_journal",
       "Journal"
+     ],
+     [
+      "_overlap_bands",
+      "PackedInt32Array"
+     ],
+     [
+      "_overlap_debt",
+      "int"
+     ],
+     [
+      "_overlap_high",
+      "int"
+     ],
+     [
+      "_overlap_low",
+      "int"
+     ],
+     [
+      "_overlap_prefix",
+      "PackedInt32Array"
+     ],
+     [
+      "_overlap_set",
+      "PackedInt32Array"
+     ],
+     [
+      "_overlap_width",
+      "int"
+     ],
+     [
+      "_overlap_words",
+      "int"
+     ],
+     [
+      "overlap_index_from",
+      "int"
+     ]
+    ],
+    "resizes_added": [
+     "_overlap_bands.resize(OVERLAP_BANDS * words)",
+     "_overlap_prefix.resize(OVERLAP_BANDS + 1)",
+     "_overlap_set.resize(words)"
+    ],
+    "int_constants_added": [
+     [
+      "OVERLAP_BANDS",
+      "64"
+     ],
+     [
+      "OVERLAP_INDEX_FROM",
+      "16"
      ]
     ],
     "allocation_sites": {
-     ".new(": 2
+     ".new(": 2,
+     "PackedInt32Array(": 3,
+     "range(": 2
     }
    }
   },

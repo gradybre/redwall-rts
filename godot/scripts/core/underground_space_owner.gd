@@ -4,6 +4,12 @@ extends RefCounted
 ## Region handles are internal (row,generation) values, NEVER global EntityRefs. Decision 1064.
 
 const Space := preload("res://scripts/core/room_space.gd")
+const CacheChecks := preload("res://scripts/core/runtime_cache_checks.gd")
+## Decision 2045 (P-2045-14 (a)): the overlap validation's z-band index and the changed rows that turn it on.
+const OVERLAP_BANDS: int = 64
+const OVERLAP_INDEX_FROM: int = 16
+## The changed-row count from which the index is used; a test may raise it to force the linear validation.
+static var overlap_index_from: int = OVERLAP_INDEX_FROM
 const Directory := preload("res://scripts/core/entity_directory.gd")
 const Buildings := preload("res://scripts/core/buildings.gd")
 const Sites := preload("res://scripts/core/excavation_sites.gd")
@@ -317,6 +323,18 @@ var _validation_regions: int = -1
 var _validation_sources: int = -1
 var _changed_rows: PackedInt32Array = PackedInt32Array()
 var _changed_mask: PackedByteArray = PackedByteArray()
+## Decision 2045 (P-2045-14 (a)): the overlap validation's z-band index over the validation heap's positions (see
+## `_overlap_refusal`): OVERLAP_BANDS bitsets, their position-count prefix, one candidate set and the debt owed.
+## Allocated only while one validation runs (a cold slice, at most OVERLAP_BANDS + 1 bitsets of the region capacity
+## and 65 words) and released before it returns; empty at rest.
+var _overlap_bands: PackedInt32Array = PackedInt32Array()
+var _overlap_prefix: PackedInt32Array = PackedInt32Array()
+var _overlap_set: PackedInt32Array = PackedInt32Array()
+var _overlap_words: int = 0
+var _overlap_low: int = 0
+var _overlap_high: int = 0
+var _overlap_width: int = 1
+var _overlap_debt: int = 0
 var _facts: Facts = Facts.new()
 ## ADR1205: derived, unsaved record of the traversal volumes each publication changed.
 var _journal: Journal = Journal.new()
@@ -2659,25 +2677,148 @@ func _same_spatial_row(row: int) -> bool:
 
 
 func _overlap_refusal() -> StringName:
-	"""Only changed-versus-present pairs need checks; empty capacity rows never multiply the charge."""
+	"""Only changed-versus-present pairs need checks; empty capacity rows never multiply the charge.
+	Decision 2045 (P-2045-14 (a)): with OVERLAP_INDEX_FROM or more changed rows (a load marks every row), each
+	changed row compares only the heap positions the z-band index selects, in the same ascending order, so the same
+	pairs are tested in the same order and the same first refusal is returned (`_overlap_row_refusal`)."""
+	var indexed: bool = _changed_count >= overlap_index_from
+	if indexed: _build_overlap_index()
+	var code: StringName = _overlap_rows_refusal(indexed)
+	_overlap_bands.clear()
+	_overlap_set.clear()
+	_overlap_prefix.clear()
+	return code
+
+
+func _overlap_rows_refusal(indexed: bool) -> StringName:
+	"""Each changed row against the validation positions, in order (`_overlap_row_refusal`)."""
 	for index: int in _changed_count:
 		if not _spend(1):
 			return &"SPACE_OPERATION_BUDGET"
 		var first: int = _changed_rows[index]
 		if _s_r_present[first] == 0:
 			continue
-		for other: int in _validation_regions:
-			if not _spend(1):
-				return &"SPACE_OPERATION_BUDGET"
-			var second: int = _s_region_free_heap[other]
-			if second == first or (_changed_mask[second] != 0 and second < first):
-				continue
-			if not _rows_overlap(first, second):
-				continue
-			var code: StringName = _pair_refusal(first, second)
-			if code != &"":
-				return code
+		var code: StringName = _overlap_row_refusal(first, indexed)
+		if code != &"":
+			return code
 	return &""
+
+
+func _overlap_row_refusal(first: int, indexed: bool) -> StringName:
+	"""Every validation position paired with `first`, ascending; indexed, only the selected ones, charged when the
+	row ends at most what the linear scan charges by the same exit (Slice C's min-cost rule; the rest is debt)."""
+	var lookup: int = _overlap_select(first) if indexed else -1
+	var visited: int = 0
+	var other: int = _overlap_next(lookup, -1)
+	while other >= 0:
+		if lookup < 0 and not _spend(1):
+			return &"SPACE_OPERATION_BUDGET"
+		visited += 1
+		var second: int = _s_region_free_heap[other]
+		var at: int = other
+		other = _overlap_next(lookup, other)
+		if second == first or (_changed_mask[second] != 0 and second < first) or not _rows_overlap(first, second):
+			continue
+		var code: StringName = _pair_refusal(first, second)
+		if code != &"":
+			return code if _overlap_settle(lookup, visited, at + 1) else &"SPACE_OPERATION_BUDGET"
+	return &"" if _overlap_settle(lookup, visited, _validation_regions) else &"SPACE_OPERATION_BUDGET"
+
+
+func _build_overlap_index() -> void:
+	"""Bin every validation position by its region's half-open z range: owed, not charged (`_overlap_debt`)."""
+	@warning_ignore("integer_division") var words: int = (_validation_regions + 31) / 32
+	_overlap_words = words
+	_overlap_debt = _validation_regions + OVERLAP_BANDS * words
+	_overlap_bands.resize(OVERLAP_BANDS * words)
+	_overlap_set.resize(words)
+	_overlap_prefix.resize(OVERLAP_BANDS + 1)
+	_overlap_low = 0
+	_overlap_high = 1
+	for other: int in _validation_regions:
+		var row: int = _s_region_free_heap[other]
+		_overlap_low = _s_r_lo_z[row] if other == 0 else mini(_overlap_low, _s_r_lo_z[row])
+		_overlap_high = _s_r_hi_z[row] if other == 0 else maxi(_overlap_high, _s_r_hi_z[row])
+	@warning_ignore("integer_division") var width: int = (_overlap_high - _overlap_low + OVERLAP_BANDS - 1) / OVERLAP_BANDS
+	_overlap_width = maxi(1, width)
+	_overlap_bands.fill(0)
+	_overlap_prefix.fill(0)
+	for other: int in _validation_regions:
+		_bin_overlap_position(other)
+	for band: int in OVERLAP_BANDS:
+		_overlap_prefix[band + 1] += _overlap_prefix[band]
+
+
+func _bin_overlap_position(other: int) -> void:
+	"""Mark one validation position in every band its region's z range meets (an empty range meets none)."""
+	var row: int = _s_region_free_heap[other]
+	if _s_r_lo_z[row] >= _s_r_hi_z[row]: return
+	var span: Vector2i = _overlap_span(_s_r_lo_z[row], _s_r_hi_z[row])
+	_overlap_debt += span.y - span.x + 1
+	for band: int in range(span.x, span.y + 1):
+		_overlap_bands[band * _overlap_words + (other >> 5)] |= 1 << (other & 31)
+		_overlap_prefix[band + 1] += 1
+
+
+func _overlap_span(low: int, high: int) -> Vector2i:
+	"""The bands a half-open z range meets, clamped to the heap's range: (first, last), last < first for none."""
+	var from: int = maxi(low, _overlap_low)
+	var to: int = mini(high, _overlap_high)
+	if from >= to: return Vector2i(0, -1)
+	@warning_ignore("integer_division") var first: int = (from - _overlap_low) / _overlap_width
+	@warning_ignore("integer_division") var last: int = (to - 1 - _overlap_low) / _overlap_width
+	return Vector2i(first, last)
+
+
+func _overlap_select(first: int) -> int:
+	"""`_overlap_set` for `first`'s bands and the band words it took, or -1 to scan every position (a lookup that
+	could cost a full scan); positions `first` cannot overlap are left out."""
+	var span: Vector2i = _overlap_span(_s_r_lo_z[first], _s_r_hi_z[first])
+	var bands: int = maxi(0, span.y - span.x + 1)
+	if bands > 0 and _overlap_words * bands + _overlap_prefix[span.y + 1] - _overlap_prefix[span.x] >= _validation_regions:
+		return -1
+	for word: int in _overlap_words:
+		var bits: int = 0
+		for band: int in range(span.x, span.y + 1):
+			bits |= _overlap_bands[band * _overlap_words + word]
+		_overlap_set[word] = bits
+	if CacheChecks.enabled: _check_overlap_set(first)
+	return _overlap_words * maxi(1, bands)
+
+
+func _overlap_next(lookup: int, other: int) -> int:
+	"""The next position after `other`: every one when `lookup` < 0, else the next selected one; -1 after the last."""
+	var at: int = other + 1
+	if lookup < 0: return at if at < _validation_regions else -1
+	while at < _validation_regions:
+		var bits: int = (_overlap_set[at >> 5] & 0xFFFFFFFF) >> (at & 31)
+		if bits == 0:
+			at = ((at >> 5) + 1) << 5
+			continue
+		while bits & 1 == 0:
+			bits >>= 1
+			at += 1
+		return at if at < _validation_regions else -1
+	return -1
+
+
+func _overlap_settle(lookup: int, visited: int, linear: int) -> bool:
+	"""Charge an indexed row's band words and visited positions plus debt, at most `linear` (the linear scan's
+	charge by the same exit); a linear row has already been charged."""
+	if lookup < 0: return true
+	var owed: int = lookup + visited + _overlap_debt
+	var charge: int = mini(owed, linear)
+	_overlap_debt = owed - charge
+	return _spend(charge)
+
+
+func _check_overlap_set(first: int) -> void:
+	"""With the cache checks on, unspent: a position the set left out cannot overlap `first`."""
+	for other: int in _validation_regions:
+		if (_overlap_set[other >> 5] >> (other & 31)) & 1 == 1: continue
+		if _rows_overlap(first, _s_region_free_heap[other]):
+			CacheChecks.report("space overlap index", "position %d overlaps row %d unselected" % [other, first])
+
 
 func _rows_overlap(first: int, second: int) -> bool:
 	"""Exact half-open scalar overlap avoids allocating two six-column boxes for every pair."""

@@ -45,10 +45,10 @@ const SNAPSHOT_BYTES: int = 48 * Budget.REGION_CAPACITY + 16 * Budget.SOURCE_CAP
 ## overlap in z share an integer z, whose band both name, so every row `Space.overlaps` accepts is a candidate. An
 ## image of more than INDEX_ROWS rows is scanned whole. Bands and the two candidate sets are cold bytes (ADR 1212).
 const INDEX_BANDS: int = 64
-const INDEX_ROWS: int = Budget.REGION_CAPACITY + Budget.SOURCE_CAPACITY
-@warning_ignore("integer_division") const INDEX_WORDS: int = INDEX_ROWS / 32
+const INDEX_WORDS: int = 256 # Bits for Budget.REGION_CAPACITY + Budget.SOURCE_CAPACITY rows (a test pins the sum).
+const INDEX_ROWS: int = 32 * INDEX_WORDS
 const INDEX_SETS: int = 2
-const INDEX_BYTES: int = 4 * INDEX_WORDS * (INDEX_BANDS + INDEX_SETS)
+const INDEX_BYTES: int = 4 * INDEX_WORDS * INDEX_BANDS + 4 * INDEX_WORDS * INDEX_SETS
 const COLD_BYTES: int = SNAPSHOT_BYTES + 48 * FRAGMENT_CAPACITY + 28 * CHANGE_CAPACITY + INDEX_BYTES + 1024
 const SOURCE_PASS_CHECKS: int = Budget.REGION_CAPACITY + Budget.SOURCE_CAPACITY
 const REACH_SCOPE_CHECKS: int = 1024 # Fixed source/digest/Domain leaves, charged at both query boundaries.

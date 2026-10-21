@@ -92,7 +92,7 @@ def delta(before: str, after: str) -> dict:
 
 EVIDENCE = Path("docs/validation/evidence/underground-memory-census-2026-10-06")
 REVIEWED = EVIDENCE / "reviewed-deltas.json"
-REVIEWED_SHA = "552e8776aa615fa87b3e310276b1c81a2b277082d0a24a3b11d735185d94dd42"
+REVIEWED_SHA = "71f4927e499bcb0d0bbb6374c736938a3e6f93e612b768b70b35d7ca09346a42"
 # ADR1217 step 5: the runtime Frontier is the claw bundle's (same row census as qualified-stone-v5's).
 # ADR1229: the mounted T1-T6 bundle's Frontier (ADR1217 step 5 mounted qualified-claw-v6's).
 # DEC-059 (P3): qualified-stairs-v9, the same rows with T1-T6 fastened in 5,640 mWU.
@@ -194,11 +194,19 @@ def locations_controls(memory, index: dict) -> dict:
             and members.get("_landing_key") == "PackedInt64Array"
             and re.findall(r"^\t_prism_tops\.resize\((.+)\)$", source, re.M) == ["ConnectorCatalog.MAX_PARTS"]
             and re.findall(r"^\t_landing_boxes\.resize\((.+)\)$", source, re.M) == ["7 * PASS_LANDINGS"]
-            and re.findall(r"^\t_landing_key\.resize\((\d+)\)$", source, re.M) == ["4"], "decision 2044 pass caches")
+            and re.findall(r"^\t_landing_key\.resize\((\d+)\)$", source, re.M) == ["5"], "decision 2044 pass caches")
+    # Decision 2045: the landing key's fifth word (the scanned-landing count), the landings' order (one int64 a
+    # landing), the operation source key (twelve int64 literal) and the record image hull (six int32 literal).
+    require(members.get("_landing_sorted") == "PackedInt64Array"
+            and re.findall(r"^\t_landing_sorted\.resize\((.+)\)$", source, re.M) == ["PASS_LANDINGS"]
+            and "var _sources_key: PackedInt64Array = PackedInt64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])" in source
+            and "var _near_hull: PackedInt32Array = PackedInt32Array([0, 0, 0, 0, 0, 0])" in source,
+            "decision 2045 pass and operation keys")
     parts = memory.resolve(index, "underground_connector_catalog", "MAX_PARTS")
     landings = memory.resolve(index, "underground_locations", "PASS_LANDINGS")
     numeric = sum(WIDTH[kind] for kind in added.values()) + 4 * 6 \
-        + sum(WIDTH[kind] for kind in passes.values()) + 4 * 6 * parts + 8 * 8 + 8 * parts + 4 * 7 * landings + 8 * 4
+        + sum(WIDTH[kind] for kind in passes.values()) + 4 * 6 * parts + 8 * 8 + 8 * parts + 4 * 7 * landings + 8 * 5 \
+        + 8 * landings + 8 * 12 + 4 * 6
     context = packet(memory, index, relative, "ContactRetirementContext")
     return {"carry_and_air_controls_bytes": numeric, "contact_retirement_context_numeric_bytes": context,
             "bytes": numeric + context,
@@ -225,6 +233,10 @@ def world_routes_controls(memory, index: dict) -> dict:
     memo = 8 * (memory.resolve(index, "underground_world_routes", "EDGE_MEMO_SLOTS")
                 * memory.resolve(index, "underground_world_routes", "EDGE_MEMO_STRIDE")
                 + memory.resolve(index, "underground_world_routes", "EDGE_MEMO_STAMP"))
+    # Decision 2045 (P-2045-7 (a)): the prepared pass key, a nine-int64 literal.
+    require("var _prepared_key: PackedInt64Array = PackedInt64Array([0, 0, 0, 0, 0, 0, 0, 0, 0])" in source,
+            "WorldRoutes prepared pass key")
+    memo += 8 * 9
     fixed = memory.numeric_fields(source, "") + 4 * sum(int(count) for _, count in small) + sum(packets.values()) + memo
     reserve = memory.resolve(index, "underground_world_routes", "CONTROL_RESERVE")
     require(fixed <= reserve, "WorldRoutes controls exceed CONTROL_RESERVE")
@@ -283,7 +295,7 @@ def world_routes_cold(memory, index: dict) -> dict:
     changes = 4 * stride * memory.resolve(index, "underground_geometry_journal", "CAPACITY")
     cold = memory.resolve(index, "underground_world_routes", "COLD_BYTES")
     shared = memory.resolve(index, "underground_budget", "COLD_BYTES")
-    require(changes == 1792 and cold == 379648 and cold <= shared, "WorldRoutes cold lease inside the shared arena")
+    require(changes == 1792 and cold == 447232 and cold <= shared, "WorldRoutes cold lease inside the shared arena")
     return {"staged_change_bytes": changes, "world_routes_cold_bytes": cold, "shared_cold_bytes": shared}
 
 

@@ -1817,6 +1817,7 @@ func test_the_row_index_keeps_every_overlapping_row_on_its_band_boundaries() -> 
 		Vector2i(199, 201), Vector2i(300, 400), Vector2i(6300, 6400)])
 	var roles: PackedInt32Array = PackedInt32Array([Space.SUPPORTED_VOID, Space.OBSTACLE, Space.SUPPORTED_VOID,
 		Space.SUPPORTED_VOID, Space.OBSTACLE, Space.SUPPORTED_VOID])
+	assert_equal(Binding.INDEX_ROWS, Budget.REGION_CAPACITY + Budget.SOURCE_CAPACITY, "a bit for every snapshot row")
 	var proof: Binding.Clearance = _indexed(boxes, roles, true)
 	assert_equal(_selected(proof, PackedInt32Array([0, 0, 200, 10, 10, 300])), PackedInt32Array([2, 3]),
 		"the band [200, 300): its own row and the straddling one, not the rows touching its faces")

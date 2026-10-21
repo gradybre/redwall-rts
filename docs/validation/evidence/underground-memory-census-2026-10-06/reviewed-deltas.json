@@ -724,6 +724,11 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "decision 2044 (P-2044-16): the M5 landing and deep-hub reach (walk-off, hub D) and the row path helper; cold-path caller logic only, fewer allocation sites, no retained member"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "Decision 2045 (P-2045-15): the stair legs' shared edge scan keeps, for one _legs_refusal call, a local Dictionary of the first edge row per (from, to) ends (at most one entry a scanned row, Routes.MAX_EDGES 1,536) and a one-word cursor; cold locals released with the call, no retained member; and the CacheChecks preload and the legs' one scope leaf (no storage)"
     }
    ],
    "delta": {
@@ -764,9 +769,10 @@
     ],
     "allocation_sites": {
      "([": 3,
-     ".new(": 2,
+     ".new(": 4,
      "=[": 2,
-     "PackedInt32Array(": 1,
+     "={": 1,
+     "PackedInt32Array(": 2,
      "range(": 2,
      "return[": 1
     }
@@ -2537,7 +2543,7 @@
     {
      "bytes": 0,
      "carried_by": "WorldRoutes cold lease (COLD_BYTES +INDEX_BYTES)",
-     "store": "Decision 2045 (P-2045-12 (a)): the route-image row index inside each proof's Clearance packet: INDEX_BANDS 64 band bitsets and two candidate sets of INDEX_WORDS 256 int32 each, and the bands' 65 row-count prefix words (INDEX_BYTES 67,844 B), plus a six-word query box; cold, released with the proof; WorldRoutes COLD_BYTES 379,648 -> 447,492, inside Budget.COLD_BYTES 1,048,960; SCAN_SPENT is a sentinel"
+     "store": "Decision 2045 (P-2045-12 (a), Slice C's min-cost rule): the route-image row index inside each proof's Clearance packet: INDEX_BANDS 64 band bitsets and two candidate sets of INDEX_WORDS 256 int32 each, the bands' 65 row-count prefix words and the min-cost controls (debt, each set's mode, band words and visited rows; INDEX_BYTES 67,876 B), plus a six-word query box; cold, released with the proof; WorldRoutes COLD_BYTES 379,648 -> 447,524, inside Budget.COLD_BYTES 1,048,960"
     }
    ],
    "delta": {
@@ -2745,7 +2751,7 @@
      ],
      [
       "INDEX_BYTES",
-      "4 * INDEX_WORDS * INDEX_BANDS + 4 * INDEX_WORDS * INDEX_SETS + 4 * INDEX_BANDS + 4"
+      "4 * INDEX_WORDS * INDEX_BANDS + 4 * INDEX_WORDS * INDEX_SETS + 4 * INDEX_BANDS + 36"
      ],
      [
       "INDEX_ROWS",
@@ -2778,10 +2784,6 @@
      [
       "PREPARED_KEY_CHECKS",
       "9"
-     ],
-     [
-      "SCAN_SPENT",
-      "-2"
      ]
     ],
     "int_constants_removed": [
@@ -2848,6 +2850,14 @@
         "PackedInt32Array"
        ],
        [
+        "_deferred",
+        "PackedByteArray"
+       ],
+       [
+        "_index_debt",
+        "int"
+       ],
+       [
         "_index_high",
         "int"
        ],
@@ -2870,6 +2880,14 @@
        [
         "_index_words",
         "int"
+       ],
+       [
+        "_lookup",
+        "PackedInt32Array"
+       ],
+       [
+        "_visited",
+        "PackedInt32Array"
        ],
        [
         "box",
@@ -2945,9 +2963,11 @@
     "allocation_sites": {
      ".new(": 2,
      "=[": 3,
-     "PackedInt32Array(": 9,
+     "PackedByteArray(": 1,
+     "PackedInt32Array(": 11,
      "PackedInt64Array(": 11,
-     "range(": 3
+     "range(": 3,
+     "return[": 1
     }
    }
   },

@@ -1794,7 +1794,7 @@ func _selected(proof: Binding.Clearance, bounds: PackedInt32Array) -> PackedInt3
 	"""Every row the index selects for `bounds`, in the order a scan visits them."""
 	var out: PackedInt32Array = PackedInt32Array()
 	var selection: PackedInt32Array = PackedInt32Array()
-	var row: int = proof.first_row(bounds, selection)
+	var row: int = proof.first_row(bounds, selection, 0)
 	while row >= 0:
 		out.append(row)
 		row = proof.next_row(selection, row)
@@ -1860,10 +1860,10 @@ func test_the_row_index_subtracts_overlapping_rows_in_row_order() -> void:
 		assert_equal(fast.fragments.slice(0, 6 * fast.count), full.fragments.slice(0, 6 * full.count), "limited shapes")
 
 
-func test_the_row_index_charges_its_work_and_only_answers_where_the_full_scan_ran_out() -> void:
-	"""Decision 2045 (P-2045-12 (a), Slice C's conditions 3 and 4): the full scan charges a check a row; the index
-	charges its build once per image and each lookup's words and rows. The one outcome that changes is a scan whose
-	budget ran out row by row: with the index it reaches its real answer."""
+func test_the_row_index_never_charges_a_scan_more_than_master_and_repays_its_build() -> void:
+	"""Decision 2045 (Slice C's min-cost rule): an indexed scan is charged at most the rows master's scan visits; the
+	build and any dearer exit are owed, and repaid from later scans' savings. So no proof spends more than master's,
+	and once the build is repaid a lookup costs its band words and rows."""
 	var boxes: Array[PackedInt32Array] = []
 	var roles: PackedInt32Array = PackedInt32Array()
 	for index: int in 600:
@@ -1873,21 +1873,54 @@ func test_the_row_index_charges_its_work_and_only_answers_where_the_full_scan_ra
 	roles.append(Space.SUPPORTED_VOID)
 	var query: PackedInt32Array = PackedInt32Array([0, 0, 0, 10, 10, 10])
 	var full: Binding.Clearance = _indexed(boxes, roles, false)
-	assert_false(full.blocked(query), "nothing blocks the query")
-	assert_equal(1048576 - full.remaining, 601, "the full scan: a check a row")
 	var fast: Binding.Clearance = _indexed(boxes, roles, true)
-	assert_false(fast.blocked(query), "the same answer")
-	var built: int = 1048576 - fast.remaining
-	assert_true(built > 601, "the first lookup pays the build (%d)" % built)
-	assert_false(fast.blocked(query), "a second lookup on the same image")
-	var lookup: int = 1048576 - fast.remaining - built
-	assert_equal(lookup, 19 + 1, "no rebuild: 19 words of one band and the one row it holds")
-	full = _indexed(boxes, roles, false, 300)
-	assert_true(full.blocked(query), "the full scan runs out of budget: blocked")
-	assert_equal(full.error, &"WORLD_ROUTE_CHECK_CAPACITY", "as a budget refusal")
-	fast = _indexed(boxes, roles, true, 10)
-	assert_true(fast.blocked(query), "an index that cannot pay its build is blocked the same way")
-	assert_equal(fast.error, &"WORLD_ROUTE_CHECK_CAPACITY", "the same refusal")
+	var charges: PackedInt32Array = PackedInt32Array()
+	for lookup: int in 8:
+		var before: int = fast.remaining
+		assert_false(full.blocked(query), "master: nothing blocks")
+		assert_false(fast.blocked(query), "the index: nothing blocks")
+		charges.append(before - fast.remaining)
+		assert_true(1048576 - fast.remaining <= 1048576 - full.remaining, "never more than master after lookup %d" % lookup)
+	assert_equal(charges[0], 601, "the first lookup pays as master; the build is owed")
+	assert_equal(charges[7], 20, "repaid: 19 band words and the one row the band holds")
+	assert_equal(fast._index_debt, 0, "nothing owed")
+
+
+func test_a_proof_at_masters_exact_cost_still_admits_with_the_index() -> void:
+	"""Decision 2045 (Slice C's min-cost rule): a proof whose master run ends exactly at its budget (every scan of a
+	mixed image, a few hundred checks short of where the old build charge would have refused) admits with the index on,
+	with the same answers and fragments, for every budget from master's total up."""
+	var boxes: Array[PackedInt32Array] = []
+	var roles: PackedInt32Array = PackedInt32Array()
+	for index: int in 1300:
+		var z: int = 40 * index
+		boxes.append(PackedInt32Array([0, 0, z, 20, 10, z + 60]))
+		roles.append([Space.SUPPORTED_VOID, Space.SUPPORT, Space.OBSTACLE, Space.DRY_SOLID][index % 4])
+	var queries: Array[PackedInt32Array] = []
+	for index: int in 12:
+		queries.append(PackedInt32Array([0, 0, 3000 * index + 7, 20, 10, 3000 * index + 400]))
+	var master: Array = _scan_series(_indexed(boxes, roles, false), queries)
+	var cost: int = 1048576 - master[0]
+	for slack: int in [0, 1, 300]:
+		var fast: Binding.Clearance = _indexed(boxes, roles, true, cost + slack)
+		var run: Array = _scan_series(fast, queries)
+		assert_equal(fast.error, &"", "admits at master's cost + %d (%d)" % [slack, cost])
+		assert_equal(run.slice(1), master.slice(1), "the same answers and fragments at + %d" % slack)
+	var short: Binding.Clearance = _indexed(boxes, roles, false, cost - 1)
+	_scan_series(short, queries)
+	assert_equal(short.error, &"WORLD_ROUTE_CHECK_CAPACITY", "master itself refuses one check short")
+
+
+func _scan_series(proof: Binding.Clearance, queries: Array[PackedInt32Array]) -> Array:
+	"""[remaining, then each query's blocked, covered and fragments] for one proof."""
+	var out: Array = [0]
+	for query: PackedInt32Array in queries:
+		out.append(proof.blocked(query))
+		out.append(proof.covered(query, Space.SUPPORTED_VOID))
+		out.append(proof.fragments.slice(0, 6 * proof.count))
+		out.append(proof.subtract_role(Space.SUPPORT, query))
+	out[0] = proof.remaining
+	return out
 
 
 func test_an_overlapping_pending_obstacle_still_pays_its_span_proof() -> void:
@@ -1912,20 +1945,15 @@ func test_an_overlapping_pending_obstacle_still_pays_its_span_proof() -> void:
 
 
 func test_an_indexed_lookup_never_costs_more_than_the_full_scan() -> void:
-	"""Decision 2045 (P-2045-12 (a), the review's H1): a lookup whose band words and band rows could reach the image's
-	row count scans every row instead, at master's one check a row, so after the one build per image no scan costs more
-	than master's; and an index built by an uncharged checked rerun is forgotten (`index_rewind`), so the next charged
-	scan builds and pays for it as an unchecked run does."""
+	"""Decision 2045 (P-2045-12 (a), the review's H1 and H2): a lookup whose band words and band rows could reach the
+	image's row count scans every row instead, at master's one check a row; and an index built by an uncharged checked
+	rerun is forgotten with the debt it moved (`index_rewind`), as an unchecked run never built it."""
 	var boxes: Array[PackedInt32Array] = _z_rows([Vector2i(0, 100), Vector2i(6300, 6400)])
 	var roles: PackedInt32Array = PackedInt32Array([Space.SUPPORTED_VOID, Space.SUPPORTED_VOID])
 	var proof: Binding.Clearance = _indexed(boxes, roles, true)
-	var mark: Space.Volumes = proof.index_mark()
+	var mark: Array = proof.index_mark()
 	assert_false(proof.blocked(PackedInt32Array([0, 0, 0, 10, 10, 6400])), "nothing blocks")
-	var built: int = 1048576 - proof.remaining
-	assert_true(proof.index_mark() != null, "the first lookup built the index")
-	assert_false(proof.blocked(PackedInt32Array([0, 0, 0, 10, 10, 6400])), "every band: the full scan")
-	assert_equal(1048576 - proof.remaining - built, 2, "one check a row, as master")
+	assert_equal(1048576 - proof.remaining, 2, "every band: the full scan, one check a row, as master")
+	assert_true(proof.index_mark()[0] != null and proof.index_mark()[1] > 0, "the index was built, and is owed")
 	proof.index_rewind(mark)
-	assert_true(proof.index_mark() == null, "a rewind to before the build forgets it")
-	proof.index_rewind(proof.index_mark())
-	assert_true(proof.index_mark() == null, "rewinding to the present changes nothing")
+	assert_true(proof.index_mark()[0] == null and proof.index_mark()[1] == 0, "a rewind forgets the build and its debt")

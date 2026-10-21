@@ -32,7 +32,6 @@ const CERTIFICATE_BYTES: int = 2 * EDGE_CAPACITY * (MASK_BYTES + 4 + 16)
 const CONTROL_RESERVE: int = 4096 # Fixed packets, weak links and numeric controls; not measured native RAM.
 const RESERVED_BYTES: int = CERTIFICATE_BYTES + CONTROL_RESERVE
 const FRAGMENT_CAPACITY: int = 1024
-const SCAN_SPENT: int = -2 # Decision 2045: `Clearance.first_row` ran out of budget.
 const CHANGE_CAPACITY: int = Journal.CAPACITY # ADR1205: staged changed sides, Journal.STAGED_STRIDE I32 each.
 ## ADR1205: no clearance predicate reads a FLOOR_DATUM row (Clearance.blocked and _body_blocked skip it; coverage
 ## subtracts only SUPPORTED_VOID, SUPPORT and the pending OBSTACLE bearer; contacts read DRY_SOLID and SUPPORT),
@@ -48,7 +47,8 @@ const INDEX_BANDS: int = 64
 const INDEX_WORDS: int = 256 # Bits for Budget.REGION_CAPACITY + Budget.SOURCE_CAPACITY rows (a test pins the sum).
 const INDEX_ROWS: int = 32 * INDEX_WORDS
 const INDEX_SETS: int = 2
-const INDEX_BYTES: int = 4 * INDEX_WORDS * INDEX_BANDS + 4 * INDEX_WORDS * INDEX_SETS + 4 * INDEX_BANDS + 4
+## The bands, the two candidate sets, the band-row prefix (INDEX_BANDS + 1 words) and the min-cost controls (32 B).
+const INDEX_BYTES: int = 4 * INDEX_WORDS * INDEX_BANDS + 4 * INDEX_WORDS * INDEX_SETS + 4 * INDEX_BANDS + 36
 const COLD_BYTES: int = SNAPSHOT_BYTES + 48 * FRAGMENT_CAPACITY + 28 * CHANGE_CAPACITY + INDEX_BYTES + 1024
 const SOURCE_PASS_CHECKS: int = Budget.REGION_CAPACITY + Budget.SOURCE_CAPACITY
 const REACH_SCOPE_CHECKS: int = 1024 # Fixed source/digest/Domain leaves, charged at both query boundaries.
@@ -184,6 +184,14 @@ class Clearance extends RefCounted:
 	var _index_low: int = 0
 	var _index_high: int = 0
 	var _index_width: int = 1
+	## Decision 2045 (Slice C's min-cost rule): an indexed scan's real work is charged when it ends, never more than
+	## the rows master's linear scan would have visited; work not charged yet (the build, a costlier early exit) is
+	## `_index_debt`, repaid from later scans' savings. `_deferred` and `_lookup` hold each candidate set's mode and
+	## band words for its scan in progress.
+	var _index_debt: int = 0
+	var _deferred: PackedByteArray = PackedByteArray([0, 0])
+	var _lookup: PackedInt32Array = PackedInt32Array([0, 0])
+	var _visited: PackedInt32Array = PackedInt32Array([0, 0])
 
 	func allocate(snapshot: Space.Snapshot, checks: int) -> void:
 		"""Caller proves the actual shared lease before constructing this entire cold packet."""
@@ -218,30 +226,50 @@ class Clearance extends RefCounted:
 		out[4] = rows.hi_y[row]
 		out[5] = rows.hi_z[row]
 
-	func first_row(bounds: PackedInt32Array, out: PackedInt32Array) -> int:
+	func first_row(bounds: PackedInt32Array, out: PackedInt32Array, which: int) -> int:
 		"""Decision 2045 (P-2045-12 (a)): select into `out` every row whose box may overlap `bounds` and return the
-		lowest (-1: none; SCAN_SPENT: the budget ran out). A scan then walks `next_row` in ascending row order, so
-		the rows it reads, and their order, are master's minus rows that cannot overlap. Unindexed, `out` is empty and
-		every row is visited, as master did."""
+		lowest (-1: none). A scan then walks `next_row` in ascending row order, so the rows it reads, and their order,
+		are master's minus rows that cannot overlap. When the scan is indexed (`_deferred[which]`) nothing is charged
+		here: the scan calls `settle` when it ends. Unindexed, `out` is empty, every row is visited and the scan
+		charges a check a row, as master does."""
 		var n: int = image.volumes.role.size()
+		_deferred[which] = 0
 		if not indexed or n > INDEX_ROWS:
 			out.resize(0)
 			return 0 if n > 0 else -1
-		if (_index_volumes != image.volumes or _index_rows != n) and not _build_index(n):
-			return SCAN_SPENT
+		if _index_volumes != image.volumes or _index_rows != n: _build_index(n)
 		var span: Vector2i = _band_span(bounds)
+		_deferred[which] = 1
+		_lookup[which] = 0
+		_visited[which] = 0
 		if span.y < span.x:
 			if Profiles.CacheChecks.enabled: _check_selection(bounds, PackedInt32Array())
 			return -1
 		if _index_words * (span.y - span.x + 1) + _band_prefix[span.y + 1] - _band_prefix[span.x] >= n:
+			_deferred[which] = 0
 			out.resize(0) # The lookup could cost a full scan's rows: scan every row, as master does.
 			return 0
-		if not spend(_index_words * (span.y - span.x + 1)):
-			return SCAN_SPENT
+		_lookup[which] = _index_words * (span.y - span.x + 1)
 		_select_bands(span, out)
 		if Profiles.CacheChecks.enabled:
 			_check_selection(bounds, out)
 		return next_row(out, -1)
+
+	func step(which: int) -> bool:
+		"""One row visited: a check now when the scan is linear (master's charge), or counted for `settle`."""
+		if _deferred[which] == 0: return spend()
+		_visited[which] += 1
+		return true
+
+	func settle(which: int, master_rows: int) -> bool:
+		"""Decision 2045 (the min-cost rule): charge an indexed scan's band words and visited rows, plus debt, but never
+		more than `master_rows`, the rows master's scan would have visited by the same exit; the rest stays debt."""
+		if _deferred[which] == 0: return true
+		_deferred[which] = 0
+		var owed: int = _lookup[which] + _visited[which] + _index_debt
+		var charge: int = mini(owed, master_rows)
+		_index_debt = owed - charge
+		return spend(charge)
 
 	func next_row(selected: PackedInt32Array, row: int) -> int:
 		"""The next selected row after `row`, ascending; -1 after the last. Empty `selected` is every row."""
@@ -260,13 +288,12 @@ class Clearance extends RefCounted:
 			return at if at < n else -1
 		return -1
 
-	func _build_index(n: int) -> bool:
+	func _build_index(n: int) -> void:
 		"""Bin every row by its half-open z range once per image: a min/max pass, the band clear, then each row's
-		bands; each step charged as it is done."""
+		bands. Decision 2045 (the min-cost rule): the work is owed (`_index_debt`), repaid from the scans it saves."""
 		var rows: Space.Volumes = image.volumes
 		@warning_ignore("integer_division") var words: int = (n + 31) / 32
-		if not spend(n + INDEX_BANDS * words):
-			return false
+		_index_debt += n + INDEX_BANDS * words
 		_index_low = rows.lo_z[0] if n > 0 else 0
 		_index_high = rows.hi_z[0] if n > 0 else 1
 		for row: int in n:
@@ -280,27 +307,23 @@ class Clearance extends RefCounted:
 		_band_prefix.resize(INDEX_BANDS + 1)
 		_band_prefix.fill(0)
 		for row: int in n:
-			if not _bin_row(rows, row):
-				return false
+			_bin_row(rows, row)
 		for band: int in INDEX_BANDS:
 			_band_prefix[band + 1] += _band_prefix[band]
 		_index_volumes = rows
 		_index_rows = n
-		return true
 
-	func _bin_row(rows: Space.Volumes, row: int) -> bool:
+	func _bin_row(rows: Space.Volumes, row: int) -> void:
 		"""Mark one row in every band its half-open z range meets (an empty z range meets none)."""
 		if rows.lo_z[row] >= rows.hi_z[row]:
-			return true
+			return
 		@warning_ignore("integer_division") var first: int = (rows.lo_z[row] - _index_low) / _index_width
 		@warning_ignore("integer_division") var last: int = (rows.hi_z[row] - 1 - _index_low) / _index_width
-		if not spend(last - first + 1):
-			return false
+		_index_debt += last - first + 1
 		var bit: int = 1 << (row & 31)
 		for band: int in range(first, last + 1):
 			_bands[band * _index_words + (row >> 5)] |= bit
 			_band_prefix[band + 1] += 1 # Rows a band holds; summed into a prefix after the last row.
-		return true
 
 	func _band_span(bounds: PackedInt32Array) -> Vector2i:
 		"""The bands the query's half-open z range meets, clamped to the image's: (first, last), or last < first for
@@ -322,16 +345,17 @@ class Clearance extends RefCounted:
 				bits |= _bands[band * _index_words + word]
 			out[word] = bits
 
-	func index_mark() -> Space.Volumes:
-		"""Which image the index holds now (null: none), so a checked rerun that is not charged can drop an index it
-		built (`index_rewind`) and the next charged scan builds and pays for it, as an unchecked run does."""
-		return _index_volumes
+	func index_mark() -> Array:
+		"""Which image the index holds now (null: none) and the debt owed, so a checked rerun that is not charged can
+		drop an index it built and the debt its scans moved (`index_rewind`), as an unchecked run never ran them."""
+		return [_index_volumes, _index_debt]
 
-	func index_rewind(mark: Space.Volumes) -> void:
-		"""Forget an index built since `mark` was taken (decision 2045)."""
-		if mark == null:
+	func index_rewind(mark: Array) -> void:
+		"""Forget an index built since `mark` was taken, and put the debt back (decision 2045)."""
+		if mark[0] == null:
 			_index_volumes = null
 			_index_rows = -1
+		_index_debt = mark[1]
 
 	func _check_selection(bounds: PackedInt32Array, selected: PackedInt32Array) -> void:
 		"""With the cache checks on, unspent: a row the selection left out must not overlap the query."""
@@ -346,9 +370,9 @@ class Clearance extends RefCounted:
 		"""Omitted room markers never suppress actual physical walls, unfinished work or protected access.
 		Decision 2045 (P-2045-12 (a)): only rows the index selects for `bounds`, in row order."""
 		var rows: Space.Volumes = image.volumes
-		var next: int = first_row(bounds, set_a)
+		var next: int = first_row(bounds, set_a, 0)
 		while next != -1:
-			if next == SCAN_SPENT or not spend():
+			if not step(0):
 				return true
 			var row: int = next
 			next = next_row(set_a, row)
@@ -359,8 +383,9 @@ class Clearance extends RefCounted:
 				continue # Dry matter alone still cannot satisfy the separate actual SUPPORT coverage.
 			read_box(row, box)
 			if Space.overlaps(bounds, box):
+				settle(0, row + 1)
 				return true
-		return false
+		return not settle(0, rows.role.size())
 
 	func start(bounds: PackedInt32Array) -> void:
 		"""Keep the whole requested volume, including authored negative contact residuals. Decision 2045: an indexed
@@ -379,9 +404,9 @@ class Clearance extends RefCounted:
 		open fragment lies inside it, so a row that misses it misses every fragment, and subtracting such a row
 		re-emits each fragment unchanged, in order."""
 		var rows: Space.Volumes = image.volumes
-		var next: int = first_row(query, set_a)
+		var next: int = first_row(query, set_a, 0)
 		while next != -1:
-			if next == SCAN_SPENT or not spend():
+			if not step(0):
 				return false
 			var row: int = next
 			next = next_row(set_a, row)
@@ -395,10 +420,11 @@ class Clearance extends RefCounted:
 					cover[axis] = maxi(cover[axis], limit[axis])
 					cover[axis + 3] = mini(cover[axis + 3], limit[axis + 3])
 			if not subtract_cover():
+				settle(0, row + 1)
 				return false
 			if count == 0:
-				return true
-		return true
+				return settle(0, row + 1)
+		return settle(0, rows.role.size())
 
 	func covered(bounds: PackedInt32Array, role: int) -> bool:
 		"""Exact subtraction detects interior holes that corners, centres or sampled points miss."""
@@ -1369,7 +1395,7 @@ func _heading_first_refusal(profile: int, edge: Routes.Edge) -> StringName:
 	var code: StringName = _segment_headings_refusal(edge)
 	if code != &"WORLD_ROUTE_PROFILE_HEADING" or not Profiles.CacheChecks.enabled: return code
 	var spent: int = _proof.remaining
-	var mark: Space.Volumes = _proof.index_mark() # Decision 2045: an index built here is not charged either.
+	var mark: Array = _proof.index_mark() # Decision 2045: an index built here is not charged either.
 	if _profile_segments_refusal(edge) == &"" and _proof.error == &"":
 		Profiles.CacheChecks.report("heading first", "edge %d row %d" % [edge.ref.x, profile])
 	_proof.remaining = spent # The checked proof is not charged: a checked run spends what an unchecked one does.
@@ -1416,7 +1442,7 @@ func _stair_edge_refusal(profile: int, edge: Routes.Edge) -> StringName:
 	if code == &"": code = _endpoint_observation_refusal(edge.to_location, _point(edge, 1))
 	if code == &"" and (not _carried or Profiles.CacheChecks.enabled):
 		var spent: int = _proof.remaining
-		var mark: Space.Volumes = _proof.index_mark() # Decision 2045: an index built here is not charged either.
+		var mark: Array = _proof.index_mark() # Decision 2045: an index built here is not charged either.
 		var decks: StringName = _stair_decks_refusal(motion, program, first, edge.room)
 		if not _carried: code = decks
 		elif decks != &"" and _proof.error == &"":
@@ -1470,7 +1496,7 @@ func _stair_bodies_refusal(first: Vector3i, room: Vector2i) -> StringName:
 		if code != &"": return code
 		if _carried and not Profiles.CacheChecks.enabled: continue
 		var spent: int = _proof.remaining
-		var mark: Space.Volumes = _proof.index_mark() # Decision 2045: an index built here is not charged either.
+		var mark: Array = _proof.index_mark() # Decision 2045: an index built here is not charged either.
 		var volumes: StringName = (_proof.error if _proof.error != &"" else &"WORLD_ROUTE_STAIR_BLOCKED") \
 			if _stair_blocked(room) else _stair_covered_refusal(room)
 		if not _carried:
@@ -1855,17 +1881,19 @@ func _profile_segment_refusal(first: Vector3i, last: Vector3i) -> StringName:
 func _body_blocked(first: Vector3i, last: Vector3i) -> bool:
 	"""The exact pending bearer may use its complete source proof; every other original blocker still refuses.
 	Decision 2045 (P-2045-12 (a)): only rows the index selects for the body's sweep, in row order."""
-	var next: int = _proof.first_row(_bounds, _proof.set_b)
+	var next: int = _proof.first_row(_bounds, _proof.set_b, 1)
 	while next != -1:
-		if next == SCAN_SPENT or not _proof.spend(): return true
+		if not _proof.step(1): return true
 		var row: int = next
 		next = _proof.next_row(_proof.set_b, row)
 		var role: int = _proof.image.volumes.role[row]
 		if role == Space.FLOOR_DATUM or role == Space.SUPPORTED_VOID or role == Space.SUPPORT or role == Space.DRY_SOLID:
 			continue
 		_proof.read_box(row, _proof.box)
-		if Space.overlaps(_bounds, _proof.box) and _pending_span_refusal(first, last, row) != &"": return true
-	return false
+		if Space.overlaps(_bounds, _proof.box) and _pending_span_refusal(first, last, row) != &"":
+			_proof.settle(1, row + 1)
+			return true
+	return not _proof.settle(1, _proof.image.volumes.role.size())
 
 
 func _pending_span_refusal(first: Vector3i, last: Vector3i, row: int) -> StringName:
@@ -1902,9 +1930,9 @@ func _solid_contacts_covered(first: Vector3i, last: Vector3i) -> bool:
 	"""Physical matter, including support inside void, is excused only at explicitly authored support contact.
 	Decision 2045 (P-2045-12 (a)): only rows the index selects for the body's sweep, in row order; the inner
 	subtraction uses the other candidate set."""
-	var next: int = _proof.first_row(_bounds, _proof.set_b)
+	var next: int = _proof.first_row(_bounds, _proof.set_b, 1)
 	while next != -1:
-		if next == SCAN_SPENT or not _proof.spend():
+		if not _proof.step(1):
 			return false
 		var row: int = next
 		next = _proof.next_row(_proof.set_b, row)
@@ -1913,21 +1941,27 @@ func _solid_contacts_covered(first: Vector3i, last: Vector3i) -> bool:
 		_proof.read_box(row, _scratch)
 		if not Space.overlaps(_scratch, _bounds):
 			continue
-		for axis: int in 3:
-			_scratch[axis] = maxi(_scratch[axis], _bounds[axis])
-			_scratch[axis + 3] = mini(_scratch[axis + 3], _bounds[axis + 3])
-		_proof.start(_scratch)
-		for ordinal: int in _descriptor.box_count:
-			if not _proof.spend() or _profile_box_into(ordinal, _stance) != &"":
-				return false
-			if _stance.role != Profiles.STANCE_SUPPORT:
-				continue
-			if _sweep_into(_stance, first, last, _support) != &"" \
-					or not _proof.subtract_role(Space.SUPPORT, _support):
-				return false
-		if _proof.count != 0:
+		if not _solid_contact_covered(first, last):
+			_proof.settle(1, row + 1)
 			return false
-	return true
+	return _proof.settle(1, _proof.image.volumes.role.size())
+
+
+func _solid_contact_covered(first: Vector3i, last: Vector3i) -> bool:
+	"""One solid row's part inside the body (`_scratch`) is covered by actual SUPPORT under authored stance."""
+	for axis: int in 3:
+		_scratch[axis] = maxi(_scratch[axis], _bounds[axis])
+		_scratch[axis + 3] = mini(_scratch[axis + 3], _bounds[axis + 3])
+	_proof.start(_scratch)
+	for ordinal: int in _descriptor.box_count:
+		if not _proof.spend() or _profile_box_into(ordinal, _stance) != &"":
+			return false
+		if _stance.role != Profiles.STANCE_SUPPORT:
+			continue
+		if _sweep_into(_stance, first, last, _support) != &"" \
+				or not _proof.subtract_role(Space.SUPPORT, _support):
+			return false
+	return _proof.count == 0
 
 
 func _stance_sweeps_refusal(first: Vector3i, last: Vector3i) -> StringName:

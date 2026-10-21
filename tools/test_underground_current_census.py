@@ -46,7 +46,7 @@ class CurrentCensusTests(unittest.TestCase):
                          "world_routes_compile_memos": 19048}) # decision 1953: the route compile memos
         self.assertEqual(result["room_publication_controls"]["controls"], 11450) # decision 1943: five stations
         self.assertEqual(result["location_air_pool"]["remaining_bytes"], 1472)
-        self.assertEqual(result["world_routes_cold"]["world_routes_cold_bytes"], 447492) # decision 2045: the row index
+        self.assertEqual(result["world_routes_cold"]["world_routes_cold_bytes"], 447524) # decision 2045: the row index
 
     def test_cold_load_images_are_charged_from_their_codec_constants(self):
         """ADR 1221: the Contacts scope (74) and the Planner admission image (12 + 24 x 8192); a grown image refuses."""

@@ -4226,7 +4226,7 @@
         "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
         "godot/scripts/core/underground_profiles.gd": "4684fce53085b62f4fea85a26a862bd6a99b881dec10827a4802f8d5d0119bdc",
         "godot/scripts/core/underground_routes.gd": "b6b570efc04ea821915f7e43be7f1f98f2ffdac21d7dda67867ea4fd8c1d9dbc",
-        "godot/scripts/core/underground_world_routes.gd": "97d515cfc49fb17b05f7887c74b61224b73ff7e9cdc5512da663f197534d5190"
+        "godot/scripts/core/underground_world_routes.gd": "35c7a2bc181950ae474970398466088c9312a20e8ca0f14ed90b01e801093eea"
       }
     },
     "current_profile_control": {
@@ -42321,6 +42321,11 @@
             "bytes": 0,
             "carried_by": "none",
             "store": "decision 2044 (P-2044-16): the M5 landing and deep-hub reach (walk-off, hub D) and the row path helper; cold-path caller logic only, fewer allocation sites, no retained member"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "Decision 2045 (P-2045-15): the stair legs' shared edge scan keeps, for one _legs_refusal call, a local Dictionary of the first edge row per (from, to) ends (at most one entry a scanned row, Routes.MAX_EDGES 1,536) and a one-word cursor; cold locals released with the call, no retained member; and the CacheChecks preload and the legs' one scope leaf (no storage)"
           }
         ],
         "delta": {
@@ -42361,9 +42366,10 @@
           ],
           "allocation_sites": {
             "([": 3,
-            ".new(": 2,
+            ".new(": 4,
             "=[": 2,
-            "PackedInt32Array(": 1,
+            "={": 1,
+            "PackedInt32Array(": 2,
             "range(": 2,
             "return[": 1
           }
@@ -44134,7 +44140,7 @@
           {
             "bytes": 0,
             "carried_by": "WorldRoutes cold lease (COLD_BYTES +INDEX_BYTES)",
-            "store": "Decision 2045 (P-2045-12 (a)): the route-image row index inside each proof's Clearance packet: INDEX_BANDS 64 band bitsets and two candidate sets of INDEX_WORDS 256 int32 each, and the bands' 65 row-count prefix words (INDEX_BYTES 67,844 B), plus a six-word query box; cold, released with the proof; WorldRoutes COLD_BYTES 379,648 -> 447,492, inside Budget.COLD_BYTES 1,048,960; SCAN_SPENT is a sentinel"
+            "store": "Decision 2045 (P-2045-12 (a), Slice C's min-cost rule): the route-image row index inside each proof's Clearance packet: INDEX_BANDS 64 band bitsets and two candidate sets of INDEX_WORDS 256 int32 each, the bands' 65 row-count prefix words and the min-cost controls (debt, each set's mode, band words and visited rows; INDEX_BYTES 67,876 B), plus a six-word query box; cold, released with the proof; WorldRoutes COLD_BYTES 379,648 -> 447,524, inside Budget.COLD_BYTES 1,048,960"
           }
         ],
         "delta": {
@@ -44342,7 +44348,7 @@
             ],
             [
               "INDEX_BYTES",
-              "4 * INDEX_WORDS * INDEX_BANDS + 4 * INDEX_WORDS * INDEX_SETS + 4 * INDEX_BANDS + 4"
+              "4 * INDEX_WORDS * INDEX_BANDS + 4 * INDEX_WORDS * INDEX_SETS + 4 * INDEX_BANDS + 36"
             ],
             [
               "INDEX_ROWS",
@@ -44375,10 +44381,6 @@
             [
               "PREPARED_KEY_CHECKS",
               "9"
-            ],
-            [
-              "SCAN_SPENT",
-              "-2"
             ]
           ],
           "int_constants_removed": [
@@ -44445,6 +44447,14 @@
                   "PackedInt32Array"
                 ],
                 [
+                  "_deferred",
+                  "PackedByteArray"
+                ],
+                [
+                  "_index_debt",
+                  "int"
+                ],
+                [
                   "_index_high",
                   "int"
                 ],
@@ -44467,6 +44477,14 @@
                 [
                   "_index_words",
                   "int"
+                ],
+                [
+                  "_lookup",
+                  "PackedInt32Array"
+                ],
+                [
+                  "_visited",
+                  "PackedInt32Array"
                 ],
                 [
                   "box",
@@ -44542,9 +44560,11 @@
           "allocation_sites": {
             ".new(": 2,
             "=[": 3,
-            "PackedInt32Array(": 9,
+            "PackedByteArray(": 1,
+            "PackedInt32Array(": 11,
             "PackedInt64Array(": 11,
-            "range(": 3
+            "range(": 3,
+            "return[": 1
           }
         }
       },
@@ -45218,7 +45238,7 @@
     },
     "world_routes_cold": {
       "staged_change_bytes": 1792,
-      "world_routes_cold_bytes": 447492,
+      "world_routes_cold_bytes": 447524,
       "shared_cold_bytes": 1048960
     },
     "contact_retirement_cold": {
@@ -45391,7 +45411,7 @@
     "godot/scripts/core/underground_budget.gd": "50abcc7101ed0aa6435586a775acd2dc970364d1f14d4fc8d576092767021c28",
     "godot/scripts/core/underground_connector_assemblies.gd": "3199049decf5b6ca95da09bb416196d82a96e89af194166b196df29f1cf7b73c",
     "godot/scripts/core/underground_connector_catalog.gd": "6bc1f91d3a79c440891fd3309ca7145f7a393b19b43b526560f21c7da77e3061",
-    "godot/scripts/core/underground_connector_contacts.gd": "f6538b1e4e16dc472b670b8984bfddf033d24946dbd19c4286cac556c58b0355",
+    "godot/scripts/core/underground_connector_contacts.gd": "900f49f4401e5f046e87c57aebbe77c61232eca6fa90e61f84f82655117ca87a",
     "godot/scripts/core/underground_connector_delivery.gd": "afbba9465f397d69edf78093dd803b775ba8745db2f1ff491a003a8741d99462",
     "godot/scripts/core/underground_connector_placements.gd": "401ad48c51225a514876bc9e1017d78a6dda96ac34ff2717e25742d1a3f7db30",
     "godot/scripts/core/underground_connector_recipes.gd": "a23c0f6087597b1c3bee978f9008824af86856dca6ddaba1b6bc41d1d03cba1a",
@@ -45418,7 +45438,7 @@
     "godot/scripts/core/underground_terrain.gd": "41ef346c2aa3835d24da18b2f3ffaa15a7e523178ecdc2815369c49a65ec93b8",
     "godot/scripts/core/underground_work_face.gd": "1ad3eab1c62df90f0e41c78f0ccf484f4d04b630ca825b50dedcca2a6be4f731",
     "godot/scripts/core/underground_world_retirement.gd": "9ad293e84928ff8cd5c6c3bf4c8c534577b6afea3efc1c4adf202a7c8a80dd0f",
-    "godot/scripts/core/underground_world_routes.gd": "97d515cfc49fb17b05f7887c74b61224b73ff7e9cdc5512da663f197534d5190",
+    "godot/scripts/core/underground_world_routes.gd": "35c7a2bc181950ae474970398466088c9312a20e8ca0f14ed90b01e801093eea",
     "godot/scripts/core/work.gd": "5fa066d25328b0c871d77c949164c5ebaec2f98fd985ddd8cd40570f866c7310"
   },
   "registry_sha256": "cc37468090fcd4c6df08c056203209d4dcf521fdd3d91195ab175bb35910c0a8",

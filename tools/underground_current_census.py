@@ -92,7 +92,7 @@ def delta(before: str, after: str) -> dict:
 
 EVIDENCE = Path("docs/validation/evidence/underground-memory-census-2026-10-06")
 REVIEWED = EVIDENCE / "reviewed-deltas.json"
-REVIEWED_SHA = "b941f3ef9499fea2e989db29d16ac8ac31d1c0e9a27293cf46a5a9186c6338c6"
+REVIEWED_SHA = "6c68414387b0c71c2718dfaf546b3a765e21d810d3d3fd8a57781e70c353e32e"
 # ADR1217 step 5: the runtime Frontier is the claw bundle's (same row census as qualified-stone-v5's).
 # ADR1229: the mounted T1-T6 bundle's Frontier (ADR1217 step 5 mounted qualified-claw-v6's).
 # DEC-059 (P3): qualified-stairs-v9, the same rows with T1-T6 fastened in 5,640 mWU.
@@ -298,7 +298,7 @@ def world_routes_cold(memory, index: dict) -> dict:
     changes = 4 * stride * memory.resolve(index, "underground_geometry_journal", "CAPACITY")
     cold = memory.resolve(index, "underground_world_routes", "COLD_BYTES")
     shared = memory.resolve(index, "underground_budget", "COLD_BYTES")
-    require(changes == 1792 and cold == 447492 and cold <= shared, "WorldRoutes cold lease inside the shared arena")
+    require(changes == 1792 and cold == 447524 and cold <= shared, "WorldRoutes cold lease inside the shared arena")
     return {"staged_change_bytes": changes, "world_routes_cold_bytes": cold, "shared_cold_bytes": shared}
 
 

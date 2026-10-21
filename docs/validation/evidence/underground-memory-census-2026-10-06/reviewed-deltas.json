@@ -1344,12 +1344,21 @@
      "bytes": 384,
      "carried_by": "Profiles CONTROL_RESERVE",
      "store": "decision 1952: the itinerary anchor-check memo _anchor_memo, ANCHOR_MEMO_SLOTS x ANCHOR_MEMO_STRIDE int64 (8 x 6 x 8), runtime-only, never saved"
+    },
+    {
+     "bytes": 48,
+     "carried_by": "Profiles CONTROL_RESERVE",
+     "store": "decision 1970 (F4): the claw image digest memo _claw_digest_memo, CLAW_DIGEST_SLOTS x CLAW_DIGEST_STRIDE int64 (2 x 3 x 8); four integer constants; runtime-only, never saved"
     }
    ],
    "delta": {
     "members_added": [
      [
       "_anchor_memo",
+      "PackedInt64Array"
+     ],
+     [
+      "_claw_digest_memo",
       "PackedInt64Array"
      ],
      [
@@ -1371,6 +1380,7 @@
     ],
     "resizes_added": [
      "_anchor_memo.resize(ANCHOR_MEMO_SLOTS * ANCHOR_MEMO_STRIDE)",
+     "_claw_digest_memo.resize(CLAW_DIGEST_SLOTS * CLAW_DIGEST_STRIDE)",
      "last_of.resize(_stage.header[3])",
      "same_key.resize(_stage.header[3])"
     ],
@@ -1382,6 +1392,22 @@
      [
       "ANCHOR_MEMO_STRIDE",
       "6"
+     ],
+     [
+      "CLAW_DIGEST_SLOTS",
+      "2"
+     ],
+     [
+      "CLAW_DIGEST_STRIDE",
+      "3"
+     ],
+     [
+      "CLAW_DIGEST_V1",
+      "0"
+     ],
+     [
+      "CLAW_DIGEST_V2",
+      "1"
      ],
      [
       "CONTACT_ASSEMBLY_PALM",
@@ -1426,7 +1452,7 @@
     ],
     "allocation_sites": {
      "PackedInt32Array(": 2,
-     "PackedInt64Array(": 1
+     "PackedInt64Array(": 2
     }
    }
   },
@@ -1629,10 +1655,47 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "decision 1952: _edge_profile consults WorldRoutes' memo; the live choice moves to _edge_profile_live; no member, packet or resize"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "new retained (world_routes_search_memo)",
+     "store": "decision 1970 (F2): one static key packet _search_key I64[SEARCH_KEY] (19 x 8), sized once (out.resize(SEARCH_KEY)), and five integer layout constants; counted by the census item world_routes_search_memo, never saved"
     }
    ],
    "delta": {
+    "members_added": [
+     [
+      "_search_key",
+      "PackedInt64Array"
+     ]
+    ],
+    "resizes_added": [
+     "out.resize(SEARCH_KEY)"
+    ],
+    "int_constants_added": [
+     [
+      "SEARCH_KEY",
+      "19"
+     ],
+     [
+      "S_COUNT",
+      "20"
+     ],
+     [
+      "S_DESCRIPTOR",
+      "21"
+     ],
+     [
+      "S_SPENT",
+      "19"
+     ],
+     [
+      "S_WRITES",
+      "26"
+     ]
+    ],
     "allocation_sites": {
+     "PackedInt64Array(": 2,
      "range(": 1
     }
    }
@@ -2478,6 +2541,11 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "decision 2044 (P-2044-16, Slice C clearance): the carried stair form and _carry_hull_clean, whose hull is held in the existing _support stance scratch; no retained member, packet or allocation site"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "new retained (world_routes_search_memo)",
+     "store": "decision 1970 (F2): the room itinerary's whole-search memo _search_memo I64[32 x 27] and its chains _search_chains I32[32 x 64], allocated once with WorldRoutes' fixed scratch; three integer constants; counted by the census item world_routes_search_memo, never saved"
     }
    ],
    "delta": {
@@ -2583,6 +2651,14 @@
       "int"
      ],
      [
+      "_search_chains",
+      "PackedInt32Array"
+     ],
+     [
+      "_search_memo",
+      "PackedInt64Array"
+     ],
+     [
       "_since",
       "int"
      ]
@@ -2599,6 +2675,8 @@
      "_pace_codes.resize(PACE_SLOTS)",
      "_pace_inputs.resize(PACE_INPUT_WORDS)",
      "_pace_memo.resize(PACE_SLOTS * PACE_WORDS)",
+     "_search_chains.resize(SEARCH_MEMO_SLOTS * 2 * SEARCH_CHAIN_EDGES)",
+     "_search_memo.resize(SEARCH_MEMO_SLOTS * SEARCH_MEMO_STRIDE)",
      "changes.resize(Journal.STAGED_STRIDE * CHANGE_CAPACITY)",
      "out.resize(CERT_WIRE_BYTES)",
      "record.envelope.resize(6)",
@@ -2680,6 +2758,18 @@
      [
       "PACE_WORDS",
       "6"
+     ],
+     [
+      "SEARCH_CHAIN_EDGES",
+      "32"
+     ],
+     [
+      "SEARCH_MEMO_SLOTS",
+      "32"
+     ],
+     [
+      "SEARCH_MEMO_STRIDE",
+      "27"
      ]
     ],
     "int_constants_removed": [
@@ -2795,8 +2885,8 @@
     "allocation_sites": {
      ".new(": 2,
      "=[": 3,
-     "PackedInt32Array(": 3,
-     "PackedInt64Array(": 10,
+     "PackedInt32Array(": 4,
+     "PackedInt64Array(": 11,
      "range(": 1
     }
    }

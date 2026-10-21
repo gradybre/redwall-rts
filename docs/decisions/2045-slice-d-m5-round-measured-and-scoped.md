@@ -1257,3 +1257,13 @@ The machine was busier than in the earlier run (load about 9). The slowest fligh
 8-minute budget. The shard weights were regenerated from this run.
 
 The analyzer, on port 6505, reports 0 warnings in 1,699 files.
+
+## Brendan's rulings on P-2045-16 and P-2045-17 (2026-10-21)
+
+Relayed by the coordinator: Brendan answered in chat through AskUserQuestion.
+
+| Proposal | Ruling | What it means |
+|---|---|---|
+| P-2045-16 | **(b)**, "Leave it for now" | The reach precharge stays charged to both Routes' search budget and Contacts' fragments budget; Contacts' spend is unchanged. Revisit in the cost lane only if Contacts' peak ever binds |
+| P-2045-17 | **(a)**, "Slice C's steady-tick lane" | Slice C's steady-tick lane owns the exact memo for `qualified-m5-runtime-v1/paw_physical_certificate.gd` (about 3.4 ms a call on about 19 % of ticks), with Slice D's clearance of the exact hunks, after this branch merges |
+

@@ -273,3 +273,4 @@ Every row was checked against the record named.
 
 Not Brendan's: decision 0492 (the planner on T, Run-until on G, T no longer the Dig alias) was the coordinator's
 resolution of a key clash at batch 5, not a ruling.
+| M5's last two items (2045 P-2045-16, -17), 2026-10-21 | P-2045-16 **"Leave it for now"** (the reach precharge stays double-charged; Contacts' spend unchanged). P-2045-17 **"Slice C's steady-tick lane"** owns the paw certificate memo, with Slice D's clearance of the hunks after M5 merges. (Relayed by the coordinator) | [2045](../decisions/2045-slice-d-m5-round-measured-and-scoped.md) |

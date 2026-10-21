@@ -2762,8 +2762,10 @@ func _pass_landings(issuer: RefCounted, row: int) -> int:
 func _landing_scope() -> int:
 	"""Decision 2045: how long derived LANDING datums are kept: a witness pass (its serial, negated) or else the open
 	Locations operation (its token, never repeated); 0 when neither, so nothing is kept. The datums are a pure function
-	of the Placement row's generation and the Catalog; the scope only bounds how long that is trusted."""
-	if _in_witness_pass: return -_witness_pass
+	of the Placement row's generation and the Catalog; the scope only bounds how long that is trusted. A cold load's
+	row re-proof (`_loading_rows`) is one synchronous operation over an unchanging image and keeps them under a pass
+	serial of its own (decision 2045: the M5 finish's load re-derived every row's datums for every record)."""
+	if _in_witness_pass or _loading_rows: return -_witness_pass
 	return _token
 
 
@@ -3319,6 +3321,7 @@ func _loaded_rows_refusal() -> StringName:
 	_prepare_record_scratch()
 	if not _air_pool_canonical(self, _stage):
 		return &"LOCATION_IMAGE_AIR"
+	_witness_pass += 1 # Decision 2045: a serial no earlier pass or load used, for `_landing_scope`.
 	_loading_rows = true
 	var code: StringName = _loaded_rows_loop_refusal()
 	_loading_rows = false

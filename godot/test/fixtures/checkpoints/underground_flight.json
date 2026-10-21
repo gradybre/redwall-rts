@@ -1,6 +1,6 @@
 {
 	"engine": "4.7.2.stable",
-	"fingerprint": "884bf8635c824e9c6a97aa5e4903803948fdb145a2c69091431aa993efb19a37",
+	"fingerprint": "d1f7ed489d583f8278023414c07e7bb755777f0e4ddd4814da3cdc4e28ba7f6b",
 	"name": "underground_flight",
 	"points": {
 		"finish": {
@@ -69,6 +69,12 @@
 			"sha256": "c5e099bded19fd3982fb20ea0e7d0e1f92bc473a6d0566934e82c1bf7295ff08",
 			"tick": 55000
 		},
+		"tick_057500": {
+			"bytes": 67125866,
+			"file": "underground_flight-tick_057500.rwlsave.gz",
+			"sha256": "18a6bda6a8eb88dc41028d2b925ca9002ff4ab20d0d7def02d95eb6af9d66f98",
+			"tick": 57500
+		},
 		"tick_060000": {
 			"bytes": 67126211,
 			"file": "underground_flight-tick_060000.rwlsave.gz",
@@ -80,6 +86,12 @@
 			"file": "underground_flight-tick_065000.rwlsave.gz",
 			"sha256": "677dc7c0c2c4b8fe43796ce3d4a80023a3d9a1112800a3a421df8d6ad233e491",
 			"tick": 65000
+		},
+		"tick_067500": {
+			"bytes": 67124250,
+			"file": "underground_flight-tick_067500.rwlsave.gz",
+			"sha256": "194308c724bcf787b33d02762d3180b0c1ef0d80b0e4223c53d3bf56a6a41db2",
+			"tick": 67500
 		},
 		"tick_070000": {
 			"bytes": 67124222,
@@ -98,6 +110,12 @@
 			"file": "underground_flight-tick_080000.rwlsave.gz",
 			"sha256": "e370d777896ecf7cecebbe3bd745a0231aead099f1c5616da4e7280084b4b4cf",
 			"tick": 80000
+		},
+		"tick_082500": {
+			"bytes": 67122618,
+			"file": "underground_flight-tick_082500.rwlsave.gz",
+			"sha256": "a3f13a9341aa111578a3d3dadad5de566932a6e96186afe7cdb79cdcf31ddbfa",
+			"tick": 82500
 		},
 		"tick_085000": {
 			"bytes": 67123543,
@@ -380,7 +398,7 @@
 		"res://scripts/systems/settlement_system.gd": "6494c6cab8899780c0708ad88086b9b293c69244807d8283cf3842ec2057e4f7",
 		"res://scripts/utils/perf_timer.gd": "6d3320c3d2c2a82912e8c55296b2566c6966c4184133216bcd7ebfd15d88446c",
 		"res://test/fixtures/autoload_clock_reset.gd": "f8966f5f6aa4f22c7989fbaa49296d17cda0dcca9d977549c38490ffb3c6ac19",
-		"res://test/fixtures/checkpoint_recipes.gd": "0b71f2ef458b589474f0dcd58c4bde9d0a7b7e07890a46a819e33544533531d1",
+		"res://test/fixtures/checkpoint_recipes.gd": "d03db0bebe46f8d5c46b27e29102de61c3e7b7c190cd5bfca78458778db671cb",
 		"res://test/fixtures/checkpoint_store.gd": "8ebcc230c59bebf867b08f104ec7b3e0cdb124eec044ff5c5d5f2c40fc2a8bab",
 		"res://test/fixtures/underground_entry_chain.gd": "ec04e09f1493d6c5e9d03a90a3ff26de38e5a835c24a1dbc14322d921092c10d"
 	},

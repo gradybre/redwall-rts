@@ -12,6 +12,7 @@ const Reservations := preload("res://scripts/core/reservations.gd")
 const Piles := preload("res://scripts/core/ground_piles.gd")
 const Directory := preload("res://scripts/core/entity_directory.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const CacheChecks := preload("res://scripts/core/runtime_cache_checks.gd") # Decision 1952.
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const MAX_PROFILES: int = 256
 const MAX_BOXES: int = 3072
@@ -20,6 +21,10 @@ const MAX_SELECTION_BOXES: int = 12
 const MAX_KEY_VARIANTS: int = 16
 const ARENA_BYTES: int = 262144
 const CONTROL_RESERVE: int = 32768
+## Decision 1952: the itinerary anchor-check memo, ANCHOR_MEMO_SLOTS direct-mapped slots of ANCHOR_MEMO_STRIDE words:
+## load revision, bank instance, anchor, profile revision, content revision, refused (1) or not (0).
+const ANCHOR_MEMO_SLOTS: int = 8
+const ANCHOR_MEMO_STRIDE: int = 6
 const I32_FIELDS: int = 18
 const I64_FIELDS: int = 3
 const BYTE_FIELDS: int = 2
@@ -73,6 +78,14 @@ const POLICY_ASSEMBLY_HANDLING: int = 7
 const POLICY_STAIR: int = 8
 ## ADR1229: the stepped half-turn on a tread; a separate policy so it never shares a key with a stair gait.
 const POLICY_STAIR_TURN: int = 9
+## Decision 1981: the rooted-travel family (the stair carry and the stair's floor end): source-proved fixed motions
+## read from stair tables, never automatic lookup. A rooted row may carry one unit (CARRY with a cargo) or walk empty.
+## Four words, so that two rooted rows at one heading never share a key: the forward handoffs (approach, retreat,
+## walk-off), the backward handoffs (back-up), the stair gaits and the half-turn.
+const POLICY_ROOTED_TRAVEL: int = 10
+const POLICY_ROOTED_BACKWARD: int = 11
+const POLICY_ROOTED_STAIR: int = 12
+const POLICY_ROOTED_TURN: int = 13
 # Field-major columns, not one record/object per profile.
 const F_SOURCE: int = 0
 const F_SPECIES: int = 1
@@ -195,6 +208,18 @@ var _math: IntMath.IntResult = IntMath.IntResult.new()
 var _candidate: Selection = Selection.new()
 var _query_values: PackedInt64Array = PackedInt64Array() # tool, variant, cargo, variant, kind
 var _loading: bool = false
+## Decision 1952 (P-1951-3): a runtime token that moves whenever a bank may have changed (configure, every load_file
+## swap, invalidate_runtime_caches). Never saved; zero (saturated) permanently poisons readers' caches.
+var _load_revision: int = 1
+## Decision 1952: the step-program closure (`ShortStep.uses`) as last read, and the bank and revision it was read at.
+@warning_ignore("unused_private_class_variable")
+var _step_closure: bool = false
+@warning_ignore("unused_private_class_variable")
+var _step_closure_revision: int = 0
+@warning_ignore("unused_private_class_variable")
+var _step_closure_bank: int = 0
+## Decision 1952: `Itinerary._anchor_refusal` answers as last read, with the revision and bank they were read at.
+var _anchor_memo: PackedInt64Array = PackedInt64Array()
 var _worker_row: int = -1
 
 
@@ -202,6 +227,7 @@ func _init() -> void:
 	"""Fixed reusable hot scratch has one explicit small allocation, independent of resident count."""
 	_identity.resize(3)
 	_query_values.resize(5)
+	_anchor_memo.resize(ANCHOR_MEMO_SLOTS * ANCHOR_MEMO_STRIDE)
 
 
 func configure(profiles: int, boxes: int, sources: int, arena_bytes: int) -> StringName:
@@ -219,7 +245,19 @@ func configure(profiles: int, boxes: int, sources: int, arena_bytes: int) -> Str
 	_source_capacity = sources
 	_live.allocate(profiles, boxes, sources)
 	_stage.allocate(profiles, boxes, sources)
+	invalidate_runtime_caches()
 	return &""
+
+
+func load_revision() -> int:
+	"""Decision 1952: changes on every bank write this store makes; zero poisons caches."""
+	return _load_revision if _load_revision < IntMath.INT64_MAX else 0
+
+
+func invalidate_runtime_caches() -> void:
+	"""Move the load token. Every bank write here calls it; so must anything that edits a bank in place."""
+	if _load_revision < IntMath.INT64_MAX:
+		_load_revision += 1
 
 
 func packed_memory_bytes() -> int:
@@ -290,6 +328,7 @@ func load_file(path: String, expected_sha256: String, revision: int) -> StringNa
 		var old: Bank = _live
 		_live = _stage
 		_stage = old
+		invalidate_runtime_caches()
 	_loading = false
 	return code
 
@@ -399,7 +438,7 @@ func _validate_stage() -> StringName:
 
 func _profile_refusal(row: int, next_box: int) -> StringName:
 	"""Qualification is an explicit source certificate requirement, not inferred from positive bounds."""
-	if _stage.flags[row] != CERT_REQUIRED or _stage.flags[_profile_capacity + row] > POLICY_STAIR_TURN \
+	if _stage.flags[row] != CERT_REQUIRED or _stage.flags[_profile_capacity + row] > POLICY_ROOTED_TURN \
 			or _long(_stage, row, L_REVISION) <= 0:
 		return &"PROFILE_CERTIFICATE_REQUIRED"
 	if _field(_stage, row, F_SOURCE) < 0 or _field(_stage, row, F_SOURCE) >= _stage.header[3] \
@@ -408,12 +447,7 @@ func _profile_refusal(row: int, next_box: int) -> StringName:
 		return &"PROFILE_IDENTITY_FORMAT"
 	var mode: int = _field(_stage, row, F_MODE)
 	var policy: int = _stage.flags[_profile_capacity + row]
-	if policy != POLICY_AUTOMATIC and (_field(_stage, row, F_YAW_KIND) != (YAW_ALL if policy == POLICY_CANONICAL_GROUND else YAW_EXACT) \
-			or _field(_stage, row, F_YAW) % 16384 != 0 \
-			or mode != (MODE_WORK if policy == POLICY_SOURCE_WORK or policy == POLICY_ASSEMBLY_HANDLING else MODE_WALK)):
-		return &"PROFILE_POLICY_FORMAT"
-	if (policy == POLICY_STAIR or policy == POLICY_STAIR_TURN) and (_field(_stage, row, F_FAMILIES) == 0 or _field(_stage, row, F_TOOL) != -1 \
-			or _field(_stage, row, F_CARGO) != -1):
+	if _policy_refusal(row, policy, mode):
 		return &"PROFILE_POLICY_FORMAT"
 	var states: int = _field(_stage, row, F_STATES)
 	if mode < MODE_STAND or mode > MODE_CLIMB or states < 1 or states > 511 \
@@ -430,6 +464,38 @@ func _profile_refusal(row: int, next_box: int) -> StringName:
 			or next_box + count > _stage.header[2]:
 		return &"PROFILE_BOX_CENSUS"
 	return _roles_refusal(row, next_box, count)
+
+
+func _policy_refusal(row: int, policy: int, mode: int) -> bool:
+	"""An explicit policy fixes its yaw kind and mode; stair rows hold nothing; a rooted row carries exactly when CARRY."""
+	if policy != POLICY_AUTOMATIC and (_field(_stage, row, F_YAW_KIND) != (YAW_ALL if policy == POLICY_CANONICAL_GROUND else YAW_EXACT) \
+			or _field(_stage, row, F_YAW) % 16384 != 0 or mode != _policy_mode(policy, mode)):
+		return true
+	if (policy == POLICY_STAIR or policy == POLICY_STAIR_TURN) and (_field(_stage, row, F_FAMILIES) == 0 or _field(_stage, row, F_TOOL) != -1 \
+			or _field(_stage, row, F_CARGO) != -1):
+		return true
+	return is_rooted_policy(policy) and (_field(_stage, row, F_TOOL) != -1 \
+		or (mode == MODE_CARRY) != (_field(_stage, row, F_CARGO) >= 0))
+
+
+static func _policy_mode(policy: int, mode: int) -> int:
+	"""The mode an explicit policy requires: WORK for source work and handling; a rooted row may also be CARRY."""
+	if policy == POLICY_SOURCE_WORK or policy == POLICY_ASSEMBLY_HANDLING:
+		return MODE_WORK
+	if is_rooted_policy(policy) and mode == MODE_CARRY:
+		return MODE_CARRY
+	return MODE_WALK
+
+
+static func is_rooted_policy(policy: int) -> bool:
+	"""Decision 1981: one of the four rooted-travel words (10-13)."""
+	return policy >= POLICY_ROOTED_TRAVEL and policy <= POLICY_ROOTED_TURN
+
+
+static func is_table_turn(policy: int) -> bool:
+	"""Decision 1972: a half-turn whose heading is its stair table's, never the actor's current one: the claw stair
+	turn (9) and the rooted turn (13)."""
+	return policy == POLICY_STAIR_TURN or policy == POLICY_ROOTED_TURN
 
 
 func _key_refusal(row: int) -> StringName:
@@ -598,7 +664,7 @@ static func selection_policy_leaf(actual: RefCounted, profile_id: int, profile_r
 			or profile_revision <= 0 or profile_revision != actual._live.quantities[L_REVISION * actual._profile_capacity + profile_id]:
 		return -1
 	var policy: int = actual._live.flags[actual._profile_capacity + profile_id]
-	return policy if policy <= POLICY_STAIR_TURN else -1
+	return policy if policy <= POLICY_ROOTED_TURN else -1
 
 
 func query_travel_profile_into(worker: Vector2i, job: Vector2i, profile_id: int, profile_revision: int,
@@ -606,12 +672,14 @@ func query_travel_profile_into(worker: Vector2i, job: Vector2i, profile_id: int,
 	"""Explicit source travel still proves the actual current actor, Job, tool, cargo and orientation."""
 	var policy: int = selection_policy_leaf(self, profile_id, profile_revision, revision)
 	if (policy < POLICY_READY_FORWARD or policy > POLICY_CANONICAL_GROUND or policy == POLICY_SOURCE_WORK) \
-			and policy != POLICY_STAIR and policy != POLICY_STAIR_TURN:
+			and policy != POLICY_STAIR and policy != POLICY_STAIR_TURN and not is_rooted_policy(policy):
 		return &"PROFILE_TRAVEL_SELECTION_REQUIRED"
-	var code: StringName = _prepare_query(worker, job, MODE_WALK, posture, connector_family, equipped_tool_hint, out)
+	# Decision 1972: a rooted row names its own mode (WALK, or CARRY with the actor's actual cargo).
+	var mode: int = _policy_mode(policy, _field(_live, profile_id, F_MODE))
+	var code: StringName = _prepare_query(worker, job, mode, posture, connector_family, equipped_tool_hint, out)
 	if code != &"":
 		return code
-	if not _matches(profile_id, MODE_WALK, posture, connector_family):
+	if not _matches(profile_id, mode, posture, connector_family):
 		return &"PROFILE_VARIANT_UNAUTHORED"
 	_write_selection(profile_id, worker, job, out)
 	return &""
@@ -742,10 +810,10 @@ func _matches(row: int, mode: int, posture: int, family: int) -> bool:
 	var quantity: int = _candidate.cargo_quantity_milli
 	if quantity < _long(_live, row, L_QUANTITY_MIN) or quantity > _long(_live, row, L_QUANTITY_MAX):
 		return false
-	# ADR1229: the half-turn's heading is its own table's (Routes checks the start heading); every other exact row
-	# matches the actor's current heading.
+	# ADR1229 / decision 1972: a half-turn's heading is its own table's (Routes checks the start heading); every other
+	# exact row matches the actor's current heading.
 	if _field(_live, row, F_YAW_KIND) == YAW_EXACT and _field(_live, row, F_YAW) != _pose.yaw \
-			and _live.flags[_profile_capacity + row] != POLICY_STAIR_TURN:
+			and not is_table_turn(_live.flags[_profile_capacity + row]):
 		return false
 	return family == -1 or (_field(_live, row, F_FAMILIES) & (1 << family)) != 0
 

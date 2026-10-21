@@ -22,17 +22,17 @@ class CurrentMotionTests(unittest.TestCase):
 
     def test_actual_current_dimensions_and_joint_are_derived_once(self):
         result = motion.build(self.index)
-        self.assertEqual(result['profile_configuration'], dict(profiles=67, boxes=547, sources=6)) # ADR1229: content 10
-        self.assertEqual(result['joint']['profiles'], 2 * (67*98 + 547*28 + 6*32 + 32) + 32768)
-        self.assertEqual(result['joint']['total'], 262128)
-        self.assertEqual(result['joint']['total'] + 1536 + 8192, 271856) # inside the raised PROFILE_BYTES 278,528
+        self.assertEqual(result['profile_configuration'], dict(profiles=85, boxes=637, sources=8)) # Decision 1972: content 12
+        self.assertEqual(result['joint']['profiles'], 2 * (85*98 + 637*28 + 8*32 + 32) + 32768)
+        self.assertEqual(result['joint']['total'], 270824)
+        self.assertEqual(result['joint']['total'] + 1536 + 8192, 280552) # inside decision 1972's PROFILE_BYTES 282,624
         self.assertEqual(result['paired_bank_bytes'], 2*70860)
         self.assertEqual(result['joint']['independent_maxima_total_refuses'], 444284)
         self.assertFalse(result['native_measured'])
 
     def test_old_or_mixed_profile_dimensions_are_not_current(self):
-        for before, after in (('PROFILE_COUNT: int = 67', 'PROFILE_COUNT: int = 60'),
-                              ('BOX_COUNT: int = 547', 'BOX_COUNT: int = 517')):
+        for before, after in (('PROFILE_COUNT: int = 85', 'PROFILE_COUNT: int = 67'),
+                              ('BOX_COUNT: int = 637', 'BOX_COUNT: int = 547')):
             with self.subTest(field=before), self.assertRaisesRegex(ValueError, 'current accepted publication'):
                 motion.build(self.changed('mole_profile_catalog', before, after))
 

@@ -145,7 +145,7 @@ snap. The shared Buildings panel (BLD-PANEL) is approved but unbuilt.
 
 ## 5. The plan (proposal)
 
-Eight slices, in order. Each is a lane with the usual gates (README §3.4–3.7). Slices B–F are underground-first,
+Eight slices, in order, and a ninth, M (Mound homes), added on 2026-10-15. Each is a lane with the usual gates (README §3.4–3.7). Slices B–F are underground-first,
 because that is where the room-painting model fits and where the code is closest; G brings the surface into the same
 panel. Decision ranges are allocated when Brendan approves (check `docs/validation/decision_numbers.py`).
 
@@ -206,18 +206,36 @@ painted rooms. Its surface costs follow Brendan's ruling on OPEN-01 (b): key ite
 any refusal (EG2's Cancel → camera); bulk select/remove; no "crew abandons the build" — keep the existing per-digger
 job queues and show who is assigned on the blueprint.
 
-**Dependencies per slice** (added by slice A, 2026-10-11; updated the same day after Brendan ruled all eleven OPEN items of decision 1851; updated 2026-10-12 by Brendan's “Budget now, rest later” ruling, [decision 1880](../../decisions/1880-painted-room-memory-budget.md)). “Needs” means the slice cannot finish without it.
+**M — Mound homes (added 2026-10-15, [decision 2001](../../decisions/2001-mound-homes.md); SET-BUILD-001 §12).** Brendan:
+“This looks good, let's build this into the plan.” Mound is a construction style for rooms painted on the Surface: a
+hill is heaped to fit the painted rooms (heap → dig → frame → top), every room sits at the hill's edge, the hill grows
+as rooms are added, and the player places doors (2 cell edges, with a small yard and built front) and windows (1 edge,
+flush on the turf slope) on the rooms' outer edges. A Way down in a Mound room leads to level 1. Three parts:
+
+- **M0 — MOUND-TERRAIN.** The ground-heights amendment and its data. GDD §5.1's three fixed surface heights become a
+  height per cell, finer than a metre: Brendan ruled "Finer heights" (decision 2001 P-2001-1 (b)), and the step is 128 u
+  (P-2001-15, "1/8 m"). Walkers and haulers must handle real slopes, which opens movement work against MOVE-G01–G05. It also
+  covers REQ-SET-122 and how part-filled cut quanta are dug. Docs and data first; it is the main prerequisite.
+- **M1 — MOUND-POC.** A proof of concept in the demo, which can come first, like decision 1912's: paint Mound rooms on
+  the Surface, a resident heaps, digs and tops them, doors and windows go on outer edges, the hill grows, a hatch leads
+  to level 1. Drawn over the unchanged ground, free and unsaved. Approved (P-2001-11 (a)).
+- **M2 — MOUND-REAL.** The real pipeline: a heap earthwork job (haul and tamp earth, P-2001-3), the rooms dug by the
+  room foreman and the claw stroke, the brace drawn as the frame, the cover topped up, the door, window and way-down
+  items, and the hill written into the ground data.
+
+**Dependencies per slice** (added by slice A, 2026-10-11; updated the same day after Brendan ruled all eleven OPEN items of decision 1851; updated 2026-10-12 by Brendan's “Budget now, rest later” ruling, [decision 1880](../../decisions/1880-painted-room-memory-budget.md); C and D re-ordered 2026-10-12 by his ruling on [decision 1911](../../decisions/1911-slice-c-scoping-paint-equals-dig.md) P-C1); M added 2026-10-15 by [decision 2001](../../decisions/2001-mound-homes.md)). “Needs” means the slice cannot finish without it.
 
 | Slice | Needs (slices) | Needs (other work and rulings) |
 |---|---|---|
 | A | — | DEC-061 (done) |
 | B | A | Memory budget for the cell grid, Room/item rows and edge items: done as a budget (decision 1880; slice C or G folds its bytes into the live total when it first allocates those columns, decision 1880 Q2); `ui_registry.gd` rows; PageUp/PageDown to levels and zoom to = / − (ruled, OPEN-09) |
-| C | B | UG24 underground dispatcher; HAUL-H3+ for spoil and materials (drafting against a planned connector is ruled, OPEN-07); binding painted room deltas to RoomProjects/ExcavationSites and ledgering their projects (ARCH-BUILD-001 obligation 3, moved from B); one project per room for its cells, partitions and doors (ruled, decision 1880 Q1); refusing removals that leave a part narrower than 2 × 2 (ruled, decision 1880 Q3) |
-| D | B, C | Qualifying a steeper earth/timber flight for the first entrance (ruled OPEN-10 (a); the 20 m flight is the fallback); authoring the other families' geometry and fixture bills (OPEN-02 (a)); `begin_underground_entry` trigger |
+| C | B (C1); B, C2 and D (C3) | Split by Brendan's ruling on decision 1911 P-C1 (b), 2026-10-12. **C1** (painting, per-cell validity, ghosts, actual World) needs only B. **C2** (its own lane, in parallel): the production room foreman on the fixed tick, the UG24 dispatcher's room half (ADR 1202 steps 3–7). **C3** (Confirm all digs) needs C2 and **D's entrance**: the only buildable descent ends 1 m below the surface and level 1 is 5 m down (decision 1911 §2.1), so no level-1 room has a way in before D. HAUL-H3+ is needed only for surface legs (staging settlement stock underground); the underground has its own haul path (1911 §2.2). Drafting against a planned connector is ruled (OPEN-07); binding painted room deltas to RoomProjects/ExcavationSites and ledgering their projects (ARCH-BUILD-001 obligation 3, moved from B) is C2/C3; one project per room (ruled, decision 1880 Q1); refusing removals that leave a part narrower than 2 × 2 (ruled, decision 1880 Q3) |
+| D | B, C1 (not C3: C3 needs D) | Qualifying a steeper earth/timber flight for the first entrance (ruled OPEN-10 (a); the 20 m flight is the fallback); authoring the other families' geometry and fixture bills (OPEN-02 (a)); `begin_underground_entry` trigger |
 | E | B, C | Install crews (ADR 1081); access tiles and wall-behind are ruled (OPEN-05) |
 | F | C, E | DIG packet backfill (ECON-005); demolition D-series review (DEMO-CONTAIN-R01); room merging is ruled (OPEN-06) |
 | G | B, E, F | Authoring the nine key items' geometry from the 4 × 4 placeholder (OPEN-02 (a)); catalog fingerprint for RoomType 8–16 and items 9–17, 18-bit furniture mask and older-save refusal (ARCH-BUILD-001 obligation 2, moved from B); container owner for painted stores and `base_store_g` key items (obligation 4, moved from B); BAL §8 reruns (costs, classification, services and upgrades are ruled: OPEN-01, -03, -04, -08) |
 | H | B–G | — |
+| M | B, C (C3: real digging), D (doors and the way down as items; the entrance family), E (edge items, including the window), G (Surface rooms), H (polish) | **M0** the finer ground-heights amendment (decision 2001 P-2001-1 (b); 128 u step, P-2001-15 (a); GDD §5.1, REQ-SET-122, movement on slopes against MOVE-G01–G05) blocks every real Mound; the heap earthwork job, haul and tamp (P-2001-3; ECON-002/004's compaction and tip rows as precedent); the window item's bill, art and catalog entry (P-2001-13 item 6). **M1**, the proof of concept, needs none of these: only the merged painted-room proof of concept (decisions 1912, 1913, 1914, 1921) and Brendan's P-2001-11 (a), ruled. **M2** needs M0 and every slice listed |
 
 ---
 

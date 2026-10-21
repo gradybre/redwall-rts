@@ -15,9 +15,12 @@ extends Node3D
 ##
 ## THE BUILD PANEL AND THE LEVEL BAR (decision 1871; DEC-061): the game's one build panel and level bar
 ## (scripts/ui/build_panel.gd, level_bar.gd), mounted by demo/build_panel/demo_build.gd: B opens it; it paints room types
-## on the U view's level into one pending batch and confirms them through the settlement's planner route; its
-## Passage, Burrow home and Root cellar cards open the Dig tool and its room tool. The bar (Surface, Level 1-4,
-## Overview; PageUp/PageDown) is always shown above the minimap. `build()` is it.
+## on the settlement's ACTUAL underground levels (5 m apart; the World cut at the level is drawn in this camera, decision
+## 1912) into one pending batch, judged per cell; an Entrance placed on the surface gives them a way in, and Confirm
+## all hands them to the proof of concept, where a mole digs them (decision 1912, free for now, until slice C3). The old
+## Passage, Burrow home and Root cellar cards are gone (Brendan's ruling on decision 1911 P-C2 (c)). The bar (Surface,
+## Level 1-4, Overview; PageUp/PageDown) is always shown above the minimap.
+## `build()` is it.
 ##
 ## TUNNEL WORKS (demo/tunnel/tunnel_ext.gd: hazards, upgrades, rooms, threats) show themselves in the
 ## "Tunnels & burrows (demo)" panel; `rooms()` lists the network's rooms (decision 0209), whose root cellars are the
@@ -318,7 +321,6 @@ const ModularSources := preload("res://demo/cast/underground_content_set.gd")
 const MolePresentation := preload("res://data/underground/mole-worker/mole_presentation.gd")
 const EntryWorkerView := preload("res://demo/cast/entry_worker_view.gd")
 const EntryWorkerMeshes := preload("res://demo/cast/entry_worker_meshes.gd")
-const ModularDemoMode := preload("res://demo/burrow/modular_demo_mode.gd")
 const DemoBuildScript := preload("res://demo/build_panel/demo_build.gd")
 const DaylightCurves := preload("res://demo/world/daylight_curves.gd")
 const HearthFuelScript := preload("res://demo/winter/hearth_fuel.gd")
@@ -449,7 +451,6 @@ var _care: CareScript = null
 var _forage: ForageNodeScript = null
 ## THE ORCHARD (decisions 0671-0677; demo/orchard/): built after the spoil heaps, before the woods (its clicks first).
 var _orchard: OrchardScript = null
-var _modular_mode: ModularDemoMode = null
 ## The build panel and the level bar (decision 1871; demo/build_panel/demo_build.gd).
 var _build: DemoBuildScript = null
 ## ADR1201/1211: one pinned presentation image per mole profile source (actor, assembly handling, wood haul, stone).
@@ -515,7 +516,6 @@ func _ready() -> void:
 	_hold_restart_open()
 	_warm_and_open()
 	_build_input()
-	_build_modular_room_mode()
 	_build_build_panel()
 	PlaytestTaps.wire(self, _gate, _zone, _farm.lenses, _command as DemoCommandScript, _services.notices,
 		_services.calendar, _build)
@@ -624,17 +624,6 @@ func _build_entry_worker(manifest: Dictionary) -> void:
 	_entry_worker.compose_actors(EntryWorkerMeshes.build(manifest, _services.props))
 
 
-func _build_modular_room_mode() -> void:
-	"""Mount the actual-world dirt planning view (decision 1055). Its "Plan an underground room" entry is gone
-	(decision 1871: the build panel paints rooms and orders them through the same planner route); it is opened only
-	by its own harness (demo/burrow/modular_demo_live.gd) until slice C retires it."""
-	_modular_mode = ModularDemoMode.new()
-	add_child(_modular_mode)
-	var code: StringName = _modular_mode.configure(SettlementSystem, self, _camera as DemoCameraScript,
-		_stall_banner, [_camera, _camera_modes, _camera_modes.edge] as Array[Node], _modular_view_blocked)
-	if code != &"": UIManager.push_refusal(code)
-
-
 func _build_build_panel() -> void:
 	"""THE BUILD PANEL AND THE LEVEL BAR (see the header): mounted over the village after the input gate, its hooks
 	first in the command layer's input, a focus region for F7 and Tab, a planning surface for the planning pause."""
@@ -647,10 +636,15 @@ func _build_build_panel() -> void:
 	if shell != null:
 		replaced.append(shell.control_for(UiShell.ID_COMMAND_STRIP))
 		replaced.append(shell.control_for(UiShell.ID_DETAIL))
-	_build.configure(_tunnel_tool(), shell, _camera.camera(), _modular_view_blocked, (_command as DemoCommandScript).say,
+	_build.configure(_tunnel_tool(), shell, _camera.camera(), _build_blocked, (_command as DemoCommandScript).say,
 		replaced, SettlementSystem.underground_session())
 	(_command as DemoCommandScript).set_build_hooks(_build.takes_before_gui, _build.handle_input)
-	_build.set_interrupts((_command as DemoCommandScript).interrupt_text)
+	_build.bind_cast(_cast, (_command as DemoCommandScript).selected)
+	_build.bind_props(_services.props)
+	# Decision 2002: what a Mound's hill would cover (the village's placements and water) and its windows' daylight.
+	_build.bind_village(_world, _water.map(), _day_night.is_daylight)
+	# Decision 1921: beds fitted from the build panel's Furnish tab count in the HUD's Beds.
+	_counters.model.built_beds = _build.built_beds
 	_gate.add_region("build panel", [_build.panel, _build.bar] as Array[Node])
 	_time.add_planning("the build panel", _build.is_open)
 
@@ -660,8 +654,8 @@ func build() -> DemoBuildScript:
 	return _build
 
 
-func _modular_view_blocked() -> bool:
-	"""Existing modals and the original stall banner keep their input ownership during a view handover."""
+func _build_blocked() -> bool:
+	"""The build panel waits behind any modal and the stall banner (they keep their input)."""
 	return _gate.modal_open() or _stall_banner.is_shown()
 
 
@@ -1303,7 +1297,8 @@ func camera_modes() -> CameraModesScript:
 
 
 func _open_build_panel() -> void:
-	"""The build panel open (B), or left open (decision 1871: the Dig tool is its Passage card's)."""
+	"""The build panel open (B), or left open: the help's dig action (decision 1912: an Entrance, rooms and passages,
+	and a mole digs them)."""
 	if _build != null:
 		_build.open_panel()
 

@@ -1,37 +1,58 @@
 extends Node3D
-## PAINTING ON THE LEVEL in the demo (UI-BUILD-010; decision 1871). Draws the pending batch's rooms and the stroke in
-## progress on the floor of the underground level the U view shows, and turns a screen point into a cell of the 1 m
-## grid there. Presentation only: cells go into the batch (build_batch.gd), never into the world.
+## PAINTING ON THE LEVEL in the demo (UI-BUILD-010; decisions 1871 and 1912). Draws the pending batch's rooms and the
+## stroke in progress on the floor of the ACTUAL underground level shown (demo_build_world.gd), and turns a screen
+## point into a cell of the 1 m grid there. Presentation only: cells go into the batch (build_batch.gd), never into
+## the world.
 ##
-## THE FLOOR. The demo's U view shows the legacy warren's levels (tunnel_view.gd; level 1's floor 1.25 m down, level 2
-## the candidate 4 m lower). A cell is picked where the view ray meets the floor the view SHOWS (demo_layers.gd
-## `floor_y`) -- what the player sees under the pointer -- through the planner's own `modular_world_tool.gd ray_pick`.
-## Its x and z are the cell; the settlement's actual level floors (the level catalog's, used by the order route) differ
-## only in height, and a cell is a column. Cell (0, 0) starts at the actual space domain's datum.
+## THE FLOOR (decision 1912, P-C6 (a)). Each underground level's floor is the settlement's level catalog's
+## (`floor_y_u`, 5 m apart: DEC-061 Q6), handed in by the host. A cell is picked where the view ray meets that floor,
+## through the planner's own `modular_world_tool.gd ray_pick`; cell (0, 0) starts at the actual space domain's datum
+## (P-C5 (a): the shared frame).
 ##
-## THE GHOSTS (demo_build_ghost.gd). Per level: one ghost per pending operation, tinted and tagged with its validity,
-## and one for the stroke (or, before a stroke, the cell under the cursor) which also draws the level's 1 m grid while
-## a room type is armed. Each on the level's U-view marks layer, so the other level and the surface never show them.
-## They are rebuilt only when the batch's revision or the cursor moves (an integer compare a frame otherwise).
+## THE GHOSTS (demo_build_ghost.gd), on the World view's marks layer. Each pending room is drawn as GROUPS OF ITS
+## CELLS BY THEIR CODE (build_cell_validity.gd): the cells that can be built in GOLD, the "No way in" cells dashed in
+## WARNING, and each kind of "X" cell hatched in DANGER with its number against the room's reason list -- so a room's
+## state is read cell by cell, in words on each group's tag. The stroke (or, before one, the cell under the cursor) is
+## drawn the same way by its own pool, whose first ghost also draws the level's 1 m grid while a room type is armed.
+## Ghosts are rebuilt only when the batch's revision, the stroke or the cursor moves (an integer compare a frame).
+## WAYS DOWN (decision 1912; per family, decision 2021): each pending one is drawn on the level it stands on (on the
+## surface: the village's own marks layer) by its standing cells and on the level below by its lower cells ("comes
+## down here"), with its validity; a pending removal by its standing cells ("Remove ..."). While one is being placed
+## the cursor ghost -- or, once pinned on the connector card, the pinned ghost -- is its cells on the level shown, judged
+## where it stands (build_batch.gd `judge_item`), with its access pair drawn beside them ("access").
 
 const Ghost := preload("res://demo/build_panel/demo_build_ghost.gd")
 const Batch := preload("res://scripts/ui/build_batch.gd")
 const BuildCatalog := preload("res://scripts/ui/build_catalog.gd")
 const Validity := preload("res://scripts/ui/build_validity.gd")
+const Cells := preload("res://scripts/ui/build_cell_validity.gd")
 const WorldTool := preload("res://demo/burrow/modular_world_tool.gd")
+const Items := preload("res://scripts/ui/build_items.gd")
+const Mound := preload("res://scripts/ui/build_mound.gd")
 const Layers := preload("res://demo/demo_layers.gd")
+const Families := preload("res://scripts/ui/build_connector_families.gd")
 
-## The legacy warren's two levels: the only ones the demo can draw on.
-const LEVELS: Array[int] = [1, 2]
+## UI-BUILD-011: a way's access pair, drawn as a labelled pattern beside it (decision 2021).
+const ACCESS_WORDS: String = "access"
+## A way down on a Mound room's floor (decision 2002, BUILD-MOUND-021).
+const HATCH_NAME: String = Mound.TEXT_HATCH
+## The underground levels painted on (DEC-061 Q6: levels 1-4).
+const LEVELS: Array[int] = [1, 2, 3, 4]
+## Every level drawn on: the surface too, where the Entrance is placed.
+const DRAWN: Array[int] = [0, 1, 2, 3, 4]
 const UNITS_PER_M: float = 1024.0
+## The World view's marks layer (demo_build_world.gd MARKS_LAYER).
+const MARKS_LAYER: int = 256
 
 var _batch: Batch = null
 var _camera: Camera3D = null
 var _datum_xz: Vector2i = Vector2i.ZERO
 var _bounds: Rect2i = Rect2i()
-## Per level (index 1, 2): its operation ghosts, and its stroke-and-grid ghost.
-var _ghosts: Array = [[], [], []]
-var _stroke_ghosts: Array[Ghost] = [null, null, null]
+## Each level's floor (u), index = level.
+var _floors: PackedInt32Array = PackedInt32Array([0, 0, 0, 0, 0])
+## Per level (index 1-4): the room ghosts' pool, and the stroke's pool (its first ghost owns the grid).
+var _ghosts: Array = [[], [], [], [], []]
+var _stroke_ghosts: Array = [[], [], [], [], []]
 var _seen_revision: int = -1
 var _seen_stroke: int = -1
 var _seen_cursor: Vector3i = Vector3i(0, 0, -1)
@@ -39,31 +60,40 @@ var _seen_level: int = -1
 var _cursor: Vector2i = Vector2i.ZERO
 var _cursor_level: int = -1
 var _armed_type: int = -1
-## Operation ghosts redrawn and stroke ghosts redrawn since configure (checks: a cursor move redraws no room).
+var _placing: bool = false
+## Decision 2021: the way being placed (`set_way`): its family, turns, the level it stands on, and where it is pinned.
+var _way_family: int = -1
+var _way_turn: int = 0
+var _way_standing: int = 0
+var _way_pinned: bool = false
+var _way_pin: Vector2i = Vector2i.ZERO
+## Room ghosts and stroke ghosts drawn since configure (checks: a cursor move redraws no room).
 var operation_draws: int = 0
 var stroke_draws: int = 0
 
 
-func configure(batch: Batch, camera: Camera3D, datum_xz: Vector2i, bounds: Rect2i) -> StringName:
-	"""Paint into `batch`, picking through `camera`; cells from `datum_xz` (u) on `bounds` (cells)."""
+func configure(batch: Batch, camera: Camera3D, datum_xz: Vector2i, bounds: Rect2i, floors: PackedInt32Array) -> StringName:
+	"""Paint into `batch`, picking through `camera`; cells from `datum_xz` (u) on `bounds` (cells); `floors[level]` is
+	each underground level's floor (u)."""
 	name = "BuildPaint"
 	_batch = batch
 	_camera = camera
 	_datum_xz = datum_xz
 	_bounds = bounds
-	for level: int in LEVELS:
+	for level: int in DRAWN:
+		_floors[level] = floors[level] if level < floors.size() else 0
 		var ghost: Ghost = _new_ghost(level, true)
 		if ghost == null:
 			return &"BUILD_PAINT_GHOST"
-		_stroke_ghosts[level] = ghost
+		(_stroke_ghosts[level] as Array).append(ghost)
 	return &""
 
 
 func _new_ghost(level: int, owns_grid: bool) -> Ghost:
-	"""One ghost on `level`'s floor and marks layer, hidden (null if the overlay refuses the floor)."""
+	"""One ghost on `level`'s floor and the marks layer, hidden (null if the overlay refuses the floor)."""
 	var ghost: Ghost = Ghost.new()
-	var datum: Vector3i = Vector3i(_datum_xz.x, floor_u(level), _datum_xz.y)
-	if ghost.configure_ghost(datum, _bounds, Layers.marks(level), owns_grid) != &"":
+	var datum: Vector3i = Vector3i(_datum_xz.x, _floors[level], _datum_xz.y)
+	if ghost.configure_ghost(datum, _bounds, MARKS_LAYER if level > 0 else Layers.SURFACE_MARKS, owns_grid) != &"":
 		ghost.free()
 		return null
 	add_child(ghost)
@@ -71,21 +101,23 @@ func _new_ghost(level: int, owns_grid: bool) -> Ghost:
 	return ghost
 
 
-static func floor_u(level: int) -> int:
-	"""The shown floor of a legacy level, in u (presentation: where the ghost is drawn and the cell is picked)."""
-	return roundi(Layers.floor_y(level) * UNITS_PER_M)
+func floor_u(level: int) -> int:
+	"""Level `level`'s floor (u), where the ghost is drawn and the cell is picked (the surface: 0)."""
+	return _floors[level] if DRAWN.has(level) else 0
 
 
 static func paintable(level: int) -> bool:
-	"""Whether the demo can draw a ghost on `level` (the legacy warren's levels 1 and 2)."""
+	"""Whether `level` is painted on (underground levels 1-4; the Surface only in the Mound style, which the host
+	checks: decision 2002)."""
 	return LEVELS.has(level)
 
 
-func pick(screen: Vector2, level: int) -> WorldTool.Pick:
-	"""The cell under a screen point on `level`'s shown floor (modular_world_tool.gd `ray_pick`); not ok off it."""
-	if not paintable(level) or not is_instance_valid(_camera) or not _camera.is_inside_tree():
+func pick(screen: Vector2, level: int, lift_u: int = 0) -> WorldTool.Pick:
+	"""The cell under a screen point on `level`'s floor (modular_world_tool.gd `ray_pick`; the surface's ground plane
+	for level 0), or on a plane `lift_u` above it (a dug pit's floor: decision 1913); not ok off it."""
+	if not DRAWN.has(level) or not is_instance_valid(_camera) or not _camera.is_inside_tree():
 		return WorldTool.Pick.new()
-	var datum: Vector3i = Vector3i(_datum_xz.x, floor_u(level), _datum_xz.y)
+	var datum: Vector3i = Vector3i(_datum_xz.x, floor_u(level) + lift_u, _datum_xz.y)
 	return WorldTool.ray_pick(_camera.project_ray_origin(screen), _camera.project_ray_normal(screen), datum, 1024)
 
 
@@ -101,77 +133,249 @@ func cursor() -> Vector2i:
 	return _cursor
 
 
-func screen_of(cell: Vector2i, level: int) -> Vector2:
-	"""Where a cell's middle is on screen (the size label stands beside it); INF behind the camera."""
-	var at: Vector3 = Vector3((_datum_xz.x + (cell.x + 0.5) * 1024.0) / UNITS_PER_M, Layers.floor_y(level),
-		(_datum_xz.y + (cell.y + 0.5) * 1024.0) / UNITS_PER_M)
+func screen_of(cell: Vector2i, level: int, lift_u: int = 0) -> Vector2:
+	"""Where a cell's middle is on screen (the size label stands beside it), on the floor or `lift_u` above it; INF
+	behind the camera."""
+	var at: Vector3 = Vector3((_datum_xz.x + (cell.x + 0.5) * 1024.0) / UNITS_PER_M,
+		(floor_u(level) + lift_u) / UNITS_PER_M, (_datum_xz.y + (cell.y + 0.5) * 1024.0) / UNITS_PER_M)
 	if not is_instance_valid(_camera) or not _camera.is_inside_tree() or _camera.is_position_behind(at):
 		return Vector2.INF
 	return _camera.unproject_position(at)
 
 
-func refresh(shown_level: int, active: bool) -> void:
-	"""Redraw what moved: every level's operation ghosts only when the batch changed; the stroke-or-cursor ghost and
-	the grid on the level shown (while `active`: the panel open with a type armed) when the stroke or cursor moved."""
-	var cursor_key: Vector3i = Vector3i(_cursor.x, _cursor.y, (_cursor_level * 64 + _armed_type + 1) if active else -1)
-	var batch_moved: bool = _batch.revision != _seen_revision
-	if not batch_moved and _batch.stroke_revision == _seen_stroke and cursor_key == _seen_cursor \
-			and shown_level == _seen_level:
+func set_way(family: int, turn: int, standing: int, pinned: bool, pin: Vector2i) -> void:
+	"""The way being placed: `family` turned `turn`, standing on `standing`, pinned at `pin` on the connector card (else
+	it follows the cursor). An integer compare a frame; the ghost redraws when any of it moves."""
+	_way_family = family
+	_way_turn = turn
+	_way_standing = standing
+	_way_pinned = pinned
+	_way_pin = pin
+
+
+func way_key() -> int:
+	"""The way's pose as one integer (what the cursor ghost was drawn for)."""
+	var pin: int = ((_way_pin.x & 1023) << 10 | (_way_pin.y & 1023)) if _way_pinned else 0
+	return ((((_way_family + 1) * 4 + _way_turn) * 8 + _way_standing + 1) * 2 + int(_way_pinned)) * (1 << 20) + pin
+
+
+func refresh(shown_level: int, active: bool, placing: bool = false) -> void:
+	"""Redraw what moved: the room ghosts of the level shown when the batch changed or the level did; its stroke pool
+	when the stroke or cursor moved (`placing`: the cursor is a way down's 2 × 2). Other levels' ghosts are hidden
+	(only one level is ever drawn)."""
+	_placing = placing
+	var cursor_key: Vector3i = Vector3i(_cursor.x + (way_key() if placing else 0), _cursor.y,
+		(_cursor_level * 64 + _armed_type + 1 + (32 if placing else 0)) if active else -1)
+	var level_moved: bool = shown_level != _seen_level
+	var batch_moved: bool = _batch.revision != _seen_revision or level_moved
+	if not batch_moved and _batch.stroke_revision == _seen_stroke and cursor_key == _seen_cursor:
 		return
 	_seen_revision = _batch.revision
 	_seen_stroke = _batch.stroke_revision
 	_seen_cursor = cursor_key
 	_seen_level = shown_level
-	for level: int in LEVELS:
+	for level: int in DRAWN:
+		var shown: bool = level == shown_level
 		if batch_moved:
-			_draw_operations(level)
-		_draw_stroke(level, active and level == shown_level)
+			_draw_operations(level, shown)
+		_draw_stroke(level, shown and active)
 
 
-func _draw_operations(level: int) -> void:
-	"""One ghost per pending operation on `level`, its validity tint and its type and glyph on the tag."""
+func _draw_operations(level: int, shown: bool) -> void:
+	"""Each pending room on `level` as its cells' groups (see THE GHOSTS); none when the level is not shown."""
 	var pool: Array = _ghosts[level]
 	var used: int = 0
-	for k: int in _batch.operation_count():
-		if _batch.operation_level(k) != level or _batch.operation_cell_count(k) == 0:
-			continue
-		if used == pool.size():
-			var made: Ghost = _new_ghost(level, false)
-			if made == null:
-				break
-			pool.append(made)
-		var ghost: Ghost = pool[used]
-		var kind: int = _batch.operation_kind(k)
-		ghost.show_cells(_batch.operation_cells(k), kind, "%s %s" % [Validity.glyph(kind), BuildCatalog.type_name(_batch.operation_type(k))])
-		ghost.visible = true
-		used += 1
+	if shown:
+		for k: int in _batch.operation_count():
+			if _batch.operation_level(k) == level and _batch.operation_cell_count(k) > 0:
+				used = _draw_groups(level, pool, used, _batch.operation_cells(k), _batch.operation_cell_codes(k),
+					BuildCatalog.type_name(_batch.operation_type(k)))
+		used = _draw_items(level, pool, used)
 	for at: int in range(used, pool.size()):
 		(pool[at] as Ghost).visible = false
 	operation_draws += used
 
 
+func _draw_groups(level: int, pool: Array, used: int, cells: PackedInt32Array, codes: PackedByteArray,
+		name_words: String) -> int:
+	"""One ghost per code present in `codes` (✓ first, then ! , then each X numbered in order); returns the pool's
+	next free slot."""
+	var number: int = 0
+	for code: int in Cells.CELL_CODES:
+		var group: PackedInt32Array = _cells_with(cells, codes, code)
+		if group.is_empty():
+			continue
+		var ghost: Ghost = _pooled(level, pool, used)
+		if ghost == null:
+			return used
+		var kind: int = Cells.kind_of(code)
+		number += 1 if kind == Validity.KIND_NOT_POSSIBLE else 0
+		ghost.show_cells(group, kind, tag_words(kind, code, name_words, number))
+		ghost.visible = true
+		used += 1
+	return used
+
+
+func _draw_items(level: int, pool: Array, used: int) -> int:
+	"""Each pending way standing on `level` (its validity and name) or coming down onto it ("comes down here"); each
+	pending removal where its way stands ("Remove ...")."""
+	var items: Items = _batch.items()
+	for row: int in items.count():
+		var top: int = items.level_of(row)
+		if not items.is_live(row) or (top != level and (top + 1 != level or items.is_removal(row))):
+			continue
+		var ghost: Ghost = _pooled(level, pool, used)
+		if ghost == null:
+			return used
+		var kind: int = _batch.item_kind(row)
+		var cells: PackedInt32Array = items.standing(row) if top == level else items.lower(row)
+		var name_words: String = way_name(top, items.standing(row), items.family_of(row))
+		var words: String = name_words if top == level else "%s comes down here" % name_words
+		if items.is_removal(row):
+			words = "Remove %s" % name_words
+		ghost.show_cells(cells, kind, "%s %s" % [Validity.glyph(kind), words])
+		ghost.visible = true
+		used += 1
+	return used
+
+
+func way_name(level: int, cells: PackedInt32Array, family: int) -> String:
+	"""A way's name: a hatch wholly on a Mound room's floor says what it is (BUILD-MOUND-021: "Way down, connects to
+	Underground level 1"); else its family's (build_connector_families.gd)."""
+	if level != 0 or family != Families.LADDER_HATCH:
+		return Families.name_of(family)
+	for at: int in range(0, cells.size(), 2):
+		if not _batch.is_surface_room(Vector2i(cells[at], cells[at + 1])):
+			return Families.name_of(family)
+	return HATCH_NAME
+
+
+static func tag_words(kind: int, code: int, name_words: String, number: int) -> String:
+	"""A group's tag: "✓ Kitchen", "! Kitchen: No way in", "X1 Kitchen: Cannot dig here: water"; without a name (the
+	stroke's), "" for ✓ and the words alone otherwise."""
+	if kind == Validity.KIND_CAN_BUILD:
+		return "%s %s" % [Validity.glyph(kind), name_words] if not name_words.is_empty() else ""
+	var no_way: bool = code == Cells.CELL_NO_WAY_IN or code == Cells.CELL_NO_DOOR
+	var head: String = Cells.words_of(code).get_slice(":", 0) if no_way else Cells.words_of(code)
+	var who: String = "%s: " % name_words if not name_words.is_empty() else ""
+	if kind == Validity.KIND_NOT_POSSIBLE:
+		return "%s%d %s%s" % [Validity.glyph(kind), number, who, head]
+	return "%s %s%s" % [Validity.glyph(kind), who, head]
+
+
+static func _cells_with(cells: PackedInt32Array, codes: PackedByteArray, code: int) -> PackedInt32Array:
+	"""The cells whose code is `code` (all of them for CELL_OK when no codes are known), canonical."""
+	var out: PackedInt32Array = PackedInt32Array()
+	for at: int in range(0, cells.size(), 2):
+		@warning_ignore("integer_division") var slot: int = at / 2
+		var own: int = codes[slot] if slot < codes.size() else Cells.CELL_OK
+		if own == code:
+			out.append_array(PackedInt32Array([cells[at], cells[at + 1]]))
+	return out
+
+
+func _pooled(level: int, pool: Array, used: int) -> Ghost:
+	"""The pool's ghost at `used`, made when the pool is that short (null if the overlay refuses)."""
+	if used == pool.size():
+		var made: Ghost = _new_ghost(level, false)
+		if made == null:
+			return null
+		pool.append(made)
+	return pool[used]
+
+
 func _draw_stroke(level: int, shown: bool) -> void:
-	"""The stroke in progress, or the cursor cell, with the level's grid -- on the level shown only."""
-	var ghost: Ghost = _stroke_ghosts[level]
-	if ghost == null:
+	"""The stroke in progress as its cells' groups (Erase in its own words), or the cursor cell, with the level's grid
+	-- on the level shown only."""
+	var pool: Array = _stroke_ghosts[level]
+	if pool.is_empty():
 		return
-	ghost.visible = shown
-	if not shown:
-		return
-	var cells: PackedInt32Array = _batch.stroke_cells() if _batch.stroke_active() and _batch.stroke_level() == level \
-		else PackedInt32Array([_cursor.x, _cursor.y])
-	var kind: int = _batch.stroke_kind() if _batch.stroke_active() else Validity.KIND_CAN_BUILD
-	if not _bounds.has_point(_cursor) and not _batch.stroke_active():
-		cells = PackedInt32Array()
-	ghost.show_cells(cells, kind, "")
+	var used: int = 0
+	if shown:
+		used = _stroke_groups(level, pool)
+	(pool[0] as Ghost).visible = shown
+	for at: int in range(maxi(used, 1), pool.size()):
+		(pool[at] as Ghost).visible = false
 	stroke_draws += 1
 
 
+func _stroke_groups(level: int, pool: Array) -> int:
+	"""The stroke's groups into the stroke pool (the first ghost, which owns the grid, always used)."""
+	if _placing:
+		return _way_ghost(level, pool)
+	if not _batch.stroke_active() or _batch.stroke_level() != level:
+		var cursor_cells: PackedInt32Array = PackedInt32Array([_cursor.x, _cursor.y]) if _bounds.has_point(_cursor) \
+			else PackedInt32Array()
+		(pool[0] as Ghost).show_cells(cursor_cells, Validity.KIND_CAN_BUILD, "")
+		return 1
+	var cells: PackedInt32Array = _batch.stroke_cells()
+	if _batch.stroke_erasing() or (_batch.stroke_kind() == Validity.KIND_NOT_POSSIBLE and _batch.stroke_cell_codes().is_empty()):
+		(pool[0] as Ghost).show_cells(cells, _batch.stroke_kind(), "Erase" if _batch.stroke_erasing() else "")
+		return 1
+	(pool[0] as Ghost).show_cells(PackedInt32Array(), Validity.KIND_CAN_BUILD, "")
+	return maxi(_draw_groups(level, pool, 1, cells, _batch.stroke_cell_codes(), ""), 1)
+
+
+func _way_ghost(level: int, pool: Array) -> int:
+	"""The way being placed, on the level shown: over a built way (a click removes it), that way's cells with its
+	removal's judgement only; else its own cells there (standing, or coming down from the level above) judged where it
+	stands, and its access pair as a second ghost ("access"). The way's own ghost carries no tag: its judgement is
+	spelled out once, in the pointer's label, which stays clear of the HUD (decision 2022)."""
+	var anchor: Vector2i = _way_pin if _way_pinned else _cursor
+	if not Families.valid(_way_family) or not _bounds.has_point(anchor):
+		(pool[0] as Ghost).show_cells(PackedInt32Array(), Validity.KIND_CAN_BUILD, "")
+		return 1
+	var removal: Array = [] if _way_pinned else _batch.removal_preview(level, anchor)
+	if not removal.is_empty():
+		_removal_ghost(level, pool[0] as Ghost, removal)
+		return 1
+	if level != _way_standing and level != _way_standing + 1:
+		(pool[0] as Ghost).show_cells(PackedInt32Array(), Validity.KIND_CAN_BUILD, "")
+		return 1
+	var standing: bool = level == _way_standing
+	var kind: int = int(_batch.judge_item(_way_standing, anchor, -1, _way_family, _way_turn)[0])
+	var cells: PackedInt32Array = Families.standing_cells(_way_family, _way_turn, anchor) if standing \
+		else Families.lower_cells(_way_family, _way_turn, anchor)
+	(pool[0] as Ghost).show_cells(cells, kind, "")
+	var access: Ghost = _pooled(level, pool, 1)
+	if access == null:
+		return 1
+	access.show_cells(Families.access_pair(_way_family, _way_turn, anchor, not standing), Validity.KIND_CAN_BUILD,
+		ACCESS_WORDS)
+	access.visible = true
+	return 2
+
+
+func _removal_ghost(level: int, ghost: Ghost, removal: Array) -> void:
+	"""The built way under the pointer, on `level`, drawn as its removal is judged (its words are the pointer's)."""
+	var way: PackedInt32Array = removal[2]
+	var anchor: Vector2i = Vector2i(way[1], way[2])
+	var cells: PackedInt32Array = Families.standing_cells(way[3], way[4], anchor) if way[0] == level \
+		else Families.lower_cells(way[3], way[4], anchor)
+	ghost.show_cells(cells, int(removal[0]), "")
+
+
+func shown_tags(level: int, out: Array[Label3D]) -> void:
+	"""Decision 1991: the shown ghosts' tags on `level` (the plan's and the stroke's), appended to `out` so the level's
+	tags are spaced together and none sits on another."""
+	if not DRAWN.has(level):
+		return
+	for pool: Array in [_ghosts[level], _stroke_ghosts[level]]:
+		for ghost: Ghost in pool:
+			if ghost.visible and ghost.tag().visible and not ghost.tag().text.is_empty():
+				out.append(ghost.tag())
+
+
 func operation_ghosts(level: int) -> Array:
-	"""`level`'s operation ghosts (checks)."""
-	return _ghosts[level] if paintable(level) else []
+	"""`level`'s room ghosts (checks)."""
+	return _ghosts[level] if DRAWN.has(level) else []
 
 
 func stroke_ghost(level: int) -> Ghost:
-	"""`level`'s stroke-and-grid ghost (checks)."""
-	return _stroke_ghosts[level] if paintable(level) else null
+	"""`level`'s grid-owning stroke ghost (checks)."""
+	return (_stroke_ghosts[level] as Array)[0] if DRAWN.has(level) else null
+
+
+func stroke_ghosts(level: int) -> Array:
+	"""`level`'s stroke pool (checks)."""
+	return _stroke_ghosts[level] if DRAWN.has(level) else []

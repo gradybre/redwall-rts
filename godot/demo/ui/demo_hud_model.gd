@@ -15,7 +15,9 @@ extends RefCounted
 ##   Wood (ID_WOOD)          milli-U                   stores.wood_milli_u  (the same panels)
 ##   Stone (ID_STONE)        milli-U                   stores.stone_milli_u (the same panels)
 ##   Residents               how many                  the cast, `residents` (the Residents roster)
-##   Beds                    beds installed in homes   the fit-out, `beds` (the Tunnels panel's housing line)
+##   Beds                    beds installed in homes   the fit-out, `beds` (the Tunnels panel's housing line), plus the
+##                                                     beds fitted from the build panel's Furnish tab (`built_beds`,
+##                                                     decision 1921: Brendan's "Placed beds count in the HUD's Beds")
 ##
 ## HEATING FUEL (decision 0571, Brendan's ruling 5; it restores UI-SET-003 over decision 0251's Planks). The hearths
 ## burn wood now (demo/winter/), so Fuel's slot is UI-SET-003's own: "Heating fuel: N days" -- fuel-days, one decimal,
@@ -117,6 +119,8 @@ var residents: Callable = Callable()
 var beds: Callable = Callable()
 ## () -> int: dug burrow homes, for the beds' ledger line. Unset: the line names no count of homes.
 var homes: Callable = Callable()
+## () -> int: beds fitted from the build panel's Furnish tab (decision 1921), added to Beds. Unset: none.
+var built_beds: Callable = Callable()
 
 
 func bind_village(village_stores: StoresScript, pantry: PantryScript, cast: DemoCastScript, network: GraphScript) -> void:
@@ -192,7 +196,12 @@ func read_into(out: PackedInt64Array) -> void:
 	out[CELL_WOOD] = stores.wood_milli_u if stores != null else 0
 	out[CELL_STONE] = stores.stone_milli_u if stores != null else 0
 	out[CELL_RESIDENTS] = int(residents.call()) if known(CELL_RESIDENTS) else 0
-	out[CELL_BEDS] = int(beds.call()) if known(CELL_BEDS) else 0
+	out[CELL_BEDS] = int(beds.call()) + built_bed_count() if known(CELL_BEDS) else 0
+
+
+func built_bed_count() -> int:
+	"""Beds fitted from the build panel's Furnish tab (0 with none bound)."""
+	return int(built_beds.call()) if built_beds.is_valid() else 0
 
 
 func value_text(cell: int, figure: int) -> String:
@@ -302,6 +311,8 @@ func ledger_line(cell: int, figure: int) -> String:
 	if cell == CELL_BEDS and homes.is_valid():
 		var count: int = int(homes.call())
 		where = "in %d burrow %s" % [count, "home" if count == 1 else "homes"]
+	if cell == CELL_BEDS and built_bed_count() > 0:
+		where += " · %d built" % built_bed_count()
 	var line: String = "%s: %s %s" % [CAPTIONS[cell], _text(cell, figure), where]
 	if cell == CELL_FOOD and raw_reserve != null:
 		line = RAW_LINE % [CAPTIONS[cell], _text(cell, figure), raw_days_text()]

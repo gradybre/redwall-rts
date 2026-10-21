@@ -72,6 +72,19 @@
       "requested": "2026-10-09",
       "decided": "2026-10-09",
       "decided_by": "Brendan"
+    },
+    {
+      "id": "ART-BUILD-POC",
+      "what": "Build panel proof of concept: burrow_mouth and dig_stairs props, earth_floor and earth_wall textures (decision 1913) -- visual acceptance. Already paid (78 credits); this gate spends nothing.",
+      "spends_credits": false,
+      "estimated_credits": 0,
+      "why_gated": "visual acceptance",
+      "status": "approved",
+      "requested": "2026-10-13",
+      "decided": "2026-10-13",
+      "decided_by": "Brendan",
+      "recorded_by": "Claude (coordinator session 789aecf0)",
+      "approval_source": "Brendan in chat to the coordinator, 2026-10-13: \"accept ART-BUILD-POC and merge when green\""
     }
   ]
 }

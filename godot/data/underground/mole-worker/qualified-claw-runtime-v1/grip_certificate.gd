@@ -6,13 +6,17 @@ extends RefCounted
 ## certificate's own. A content-6 bank keeps content 6's certificate unchanged (the dormant pick contents), so the
 ## certificate follows the loaded content. It supplies source identity and station geometry only, never a Job,
 ## payment, route or World permission. ADR1229: content 10 keeps rows 0-50 and sources 0-3 of content 9 word for word
-## (`qualified-claw-stairs-v11` manifest), so its grip rows 32-41 are this certificate's too.
+## (`qualified-claw-stairs-v11` manifest), so its grip rows 32-41 are this certificate's too. Decision 1972: so does
+## content 12 (`qualified-stair-carry-v13`, rows 0-66 and sources 0-5 of content 10). Its loaded rooted rows 73-84
+## hold the same grip by identity: every key's bones 9-23 and load column equal the item's approved hold (decision
+## 1981's proof), so they carry no station of their own here.
 
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Parent := preload("res://data/underground/mole-worker/qualified-stone-v7/grip_certificate.gd")
 const Pins := preload("res://data/underground/mole-worker/qualified-claw-approach-v10/catalog_source.gd")
 const CONTENT_REVISION: int = 9
 const STAIRS_CONTENT_REVISION: int = 10
+const CARRY_CONTENT_REVISION: int = 12
 const FIRST: int = Parent.FIRST
 const LAST: int = Parent.LAST
 const QUANTITY_MILLI: int = Parent.QUANTITY_MILLI
@@ -22,7 +26,7 @@ const REFUSE_STATION: StringName = Parent.REFUSE_STATION
 
 
 static func uses(actual: Profiles) -> bool:
-	"""Content 9 or 10 with all ten certified rows: hauling in these contents is grip hauling at a stand."""
+	"""Content 9, 10 or 12 with all ten certified rows: hauling in these contents is grip hauling at a stand."""
 	if actual == null or actual._live == null or actual._loading or actual._live.header.size() != 4: return false
 	for row: int in range(FIRST, LAST + 1):
 		if profile_refusal(actual, row) != &"": return false
@@ -97,8 +101,9 @@ static func profile_refusal(actual: Profiles, row: int) -> StringName:
 
 
 static func _content_admitted(content: int) -> bool:
-	"""Content 9, or content 10, which carries content 9's grip rows and haul images unchanged (ADR1229)."""
-	return content == CONTENT_REVISION or content == STAIRS_CONTENT_REVISION
+	"""Content 9, or content 10 or 12, which carry content 9's grip rows and haul images unchanged (ADR1229, decision
+	1972)."""
+	return content == CONTENT_REVISION or content == STAIRS_CONTENT_REVISION or content == CARRY_CONTENT_REVISION
 
 
 static func _digest_matches(actual: Profiles, family: int) -> bool:

@@ -98,6 +98,8 @@ var _cover_nodes: Array[MultiMeshInstance3D] = []
 ## than read back from the MultiMesh, whose transforms only the renderer holds.
 var _cover_at: Array[PackedVector2Array] = []
 var _cover_hidden: Array[PackedByteArray] = []
+## Every placement's node, in `_placed()` order (decision 2002: `hide_placement`).
+var _piece_nodes: Array[Node3D] = []
 ## Per authored placement id: the node drawing it, and its later stage (STAGES; built hidden).
 var _placed_nodes: Dictionary = {}
 var _stage_nodes: Dictionary = {}
@@ -132,12 +134,14 @@ func _build_pieces(world: Dictionary, village: Node3D) -> void:
 	_tree_nodes.clear()
 	_placed_nodes.clear()
 	_stage_nodes.clear()
+	_piece_nodes.clear()
 	for list: Array in _glow.values():
 		list.clear()
 	for p: Dictionary in _placed():
 		var model: StringName = _windows_key(world, p)
 		var piece: Node3D = _make_piece(world, p, model)
 		village.add_child(piece)
+		_piece_nodes.append(piece)
 		if PLACEHOLDER_TREES.has(p["key"]):
 			_tree_nodes.append(piece)
 		var id: StringName = p.get("id", &"")
@@ -222,6 +226,25 @@ func window_glow(id: StringName) -> Array:
 	"""Lit home `id`'s window materials (BaseMaterial3D; THE HOMES' WINDOWS): its windows model's and its later
 	stage's. The same list for the life of this world, refilled by each build(); empty with nothing staged."""
 	return _glow_list(id)
+
+
+func placements() -> Array[Dictionary]:
+	"""Every placement drawn as its own node, in the order `hide_placement` names them (a fresh copy; decision 2002: what
+	a Mound's hill would cover)."""
+	_ensure_layout()
+	var out: Array[Dictionary] = []
+	for p: Dictionary in _placed():
+		out.append(p.duplicate())
+	return out
+
+
+func hide_placement(k: int) -> bool:
+	"""Hide placement `k`'s node (`placements` order): decision 2002's scenery under a Mound's hill. False when there is
+	no such node or it is hidden already."""
+	if k < 0 or k >= _piece_nodes.size() or not _piece_nodes[k].visible:
+		return false
+	_piece_nodes[k].visible = false
+	return true
 
 
 func points_of_interest() -> Array[Dictionary]:

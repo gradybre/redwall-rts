@@ -336,6 +336,8 @@ func _ui(bind_access: bool = true) -> void:
 	assert_equal(_tool.configure(_camera, _editor, _fixture._plan.origin_u, 1, _not_modal, _view), &"", "world drawing")
 	_tool.set_active(true)
 	_runtime = Runtime.new()
+	# This fixture's crew is its synthetic work row 1 (as the plan heights below read it), not the game's claw crew.
+	_runtime.set_crew_identity(1)
 	assert_equal(_runtime.configure(_editor, _tool, actual.orders, actual.rooms, actual._levels, 0), &"", "actual Runtime")
 	if bind_access: assert_equal(_runtime.configure_access(actual._binding, actual._first), &"", "explicit actual access")
 	assert_true(_editor.world_press(Vector2i.ZERO), "draw on dirt")
@@ -559,7 +561,7 @@ func test_sparse_actual_capacity_search_yields_and_remains_view_only() -> void:
 	_fixture._plan.room_type = Buildings.ROOM_TYPE_KITCHEN
 	_fixture._plan.level = 1
 	_fixture._plan.origin_u = Vector3i(Fixture.X + 8192, Fixture.FLOOR, Fixture.Z)
-	_fixture._plan.height_u = Approach.reachable_height_u(_fixture._actual._profiles, 1) # DEC-054
+	_fixture._plan.height_u = mini(1024, Approach.reachable_height_u(_fixture._actual._profiles, 1)) # One quantum (decision 1971)
 	_fixture._plan.cell_size_u = 1024
 	_fixture._plan.cells = PackedInt32Array([0, 0])
 	_access = Access.new()
@@ -653,7 +655,7 @@ func test_full_populated_graph_and_maximum_paint_candidate_latency() -> void:
 	_fixture._plan.room_type = Buildings.ROOM_TYPE_KITCHEN
 	_fixture._plan.level = 1
 	_fixture._plan.origin_u = Vector3i(Fixture.X + 2048, Fixture.FLOOR, Fixture.Z)
-	_fixture._plan.height_u = Approach.reachable_height_u(_fixture._actual._profiles, 1) # DEC-054
+	_fixture._plan.height_u = mini(1024, Approach.reachable_height_u(_fixture._actual._profiles, 1)) # One quantum (decision 1971)
 	_fixture._plan.cell_size_u = 1024
 	for z: int in 128:
 		for x: int in 128: _fixture._plan.cells.append_array(PackedInt32Array([x, z]))

@@ -155,7 +155,9 @@ func _walk_claims() -> StringName:
 		var code: StringName = _read_live(ordinal * 2, _claim)
 		if code != &"": return code
 		if _claim.claim_kind != Owner.CLAIM_ROOM:
-			if _claim.role == Space.SUPPORT and Space.overlaps(_claim.box, _cube): return REFUSE_PROTECTED
+			if _claim.role == Space.SUPPORT and Space.overlaps(_claim.box, _cube):
+				code = _retire_strip(ordinal) if _retired_strip(_claim) else REFUSE_PROTECTED
+				if code != &"": return code
 			continue
 		if _claim.role != Space.OBSTACLE or _claim.owner != _claim.claim_ref: return REFUSE_CLAIM
 		if _claim.owner == _room:
@@ -168,6 +170,28 @@ func _walk_claims() -> StringName:
 			if code == &"": code = _neighbor_refusal()
 		if code != &"": return code
 	return _entry_bearings() if found > 0 else REFUSE_CLAIM
+
+
+## Decision 2044 (P-2044-12 (a), Brendan 2026-10-18, "Small hook in entry structure"): an M5 floor strip (a Frontier
+## STRIP bearing) leaves its Room's SUPPORT when the BRACE of the episode it names starts, in that BRACE's own Space
+## candidate, whose refresh then re-proves every Location and edge (the strip's stops and walks have already left).
+func _retired_strip(region: Owner.Region) -> bool:
+	"""The Room's claim-free SUPPORT inside a strip this episode's BRACE start retires."""
+	if _operation != Contract.OP_BRACE or _stage != Contract.STAGE_START or region.owner != _room: return false
+	var frontier: Frontier = _entry_actual_frontier()
+	for row: int in frontier._header[8 + Frontier.BEARING]:
+		if not _spend(8): return false
+		if frontier._field(Frontier.BEARING, row, 0) != Frontier.STRIP \
+				or frontier._field(Frontier.BEARING, row, 1) != _entry_episode_row: continue
+		if _entry_world_box(frontier, Frontier.BEARING, row, 3, _piece) == &"" and Space.contains_box(_piece, region.box):
+			return true
+	return false
+
+
+func _retire_strip(ordinal: int) -> StringName:
+	"""Stage the strip's removal (STAGE mode only; the live row is what the other modes read)."""
+	if _mode != STAGE: return &""
+	return _actual_owner().stage_remove(_owner_token, Vector2i(_handles[ordinal * 2], _handles[ordinal * 2 + 1]))
 
 
 func _entry_claim_refusal(ordinal: int) -> StringName:

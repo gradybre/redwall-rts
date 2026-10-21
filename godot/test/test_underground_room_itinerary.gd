@@ -195,12 +195,15 @@ func test_source_digest_and_profile_revision_are_current_on_every_query() -> voi
 	assert_equal(_query(), &"", "original source query")
 	_remaining[0] = 123
 	_fixture._profiles._live.sources[0] ^= 1
+	_fixture._profiles.invalidate_runtime_caches() # Decision 1952: an in-place bank edit announces itself.
 	assert_true(_query() != &"", "changed original Actor digest refuses")
 	assert_equal(_remaining[0], 123, "source refusal leaves output unchanged")
 	_fixture._profiles._live.sources[0] ^= 1
 	_fixture._profiles._live.quantities[9] += 1
+	_fixture._profiles.invalidate_runtime_caches()
 	assert_equal(_query(), &"WORLD_ROUTE_PROFILE_STALE", "row revision is exact")
 	_fixture._profiles._live.quantities[9] -= 1
+	_fixture._profiles.invalidate_runtime_caches()
 	assert_equal(_query(), &"", "original source and revision retry")
 
 

@@ -25,6 +25,10 @@ const CONTENT_Y: float = 64.0
 const CONTENT_HEIGHT: float = 128.0
 const FOOTER_Y: float = 200.0
 const GAP: float = 8.0
+## The tool strip (Rectangle · Oval · Paint · Erase, decision 1912) along the info card's foot: 32 high (the level
+## bar's NARROW button height), 4 px inside the card and between its buttons.
+const TOOL_STRIP_HEIGHT: float = 32.0
+const TOOL_STRIP_INSET: float = 4.0
 ## Info card width by §1.2 profile (NARROW, STANDARD, WIDE).
 const INFO_WIDTH: Array[int] = [160, 208, 208]
 ## UI-BUILD-002/003: tab and card widths, minimum and maximum.
@@ -55,6 +59,10 @@ const RESTORE_HEIGHT: float = 44.0
 ## UI-BUILD-012.
 const CONNECTOR_SIZE: Vector2 = Vector2(280.0, 136.0)
 const CONNECTOR_NARROW: Vector2 = Vector2(280.0, 128.0)
+## UI-BUILD-015 (decision 1991): the room card stands where the connector card does, taller so its words (how far,
+## the crew, the proof of concept's note) show without scrolling; in NARROW it takes the connector card's place in the
+## content row and scrolls.
+const ROOM_CARD_SIZE: Vector2 = Vector2(280.0, 184.0)
 
 
 static func panel_rect(geometry: UiLayout.Geometry) -> Rect2:
@@ -101,6 +109,15 @@ static func connector_rect(geometry: UiLayout.Geometry) -> Rect2:
 	return Rect2(panel.end.x - CONNECTOR_SIZE.x, panel.position.y - GAP - CONNECTOR_SIZE.y, CONNECTOR_SIZE.x, CONNECTOR_SIZE.y)
 
 
+static func room_card_rect(geometry: UiLayout.Geometry) -> Rect2:
+	"""UI-BUILD-015: above the panel's top-right edge, or the connector card's place in NARROW."""
+	var panel: Rect2 = panel_rect(geometry)
+	if geometry.profile == UiLayout.PROFILE_NARROW:
+		return connector_rect(geometry)
+	return Rect2(panel.end.x - ROOM_CARD_SIZE.x, panel.position.y - GAP - ROOM_CARD_SIZE.y, ROOM_CARD_SIZE.x,
+		ROOM_CARD_SIZE.y)
+
+
 static func info_width(profile: int) -> float:
 	"""UI-BUILD-004's width: 208, or 160 in NARROW."""
 	return float(INFO_WIDTH[clampi(profile, 0, INFO_WIDTH.size() - 1)])
@@ -114,6 +131,13 @@ static func tabs_rect(panel_width: float) -> Rect2:
 static func info_rect(profile: int) -> Rect2:
 	"""The info card, panel-local: the content row's left."""
 	return Rect2(PADDING, CONTENT_Y, info_width(profile), CONTENT_HEIGHT)
+
+
+static func tool_strip_rect(profile: int) -> Rect2:
+	"""The tool strip, panel-local: the info card's foot, inset 4 px."""
+	var info: Rect2 = info_rect(profile)
+	return Rect2(info.position.x + TOOL_STRIP_INSET, info.end.y - TOOL_STRIP_INSET - TOOL_STRIP_HEIGHT,
+		info.size.x - 2.0 * TOOL_STRIP_INSET, TOOL_STRIP_HEIGHT)
 
 
 static func cards_rect(panel_width: float, profile: int) -> Rect2:

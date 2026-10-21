@@ -75,9 +75,11 @@ func test_each_kind_has_its_own_glyph_word_and_token() -> void:
 
 
 func test_the_proposed_reasons_carry_their_recorded_glyphs() -> void:
-	"""Decision 1871's proposals: outside and joining two are X; a shape refusal, not-yet and a route refusal are !."""
+	"""Decision 1871's proposals: outside is X; a shape refusal, not-yet and a route refusal are !. Decision 1912's:
+	nothing to erase is X; BUILD-REQ-006's removal words (slot 18, once "joins two") are X."""
 	assert_equal(Validity.kind_of(Validity.REASON_OUTSIDE), Validity.KIND_NOT_POSSIBLE, "outside: X")
-	assert_equal(Validity.kind_of(Validity.REASON_JOINS_TWO), Validity.KIND_NOT_POSSIBLE, "joins two: X")
+	assert_equal(Validity.kind_of(Validity.REASON_NARROW_REMOVAL), Validity.KIND_NOT_POSSIBLE, "narrow removal: X")
+	assert_equal(Validity.kind_of(Validity.REASON_NOTHING_TO_ERASE), Validity.KIND_NOT_POSSIBLE, "nothing to erase: X")
 	assert_equal(Validity.kind_of(Validity.REASON_SHAPE), Validity.KIND_BLOCKED, "shape: !")
 	assert_equal(Validity.kind_of(Validity.REASON_NOT_YET), Validity.KIND_BLOCKED, "not yet: !")
 	assert_equal(Validity.kind_of(Validity.REASON_REFUSED), Validity.KIND_BLOCKED, "route refusal: !")
@@ -87,7 +89,9 @@ func test_the_proposed_reasons_carry_their_recorded_glyphs() -> void:
 	assert_equal(Validity.REASON_KINDS.size(), Validity.REASON_COUNT, "one glyph per reason id")
 	assert_equal(Validity.outside(), "Outside the planning area: keep the whole room inside it", "outside")
 	assert_equal(Validity.shape("join them"), "Shape: join them", "shape")
-	assert_equal(Validity.joins_two(), "Joins two planned rooms: undo one of them first", "joins two")
+	assert_equal(Validity.narrow_removal("Kitchen"),
+		"Too narrow: this would leave part of Kitchen under 2 × 2 cells; remove those cells too", "BUILD-REQ-006's table words")
+	assert_equal(Validity.nothing_to_erase("Pantry"), "Nothing to erase: no planned Pantry cells here", "nothing to erase")
 	assert_equal(Validity.not_yet("furnishing comes in a later update"),
 		"Not yet: furnishing comes in a later update", "not yet")
 
@@ -96,3 +100,15 @@ func test_nothing_to_add_is_a_dropped_stroke() -> void:
 	"""Decision 1871's proposal for a stroke wholly inside its own room: X, in words."""
 	assert_equal(Validity.kind_of(Validity.REASON_NOTHING_NEW), Validity.KIND_NOT_POSSIBLE, "X")
 	assert_equal(Validity.nothing_new(), "Nothing to add: these cells are already planned for this room", "words")
+
+
+func test_the_ways_reasons_read_as_ruled() -> void:
+	"""Decision 2021 P-D1-12 (a), as worded, and the table's two new rows: a way below the Surface needs a passage (!),
+	one partly on a Mound room's floor does not fit (X); the card's "Connects to ..."."""
+	assert_equal(Validity.needs_passage("Hatch with ladder"),
+		"Hatch with ladder needs a passage under it: paint one there first", "needs a passage")
+	assert_equal(Validity.kind_of(Validity.REASON_NEEDS_PASSAGE), Validity.KIND_BLOCKED, "!")
+	assert_equal(Validity.not_in_room("Burrow mouth", 2, 9), "Burrow mouth does not fit in this room: it needs 2 × 9 cells",
+		"does not fit")
+	assert_equal(Validity.kind_of(Validity.REASON_NOT_IN_ROOM), Validity.KIND_NOT_POSSIBLE, "X")
+	assert_equal(Validity.connects("Underground level 2"), "Connects to Underground level 2", "the card's line")

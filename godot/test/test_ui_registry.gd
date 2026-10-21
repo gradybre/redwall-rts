@@ -464,16 +464,19 @@ const BUILD_QUOTED_ROWS: Array = [
 	[12, "Connector card", UiRegistry.ZONE_BOTTOM_CENTER, UiRegistry.PROFILE_PANEL, UiRegistry.GATE_CONDITION, 280, 136, 360, 160],
 	[13, "Level bar", UiRegistry.ZONE_BOTTOM_LEFT, UiRegistry.PROFILE_PANEL, UiRegistry.GATE_ALWAYS, 160, 104, 256, 140],
 	[14, "Level button", UiRegistry.ZONE_OWNER, UiRegistry.PROFILE_TOGGLE, UiRegistry.GATE_ALWAYS, 78, 32, 126, 44],
+	[15, "Room card", UiRegistry.ZONE_BOTTOM_CENTER, UiRegistry.PROFILE_PANEL, UiRegistry.GATE_CONDITION, 280, 128, 360, 184],
+	[16, "Stop digging", UiRegistry.ZONE_OWNER, UiRegistry.PROFILE_BUTTON, UiRegistry.GATE_CONDITION, 176, 32, 256, 32],
 ]
 
 
-func test_the_build_family_is_its_own_fourteen_rows_and_leaves_the_103_alone() -> void:
-	"""UI-BUILD-001..014 have their own count and keys; §4's 103 UI-SET rows are unchanged."""
-	assert_equal(UiRegistry.BUILD_ELEMENT_COUNT, 14, "fourteen rows")
+func test_the_build_family_is_its_own_sixteen_rows_and_leaves_the_103_alone() -> void:
+	"""UI-BUILD-001..016 have their own count and keys (decision 1991 added 015 and 016); §4's 103 UI-SET rows are
+	unchanged."""
+	assert_equal(UiRegistry.BUILD_ELEMENT_COUNT, 16, "sixteen rows")
 	assert_equal(UiRegistry.ELEMENT_COUNT, EXPECTED_ELEMENT_COUNT, "the UI-SET count is untouched")
 	assert_equal(_registry.build_element_key(1), &"UI-BUILD-001", "key")
-	assert_equal(_registry.build_element_key(14), &"UI-BUILD-014", "last key")
-	assert_equal(_registry.build_element_key(15), &"", "no fifteenth")
+	assert_equal(_registry.build_element_key(16), &"UI-BUILD-016", "last key")
+	assert_equal(_registry.build_element_key(17), &"", "no seventeenth")
 	assert_equal(_registry.last_refusal(), UiRegistry.REFUSE_UNKNOWN_ID, "refused")
 	assert_false(UiRegistry.is_build_element(0), "no zeroth")
 	assert_equal(_registry.build_name_of(0), &"", "no name for 0")
@@ -515,7 +518,7 @@ func test_every_interactive_build_row_meets_the_minimum_hitbox() -> void:
 		assert_true(_registry.build_size_into(id, _size), "UI-BUILD-%03d sized" % id)
 		assert_true(_size.min_width >= UiRegistry.MINIMUM_HITBOX and _size.min_height >= UiRegistry.MINIMUM_HITBOX,
 			"UI-BUILD-%03d at least 32 × 32" % id)
-	assert_equal(interactive, 7, "002, 003, 006-009 and 014 are pressed")
+	assert_equal(interactive, 8, "002, 003, 006-009, 014 and 016 are pressed")
 	assert_false(_registry.build_is_interactive(0), "no row 0")
 
 

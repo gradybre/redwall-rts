@@ -32,7 +32,7 @@ const Workpieces := preload("res://scripts/core/underground_connector_workpieces
 ## ADR1217 step 5: the handling program is the row Workpieces names (pick 29 dormant, paw 59 active).
 const Handling := preload("res://data/underground/mole-worker/qualified-claw-runtime-v1/handling_programs.gd")
 const StairPath := preload("res://scripts/core/underground_entry_stair_path.gd") # ADR1229: the stair stops.
-const StairPins := preload("res://data/underground/mole-worker/qualified-claw-stairs-v11/catalog_source.gd")
+const StairPins := preload("res://data/underground/mole-worker/qualified-stair-carry-v13/catalog_source.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 ## ADR1212: +256 for the ADR1215 air shape in its two retained Location records (fixed 3,219 + 1,024 helper).
 const CONTROL_BYTES: int = 4352
@@ -718,9 +718,11 @@ func _unique_datum() -> Vector2i:
 	var owner: Owner = _placements._space
 	if not _fragments.spend(owner._region_capacity):
 		return NULL_REF
-	for row: int in owner._region_capacity:
-		if owner._r_present[row] != 1:
-			continue
+	var row: int = -1
+	while true:
+		row = _next_region(owner, row + 1) # Decision 1952: exactly the rows the `present != 1` test admits.
+		if row >= owner._region_capacity:
+			break
 		if not _fragments.spend(PRESENT_DATUM_CHECKS): # ADR1227: a slot costs 1, a present row 16 in all.
 			return NULL_REF
 		if owner._r_role[row] != Space.FLOOR_DATUM \
@@ -798,7 +800,7 @@ func _bearing_refusal(row: int, out: PackedInt32Array) -> StringName:
 		code = _world_box(_bearing, 3, out)
 	if code != &"":
 		return code
-	if _bearing[0] == Frontier.NATURAL:
+	if _bearing[0] == Frontier.NATURAL or _bearing[0] == Frontier.STRIP: # Decision 2044: a strip is natural floor.
 		code = _terrain_refusal(out, Terrain.DIG)
 		if code == &"":
 			code = _retained_earth_refusal(out)
@@ -814,9 +816,11 @@ func _retained_earth_refusal(bounds: PackedInt32Array) -> StringName:
 	var owner: Owner = _placements._space
 	if not _fragments.spend(owner._region_capacity):
 		return REFUSE_CAPACITY
-	for row: int in owner._region_capacity:
-		if owner._r_present[row] != 1:
-			continue
+	var row: int = -1
+	while true:
+		row = _next_region(owner, row + 1) # Decision 1952: exactly the rows the `present != 1` test admits.
+		if row >= owner._region_capacity:
+			break
 		if not _fragments.spend(PRESENT_REGION_CHECKS): # ADR1227: a slot costs 1, a present row 12 in all.
 			return REFUSE_CAPACITY
 		if owner._r_role[row] == Space.FLOOR_DATUM:
@@ -914,9 +918,11 @@ func _installed_bearing_obstacles(bounds: PackedInt32Array) -> StringName:
 	var owner: Owner = _placements._space
 	if not _fragments.spend(owner._region_capacity):
 		return REFUSE_CAPACITY
-	for row: int in owner._region_capacity:
-		if owner._r_present[row] != 1:
-			continue
+	var row: int = -1
+	while true:
+		row = _next_region(owner, row + 1) # Decision 1952: exactly the rows the `present != 1` test admits.
+		if row >= owner._region_capacity:
+			break
 		if not _fragments.spend(PRESENT_REGION_CHECKS): # ADR1227: a slot costs 1, a present row 12 in all.
 			return REFUSE_CAPACITY
 		if owner._r_role[row] == Space.FLOOR_DATUM or _installed_solid_row(row):
@@ -927,6 +933,12 @@ func _installed_bearing_obstacles(bounds: PackedInt32Array) -> StringName:
 		if Space.overlaps(bounds, _scratch):
 			return REFUSE_BEARING
 	return &""
+
+
+static func _next_region(owner: Owner, from: int) -> int:
+	"""Decision 1952: the first Region row at or after `from` whose present byte is 1, else the region capacity."""
+	var row: int = owner._r_present.find(1, from) if from < owner._region_capacity else -1
+	return row if row >= 0 and row < owner._region_capacity else owner._region_capacity
 
 
 func _installed_solid_row(row: int) -> bool:
@@ -1015,8 +1027,9 @@ func _install_contact_kind(kind: int) -> bool:
 
 
 func _tread_station() -> bool:
-	"""ADR1229: content 10's T1-T6 orders stand at a tread station on the tread above."""
-	return not _phase_mode and _frontier._header[5] == Handling.Paw10.CONTENT \
+	"""ADR1229: the T1-T6 orders (content 10, and content 12 since decision 1972) stand at a tread station on the
+	tread above."""
+	return not _phase_mode and Handling.Paw10.Claw.serves(_frontier._header[5]) \
 		and Handling.PawPhysical10.Tread.is_tread(_ordinal)
 
 
@@ -1090,7 +1103,7 @@ func _role_geometry(role: int, source_profile: int = -1) -> StringName:
 		return REFUSE_GEOMETRY
 	if role == Profiles.STANCE_SUPPORT:
 		return &"" if Space.contains_box(_location.support, _bounds) else REFUSE_GEOMETRY
-	if _tread_station(): return _tread_role_volume(role, source_profile)
+	if _tread_station() or _landing_station(): return _tread_role_volume(role, source_profile) # Decision 2044.
 	if _location.air_count > 0: # ADR1215: installation contacts are single-box; extra air is never proved here.
 		return REFUSE_GEOMETRY
 	_fragments.start(_bounds)
@@ -1106,7 +1119,9 @@ func _role_geometry(role: int, source_profile: int = -1) -> StringName:
 
 func _tread_role_volume(role: int, source_profile: int) -> StringName:
 	"""ADR1229: a tread station's stop records only its footing, so each body box is proved against the actual
-	Regions, as the tread fitting and seating proofs stood: completed void, the station Room's own installed timber,
+	Regions. Decision 2044 (P-2044-16 (a)): so is a later module's T0 station on its landing, inside the Room's
+	completed cubes as a tread station is (the handling certificate judges its body the same way). As the tread
+	fitting and seating proofs stood: completed void, the station Room's own installed timber,
 	the order's own piece (held, or reached by the certified tap) and the stroke's target, then proved exterior air.
 	The Room's own reservation marker is nonphysical (as everywhere)."""
 	_fragments.start(_bounds)
@@ -1381,32 +1396,36 @@ func _resolve_all_endpoints() -> StringName:
 	if _station_location == NULL_REF or _material_location == NULL_REF or _retreat_location == NULL_REF:
 		return REFUSE_ENDPOINT
 	var code: StringName = _endpoint_payloads()
+	var deep: int = _deep_landing()
 	if code == &"" and _tread_station():
 		code = _stair_reach_refusal()
+	elif code == &"" and _landing_station():
+		code = _landing_reach_refusal() # Decision 2044: a later module's T0, down the stair to its landing.
+	elif code == &"" and deep > 0:
+		code = _deep_reach_refusal(deep) # Decision 2044: a deep cut station, down the stair to its floor.
 	elif code == &"":
 		code = _approach_refusal()
 		if code == &"": code = _path_refusal(_station_location, _retreat_location, _install[8])
-	return _phase_resolve_output() if code == &"" and _phase_mode else code
+	if code != &"" or not _phase_mode: return code
+	return _deep_output_refusal(deep) if deep > 0 else _phase_resolve_output()
 
 
 func _stair_reach_refusal() -> StringName:
 	"""ADR1229: a tread station is reached from M by the material profile to the crossing arrival, then down the
 	stair leg by leg, and left back up it to the crossing arrival; each leg is one static profile reachability. The
 	station's own arrival stop is retracted while its bearer is pending (FUND to commit), with the climb from the stop
-	its half-turn reaches; those legs are skipped then: the worker already stands on the station."""
+	its half-turn reaches; those legs are skipped then: the worker already stands on the station. Decision 2044: on M5
+	the legs cross every landing above the tread's module (`StairPath.hops_down` and `hops_up`)."""
 	var stops: StairPath.Stops = _tread_stops()
-	var level: int = _ordinal - 2
+	var module: int = Handling.PawPhysical10.Tread.module_of(_ordinal)
+	var level: int = StairPath.global_level(module, Handling.PawPhysical10.Tread.level_of(_ordinal) - 1)
 	if stops.x != _retreat_location or stops.s[level + 1] != _station_location: return REFUSE_ENDPOINT
 	var code: StringName = _path_refusal(_material_location, _retreat_location, _install[7])
-	var legs: Array = [stops.x, stops.p, StairPins.CLAW_APPROACH_ROWS[0], stops.p, stops.a[0], StairPins.CLAW_STEP_FORWARD_ROW]
-	for below: int in level + 1:
-		legs.append_array([stops.a[below], stops.a[below + 1], StairPins.CLAW_DESCENT_ROW])
+	var legs: Array = _hop_legs(stops.x, StairPath.hops_down(stops, level))
 	legs.append_array([stops.a[level + 1], stops.s[level + 1], StairPins.CLAW_STEP_BACK_ROW,
 		stops.s[level + 1], stops.a[level + 1], StairPins.CLAW_STEP_FORWARD_ROW,
 		stops.a[level + 1], stops.u[level + 1], StairPins.CLAW_TURN_ROW])
-	for above: int in range(level, -1, -1):
-		legs.append_array([stops.u[above + 1], stops.u[above], StairPins.CLAW_ASCENT_ROW])
-	legs.append_array([stops.u[0], stops.x, StairPins.CLAW_APPROACH_ROWS[2]])
+	legs.append_array(_hop_legs(stops.u[level + 1], StairPath.hops_up(stops, level)))
 	var retracted: bool = stops.a[level + 1] == NULL_REF
 	for at: int in range(0, legs.size(), 3):
 		if code != &"": break
@@ -1418,40 +1437,106 @@ func _stair_reach_refusal() -> StringName:
 	return code
 
 
+## Decision 2044: M5's stations below its stair top, reached leg by leg from the crossing arrival X.
+
+
+func _hop_legs(from: Vector2i, hops: Array) -> Array:
+	"""[first, last, row] triples for a run of `StairPath` hops starting at `from`: one published edge each."""
+	var out: Array = []
+	var at: Vector2i = from
+	for hop: Array in hops:
+		out.append_array([at, hop[0], hop[1]])
+		at = hop[0]
+	return out
+
+
+func _legs_refusal(legs: Array) -> StringName:
+	"""Each triple's edge is published and admits its row."""
+	for at: int in range(0, legs.size(), 3):
+		if legs[at] == NULL_REF or legs[at + 1] == NULL_REF: return REFUSE_ENDPOINT
+		var code: StringName = _row_path_refusal(legs[at], legs[at + 1], legs[at + 2])
+		if code != &"": return code
+	return &""
+
+
+func _landing_station() -> bool:
+	"""A later module's T0 order: its station H' stands on its landing's floor (module j's natural landing)."""
+	var tread: Script = Handling.PawPhysical10.Tread
+	return not _phase_mode and Handling.Paw10.Claw.serves(_frontier._header[5]) and tread.is_t0(_ordinal) \
+		and tread.module_of(_ordinal) > 0
+
+
+func _landing_reach_refusal() -> StringName:
+	"""M to X on the material profile, down to the landing's F' (P-2044-16 (a): onto F, then the walk-off), the narrow
+	approach onto H' and back to F' (the order's retreat), then the way back up to X from F'."""
+	var stops: StairPath.Stops = _tread_stops()
+	var landing: int = Handling.PawPhysical10.Tread.module_of(_ordinal)
+	if stops.hm[landing] != _station_location or stops.fp[landing] != _retreat_location: return REFUSE_ENDPOINT
+	var code: StringName = _path_refusal(_material_location, stops.x, _install[7])
+	var legs: Array = _hop_legs(stops.x, StairPath.hops_down_to_walk_off(stops, landing))
+	legs.append_array([stops.fp[landing], stops.hm[landing], StairPins.CLAW_APPROACH_ROWS[0],
+		stops.hm[landing], stops.fp[landing], StairPins.CLAW_RETREAT_ROWS[0]])
+	legs.append_array(_hop_legs(stops.fp[landing], StairPath.hops_up_from_walk_off(stops, landing)))
+	return _legs_refusal(legs) if code == &"" else code
+
+
+func _deep_landing() -> int:
+	"""A deep cut station's landing (a phase whose station stands on a landing's floor), or 0."""
+	if not _phase_mode or _station_location == NULL_REF: return 0
+	var local: Vector3i = _local_point(_station[1], _station[2], _station[3])
+	var at: Vector3i = StairPath.classify_deep(local)
+	return at.x if at.x > 0 else 0
+
+
+func _local_point(x: int, y: int, z: int) -> Vector3i:
+	"""A source-local point (the station row's own coordinates are already source-local)."""
+	return Vector3i(x, y, z)
+
+
+func _deep_reach_refusal(landing: int) -> StringName:
+	"""M to X on the material profile, down to the landing's F' (P-2044-16 (a)), the approach to the hub D, then the
+	floor walks to the station on its own travel row (its retreat is the station itself)."""
+	var stops: StairPath.Stops = _tread_stops()
+	var hub: Vector2i = stops.d[landing]
+	var code: StringName = _path_refusal(_material_location, stops.x, _install[7])
+	if code == &"": code = _legs_refusal(_hop_legs(stops.x, StairPath.hops_down_to_walk_off(stops, landing)))
+	if code == &"": code = _row_path_refusal(stops.fp[landing], hub, StairPins.CLAW_APPROACH_ROWS[0])
+	if code == &"": code = _path_refusal(hub, _station_location, _station[0])
+	return code if code != &"" else _path_refusal(_station_location, _retreat_location, _install[8])
+
+
+func _deep_output_refusal(landing: int) -> StringName:
+	"""The spoil's way to R: the floor walk to the hub D, back to F' (P-2044-16 (a)), up the stair to X, then X to R
+	on R's own row."""
+	_phase_output_location = _resolve_endpoint(_episode[16])
+	if _phase_output_location == NULL_REF: return REFUSE_ENDPOINT
+	var code: StringName = _read_endpoint(_episode[16], _phase_output_location, _other)
+	if code != &"" or _other.role != Locations.ROLE_STORAGE: return REFUSE_MATERIAL
+	_phase_output_payload = _other.payload_revision
+	var stops: StairPath.Stops = _tread_stops()
+	var hub: Vector2i = stops.d[landing]
+	code = _path_refusal(_station_location, hub, _station[0])
+	if code == &"": code = _row_path_refusal(hub, stops.fp[landing], StairPins.CLAW_RETREAT_ROWS[0])
+	if code == &"": code = _legs_refusal(_hop_legs(stops.fp[landing], StairPath.hops_up_from_walk_off(stops, landing)))
+	return code if code != &"" else _path_refusal(stops.x, _phase_output_location, _episode[16])
+
+
 func _tread_stops() -> StairPath.Stops:
-	"""Every live installed stair stop of this Frontier, by kind and level: one pass over the live Locations matches
-	their exact role, Room and transformed source point (each leg's edge certificate is checked separately)."""
+	"""Every live installed stair stop of this Frontier, by kind and level. Decision 2044: one pass over the live
+	Locations of the station's Room, each filed by its own source-local point (rotation 0)."""
 	var stops: StairPath.Stops = StairPath.Stops.new()
-	var wanted: PackedInt32Array = PackedInt32Array()
-	for selector: int in _frontier._header[8 + Frontier.ENDPOINT]:
-		if _frontier._field(Frontier.ENDPOINT, selector, 0) != Frontier.INSTALLED_CONTACT: continue
-		var local: Vector3i = Vector3i(_frontier._field(Frontier.ENDPOINT, selector, 4),
-			_frontier._field(Frontier.ENDPOINT, selector, 5), _frontier._field(Frontier.ENDPOINT, selector, 6))
-		var kind: Vector2i = StairPath.classify(local)
-		if kind.x < 0: continue
-		wanted.append_array(PackedInt32Array([kind.x, kind.y, _frontier._field(Frontier.ENDPOINT, selector, 3),
-			_coordinate(local.x, local.y, local.z, 0), _coordinate(local.x, local.y, local.z, 1),
-			_coordinate(local.x, local.y, local.z, 2)]))
 	var locations: Locations = _placements._locations
-	if not _fragments.spend(locations._capacity): return stops
+	if _frame[3] != 0 or not _fragments.spend(locations._capacity): return stops
 	for row: int in locations._capacity:
 		if locations._live.present[row] != 1: continue
-		if not _fragments.spend(4 + wanted.size()): return stops
+		if not _fragments.spend(8): return stops
 		if locations._ref_at(locations._live, Locations.ROOM_SLOT, row) != _location.room: continue
-		_record_stop(stops, wanted, locations, row)
+		var local: Vector3i = Vector3i(locations._get32(locations._live, Locations.X, row) - _frame[0],
+			locations._get32(locations._live, Locations.Y, row) - _frame[1],
+			locations._get32(locations._live, Locations.Z, row) - _frame[2])
+		var kind: Vector2i = StairPath.classify(local)
+		if kind.x >= 0: StairPath.record(stops, kind, Vector2i(row, locations._get32(locations._live, Locations.GENERATION, row)))
 	return stops
-
-
-func _record_stop(stops: StairPath.Stops, wanted: PackedInt32Array, locations: Locations, row: int) -> void:
-	"""File one live Location under the stop it matches exactly, if any."""
-	var point: Vector3i = Vector3i(locations._get32(locations._live, Locations.X, row),
-		locations._get32(locations._live, Locations.Y, row), locations._get32(locations._live, Locations.Z, row))
-	var role: int = locations._get32(locations._live, Locations.ROLE, row)
-	for at: int in range(0, wanted.size(), 6):
-		if wanted[at + 2] == role and Vector3i(wanted[at + 3], wanted[at + 4], wanted[at + 5]) == point:
-			StairPath.record(stops, Vector2i(wanted[at], wanted[at + 1]),
-				Vector2i(row, locations._get32(locations._live, Locations.GENERATION, row)))
-			return
 
 
 func _row_path_refusal(first: Vector2i, last: Vector2i, profile: int) -> StringName:
@@ -2020,7 +2105,8 @@ func _assembly_start_regions(foot: bool) -> StringName:
 			continue
 		# ADR1229: the Room's own reservation marker is nonphysical for a tread station's body too (the Room's riser
 		# behind the station lies inside it).
-		if (foot or _tread_station()) and Handling.own_room_marker(owner, region, _location.room): continue
+		if (foot or _tread_station() or _landing_station()) and Handling.own_room_marker(owner, region, _location.room):
+			continue
 		var role: int = owner._r_role[region]
 		if role == Space.SUPPORTED_VOID or (not foot and _tread_timber(owner, region)):
 			if not foot and not _fragments.subtract(_scratch): return REFUSE_CAPACITY
@@ -2031,10 +2117,10 @@ func _assembly_start_regions(foot: bool) -> StringName:
 
 
 func _tread_timber(owner: Owner, region: int) -> bool:
-	"""ADR 1229: at a tread station (content 10, T1-T6) the body may meet the station Room's own installed SUPPORT,
-	the timber its approved proofs stood among (tread-fit-v1); everywhere else SUPPORT blocks a body."""
-	return _frontier._header[5] == Handling.Paw10.CONTENT and Handling.PawPhysical10.Tread.is_tread(_ordinal) \
-		and owner._r_role[region] == Space.SUPPORT and owner._r_claim_kind[region] == Owner.CLAIM_NONE \
+	"""ADR 1229: at a tread station (T1-T6; content 10 or 12) the body may meet the station Room's own installed SUPPORT,
+	the timber its approved proofs stood among (tread-fit-v1); everywhere else SUPPORT blocks a body. Decision 2044:
+	so may a later module's T0 station on its landing, whose floor is the Room's own retained SUPPORT."""
+	return (_tread_station() or _landing_station()) and owner._r_role[region] == Space.SUPPORT and owner._r_claim_kind[region] == Owner.CLAIM_NONE \
 		and Vector2i(owner._r_owner_slot[region], owner._r_owner_generation[region]) == _location.room
 
 
@@ -2336,7 +2422,11 @@ func _occupancy_leaf(worker: Vector2i, source_profile: int = -1) -> StringName:
 	var graph: Routes = _placements._routes
 	if not _fragments.spend(16 * Routes.RESIDENT_CAPACITY):
 		return REFUSE_CAPACITY
-	for row: int in Routes.RESIDENT_CAPACITY:
+	var row: int = -1
+	while true:
+		row = Routes.next_occupancy_row(graph, row + 1) # Decision 1952: rows answering "" are passed over.
+		if row >= Routes.RESIDENT_CAPACITY:
+			break
 		var other: Vector2i = graph._resident_ref(row)
 		if other == NULL_REF:
 			var missing: StringName = Routes.unregistered_body_refusal(graph, row, _location.point) # ADR1219

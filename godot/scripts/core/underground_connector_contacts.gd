@@ -12,6 +12,7 @@ const Frontier := preload("res://scripts/core/underground_entry_frontier.gd")
 const Assemblies := preload("res://scripts/core/underground_connector_assemblies.gd")
 const Catalog := preload("res://scripts/core/underground_connector_catalog.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
+const CacheChecks := preload("res://scripts/core/runtime_cache_checks.gd")
 const Routes := preload("res://scripts/core/underground_routes.gd")
 const WorldRoutes := preload("res://scripts/core/underground_world_routes.gd")
 const Locations := preload("res://scripts/core/underground_locations.gd")
@@ -1451,12 +1452,28 @@ func _hop_legs(from: Vector2i, hops: Array) -> Array:
 
 
 func _legs_refusal(legs: Array) -> StringName:
-	"""Each triple's edge is published and admits its row."""
+	"""Each triple's edge is published and admits its row. Decision 2045 (an exact cost fix): a leg's check
+	(`static_profile_edge_refusal`) is a pure read and every caller has just passed a scope leaf, so the scope cannot
+	change between legs and one leaf after the last leg answers as one after each did. With the cache checks on, the
+	leaves skipped run unspent and a refusal is reported."""
 	for at: int in range(0, legs.size(), 3):
 		if legs[at] == NULL_REF or legs[at + 1] == NULL_REF: return REFUSE_ENDPOINT
-		var code: StringName = _row_path_refusal(legs[at], legs[at + 1], legs[at + 2])
+		var code: StringName = _row_path_refusal(legs[at], legs[at + 1], legs[at + 2], false)
 		if code != &"": return code
-	return &""
+		if CacheChecks.enabled and at + 3 < legs.size(): _check_skipped_leaf()
+	return _scope_leaf() if not legs.is_empty() else &""
+
+
+func _check_skipped_leaf() -> void:
+	"""Decision 2045: with the cache checks on, a scope leaf `_legs_refusal` skipped runs unspent and must pass."""
+	var remaining: int = _fragments.remaining
+	var failed: bool = _fragments.failed
+	_fragments.remaining = Space.MAX_CHECKS
+	_fragments.failed = false
+	var code: StringName = _scope_leaf()
+	_fragments.remaining = remaining
+	_fragments.failed = failed
+	if code != &"": CacheChecks.report("stair leg scope", "a skipped leaf refuses: %s" % code)
 
 
 func _landing_station() -> bool:
@@ -1539,9 +1556,10 @@ func _tread_stops() -> StairPath.Stops:
 	return stops
 
 
-func _row_path_refusal(first: Vector2i, last: Vector2i, profile: int) -> StringName:
+func _row_path_refusal(first: Vector2i, last: Vector2i, profile: int, leaf: bool = true) -> StringName:
 	"""One stair leg is one straight edge: its published certificate must admit the authored row at its loaded
-	revision (a constant-time static check; a graph search per leg would charge the Location census each time)."""
+	revision (a constant-time static check; a graph search per leg would charge the Location census each time).
+	`leaf` false leaves the scope leaf to the caller (decision 2045, `_legs_refusal`)."""
 	var graph: Routes = _placements._routes
 	var edge: Routes.Edge = Routes.Edge.new()
 	var profiles: Profiles = _placements._profiles
@@ -1552,7 +1570,7 @@ func _row_path_refusal(first: Vector2i, last: Vector2i, profile: int) -> StringN
 		if graph.edge_metadata_into(ref, edge) != &"" or edge.from_location != first or edge.to_location != last: continue
 		var code: StringName = _placements._world_routes.static_profile_edge_refusal(ref, profile,
 			profiles._live.quantities[Profiles.L_REVISION * profiles._profile_capacity + profile], _frontier._header[5])
-		return code if code != &"" else _scope_leaf()
+		return code if code != &"" or not leaf else _scope_leaf()
 	return &"ROUTE_NOT_CONNECTED"
 
 

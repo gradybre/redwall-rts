@@ -1455,13 +1455,73 @@ func _legs_refusal(legs: Array) -> StringName:
 	"""Each triple's edge is published and admits its row. Decision 2045 (an exact cost fix): a leg's check
 	(`static_profile_edge_refusal`) is a pure read and every caller has just passed a scope leaf, so the scope cannot
 	change between legs and one leaf after the last leg answers as one after each did. With the cache checks on, the
-	leaves skipped run unspent and a refusal is reported."""
+	leaves skipped run unspent and a refusal is reported. Decision 2045 (P-2045-15): the legs share one ascending scan
+	of the edge rows (`_leg_edge_row`), so no row is charged twice where each leg scanned from row 0."""
+	var found: Dictionary = {}
+	var cursor: PackedInt32Array = PackedInt32Array([0])
 	for at: int in range(0, legs.size(), 3):
 		if legs[at] == NULL_REF or legs[at + 1] == NULL_REF: return REFUSE_ENDPOINT
-		var code: StringName = _row_path_refusal(legs[at], legs[at + 1], legs[at + 2], false)
+		var code: StringName = _leg_refusal(legs[at], legs[at + 1], legs[at + 2], found, cursor)
 		if code != &"": return code
 		if CacheChecks.enabled and at + 3 < legs.size(): _check_skipped_leaf()
 	return _scope_leaf() if not legs.is_empty() else &""
+
+
+func _leg_refusal(first: Vector2i, last: Vector2i, profile: int, found: Dictionary, cursor: PackedInt32Array) -> StringName:
+	"""`_row_path_refusal(first, last, profile, false)` on the rows the legs' shared scan finds: the first row, in row
+	order, whose ends are these and whose metadata reads; a row whose metadata does not read is passed over, as the
+	per-leg scan passed it. With the cache checks on, the per-leg scan runs unspent and must agree."""
+	var graph: Routes = _placements._routes
+	var row: int = _leg_edge_row(graph, first, last, 0, found, cursor)
+	var edge: Routes.Edge = Routes.Edge.new()
+	while row >= 0:
+		var ref: Vector2i = Vector2i(row, graph._live.fields[Routes.E_GENERATION * graph._edge_capacity + row])
+		if graph.edge_metadata_into(ref, edge) == &"" and edge.from_location == first and edge.to_location == last: break
+		row = _leg_edge_row(graph, first, last, row + 1, found, cursor)
+	var code: StringName = &"ROUTE_NOT_CONNECTED" if row == -1 else REFUSE_CAPACITY if row < -1 \
+		else _placements._world_routes.static_profile_edge_refusal(Vector2i(row, graph._live.fields[Routes.E_GENERATION \
+			* graph._edge_capacity + row]), profile, _placements._profiles._live.quantities[Profiles.L_REVISION \
+			* _placements._profiles._profile_capacity + profile], _frontier._header[5])
+	if CacheChecks.enabled and row >= -1: _check_leg(first, last, row)
+	return code
+
+
+func _leg_edge_row(graph: Routes, first: Vector2i, last: Vector2i, from: int, found: Dictionary,
+		cursor: PackedInt32Array) -> int:
+	"""The first present edge row at or past `from` whose ends are `first` -> `last` (-1: none; -2: the budget ran
+	out). Rows below `cursor[0]` were scanned (one check each) and their first row per ends kept in `found`; a later
+	row with the same ends is scanned for again only when an earlier one did not read."""
+	var key: Vector4i = Vector4i(first.x, first.y, last.x, last.y)
+	if from == 0 and found.has(key): return found[key]
+	var row: int = from
+	if from == 0: row = cursor[0]
+	while row < graph._edge_capacity:
+		if not _fragments.spend(): return -2
+		if graph._live.present[row] == 1:
+			var from_end: Vector2i = graph._edge_pair(graph._live, Routes.E_FROM_SLOT, row)
+			var to_end: Vector2i = graph._edge_pair(graph._live, Routes.E_TO_SLOT, row)
+			var ends: Vector4i = Vector4i(from_end.x, from_end.y, to_end.x, to_end.y)
+			if row >= cursor[0] and not found.has(ends): found[ends] = row
+			if ends == key:
+				cursor[0] = maxi(cursor[0], row + 1)
+				return row
+		row += 1
+	cursor[0] = maxi(cursor[0], row)
+	return -1
+
+
+func _check_leg(first: Vector2i, last: Vector2i, row: int) -> void:
+	"""Decision 2045: with the cache checks on, unspent: no present row before `row` (every row when -1) has these
+	ends and reads, so `row` is the per-leg scan's row; reading every row's ends directly, as that scan's
+	`edge_metadata_into` does."""
+	var graph: Routes = _placements._routes
+	var edge: Routes.Edge = Routes.Edge.new()
+	for at: int in graph._edge_capacity if row < 0 else row:
+		if graph._live.present[at] != 1 or graph._edge_pair(graph._live, Routes.E_FROM_SLOT, at) != first \
+				or graph._edge_pair(graph._live, Routes.E_TO_SLOT, at) != last: continue
+		var ref: Vector2i = Vector2i(at, graph._live.fields[Routes.E_GENERATION * graph._edge_capacity + at])
+		if graph.edge_metadata_into(ref, edge) == &"":
+			CacheChecks.report("stair leg edge", "%s -> %s: row %d reads before row %d" % [first, last, at, row])
 
 
 func _check_skipped_leaf() -> void:

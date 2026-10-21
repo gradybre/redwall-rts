@@ -2319,6 +2319,24 @@ as source-qualified motion. No composed save adapter is claimed here.
 |---|---|---:|---|---|:-:|---|---|
 | Stateless station-chain retirement | -- | -- | -- | No members; the chain and kept lists are caller-owned scratch | 3 | -- | Decision 1942: once the live graph holds `RETIRE_FROM_EDGES` edges, a finished column's station chain (its WORK station and the TRANSIT stations leading to it alone) leaves Routes, then Locations, through their own staging calls under one cold lease. What it removes is Routes' and Locations' own saved state; an idle builder that named a retired station forgets it in its own saved cursor. |
 
+### `godot/scripts/core/underground_way_in.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Slice D2's way in (Foot, StairWayIn) | -- | -- | -- | No module members; the Foot and the StairWayIn are host-held objects, one live at a time | 3 | -- | Decision 2052 (P-2052-1 (a), P-2052-2 (a)): fills a painted room's admission request and order from a finished way down's foot. Never saved: the host derives the Foot again from the entry record, Locations and Inventory on load (decision 2052 §2.1). What it publishes (the front station, its corner and spans, the store and pile endpoints and their ground staging) is Locations', Routes' and Inventory's own saved state. |
+
+### `godot/scripts/core/underground_way_in_front.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Stateless front-station planner | -- | -- | -- | No members; the Candidate packet and the published list are caller-owned | 3 | -- | Decision 2052 P-2052-1 (a): finds, publishes or withdraws a room's front WORK station, its corner and their spans at a way down's foot through Locations' and WorldRoutes' staging calls (withdrawal through decision 1942's retirement). What it publishes is Locations' and Routes' own saved state. |
+
+### `godot/scripts/core/underground_way_landings.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Stateless way-down readers | -- | -- | -- | No members; output arrays are caller-owned | 3 | -- | Decision 2052 §2.3: the real way down's landing cells and standing shape for the build panel, derived from the entry origin and `flight_geometry.gd`. Reads nothing saved beyond its arguments. |
+
 ### `godot/scripts/core/underground_room_progress.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

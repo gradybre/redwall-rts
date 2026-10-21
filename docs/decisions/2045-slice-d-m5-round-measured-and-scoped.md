@@ -962,3 +962,231 @@ The cache checks triple the time and the restores add about 10 %. In that window
   - mutation testing;
   - the frames.
 - **The independent review is done** (above).
+
+## Brendan's rulings on P-2045-14 and -15, and the min-cost rule (2026-10-21)
+
+Relayed by the coordinator. Brendan: **"Cost lane first."**
+
+| Item | Ruling | What it means |
+|---|---|---|
+| P-2045-15 | **(a)** | A deep station's reach proved once per phase, in this lane's deep-reach functions and `_entry_contact_observation` (Contacts, cleared). Exact under the cache checks, charged honestly. Measure a Work tick's milliseconds before and after, cache checks off, against REQ-SET-163's 2 ms; if it does not get there, say how far off it is |
+| P-2045-14 | **(a)** | The row index for the Space owner's `_overlap_refusal`, same visit order (Slice C cleared `underground_space_owner.gd` for this lane). Add a test that loads a save from after tick 78,000 |
+| The index margin | **Not accepted** | Every index (WorldRoutes, Locations, the Space owner) follows a **min-cost rule**: no proof spends more than master's; an outcome may change only from a budget refusal to a real answer. Prove it with a test: a proof at master's exact cost admits. If the rule is unworkable, stop and report |
+
+Also relayed: do not touch Routes; do not edit Locations `prepared_refusal`, `_prepared_retention_refusal` or
+`_installed_witnesses_refusal`; record the reach's double charge (below) without changing its spend; measure the
+held `edge_refusal` and the entry bindings after the work; report Work-tick milliseconds and transition seconds before
+and after with decision 2082's meter, cache checks off. Indexed in `docs/handoff/RULINGS.md`.
+
+## Fifth build phase (2026-10-21): the cost lane, then M5 finished
+
+### Built
+
+| Commit | What |
+|---|---|
+| `c4072f71` | **P-2045-15, as an exact scan fix.** `_legs_refusal` scanned every edge row from row 0 for each of a deep station's legs (up to about 90 a reach), reading each present row's metadata. The legs now share one ascending scan of the rows' ends (`_leg_edge_row`); never charged more than the per-leg scans, checked against them under the cache checks |
+| `48c3eaa9` | **The min-cost rule, WorldRoutes.** An indexed scan is charged when it ends (`settle`), never more than the rows master's linear scan visits by the same exit. The build and any dearer exit are owed (`_index_debt`) and repaid from later scans' savings. A lookup that could cost a full scan scans every row, as master does. Checked reruns rewind the debt with the index (`index_mark`/`index_rewind`) |
+| `faae397d` | **P-2045-14 (a).** With 16 or more changed rows (a load marks every row), `_overlap_refusal` bins the validation positions by z band once and compares each changed row only with the positions its bands select, in heap order, so the same pairs are tested in the same order and the same first refusal returns. Charged by the same min-cost rule (`_overlap_settle`); the index is a cold slice, released when the validation returns; the cache checks verify every selection |
+| `b7fe192d` | M5's saved stair leg lists fit their record: the longest hop list is 56, the record admitted 20, so tick 85,000's checkpoint could not be read back. `MAX_STAIR_LEGS` 64; the writer refuses a list the reader would not admit. The timber scope re-check after each terrain window runs again, as master ran it, at 64 checks |
+| `436716e5` | A tread order's legs share the same edge scan (`_tread_legs_refusal`); the tread body proof's region prefilter reads regions in place |
+| `dbffddc2` | The second review's fixes (below) |
+
+**The memo as ruled was built and shelved.** A deep station's reach was keyed on the route graph and certificate
+generations, the Frontier revision, the Space geometry revision, the stops and the Locations payload revisions. In the
+deep stage that key changes about every 4 ticks (a cut, a haul, a station retirement), so the memo never answered a
+Work tick in the flight. The time was in the leg scans (`c4072f71`, `436716e5`), which now cost what they read. The
+memo is not committed.
+
+### The min-cost rule, and its proofs
+
+Every index now charges `min(its own work plus debt, master's rows by the same exit)` per scan. So no proof spends more
+than master's, and at master's exact budget every proof gives master's answer.
+
+- **WorldRoutes:** `test_a_proof_at_masters_exact_cost_still_admits_with_the_index` (+0, +1 and +300 checks),
+  `test_the_row_index_never_charges_a_scan_more_than_master_and_repays_its_build`,
+  `test_an_indexed_lookup_never_costs_more_than_the_full_scan`, `test_an_empty_fragment_set_scans_as_master`,
+  `test_a_lookup_that_could_cost_a_full_scan_scans_every_row_as_master`.
+- **The Space owner:** `test_the_overlap_index_admits_at_the_linear_validations_exact_cost` binary-searches the
+  linear validation's least budget, for an admission and for a contradiction found from the first row. The indexed
+  validation gives the same answer at that budget. `test_the_overlap_index_refuses_and_admits_as_the_linear_validation`
+  adds a one-unit overlap on a band's first unit.
+- **Locations:** the near rows are kept by the obstacle scan Locations already pays for (a check a row, as before), and
+  `_covered` over them spends no more than the full scan (`test_the_obstacle_scan_keeps_every_row_...`).
+
+The rule is workable; no lane stop.
+
+### P-2045-14: loading a late save
+
+| Point | Space owner restore before | after |
+|---|---:|---:|
+| the finish (tick 92,559) | 1,768,997 (over the bound) | 341,174 |
+
+Every flight point after tick 78,000 now loads. Segments 15–17 load ticks 80,000, 85,000 and 90,000. The
+finish suites load the finish and assert it: `_finished_entry`, "the underground_flight finish checkpoint loads".
+`test_checkpoint_equivalence.gd` replays the flight from tick 0 against every point. The Locations re-proof of the
+finish is 651,747.
+
+### Measured: decision 2082's meter, the whole flight, cache checks off
+
+| Run | Commit | Flight total | Cold transitions | Work ticks over 33.3 ms | Ticks 100–500 ms |
+|---|---|---:|---:|---:|---:|
+| before | `ea9c7ed6` | 1,749.5 s | 758, 1,096.1 s | 3,933 (+283.6 s) | 1,858 |
+| leg scan, index, overlap | `faae397d` | 1,577.1 s | 757, 1,049.5 s | 2,417 (+188.9 s) | 1,306 |
+| tread legs | `436716e5` | 1,486.2 s | 752, 1,074.0 s | 2,144 (+60.9 s) | 14 |
+
+The `436716e5` run shared the machine with the mutation run, so its seconds are high, transitions especially. It
+still ran the flight 263 s faster.
+
+**Against REQ-SET-163's 2 ms, the lane does not get there.**
+- **Work ticks.** A deep-stage Work tick went from 56 to 23 ms (landing 3, profiled). That is still about **11×** the
+  2 ms. The slow Work tick's time over 33.3 ms fell from 283.6 s to 60.9 s, and the 100–500 ms ticks almost vanished
+  (1,858 → 14).
+- **The p99 tick.** It lies in the 20–100 ms band, **10–50×** the 2 ms.
+- **Cold transitions.** They are about 1.4 s each on average (a cube hand-over is 1.2–3.4 s), about **700×** the 2 ms.
+  They are `_run_cold_operation`/Placements `prepare_phase_refresh`, outside this lane's claims, and are the pacing
+  study's subject (decision 2081, batched build; decision 1953 stage 2).
+
+**Held functions, after the work** (2,500 ticks from tick 60,000, cache checks off):
+- Contacts' `edge_refusal`: 0.9 s, 0.36 ms a tick.
+- The entry bindings' timber stage, its routes and Locations calls: about 2.2 s.
+
+Neither is where a Work tick's time goes now. The rest of the 23 ms is the deep reach's reachability searches
+(`worker_refusal` → the phase observation), each one exact and charged.
+
+**The tightest check margin** is the phase structure (decision 2082's `struct`): 1,014,458 on landing 4, 96.7% of
+`MAX_CHECKS`, unchanged by this phase. A sixth module or a wider landing would need it looked at first.
+
+### The reach's double charge (recorded, not changed)
+
+Contacts' `_path_refusal` calls `WorldRoutes.profile_reachability_refusal`. The search spends from WorldRoutes' own
+budget, and Contacts then charges the same amount again from its fragments budget, mostly as a flat precharge. Each
+reachability search a deep reach makes is therefore paid twice: once where it runs, and once in Contacts' bound.
+Outcomes are exact, and the spend is unchanged, as ruled.
+
+**P-2045-16 — the reach's double charge.**
+- (a) Contacts charges only the work it does itself, and reads the search's real spend from WorldRoutes' result
+  instead of precharging it. Contacts' landing-4 peak would fall by the searches' share, not measured.
+- (b) Leave it. Contacts' peak stays 88%.
+
+**Recommendation: (b) for M5.** It fits, and (a) moves a bound shared with Slice C's Routes work. Revisit it with
+decision 2081's batched build.
+
+### The second independent review, and what changed after it
+
+The review covered the leg scan, the index and its min-cost rule, the overlap index and the late saves.
+
+| # | Finding | Fix (`dbffddc2`) |
+|---|---|---|
+| H1 | With no fragment left, `subtract_role` still selected by the empty hull and could charge more than master | It scans linearly when `count == 0` (`linear_first`), as master does; tested at master's exact charge |
+| H2 | An installer's haul climbs up to 56 hop legs and one to M, but the hauler's list was saved under `MAX_LEGS` 24 | `Progress.MAX_HAUL_LEGS` 72 for the entry hauler (room builders keep 24 through `read_state`'s `max_legs`); the writer refuses a longer list; `MAX_WIRE_BYTES` 13,947 → 14,907; registry, schema, audit and census regenerated |
+| H3 | The progress marker's stair-leg field froze after leg 31 | Stair leg 6 bits, haul leg 7, trips 10; max 1,073,741,823; tested past leg 31 |
+| M | An empty image's lookup returned row 0 | -1 |
+| L | `index_rewind` could restore a mark from another image; `allocate` kept old debt | Both fixed |
+
+**Ledger:** the row is now **+70,423 B** (the leg lists +13,968: the stair lists +9,504, the haul list +2,304 in the
+chain and +1,920 in the two record images). Live with reserve 106,191,789 B; headroom 43,808,211 B.
+
+### Mutation testing
+
+There were 22 single-substitution mutants of the new code, each run against its named suites. The first run left
+eight alive, and one did not apply. Tests were added for five: the lookup guard, the Locations hull's one-unit edge,
+the overlap index's last band, an early contradiction at master's exact cost, and the leg writer's refusal. The second
+run killed those five, the retargeted one, and two new ones (the empty-set scan, the haul list bound).
+
+**Three survive**, each equivalent in outcome:
+- `overlap_index_from` set to 1: the threshold only chooses when to index, and the min-cost rule makes either choice
+  spend no more.
+- The tread legs' closing scope leaf dropped: the caller's next leaf refuses the same tick.
+- The per-window timber re-check dropped: the operation's closing scope leaf refuses the same tick. Only the window
+  at which a terrain observer's change is caught differs.
+
+### The third independent review (of `dbffddc2`)
+
+**Nothing at CRITICAL or HIGH.** The reviewer checked that every exit of `subtract_role`, `blocked`, `_body_blocked`
+and `_solid_contacts_covered` settles exactly once with master's rows. It found the overlap index and the near rows
+keep master's order and answers, and the hauler's writer and both entry readers agree at 72. Its MEDIUM and LOW test
+gaps are closed by tests:
+- the entry hauler writes 72 legs and refuses 73;
+- a rewind to another image's mark forgets the index;
+- an empty image's lookup selects no row.
+
+Two LOWs are left as notes:
+- The hauler's writer guard is the entry's 72 for every reader. A room builder writes one leg, so its record never
+  reaches its own reader's 24.
+- With exactly 64 up legs, the marker's stair field would clamp leg 64 to 63, at a stage change. The longest list is 56.
+
+### The full suite at 12 shards: what it found
+
+The first 12-shard run (`17a2c10d`) failed eight tests in seven suites. None was a wrong answer from this phase's
+code. All were expectations this branch had left behind, fixed in `58646391`:
+- **The entry record's section-6 bound** is 14,907, not ADR 1229's 4,591. This affected the registry row, the schema
+  rule and the section maximum, 26,460,370. These suites had not been re-run since decision 2044 raised the bound.
+- **WorldRoutes' cold lease** carries the row index, so the companion-lifetime figure is 842,788 (`INDEX_BYTES`
+  67,876).
+- **Content 12's edge plan** has M5's 237 edges: per landing, five floor edges, seven joins at F′ and R′, then the next
+  module's 33 edges; landing 5 adds five floor edges.
+- **The paid-assembly fixtures' Locations arena held 64.** M5's 59 work-area endpoints and the prefix's stops overflow
+  it (`LOCATION_ARENA_FULL`). This has been so since M5 was mounted; master passes. The fixture now holds 128.
+- **An outcome change, of the one kind the min-cost rule allows.**
+  `test_underground_room_station_retirement.gd` dug decision 1942's large room without retirement to show that a
+  phase commit's route proof ran out of checks at about 100 live edges (`SPACE_COMPANION_PREPARATION_REFUSED`). With
+  the row index the same proof reaches its real answer. The room is finished with every chain kept (128 edges), and
+  the peak proof is 338,317 checks, 32% of the bound.
+  - The test now asserts that answer.
+  - Retirement is still built and tested; it bounds the live edges, not just the checks.
+  - For Slice C: a master scenario that was over the bound now completes. No scenario under the bound changed
+    (§"Fourth build phase", condition 3).
+
+**The flight's segment times** in that run (Mac, five shards at a time) ran 45–669 s. Segments 10 (55,000 → 60,000),
+12 (65,000 → 70,000) and 15 (80,000 → 85,000) took 468, 537 and 669 s. CI's budget is about 8 minutes a suite, and
+decision 2044 measured CI at about this Mac's speed (median ratio 1.01).
+
+- **First split** (`ffce9b77`): points at 57,500, 67,500 and 82,500. The time is concentrated in each stretch's dense
+  cube hand-overs, so two halves were still long: 67,500 → 70,000 took 493 s and 82,500 → 85,000 took 606 s.
+- **Second split** (`5db015ca`): points at 68,750 and 83,250.
+
+The flight is now **23 segments (00–22)**, from 19 to 345 s each in the verified run. Every existing point is
+byte-identical, and the finish is still tick 92,559. The finish suites take about 4 s each, since they load the finish
+checkpoint: whole chain, crew leaves, crew lost at the finish. `test_checkpoint_equivalence.gd` takes 205 s.
+
+Two suites outside this lane's flight are over 8 minutes in the same run:
+- `test_underground_room_station_retirement.gd`, 597 s. It was 580 s before.
+- `test_settlement_save_underground.gd`, 496 s. It was listed at 258 s.
+
+Neither is changed by this phase beyond the retirement test's new answer.
+
+### Frames
+
+The frames are in `scratchpad/m5frames/{1280x720,1920x1080}/`, 27 at each size, with a contact sheet
+`sheet1280.png`. They came from a scratch capture script, which is not committed.
+
+**What the script does.** It loads the committed flight checkpoint at tick 90,000 and runs the chain on to its finish,
+sustained as the suites sustain it. The demo's `EntryWorkerView` presenter draws the crew over the live Space's
+installed SUPPORT rows near it, and a frame is saved every 40 ticks while the mole moves.
+
+**What they show.** The mole walks M5's last landing deck and the bottom module's tread supports, and stops at the
+finish, tick 92,559 (`ENTRY_KITCHEN_UNBUILT`, level 1).
+
+**Limits:**
+- In the first three frames at each size the camera sits inside a deck.
+- Natural earth and OBSTACLE rows are not drawn, so the stair reads as supports in the dark.
+- The frames cover only the last 2,560 ticks, not the whole descent. Earlier stretches would load earlier points the
+  same way.
+
+### Gates
+
+- **The full suite at 12 shards** passed on the final head (`5db015ca` plus the weights): 599 suites, 13,195 tests,
+  1,510,844 assertions, 0 failures, 0 unexpected errors or warnings, 0 leaks. `verify --count 12` passes.
+  - `tools/ci_test_shard_weights.json` and the slow tier were regenerated from that run (`1489bb80`). The plan
+    estimates every shard at about 958 s.
+- **Every flight segment passes**, from 19 to 345 s each. The whole chain and the crew-finish suites pass in about
+  4 s each, and the checkpoint equivalence suite in 205 s.
+- **Contracts:**
+  - the memory pack check and its census and budget tests (300);
+  - the ledger arithmetic and the merge gate;
+  - the capacity audit and the section-6 schema generator.
+- **The analyzer** on port 6505: 0 warnings in 1,689 files.
+- **Mutation:** 22 mutants. Three survive; they are explained above.
+- **Reviews:** the second review's three HIGHs are fixed (`dbffddc2`). The third review found nothing at HIGH or
+  above, and its test gaps are closed (`17a2c10d`).
+- **Disk:** the measurement clones are deleted. One scratch clone is kept for the final meter and deleted after it.

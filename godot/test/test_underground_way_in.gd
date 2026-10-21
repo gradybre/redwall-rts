@@ -819,3 +819,32 @@ func test_a_ground_staging_store_holds_the_runners_standing_stock() -> void:
 		assert_true(_h._inventory.create_lot(store, _h._items.compiled_id(key), 24000, 1, 0, -1, 0, 0).ok, "24 %s" % key)
 	assert_true(_h._inventory.create_lot(store, _h._items.compiled_id(&"wood"), 32000, 1, 0, -1, 0, 0).ok, "32 more")
 	assert_false(_h._inventory.create_lot(store, _h._items.compiled_id(&"stone"), 1000, 1, 0, -1, 0, 0).ok, "full")
+
+
+func test_a_stair_head_store_and_its_yaw_0_stand_are_made_once_and_become_the_staging() -> void:
+	"""P-2092-1 (a) on the fixture: a foot with a land Location gets the stair-head store (STORAGE, ground staging) and
+	its yaw-0 grip stand 576 u up the flight from it, each in its own rows' air; the order's staging is that store;
+	asking again makes nothing."""
+	if _runtime == null: return
+	var foot: WayIn.Foot = _h.foot()
+	foot.surface = _h._first
+	foot.stand_yaw = 0
+	foot.stand_rows = PackedInt32Array([30, 31, 32, 33, 35, 37, 38, 40])
+	foot.store_rows = PackedInt32Array([33, 35, 38, 40])
+	foot.surface_store_point = PILE_POINT + Vector3i(0, 0, -1536)
+	assert_equal(Prep.surface_stand_point(foot) - foot.surface_store_point, Vector3i(0, 0, 576), "the yaw-0 grip")
+	var way: WayIn.StairWayIn = WayIn.StairWayIn.new()
+	assert_equal(way.configure(_runtime.bound_owners(), foot), &"", "configured")
+	var order: Composer.Order = Composer.Order.new()
+	assert_equal(way.approach_into(_request(Phase.Z), order), &"", "an order")
+	var store: Vector2i = Front.existing(_h.endpoints, _access(), foot.surface_store_point, Locations.ROLE_STORAGE)
+	var stand: Vector2i = Front.existing(_h.endpoints, _access(), Prep.surface_stand_point(foot), Locations.ROLE_WORK)
+	assert_true(store != NULL_REF and stand != NULL_REF, "the store and its stand")
+	assert_equal(order.staging, _h._inventory.spatial_ground_container_at(store), "the rooms' staging")
+	var air: Locations.Record = Front.record()
+	assert_equal(_h.endpoints.read_location_into(stand, air), &"", "the stand")
+	assert_equal(air.envelope[1], air.point.y, "its air stands on its floor")
+	assert_true(Front.body_clear(_h._profiles, 37, _request(Phase.Z + 99999), air, air.point), "a stone carrier fits it")
+	var counts: Array[int] = [_endpoints(), _containers()]
+	assert_equal(way.approach_into(_request(Phase.Z), Composer.Order.new()), &"", "again")
+	assert_equal([_endpoints(), _containers()], counts, "nothing more made")

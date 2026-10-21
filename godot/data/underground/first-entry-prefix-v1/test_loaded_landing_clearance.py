@@ -17,9 +17,13 @@ The loaded way down (decision 1981's W1/W2 and S1/S2, P-2091-5 (a) down-only) is
   phase 2 publishes it): clear of every part but the deck it stands on (a footing box 1 u deep in a part's top face
   is the footing on its support, not a collision).
 
-**No turn.** A loaded mole cannot turn on the ground (no loaded turn is authored; `_carry_approach`), so every loaded
-leg from the sill's descent to the next module's approach runs straight down the flight's centre line at one height,
-and the surface join's last segment runs down the flight into H.
+**No turn.** A loaded mole cannot turn on the ground (no loaded turn is authored; `_carry_approach`): it keeps the
+heading it lifted at along a ground CARRY edge. Every loaded leg from the sill's descent to the next module's approach
+runs straight down the flight's centre line at one height, facing down the flight throughout.
+
+**G0 fails at the surface.** R's haul stand is the quarter-turn grip, so a mover lifting there faces -X, and H's
+approach needs it facing down the flight; R's yaw-0 grip would stand 64 u past M's stock point. Recorded by
+`test_g0_fails_at_the_surface_the_stand_at_r_faces_the_wrong_way`; decision 2092 stops on it with options.
 
 **Recorded, not a gate:** the ground rows' bodies (32: +-714 u, 37: +-598 u) are wider than the air F' and H' are
 sized by today (47 and 43: x -485..479, z -521..412). One box bounding wood's would reach 28 u into the sill deck at
@@ -45,8 +49,14 @@ DESCENT = {"wood": 74, "stone": 80}
 GROUND = {"wood": 32, "stone": 37}
 FAMILIES = ("wood", "stone")
 STANCE = 1
-## `underground_entry_work_area.gd`: R's stock point and the grip stand offset (576, 0, 0) beside it.
-R_STAND = [-832 + 576, 0, 1536]
+## `underground_entry_work_area.gd`: R's and M's stock points, and R's haul stand (R + STAND_OFFSET (576, 0, 0)).
+R_STOCK = [-832, 0, 1536]
+M_STOCK = [-832, 0, 2048]
+R_STAND = [R_STOCK[0] + 576, 0, R_STOCK[2]]
+## The grip certificate: S - R (stock minus stand) at each certified yaw, and the way the mover faces there.
+QUARTER = 16384
+GRIP_OFFSET = {0: [0, 0, -576], QUARTER: [-576, 0, 0]}
+GRIP_HEADING = {0: "-Z", QUARTER: "-X"}
 ## The stair path's H on L0: tread_geometry.gd T0_STATION (`test_landing_clearance.py` T0_STATION_Z).
 H_TOP = [0, 0, BASE.T0_STATION_Z]
 
@@ -179,8 +189,9 @@ class LoadedLandingClearance(unittest.TestCase):
                 for family in FAMILIES:
                     for point in (site.fp, site.h):
                         for box in (b for b in self.boxes[GROUND[family]] if b[6] == STANCE):
-                            self.assertGreaterEqual(point[2] + box[2], low, "M%d landing %d %s" % (modules, landing, point))
-                            self.assertLessEqual(point[2] + box[5], high)
+                            where = "M%d landing %d %s row %d" % (modules, landing, point, GROUND[family])
+                            self.assertGreaterEqual(point[2] + box[2], low, where)
+                            self.assertLessEqual(point[2] + box[5], high, where)
 
     def test_the_loaded_way_down_a_landing_needs_no_turn(self) -> None:
         """The sill's descent lands on F, the walk-off runs to F', the join to H' and the approach to A0', all down the
@@ -194,16 +205,49 @@ class LoadedLandingClearance(unittest.TestCase):
                                                              PUB.stop_point(landing, -1, V10.ARRIVAL)]
                 self.assertTrue(straight_down(way), "M%d landing %d: %s" % (modules, landing, way))
 
-    def test_the_surface_join_clears_every_part_and_arrives_down_the_flight(self) -> None:
-        """R's stand -> H: across to the centre line behind the stair, then straight down the flight onto H, meeting no
-        part but the L0 deck its feet stand on."""
+    def test_g0_fails_at_the_surface_the_stand_at_r_faces_the_wrong_way(self) -> None:
+        """**G0's one failure.** The swept path from R's stand across to the centre line and down the flight onto H
+        meets no part but the L0 deck its feet stand on; but R's haul stand is the quarter-turn grip (stock - stand =
+        (-576, 0, 0)), so a mover lifting there faces -X (yaw 16384) and keeps that heading along a ground CARRY edge
+        (no loaded turn is authored; `_carry_approach`), while H's approach (73/79) starts facing down the flight (yaw
+        0). The yaw-0 grip at R would stand at stock + (0, 0, 576), 64 u past M's stock point, where M's stock lies."""
         line = [R_STAND, [0, 0, R_STAND[2]], H_TOP]
-        self.assertTrue(straight_down(line[1:]))
         for modules in (2, 5):
             parts, _, _ = layout(modules)
             for family in FAMILIES:
                 self.assertEqual(part_hits(self.boxes[GROUND[family]], line, parts), [], "M%d row %d" % (
                     modules, GROUND[family]))
+        self.assertEqual([R_STOCK[i] - R_STAND[i] for i in range(3)], GRIP_OFFSET[QUARTER], "R's stand is the quarter grip")
+        self.assertNotEqual(GRIP_HEADING[QUARTER], GRIP_HEADING[0], "a quarter-grip lift does not face down the flight")
+        self.assertTrue(straight_down(line[1:]), "H is reached down the flight, which needs yaw 0")
+        yaw_zero_stand = [R_STOCK[i] - GRIP_OFFSET[0][i] for i in range(3)]
+        self.assertEqual(yaw_zero_stand, [-832, 0, 2112])
+        self.assertEqual(M_STOCK[2] - yaw_zero_stand[2], -64, "64 u past M's stock point, on M's line")
+        self.assertEqual(M_STOCK[0], yaw_zero_stand[0])
+
+    def test_a_level_one_store_stand_must_face_down_the_flight(self) -> None:
+        """Recorded for D2 phase 2 (P-2091-7 (a)): a mover arriving at F'(5) faces down the flight and keeps that
+        heading, so the store's stand is the yaw-0 grip with its stock 576 u further down the flight. On the centre line
+        both families' yaw-0 set-down (35, 40), their stock and the ground carry fit the level-1 run-out's cut only
+        with the stand at z >= -26,869, 71 u past F'(5) at most (stone's stock reaches 779 u ahead; the end wall is
+        at -27,648)."""
+        PUB.select(5)
+        cuts = PUB.cut_groups()
+        site = BASE.Landing(PUB.MODULES)
+        rows = (35, 40, GROUND["wood"], GROUND["stone"])
+        fits = [z for z in range(PUB.END_WALL, site.fp[2] + 1)
+                if all(self.in_cut(row, [0, site.fp[1], z], cuts) for row in rows)]
+        self.assertEqual(min(fits), -26869)
+        self.assertEqual(site.fp[2] - min(fits), 71)
+        self.assertEqual(max(fits), site.fp[2])
+
+    def in_cut(self, row: int, stand: list, cuts: list) -> bool:
+        """Every BODY, TURN, held-load and stock box of `row` at `stand`, above the floor, lies in the cut cubes."""
+        for box in (b for b in self.boxes[row] if b[6] in (0, 2, 3, 4)):
+            swept_box = BASE.swept(box, stand, stand)
+            swept_box[1] = max(swept_box[1], stand[1])
+            if swept_box[1] < swept_box[4] and BASE.uncovered(swept_box, cuts): return False
+        return True
 
     def test_a_footing_on_a_part_is_support_not_a_collision(self) -> None:
         """The footing rule is narrow: a stance 1 u in L0's deck is support, a body 2 u in it is not."""

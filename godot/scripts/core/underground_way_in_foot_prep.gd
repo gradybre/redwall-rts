@@ -214,13 +214,20 @@ static func carried(routes: Front.Routes, from: Vector2i, to: Vector2i) -> bool:
 
 
 static func rooms_on_level(sites: Sites, level_floor_y: int) -> Array[Vector2i]:
-	"""Every room with Sites whose floor cube stands at `level_floor_y`, in Site order, once each."""
-	var out: Array[Vector2i] = []
+	"""Every room with Sites whose lowest cube stands at `level_floor_y` (its floor), in Site order, once each."""
+	var rooms: Array[Vector2i] = []
+	var lowest: PackedInt32Array = PackedInt32Array()
 	for row: int in sites._count:
-		if sites._present[row] != 1: continue
-		var room: Vector2i = sites._room(row)
-		if room == NULL_REF or out.has(room): continue
-		if sites.origin_of(Vector2i(row, Sites.SITE_GENERATION)).y == level_floor_y: out.append(room)
+		if sites._present[row] != 1 or sites._room(row) == NULL_REF: continue
+		var y: int = sites.origin_of(Vector2i(row, Sites.SITE_GENERATION)).y
+		var at: int = rooms.find(sites._room(row))
+		if at < 0:
+			rooms.append(sites._room(row))
+			lowest.append(y)
+		elif y < lowest[at]: lowest[at] = y
+	var out: Array[Vector2i] = []
+	for at: int in rooms.size():
+		if lowest[at] == level_floor_y: out.append(rooms[at])
 	return out
 
 

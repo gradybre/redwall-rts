@@ -13,6 +13,7 @@ const WayIn := preload("res://scripts/core/underground_way_in.gd")
 const Front := preload("res://scripts/core/underground_way_in_front.gd")
 const Builder := preload("res://scripts/core/underground_room_builder.gd")
 const Routes := preload("res://scripts/core/underground_routes.gd")
+const Directory := preload("res://scripts/core/entity_directory.gd")
 const Prep := preload("res://scripts/core/underground_way_in_foot_prep.gd")
 const Confirm := preload("res://scripts/core/underground_room_confirm.gd")
 const Composer := preload("res://scripts/core/underground_room_composer.gd")
@@ -610,6 +611,7 @@ func test_the_fronts_are_recalled_from_the_rooms_sites_after_a_load() -> void:
 	assert_equal(again.recall_fronts(_runtime), 0, "only once")
 	assert_equal([_endpoints(), _spans()], counts, "nothing published")
 	assert_true(Prep.rooms_on_level(_h.sites, Phase.FLOOR).has(result.room), "its room is on the floor")
+	assert_false(Prep.rooms_on_level(_h.sites, Phase.FLOOR + 1024).has(result.room), "not on the floor above")
 	var read: Approach.Request = Prep.request_of_room(_h.sites, result.room, 1)
 	assert_equal(read.origin_u, Vector3i(Phase.X + 2048, Phase.FLOOR, NORTH_Z), "its lowest corner")
 	var cells: Array = Array(read.cells)
@@ -676,6 +678,13 @@ func test_a_stairs_hub_is_made_once_joined_and_found_again_publishing_nothing() 
 	foot.hub_rows = PackedInt32Array([KitchenTests.CLAW_GROUND])
 	foot.open = _access().envelope.duplicate()
 	assert_equal(foot.refusal(), &"", "a stair's foot")
+	foot.open = PackedInt32Array()
+	assert_equal(foot.refusal(), WayIn.REFUSE_FOOT, "a stair's foot needs its air")
+	foot.open = _access().envelope.duplicate()
+	var planned: Locations.Record = Front.record()
+	assert_equal(Prep.access_record(_runtime.bound_owners(), foot, planned), &"", "the hub as it will be published")
+	assert_equal([planned.point, planned.role, planned.envelope], [foot.hub_point, Locations.ROLE_TRANSIT, foot.open],
+		"at its point, a TRANSIT stop in the foot's air")
 	var owners: Builder.Owners = _runtime.bound_owners()
 	var counts: Array[int] = [_endpoints(), _spans()]
 	assert_false(Prep.access_found(owners, foot), "no hub yet")
@@ -698,19 +707,21 @@ func test_a_loaded_span_enters_its_stand_along_x() -> void:
 	"""P-2091-7 (a): from a point off the stand's line, down to that line and then along x (three points); on its
 	line, straight; always CARRY."""
 	if _runtime == null: return
+	assert_equal(_way.approach_into(_request(NORTH_Z), Composer.Order.new()), &"", "the north front")
 	var owners: Builder.Owners = _runtime.bound_owners()
-	var foot: WayIn.Foot = _h.foot()
+	var corner: Vector2i = Front.existing(_h.endpoints, _access(), NORTH_CORNER, Locations.ROLE_TRANSIT)
+	var station: Vector2i = Front.existing(_h.endpoints, _access(), NORTH_STATION, Locations.ROLE_WORK)
 	var a: Vector3i = _point(_h._first)
-	var b: Vector3i = _point(_h._last)
-	var edge: RefCounted = Prep.loaded_span(owners, foot, _access(), _h._first, _h._last)
+	var b: Vector3i = NORTH_STATION
+	assert_true(a.x != b.x and a.z != b.z, "the access is off the station's lines")
+	var edge: RefCounted = Prep.loaded_span(owners, _h.foot(), _access(), _h._first, station)
 	assert_equal(edge.mode, Profiles.MODE_CARRY, "loaded")
-	if a.x != b.x and a.z != b.z:
-		assert_equal(edge.points, PackedInt32Array([a.x, a.y, a.z, a.x, a.y, b.z, b.x, b.y, b.z]), "bent onto the line")
-		assert_equal(edge.length_u, absi(b.z - a.z) + absi(b.x - a.x), "the legs' length")
-	else:
-		assert_equal(edge.point_count, 2, "straight")
-	var straight: RefCounted = Prep.loaded_span(owners, foot, _access(), _h._first, _h._first)
-	assert_equal(straight.point_count, 2, "one point's span stays straight")
+	assert_equal(edge.points, PackedInt32Array([a.x, a.y, a.z, a.x, a.y, b.z, b.x, b.y, b.z]),
+		"down to the station's line, then along x")
+	assert_equal(edge.point_count, 3, "three points")
+	assert_equal(edge.length_u, absi(b.z - a.z) + absi(b.x - a.x), "the legs' length")
+	var straight: RefCounted = Prep.loaded_span(owners, _h.foot(), _access(), corner, station)
+	assert_equal([straight.point_count, straight.mode], [2, Profiles.MODE_CARRY], "on one line: straight")
 
 
 func _one_span(from: Vector2i, to: Vector2i) -> bool:
@@ -769,3 +780,29 @@ func _neighbours(at: Vector2i) -> Array[Vector2i]:
 		if from == at and not out.has(to): out.append(to)
 		if to == at and not out.has(from): out.append(from)
 	return out
+
+
+func test_a_shared_station_stays_and_a_refused_retirement_waits_for_the_records_to_change() -> void:
+	"""Review H5: a front whose endpoints another kept front uses retires without touching them; a refused retirement
+	(the cold lease held) is not offered again until the rooms' kept records change."""
+	if _runtime == null: return
+	assert_equal(_way.approach_into(_request(NORTH_Z), Composer.Order.new()), &"", "the north front")
+	assert_equal(_way.settle(true, Vector2i(7, 1)), &"", "kept for a room with no record")
+	var station: Vector2i = Front.existing(_h.endpoints, _access(), NORTH_STATION, Locations.ROLE_WORK)
+	var corner: Vector2i = Front.existing(_h.endpoints, _access(), NORTH_CORNER, Locations.ROLE_TRANSIT)
+	var room: Vector2i = _h._residents.directory().create(Directory.KIND_ROOM)
+	assert_equal(_runtime.order_room(room, _h.material, _h.material), &"", "a kept record")
+	_way._keep(room, station, corner)
+	assert_equal(_way.retire_fronts(_runtime), 1, "the recordless room's front retired")
+	assert_true(_h.endpoints._live_ref(_h.endpoints._live, station), "its station stays: the kept room's too")
+	assert_true(_h.endpoints._live_ref(_h.endpoints._live, corner), "its corner stays")
+	assert_equal(_runtime.cancel_queued(room), &"", "the record released")
+	var lease: int = _h._budget.acquire(Budget.COLD_BYTES)
+	assert_equal(_way.retire_fronts(_runtime), 0, "refused while the cold lease is held")
+	assert_equal(_h._budget.release(lease), &"", "released")
+	assert_equal(_way.retire_fronts(_runtime), 0, "not offered again while the records are unchanged")
+	assert_true(_h.endpoints._live_ref(_h.endpoints._live, station), "still there")
+	var other: Vector2i = _h._residents.directory().create(Directory.KIND_ROOM)
+	assert_equal(_runtime.order_room(other, _h.material, _h.material), &"", "the records change")
+	assert_equal(_way.retire_fronts(_runtime), 1, "offered again: retired")
+	assert_false(_h.endpoints._live_ref(_h.endpoints._live, station), "gone")

@@ -137,6 +137,27 @@ for any 2-cell slot. D2 refuses it, named, and changes nothing.
 - **M-4's panel half** (erasing a stopped real room refused; put-back cells judged by core) waits for the demo
   switchover (phase 3), as decision 2052 §2.6 has it; the core half (Resume) is built and tested on the claw Kitchen.
 
+## Review
+
+One independent `code-reviewer` pass on `e72b4075`: no CRITICAL, five HIGH, eight MEDIUM, four LOW.
+
+| Finding | Outcome |
+|---|---|
+| H1: binding on the finishing tick, on load and the recall untested | **Fixed** where the fixtures reach: the finishing tick binds a way in derived from the live Locations (a stand-in entry whose F′(5) point is the work area's H), a running entry's restore binds nothing, the recall is asked after a load. A *done* entry's restore needs the finished flight's record (B2): the stand-in record is refused `ENTRY_SAVE_SHAPE` by the entry's own load proof |
+| H2: a failed re-derivation swallowed on load | **Fixed**: any refusal but "not done yet" (or a host with no room owners) refuses the load; contacts bound with no way in refuse `ROOM_DIG_OTHER_ACCESS` |
+| H3: `settle(true)` without a room lost the front | **Fixed**: `WAY_IN_SETTLE_ROOM`, the front stays unsettled; tested |
+| H4: decision 2054 not committed | **Fixed** (this record) |
+| H5: a refused retirement retried and allocating every tick | **Fixed**: retried only once the rooms' kept records change; one scratch list; no array literals |
+| M1: two rooms sharing a corner refused by the reuse guard | **Recorded**: no front exists at M5's foot (B4); the guard is kept as 2053 §3 asked, both branches now pinned |
+| M2: recall's tie-break and order may differ from the continuous run | **Recorded** for when a front can exist (B4): ties are broken by the painted cell order, Sites' order after a load |
+| M3: a failed bind on the finishing tick not retried | **Fixed** as named: the refusal is pushed with the entry's alert |
+| M4: the new front rules untested | **Fixed**: the backward row's yaw, unpaired backward rows, the corner's turn and the retreat body |
+| M5: `prepare()` has no caller | **Answered**: it is stair-leg Delivery's call at bind (P-2091-4 (a)); proved live in the probe (§1) |
+| M6: Resume published before the session checks | **Fixed**; tested |
+| M7: the store and pile unjoined at M5's foot | **Recorded**: no row can stand on the store at the foot (the stand serves it; the builder walks to a storage only for a same-level haul, which the level-1 store never has); the pile takes spoil without a walk (`Sites.bind_output`) |
+| M8: duplication | **Fixed**: one `_front_into`; one Sites reader in the host |
+| LOW | L3 fixed (the registry and docstring say "from the hub"); L1 kept (`crew().output` is the entry's public R), L2 and L4 answered |
+
 ## Source
 
 Decisions 1936, 1937, 1941, 1942, 1990, 1991, 2041–2045, 2052, 2053, 2081, 2091 (P-2091-7 (a), Brendan 2026-10-21,

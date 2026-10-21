@@ -2417,6 +2417,12 @@ as source-qualified motion. No composed save adapter is claimed here.
 |---|---|---:|---|---|:-:|---|---|
 | Stateless stair-path publisher | -- | -- | -- | No members; Stops packet is caller-owned | 3 | -- | ADR1229 increment 6b. Publishes the stair edges between the live installed stair stops through one WorldRoutes publication, and retracts the one stop (with its edges) a pending tread bearer covers; the Locations and edges live in their canonical owners, and the tread's commit re-creates the stop. |
 
+### `godot/scripts/core/underground_stair_legs.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Stateless stair leg planner and checker | -- | -- | -- | No members; leg lists, edge lists and the allowance are caller-owned | 3 | -- | Decision 2091 (stair-leg Delivery, phase 1, decision 2092). Plans the loaded way down and the empty way up M5's flight from the caller's live `StairPath.Stops`, matches every leg to its live edge in one pass over the Routes edge table and reads each edge's published certificate; it retains nothing, so a leg list is derived again after a load (P-2091-6 (a)), never saved. |
+
 ### `godot/scripts/core/underground_entry_site.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

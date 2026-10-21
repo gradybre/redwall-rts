@@ -1,6 +1,6 @@
 # 2101 — Room-pace study: what a room costs today, what target is sensible, and how to reach it (stopped for rulings)
 
-Date: 2026-10-21 · Status: **Proposed.** A docs-only study; no code, data or test is changed. P-2101-1 to P-2101-7
+Date: 2026-10-21 · Status: **Accepted (2026-10-21).** A docs-only study; no code, data or test is changed. P-2101-1 to P-2101-7
 wait for Brendan.
 
 Number: **2101**, from the range 2101–2109 the coordinator gave this study. It is free on every local and remote ref
@@ -14,6 +14,16 @@ none of the three is on this branch. Slice C's Routes cost findings were relayed
 
 **Also for Slice C.** Room digs share the entry's cold-transition shape. §1.4 and §5 give the room's own transition
 counts and costs, measured, as an input to phase-spreading stage 2.
+
+
+## Brendan's rulings (2026-10-21)
+
+Relayed by the coordinator: Brendan answered in chat through AskUserQuestion.
+
+| Proposal | Ruling | What it means |
+|---|---|---|
+| P-2101-1 | **(a)**, "16 cubes in 30–60 s" | A 16-cube room takes 30–60 s of working time at 1x (about 3 s a cube; a 96-cube Kitchen about 5 min) |
+| P-2101-2 to P-2101-7 | **(a)**, "Approve all" | Working time with materials stocked (rooms keep rest hours); a standing 24 wood + 24 stone stock in the level-1 store, with the stair runner at the entrance's ~10x scale (amends DEC-050 for the runner, and P-2091-2/-8); batched room digs reusing 2082 at k about 1.5–2 as a Work rate; spoil to the foot pile now, carried up on the runner's return once 2b-2 lands; crew 1–4 unchanged; no runtime change now: after the cost lane, measure one real level-1 room (gate: heavy operations about 15 s or less), then a room-pace build lane (2102–2109) |
 
 ## The ruling being studied
 

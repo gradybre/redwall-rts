@@ -2021,7 +2021,8 @@ func _recall_way_in() -> StringName:
 	contacts were bound to (`ROOM_DIG_OTHER_ACCESS` otherwise), and its kept fronts are found again (unsaved)."""
 	var way_in: UndergroundWayIn.StairWayIn = _underground_way_in as UndergroundWayIn.StairWayIn
 	var bound: Vector2i = _underground_rooms.contacts_access()
-	if way_in == null or bound == Vector2i(-1, 0): return &""
+	if bound == Vector2i(-1, 0): return &""
+	if way_in == null: return UndergroundRoomComposer.REFUSE_OTHER_ACCESS # Contacts bound to no way in (review H2).
 	if not UndergroundWayIn.Prep.access_found(way_in.owners, way_in.foot) or way_in.foot.access != bound:
 		return UndergroundRoomComposer.REFUSE_OTHER_ACCESS
 	way_in.recall_fronts(_underground_rooms)
@@ -2043,8 +2044,16 @@ func restore_underground_entry(record: PackedByteArray) -> StringName:
 	var code: StringName = runtime.restore(record, _underground_session)
 	if code == &"":
 		_underground_entry = runtime
-		_bind_finished_way_in() # Decision 2054: a finished way's way in, derived again (it is never saved).
+		code = _rebind_way_in() # Decision 2054: a finished way's way in, derived again (it is never saved).
 	return code
+
+
+func _rebind_way_in() -> StringName:
+	"""Decision 2054 (review H2): a load binds a finished entry's way in again; any refusal but "not done yet" (or no
+	room owners to lend it, a host that digs no rooms) refuses the load, rather than leave every later room "No way
+	in"."""
+	var code: StringName = _bind_finished_way_in()
+	return &"" if code == UndergroundWayFoot.REFUSE_NOT_DONE or code == UndergroundRoomConfirm.REFUSE_SCOPE else code
 
 
 func _bind_finished_way_in() -> StringName:
@@ -2160,9 +2169,13 @@ func resume_underground_room(room: Vector2i, crew: PackedInt32Array = PackedInt3
 	and never paid twice (P-1933-2 (a)); a refusal is an explicit alert, and the room stays confirmed."""
 	if _underground_mutations_stopped(): return _refuse(&"UNDERGROUND_HOST_RESETTING")
 	var way_in: UndergroundWayIn.StairWayIn = _underground_way_in as UndergroundWayIn.StairWayIn
-	if way_in == null: return _refuse(UndergroundRoomConfirm.REFUSE_NO_WAY_IN)
+	var code: StringName = _mounted_underground_refusal(_underground_session)
+	if code == &"" and _underground_rooms == null: code = UndergroundRoomComposer.REFUSE_SCOPE
+	if code == &"": code = _room_orders_refusal() # Review M6: checked before the way in publishes anything.
+	if code == &"" and way_in == null: code = UndergroundRoomConfirm.REFUSE_NO_WAY_IN
+	if code != &"": return _refuse(code)
 	var order: UndergroundRoomComposer.Order = UndergroundRoomComposer.Order.new()
-	var code: StringName = way_in.order_into(room, order)
+	code = way_in.order_into(room, order)
 	if code != &"":
 		_alert_underground_room(code)
 		return _refuse(code)
@@ -2176,8 +2189,7 @@ func underground_way_landings(level: int) -> PackedInt32Array:
 	"""Decision 2052 §2.3 (P-D1-9): the cells where the real way down opens onto `level`, for the build panel's
 	`bind_landings` (slice G binds it in the game, ruling 1871; D2 phase 3 in the demo); empty when none."""
 	var out: PackedInt32Array = PackedInt32Array()
-	var sites: RefCounted = _underground_session._retirement_owners.sites if _underground_session != null \
-		and _underground_session._retirement_owners != null else null
+	var sites: UndergroundSession.Retirement.Sites = _underground_sites()
 	if sites != null: UndergroundWayFoot.landings_into(_underground_entry, level, sites._domain.datum_u, out)
 	return out
 
@@ -2185,10 +2197,15 @@ func underground_way_landings(level: int) -> PackedInt32Array:
 func underground_way_shapes(level: int) -> PackedInt32Array:
 	"""Decision 2052 §2.3: the real way standing on `level` as (x, z, family, turn), for `bind_way_host`."""
 	var out: PackedInt32Array = PackedInt32Array()
-	var sites: RefCounted = _underground_session._retirement_owners.sites if _underground_session != null \
-		and _underground_session._retirement_owners != null else null
+	var sites: UndergroundSession.Retirement.Sites = _underground_sites()
 	if sites != null: UndergroundWayFoot.shapes_into(_underground_entry, level, sites._domain.datum_u, out)
 	return out
+
+
+func _underground_sites() -> UndergroundSession.Retirement.Sites:
+	"""The mounted Session's Sites (the 1 m grid's datum), or null."""
+	if _underground_session == null or _underground_session._retirement_owners == null: return null
+	return _underground_session._retirement_owners.sites
 
 
 func stop_underground_room(room: Vector2i) -> bool:
@@ -2463,9 +2480,12 @@ func _advance_underground_entry(tick_index: int) -> void:
 	if _underground_entry == null or not (_underground_entry.is_running() or _underground_entry.is_leaving()): return
 	var code: StringName = _underground_entry.advance(tick_index)
 	# Decision 2054 (P-2052-11 (a), E4): the finishing tick binds level 1's way in and says so, in place of the gap.
-	if code == UndergroundEntryRuntime.REFUSE_KITCHEN_UNBUILT and _bind_finished_way_in() == &"":
-		UIManager.push_alert(WAY_DOWN_BUILT_WORDS)
-		return
+	if code == UndergroundEntryRuntime.REFUSE_KITCHEN_UNBUILT:
+		var bound: StringName = _bind_finished_way_in()
+		if bound == &"":
+			UIManager.push_alert(WAY_DOWN_BUILT_WORDS)
+			return
+		UIManager.push_refusal(bound) # Review M3: a way down built whose way in did not bind is named.
 	if code != &"": _alert_underground_entry(code)
 
 

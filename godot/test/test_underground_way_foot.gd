@@ -2,7 +2,8 @@ extends "res://test/framework/test_case.gd"
 ## Decision 2054 (slice D2 phase 2): the foot of the finished M5 flight. The layout the way in publishes there (hub,
 ## parking, store, its grip stand, pile) and the end-wall room's front are held clear of the run-out's walls and the
 ## last sill by the content's own row boxes (the stand's clearance, P-2091-7 (a)); the host's readers and refusals
-## before the flight is done. The live foot on the finished flight is proved by test_underground_way_in_level1.gd.
+## before the flight is done. The live foot on the finished flight was probed in a scratch run (decision 2054 §1): a
+## committed level-1 suite waits for the finish to load (B2) and for a room to be admissible there (B1, B4).
 
 const Chain := preload("res://test/fixtures/underground_entry_chain.gd")
 const Settlement := preload("res://scripts/systems/settlement_system.gd")
@@ -20,7 +21,7 @@ const Grip := preload("res://data/underground/mole-worker/qualified-claw-runtime
 const Confirm := preload("res://scripts/core/underground_room_confirm.gd")
 ## The chain fixture's entry origin (`underground_entry_chain.gd` NEAR on the cube grid; the probe's origin).
 const ORIGIN: Vector3i = Vector3i(122880, 512, 102400)
-## The turning spot: where the all-yaw ground row's turn sweep (+-712) clears both side walls, the end wall and the sill.
+## The turning spot: where the all-yaw ground row's turn sweep (+-712) clears the side walls, end wall and sill.
 const TURN_X: Vector2i = Vector2i(-312, 312)
 const TURN_Z: Vector2i = Vector2i(712, 824)
 ## The store's grip stand, and where the loaded span from the hub bends onto its line.
@@ -69,7 +70,8 @@ func _blocked(row: int, at: Vector2i) -> String:
 				and box.role != Profiles.WORK_APPROACH: continue
 		var low: Vector3i = Vector3i(at.x, 0, at.y) + box.low
 		var high: Vector3i = Vector3i(at.x, 0, at.y) + box.high
-		if low.x < -Flight.HALF_WIDTH or high.x > Flight.HALF_WIDTH: return "row %d box %d meets a side wall" % [row, ordinal]
+		if low.x < -Flight.HALF_WIDTH or high.x > Flight.HALF_WIDTH:
+			return "row %d box %d meets a side wall" % [row, ordinal]
 		if low.z < 0: return "row %d box %d meets the end wall" % [row, ordinal]
 		if high.z > sill[0] and (maxi(low.y, 0) < sill[1] or high.z > sill[0] + Flight.RUN):
 			return "row %d box %d meets the sill" % [row, ordinal]

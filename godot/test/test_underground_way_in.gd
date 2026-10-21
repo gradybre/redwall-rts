@@ -219,7 +219,9 @@ func test_asking_again_for_the_same_room_publishes_nothing() -> void:
 	if _runtime == null: return
 	var first: Approach.Request = _request(NORTH_Z)
 	assert_equal(_way.approach_into(first, Composer.Order.new()), &"", "first")
-	assert_equal(_way.settle(true), &"", "its room admitted: the front is kept")
+	assert_equal(_way.settle(true), WayIn.REFUSE_SETTLE_ROOM, "admitted needs its room (review H3)")
+	assert_false(_way.pending().is_empty(), "still unsettled")
+	assert_equal(_way.settle(true, Vector2i(7, 1)), &"", "its room admitted: the front is kept")
 	var endpoints: int = _endpoints()
 	var spans: int = _spans()
 	var second: Approach.Request = _request(NORTH_Z)
@@ -323,7 +325,7 @@ func test_the_real_confirm_route_digs_the_kitchen_through_the_way_in() -> void:
 		_h._owner.revision(), _painted(Phase.Z))
 	assert_equal(result.code, &"", "confirmed and ordered")
 	assert_true(result.admitted, "admitted")
-	assert_equal(_way.settle(result.admitted), &"", "settled")
+	assert_equal(_way.settle(result.admitted, result.room), &"", "settled")
 	var foreman: Foreman = _runtime.foreman_of(result.room)
 	assert_equal(_dig_to_the_end(result.room), [] as Array[StringName], "no refusal")
 	assert_equal(foreman.done_cubes(), StationTests.KITCHEN_SITES, "every cube dug")
@@ -338,7 +340,7 @@ func test_the_real_confirm_route_admits_and_digs_the_north_room_from_its_publish
 		_h._owner.revision(), _painted(NORTH_Z))
 	assert_equal(result.code, &"", "confirmed and ordered")
 	assert_true(result.admitted, "admitted through the published station")
-	assert_equal(_way.settle(result.admitted), &"", "settled: the front is kept")
+	assert_equal(_way.settle(result.admitted, result.room), &"", "settled: the front is kept")
 	assert_true(Front.occupied(_h.endpoints, NORTH_STATION), "the station stays while its room is dug")
 	var foreman: Foreman = _runtime.foreman_of(result.room)
 	assert_equal(_dig_to_the_end(result.room), [] as Array[StringName], "no refusal")
@@ -555,7 +557,8 @@ func _fronts_of(way: WayIn.StairWayIn) -> Array[Vector3i]:
 	var out: Array[Vector3i] = []
 	var fronts: PackedInt32Array = way.fronts()
 	for at: int in range(0, fronts.size(), 6):
-		out.append_array([_point(Vector2i(fronts[at + 2], fronts[at + 3])), _point(Vector2i(fronts[at + 4], fronts[at + 5]))])
+		out.append(_point(Vector2i(fronts[at + 2], fronts[at + 3])))
+		out.append(_point(Vector2i(fronts[at + 4], fronts[at + 5])))
 	return out
 
 
@@ -648,11 +651,13 @@ func test_a_reused_front_endpoint_routed_elsewhere_is_never_taken_over() -> void
 	new order of the room refuses rather than reuse it."""
 	if _runtime == null: return
 	assert_equal(_way.approach_into(_request(NORTH_Z), Composer.Order.new()), &"", "the north front")
-	assert_equal(_way.settle(true), &"", "kept")
+	assert_equal(_way.settle(true, Vector2i(7, 1)), &"", "kept")
 	var corner: Vector2i = Front.existing(_h.endpoints, _access(), NORTH_CORNER, Locations.ROLE_TRANSIT)
 	assert_false(Front.routed_elsewhere(_h._routes, corner, [_h._first, corner,
 		Front.existing(_h.endpoints, _access(), NORTH_STATION, Locations.ROLE_WORK)]), "joined to its own only")
-	assert_true(Front.span_pair(_runtime.bound_owners(), _h.foot(), _access(), corner, _h.storage), "a foreign span")
+	assert_true(_one_span(_h.storage, corner), "a foreign span into the corner only")
+	assert_true(Front.routed_elsewhere(_h._routes, corner, [_h._first, corner]), "routed elsewhere by what enters it")
+	assert_true(Front.span_pair(_runtime.bound_owners(), _h.foot(), _access(), corner, _h.storage), "and out of it")
 	assert_true(Front.routed_elsewhere(_h._routes, corner, [_h._first, corner]), "now routed elsewhere")
 	assert_equal(_way.approach_into(_request(NORTH_Z), Composer.Order.new()), Front.REFUSE_UNJOINED, "not taken over")
 
@@ -702,3 +707,49 @@ func test_a_loaded_span_enters_its_stand_along_x() -> void:
 		assert_equal(edge.point_count, 2, "straight")
 	var straight: RefCounted = Prep.loaded_span(owners, foot, _access(), _h._first, _h._first)
 	assert_equal(straight.point_count, 2, "one point's span stays straight")
+
+
+func _one_span(from: Vector2i, to: Vector2i) -> bool:
+	"""One straight WALK span `from` -> `to`, published alone."""
+	var owners: Builder.Owners = _runtime.bound_owners()
+	var cold: int = owners.budget.acquire(Budget.COLD_BYTES)
+	var begun: RefCounted = owners.binding.begin_prepare(cold)
+	var edge: RefCounted = Front.span(owners, _h.foot(), _access(), from, to)
+	var code: StringName = owners.routes.stage_add(begun.token, edge).error
+	if code == &"": code = owners.binding.seal(begun.token)
+	if code == &"": code = owners.binding.publish(begun.token)
+	if code != &"": owners.binding.abort(begun.token)
+	owners.budget.release(cold)
+	return code == &""
+
+
+func test_a_heading_whose_retreat_row_walks_at_another_yaw_is_never_used() -> void:
+	"""Decision 2054: the heading's backward row must walk at the wall row's yaw too, and a foot whose backward rows
+	do not pair with its wall rows is refused."""
+	if _runtime == null: return
+	var foot: WayIn.Foot = _h.foot()
+	foot.backward_rows = PackedInt32Array([KitchenTests.CLAW_FORWARD - 1])
+	assert_equal(Front.heading_into(_h._profiles, foot, 0, Front.Candidate.new()), Front.REFUSE_NO_FRONT, "refused")
+	foot.backward_rows = PackedInt32Array([KitchenTests.CLAW_BACKWARD, KitchenTests.CLAW_BACKWARD])
+	assert_equal(foot.refusal(), WayIn.REFUSE_FOOT, "unpaired backward rows")
+
+
+func test_a_corner_where_the_ground_row_cannot_turn_or_the_retreat_cannot_stand_is_never_placed() -> void:
+	"""Decision 2054: a corner must hold the ground row's turn in the access's air, and a station the retreat row's
+	body. With the air cut to the forward row's own body, the wider all-yaw ground row no longer fits."""
+	if _runtime == null: return
+	var c: Front.Candidate = _kitchen_candidate()
+	assert_true(Front.place(_h._profiles, _request(NORTH_Z), _access(), 0, c), "the north room, as built")
+	var narrow: Locations.Record = _access()
+	var forward: PackedInt32Array = Front.extent(_h._profiles, KitchenTests.CLAW_FORWARD, NORTH_CORNER)
+	for axis: int in 6: narrow.envelope[axis] = forward[axis]
+	assert_true(Front._corner_clear(_h._profiles, _request(NORTH_Z), narrow, NORTH_CORNER, c) == false,
+		"the ground row's turn does not fit the walk's own body")
+	c.ground = -1
+	assert_true(Front._corner_clear(_h._profiles, _request(NORTH_Z), narrow, NORTH_CORNER, c), "the walk alone fits")
+	var station: PackedInt32Array = Front.extent(_h._profiles, KitchenTests.CLAW_FORWARD, NORTH_STATION)
+	var room: Approach.Request = _request(NORTH_Z)
+	assert_true(Front.body_clear(_h._profiles, c.backward, room, _access(), NORTH_STATION), "the retreat stands there")
+	c.backward = KitchenTests.CLAW_GROUND
+	assert_false(Front._place_at(_h._profiles, room, _access(), Front.cube_of(room, 0), NORTH_STATION.z, c),
+		"a retreat row whose body meets the room is refused (%s)" % station)

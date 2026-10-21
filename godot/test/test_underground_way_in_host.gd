@@ -19,6 +19,25 @@ const NULL_REF: Vector2i = Vector2i(-1, 0)
 var _host: Node = null
 
 
+class FinishingEntry extends Settlement.UndergroundEntryRuntime:
+	## An entry on its finishing tick: running, then done, raising the terminal code once. Its origin is placed so
+	## that the foot's F'(5) point is `stop`, an endpoint the test already has.
+	var stop: Vector3i = Vector3i.ZERO
+
+	func origin() -> Vector3i:
+		"""The origin whose F'(5) is `stop`."""
+		return stop - Vector3i(0, -5120, -26798)
+
+	func is_running() -> bool:
+		"""Ticked by the host."""
+		return true
+
+	func advance(_tick: int) -> StringName:
+		"""The finishing tick."""
+		_step = STEP_DONE
+		return REFUSE_KITCHEN_UNBUILT
+
+
 class Recording extends WayIn.StairWayIn:
 	## The real way in's bookkeeping with a scripted approach: what the host asked, and its answers.
 	var approach_code: StringName = Confirm.REFUSE_NO_WAY_IN
@@ -33,6 +52,13 @@ class Recording extends WayIn.StairWayIn:
 		"""The scripted answer; on success an order the composer refuses (no Sites)."""
 		order.room = room
 		return order_code
+
+	var recalls: int = 0
+
+	func recall_fronts(runtime: RefCounted) -> int:
+		"""Counted, then the real recall."""
+		recalls += 1
+		return super.recall_fronts(runtime)
 
 	func settle(admitted: bool, room: Vector2i = NULL_REF) -> StringName:
 		"""Recorded, then the real bookkeeping."""
@@ -150,3 +176,58 @@ func test_a_loaded_rooms_contacts_must_be_the_way_ins_access() -> void:
 	assert_equal(_host._recall_way_in(), Composer.REFUSE_OTHER_ACCESS, "another access")
 	rooms.note_contacts(NULL_REF, -1)
 	assert_true(way.fronts().is_empty(), "nothing recalled")
+
+
+func test_the_finishing_tick_binds_the_way_in() -> void:
+	"""Decision 2052 §2.1 (review H1): the tick the entry raises its terminal code binds the way in, derived from the
+	entry and the live Locations (a stand-in whose F'(5) point is H's); before that tick nothing is bound."""
+	var entry: FinishingEntry = FinishingEntry.new()
+	var o: RefCounted = _host.underground_session()._retirement_owners
+	var h: Vector2i = _h_endpoint()
+	var staging: Vector2i = _host.underground_entry().crew().output
+	entry.stop = Front.point_of(o.locations, h.x)
+	entry._crew = _host.underground_entry().crew()
+	_host._underground_entry = entry
+	assert_false(_host._underground_way_in is WayIn.StairWayIn, "nothing bound before")
+	_host._advance_underground_entry(1)
+	assert_true(_host._underground_way_in is WayIn.StairWayIn, "bound on the finishing tick")
+	var way: WayIn.StairWayIn = _host._underground_way_in as WayIn.StairWayIn
+	assert_equal(way.foot.stair, h, "its stair stop")
+	assert_equal(way.foot.staging, staging, "staging is R")
+	assert_equal(_host._bind_finished_way_in(), &"", "bound once: asking again changes nothing")
+	assert_true(_host._underground_way_in == way, "the same way in")
+
+
+func test_a_load_of_an_entry_still_being_built_binds_nothing() -> void:
+	"""Restoring the record of an entry still being built (as a load's last step does) loads as before and binds
+	nothing: only a done entry has a foot. (A done entry's record is the finished flight's: the live suites', decision
+	2054 B2.)"""
+	var bytes: PackedByteArray = PackedByteArray()
+	assert_equal(_host.underground_entry().capture(bytes), &"", "a running entry's record")
+	_host._underground_entry = null
+	assert_equal(_host.restore_underground_entry(bytes), &"", "loads")
+	assert_false(_host._underground_way_in is WayIn.StairWayIn, "nothing bound")
+	assert_equal(_host._bind_finished_way_in(), &"WAY_FOOT_NOT_DONE", "not done yet")
+
+
+func test_a_loaded_record_recalls_the_fronts_and_contacts_with_no_way_in_refuse() -> void:
+	"""Review H1/H2: with contacts bound, the bound way in recalls its fronts; contacts bound while no way in is bound
+	refuse ROOM_DIG_OTHER_ACCESS."""
+	var rooms: RefCounted = _host.underground_rooms()
+	rooms.note_contacts(_h_endpoint(), 49)
+	assert_equal(_host._recall_way_in(), Composer.REFUSE_OTHER_ACCESS, "no way in")
+	var way: Recording = _bound()
+	assert_equal(_host._recall_way_in(), &"", "the way in's access")
+	assert_equal(way.recalls, 1, "its fronts recalled")
+	rooms.note_contacts(NULL_REF, -1)
+
+
+func test_resume_checks_the_session_before_the_way_in_publishes() -> void:
+	"""Review M6: a busy session refuses Resume before the way in is asked."""
+	var way: Recording = _bound()
+	var bindings: RefCounted = _host.underground_session()._retirement_owners.room_bindings
+	bindings._timber_token = 1
+	way.order_code = &"WAY_IN_NOT_ASKED"
+	assert_false(_host.resume_underground_room(Vector2i(3, 1)), "refused")
+	bindings._timber_token = 0
+	assert_equal(_host.last_refusal(), &"WORLD_RETIREMENT_BUSY", "the session's code, not the way in's")

@@ -39,6 +39,8 @@ const REFUSE_CONTAINER: StringName = Prep.REFUSE_CONTAINER
 const REFUSE_UNSETTLED: StringName = &"WAY_IN_UNSETTLED"
 ## Decision 2054: a room to re-order has no cells on the foot's level.
 const REFUSE_NO_ROOM: StringName = &"WAY_IN_NO_ROOM"
+## Decision 2054 (review H3): an admitted room settled without naming the room.
+const REFUSE_SETTLE_ROOM: StringName = &"WAY_IN_SETTLE_ROOM"
 
 
 class Foot extends Prep.Foot:
@@ -54,6 +56,8 @@ class StairWayIn extends Confirm.WayIn:
 	var _last: Front.Candidate = null # The last call's front, until settled.
 	## Decision 2054: the kept fronts, three pairs each: room, station, corner (the corner is the access when none).
 	var _fronts: PackedInt32Array = PackedInt32Array()
+	var _refused_kept: int = -1 # Review H5: the kept-record count when a retirement was last refused.
+	var _retiring: PackedInt32Array = PackedInt32Array() # Review H5: one scratch list, reused.
 
 	func configure(p_owners: Builder.Owners, p_foot: Foot) -> StringName:
 		"""Take the Session's owners (as a dig borrows them) and the foot; refused when either is incomplete."""
@@ -68,34 +72,22 @@ class StairWayIn extends Confirm.WayIn:
 	func prepare() -> StringName:
 		"""Decision 2054: make the foot ready (idempotent: what exists is found by its point): the access, the parking,
 		the store and the pile (all a room order needs, which `approach_into` makes itself), then the store's grip stand
-		and its loaded span from the stair (P-2091-7 (a), for stair-leg Delivery, which calls this when it binds)."""
+		and its loaded span from the hub (P-2091-7 (a), for stair-leg Delivery, which calls this when it binds)."""
 		if foot == null or owners == null: return REFUSE_FOOT
 		var code: StringName = Prep.access_ready(owners, foot)
 		if code == &"": code = Prep.containers_into(owners, foot, Composer.Order.new())
 		return code if code != &"" else Prep.stand_ready(owners, foot)
 
 	func approach_into(request: Approach.Request, order: Composer.Order) -> StringName:
-		"""The foot's level only: the foot made ready, the room's front station, then the order's way in. Refused
+		"""The foot's level only: the room's front station, the foot made ready, then the order's way in. Refused
 		REFUSE_UNSETTLED while the last call's published front is still unsettled (review H2): nothing is forgotten."""
 		if foot == null or owners == null or request == null or order == null or request.level != foot.level:
 			return Confirm.REFUSE_NO_WAY_IN
 		if not _pending.is_empty(): return REFUSE_UNSETTLED
-		var access: Locations.Record = Front.record()
-		var code: StringName = Prep.access_record(owners, foot, access)
 		var front: Front.Candidate = Front.Candidate.new()
-		if code == &"": code = Front.find_into(owners, foot, request, access, front)
-		if code == &"": code = Prep.access_ready(owners, foot) # Decision 2054: made only once a front is found.
-		var corner: Vector2i = Front.publish_into(owners, foot, access, foot.access, front, _pending) \
-			if code == &"" else NULL_REF
-		if code == &"" and corner == NULL_REF: code = Front.REFUSE_UNJOINED
-		if code == &"": code = Prep.containers_into(owners, foot, order)
-		if code != &"":
-			withdraw_pending()
-			return code
-		front.corner_ref = corner
-		_last = front
-		_fill(request, order, front, corner)
-		return &""
+		var code: StringName = _front_into(request, order, front)
+		if code == &"": _fill(request, order, front, front.corner_ref)
+		return code
 
 	func order_into(room: Vector2i, order: Composer.Order) -> StringName:
 		"""Decision 2054 (M-4, P-2052-5 (a)): the way in of a room already confirmed, to re-order it whole (Resume after
@@ -103,11 +95,20 @@ class StairWayIn extends Confirm.WayIn:
 		access, retreat row and containers."""
 		if foot == null or owners == null or order == null: return REFUSE_FOOT
 		if not _pending.is_empty(): return REFUSE_UNSETTLED
+		var request: Approach.Request = Prep.request_of_room(owners.sites, room, foot.level)
+		if request == null: return REFUSE_NO_ROOM
+		var front: Front.Candidate = Front.Candidate.new()
+		var code: StringName = _front_into(request, order, front)
+		if code != &"": return code
+		_fill_order(order)
+		order.room = room
+		return &""
+
+	func _front_into(request: Approach.Request, order: Composer.Order, front: Front.Candidate) -> StringName:
+		"""Decision 2054: the front found from the access as it is (or will be) published, publishing nothing until it
+		is; then the foot made ready, the front published and the containers; a refusal withdraws what it published."""
 		var access: Locations.Record = Front.record()
 		var code: StringName = Prep.access_record(owners, foot, access)
-		var request: Approach.Request = Prep.request_of_room(owners.sites, room, foot.level) if code == &"" else null
-		if code == &"" and request == null: code = REFUSE_NO_ROOM
-		var front: Front.Candidate = Front.Candidate.new()
 		if code == &"": code = Front.find_into(owners, foot, request, access, front)
 		if code == &"": code = Prep.access_ready(owners, foot)
 		var corner: Vector2i = Front.publish_into(owners, foot, access, foot.access, front, _pending) \
@@ -119,8 +120,6 @@ class StairWayIn extends Confirm.WayIn:
 			return code
 		front.corner_ref = corner
 		_last = front
-		_fill_order(order)
-		order.room = room
 		return &""
 
 	func pending() -> PackedInt32Array:
@@ -131,11 +130,13 @@ class StairWayIn extends Confirm.WayIn:
 		"""The caller's answer once RoomOrders has ruled on the room the last call approached (Confirm's `admitted`
 		and `room`): an admitted room keeps its front, which its approach stands on, until its record is released
 		(`retire_fronts`); a refused one's is withdrawn. Every caller settles after every successful `approach_into`
-		(the host's `order_painted_room`) and `order_into`."""
+		(the host's `order_painted_room`) and `order_into`. Decision 2054 (review H3): an admitted answer must name
+		its room, or the front could never be retired; REFUSE_SETTLE_ROOM keeps it unsettled."""
 		if not admitted:
 			_last = null
 			return withdraw_pending()
-		if _last != null and room != NULL_REF: _keep(room, _last.station, _last.corner_ref)
+		if room == NULL_REF: return REFUSE_SETTLE_ROOM
+		if _last != null: _keep(room, _last.station, _last.corner_ref)
 		_last = null
 		_pending.clear()
 		return &""
@@ -156,13 +157,19 @@ class StairWayIn extends Confirm.WayIn:
 	func retire_fronts(runtime: Runtime) -> int:
 		"""Decision 2054 (2053 §3): retire each kept front whose room's record is released (dug, or stopped and its crew
 		out): its station, and its corner unless it is the access or another kept front's. A refused retirement (an
-		actor still on it) is offered again on a later call. Returns the fronts retired."""
-		if runtime == null or owners == null or _fronts.is_empty(): return 0
+		actor still on it) is offered again only once the rooms' records change (review H5: no retry, and nothing
+		allocated, on every tick while it stays refused). Returns the fronts retired."""
+		if runtime == null or owners == null or _fronts.is_empty() or runtime.kept() == _refused_kept: return 0
+		_refused_kept = -1
 		var retired: int = 0
 		var at: int = 0
 		while at < _fronts.size():
 			var room: Vector2i = Vector2i(_fronts[at], _fronts[at + 1])
-			if runtime.state_of(room) != Runtime.RECORD_NONE or not _retire(at):
+			if runtime.state_of(room) != Runtime.RECORD_NONE:
+				at += 6
+				continue
+			if not _retire(at):
+				_refused_kept = runtime.kept()
 				at += 6
 				continue
 			_fronts = _fronts.slice(0, at) + _fronts.slice(at + 6)
@@ -197,20 +204,20 @@ class StairWayIn extends Confirm.WayIn:
 		"""Retire the front kept at `at`: its station, and its corner unless shared or the access."""
 		var station: Vector2i = Vector2i(_fronts[at + 2], _fronts[at + 3])
 		var corner: Vector2i = Vector2i(_fronts[at + 4], _fronts[at + 5])
-		var list: PackedInt32Array = PackedInt32Array()
+		_retiring.clear()
 		if not _shared(at, station) and owners.locations._live_ref(owners.locations._live, station):
-			list.append_array(PackedInt32Array([station.x, station.y]))
+			_retiring.append(station.x); _retiring.append(station.y)
 		if corner != foot.access and not _shared(at, corner) \
 				and owners.locations._live_ref(owners.locations._live, corner):
-			list.append_array(PackedInt32Array([corner.x, corner.y]))
-		return Front.withdraw(owners, list) == &""
+			_retiring.append(corner.x); _retiring.append(corner.y)
+		return Front.withdraw(owners, _retiring) == &""
 
 	func _shared(at: int, ref: Vector2i) -> bool:
-		"""Another kept front uses the endpoint."""
+		"""Another kept front uses the endpoint (as its station or its corner)."""
 		for other: int in range(0, _fronts.size(), 6):
 			if other == at: continue
-			for word: int in [2, 4]:
-				if _fronts[other + word] == ref.x and _fronts[other + word + 1] == ref.y: return true
+			if (_fronts[other + 2] == ref.x and _fronts[other + 3] == ref.y) \
+					or (_fronts[other + 4] == ref.x and _fronts[other + 5] == ref.y): return true
 		return false
 
 	func _fill(request: Approach.Request, order: Composer.Order, front: Front.Candidate, corner: Vector2i) -> void:

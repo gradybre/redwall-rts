@@ -2335,7 +2335,7 @@ as source-qualified motion. No composed save adapter is claimed here.
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
-| Stateless foot preparation | -- | -- | -- | No module members; the Foot packet is host-held, one live at a time | 3 | -- | Decision 2054: makes a way down's foot ready for rooms (M5's floor hub, the parking, the level-1 store with its grip stand and the CARRY span from F' (P-2091-7 (a)), the spoil pile) through Locations', WorldRoutes' and Inventory's staging calls, each found again by its point. What it publishes is their own saved state; nothing here is saved. |
+| Stateless foot preparation | -- | -- | -- | No module members; the Foot packet is host-held, one live at a time | 3 | -- | Decision 2054: makes a way down's foot ready for rooms (M5's floor hub, the parking, the level-1 store with its grip stand and the CARRY span into it from the hub (P-2091-7 (a); F'(5)'s air holds no loaded row, decision 2054 B3), the spoil pile) through Locations', WorldRoutes' and Inventory's staging calls, each found again by its point. What it publishes is their own saved state; nothing here is saved. |
 
 ### `godot/scripts/core/underground_way_foot.gd`
 

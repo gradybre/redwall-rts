@@ -1,6 +1,6 @@
 {
 	"engine": "4.7.2.stable",
-	"fingerprint": "8a3f99338ff911e20b3046e5886469b9e4f529cb029ff475fb308111ea7ce715",
+	"fingerprint": "313cd15c245d576fa30e561a3fc5550c3e973214033e79392732b9fe49834cc8",
 	"name": "underground_spare",
 	"points": {
 		"install_0_stage_10": {
@@ -62,6 +62,7 @@
 		"res://data/underground/first-entry-prefix-v1/qualified-stairs-m5-v2/recipes.ugrecp": "79777a7bdacc3c1da7f69c2920664030a6686b8b45547454df3e5bc63d0ed62a",
 		"res://data/underground/first-entry-prefix-v1/qualified-stairs-m5-v2/structure.ugconn": "850f8fab18236757ac552a907a18cd956f7caf28e864144c2bbb6cd7457bde87",
 		"res://data/underground/first-entry-prefix-v1/qualified-stairs-m5-v2/workpieces.ugwipc": "91957fb30b62afda72e7f9a2034fdf023184c70f613a878be2eefed52a8fd621",
+		"res://data/underground/full-level-flight-v1/flight_geometry.gd": "62ff2ad35ba39f5a2a75fa7fbeb7b62cc3af9c1c77b0fcee853b6a4125a3e16a",
 		"res://data/underground/initial_level_pack.uglvl": "c5deb094b335bf6e5db018eeed591a115086b79bd909f829ed6e34166db81f94",
 		"res://data/underground/mole-worker/claw-work-v1/evidence/native-claw-stairs-v1/claw/compiled/claw-stairs.ugactor": "b85f91952992fecfc4b0b89affb0b605b3d7c8e15b9c3e8f66ab03969efd6675",
 		"res://data/underground/mole-worker/claw-work-v1/evidence/native-claw-stairs-v1/paw/compiled/paw-stairs.ugactor": "9cdafc55914ba2ca25858d54ff1692df324c4e7eed019b04066b55de560bae3d",
@@ -302,6 +303,11 @@
 		"res://scripts/core/underground_stair_motion.gd": "f3585fd4c17aba9c5c57031e1581b49d1fee80aedc40858adbe378362852c2b9",
 		"res://scripts/core/underground_surface_anchor.gd": "00f2ba73e64a50e4d6236a9c0c99a11391f192255c309d554d8b4a976ddfe2f5",
 		"res://scripts/core/underground_terrain.gd": "41ef346c2aa3835d24da18b2f3ffaa15a7e523178ecdc2815369c49a65ec93b8",
+		"res://scripts/core/underground_way_foot.gd": "6e5ac43f52df1d1fa94c47ce88d5f7066aa10109a7314c8dcc5b89019ba15180",
+		"res://scripts/core/underground_way_in.gd": "9dc8f3d84dad546024dc68a89bff1b37733b11b41dbed5c38c8ef055747ac433",
+		"res://scripts/core/underground_way_in_foot_prep.gd": "8e30142311db10f08d94805e768f7df532e53c4ad535b3c1a7c5d7b6d79bc2cb",
+		"res://scripts/core/underground_way_in_front.gd": "21617641026df9fbd30c68b83a50a55659c32e5388c28536e023b6e665ca36bd",
+		"res://scripts/core/underground_way_landings.gd": "b04ee1a4991b81b97f61b7297163265fe1319cbf22c0e783fef1846f10259861",
 		"res://scripts/core/underground_work_face.gd": "1ad3eab1c62df90f0e41c78f0ccf484f4d04b630ca825b50dedcca2a6be4f731",
 		"res://scripts/core/underground_world_bindings.gd": "f7c3b9ca5202ef758d9697ca4bd692580f3dc4b58557701c4192323143ff4cf7",
 		"res://scripts/core/underground_world_retirement.gd": "9ad293e84928ff8cd5c6c3bf4c8c534577b6afea3efc1c4adf202a7c8a80dd0f",
@@ -311,7 +317,7 @@
 		"res://scripts/core/work.gd": "5fa066d25328b0c871d77c949164c5ebaec2f98fd985ddd8cd40570f866c7310",
 		"res://scripts/core/world_init.gd": "a899644eeded6d769a03f38d173da8a375c6117adf232c5b76b9940ebe5d8bae",
 		"res://scripts/systems/game_manager.gd": "ce82e75af50d738d67e92c4603dcfa2d9d30d4cdf7b749c304d1f4f29713a88d",
-		"res://scripts/systems/settlement_system.gd": "6494c6cab8899780c0708ad88086b9b293c69244807d8283cf3842ec2057e4f7",
+		"res://scripts/systems/settlement_system.gd": "3dfd1d83e4d2bfddd3984f76b5156a6bb5c7f356040f3c174b399a707f3ec8cc",
 		"res://scripts/utils/perf_timer.gd": "6d3320c3d2c2a82912e8c55296b2566c6966c4184133216bcd7ebfd15d88446c",
 		"res://test/fixtures/autoload_clock_reset.gd": "f8966f5f6aa4f22c7989fbaa49296d17cda0dcca9d977549c38490ffb3c6ac19",
 		"res://test/fixtures/checkpoint_recipes.gd": "0b71f2ef458b589474f0dcd58c4bde9d0a7b7e07890a46a819e33544533531d1",

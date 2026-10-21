@@ -12,6 +12,7 @@ const Phase := preload("res://test/test_underground_room_world_phases.gd")
 const WayIn := preload("res://scripts/core/underground_way_in.gd")
 const Front := preload("res://scripts/core/underground_way_in_front.gd")
 const Builder := preload("res://scripts/core/underground_room_builder.gd")
+const Routes := preload("res://scripts/core/underground_routes.gd")
 const Prep := preload("res://scripts/core/underground_way_in_foot_prep.gd")
 const Confirm := preload("res://scripts/core/underground_room_confirm.gd")
 const Composer := preload("res://scripts/core/underground_room_composer.gd")
@@ -653,12 +654,15 @@ func test_a_reused_front_endpoint_routed_elsewhere_is_never_taken_over() -> void
 	assert_equal(_way.approach_into(_request(NORTH_Z), Composer.Order.new()), &"", "the north front")
 	assert_equal(_way.settle(true, Vector2i(7, 1)), &"", "kept")
 	var corner: Vector2i = Front.existing(_h.endpoints, _access(), NORTH_CORNER, Locations.ROLE_TRANSIT)
-	assert_false(Front.routed_elsewhere(_h._routes, corner, [_h._first, corner,
-		Front.existing(_h.endpoints, _access(), NORTH_STATION, Locations.ROLE_WORK)]), "joined to its own only")
-	assert_true(_one_span(_h.storage, corner), "a foreign span into the corner only")
-	assert_true(Front.routed_elsewhere(_h._routes, corner, [_h._first, corner]), "routed elsewhere by what enters it")
-	assert_true(Front.span_pair(_runtime.bound_owners(), _h.foot(), _access(), corner, _h.storage), "and out of it")
-	assert_true(Front.routed_elsewhere(_h._routes, corner, [_h._first, corner]), "now routed elsewhere")
+	var station: Vector2i = Front.existing(_h.endpoints, _access(), NORTH_STATION, Locations.ROLE_WORK)
+	var own: Array[Vector2i] = [_h._first, corner, station]
+	assert_false(Front.routed_elsewhere(_h._routes, corner, own), "the corner: joined to its own only")
+	assert_false(Front.routed_elsewhere(_h._routes, station, own), "the station: the same")
+	var store_own: Array[Vector2i] = _neighbours(_h.storage)
+	assert_false(Front.routed_elsewhere(_h._routes, _h.storage, store_own), "the store: its own spans")
+	assert_true(_one_span(_h.storage, corner), "a foreign span from the store into the corner, one way")
+	assert_true(Front.routed_elsewhere(_h._routes, corner, own), "the corner: routed elsewhere by what enters it")
+	assert_true(Front.routed_elsewhere(_h._routes, _h.storage, store_own), "the store: by what leaves it")
 	assert_equal(_way.approach_into(_request(NORTH_Z), Composer.Order.new()), Front.REFUSE_UNJOINED, "not taken over")
 
 
@@ -753,3 +757,15 @@ func test_a_corner_where_the_ground_row_cannot_turn_or_the_retreat_cannot_stand_
 	c.backward = KitchenTests.CLAW_GROUND
 	assert_false(Front._place_at(_h._profiles, room, _access(), Front.cube_of(room, 0), NORTH_STATION.z, c),
 		"a retreat row whose body meets the room is refused (%s)" % station)
+
+
+func _neighbours(at: Vector2i) -> Array[Vector2i]:
+	"""`at` and every endpoint a live span joins it to, either way."""
+	var out: Array[Vector2i] = [at]
+	for row: int in _h._routes._edge_capacity:
+		if _h._routes._live.present[row] != 1: continue
+		var from: Vector2i = _h._routes._edge_pair(_h._routes._live, Routes.E_FROM_SLOT, row)
+		var to: Vector2i = _h._routes._edge_pair(_h._routes._live, Routes.E_TO_SLOT, row)
+		if from == at and not out.has(to): out.append(to)
+		if to == at and not out.has(from): out.append(from)
+	return out

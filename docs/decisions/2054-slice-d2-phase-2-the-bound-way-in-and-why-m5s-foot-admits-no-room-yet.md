@@ -147,6 +147,25 @@ for any 2-cell slot. D2 refuses it, named, and changes nothing.
 - **E8 — Settle on every confirm,** admitted or not, so a front published before RoomOrders refused is withdrawn (2053
   review H2).
 
+## Full suite
+
+At `02fd7bb6`, CI-style (art aside, fresh import exit 0, `./tools/run_tests_parallel.sh --jobs 4`, 12 shards):
+**13,244 tests, 1,503,367 assertions, 15 failures**; 0 unexpected warnings; 0 leaked objects or resources; 12
+unexpected errors, all `RUNTIME_CACHE_STALE timber scope` in `test_underground_paid_assembly_install.gd`. **Every failure
+and every error is the base's:** the same 14 failing tests and the same 12 errors reproduce at `b63f61e4` (M5's
+`ea9c7ed6` with master merged, before any phase 2 change), run on their own; the fifteenth,
+`test_checkpoint_equivalence.gd`'s flight test, fails on the same unloadable finish point (B2). They are M5's: the
+finish and tick 80,000+ points do not load (P-2045-14), stale pins M5 updated later ("the full suite's eight stale
+expectations", `58646391`), and the timber scope re-check M5 fixed in `b7fe192d`. All are fixed on M5's pushed head
+`1489bb80`, which this branch could not merge (see Deviations). An earlier run at `228952bb` failed the same 15.
+
+## Deviations
+
+- **M5's newer pushed head (`1489bb80`, with P-2045-14's fix) is not merged.** The merge was refused by this session's
+  permission check ("modify shared resources"), so the branch stays on `ea9c7ed6` + master, where level-1 saves do not
+  load (B2) and fifteen suites fail as they do on that base (see "Full suite").
+- **The CARRY span is not from F′ yet** (B3), and nothing is dug, so the recipe, S7 and the frames are not built.
+
 ## Not done (with reasons)
 
 - **The `underground_level1` checkpoint recipe and the S7 restore-rebind fixture:** B1 (no room can be admitted), B2 (no
@@ -175,6 +194,34 @@ One independent `code-reviewer` pass on `e72b4075`: no CRITICAL, five HIGH, eigh
 | M7: the store and pile unjoined at M5's foot | **Recorded**: no row can stand on the store at the foot (the stand serves it; the builder walks to a storage only for a same-level haul, which the level-1 store never has); the pile takes spoil without a walk (`Sites.bind_output`) |
 | M8: duplication | **Fixed**: one `_front_into`; one Sites reader in the host |
 | LOW | L3 fixed (the registry and docstring say "from the hub"); L1 kept (`crew().output` is the entry's public R), L2 and L4 answered |
+
+## Gates
+
+- **The probe** (§1), nine runs; the last on the final layout: the hub, parking, level-1 store, its yaw-0 stand and the
+  pile at the foot, and the stair-head store with its yaw-0 stand on the land, all published (243 ms), the second
+  `prepare()` publishing nothing; 24 wood + 24 stone accepted into each store; the span from F′ refused (B3).
+- **Analyzer** (`tools/gdscript_warnings.py --max 0 --port 6517`): `0 GDScript warning(s) in 0 of 1698 file(s)`.
+- **Contracts:** all 24 of the contracts job's commands pass (decision numbers, 587 records; ready07; merge gate;
+  setting contract; dispatch plan; Astra inbox; save registry; canonical state table; cycle 1–3 handoffs; registry
+  capacities and their test; both schemas; lane notes; movement envelopes and policy; state registry coverage, 213
+  modules), and the underground-memory job's three (`underground_memory_budget.py --check`, its test and the census
+  test). The census adds 0 B (a reviewed allocation-site row for the host); live 106,178,061 B, headroom 43,821,939 B.
+- **Checkpoints** regenerated twice for the host and foot sources: the saves are byte-identical (only the manifests'
+  fingerprints moved), so binding on the finishing tick changes no saved byte.
+- **Mutation testing** (one mutant a run, against the four way-in suites): **53 of 66 killed.** The 13 survivors:
+  - need a done entry's record, which loads only after P-2045-14 (B2): the load's re-bind call and its refusal
+    propagation (H12, H8);
+  - equivalent in every fixture: the retreat-row reach check (the fixture's backward row is its bound travel row,
+    certified both ways), the corner's footing rows (the ground row's stance covers the walk rows'), `_listed`'s slot-only
+    compare (one call never sees two generations of a slot), the recall's live-corner check, `access_found`'s
+    short-circuit (it finds the same hub), the Site-layer bookkeeping and cell de-duplication of `request_of_room` and
+    `rooms_on_level` (Sites list a room's cubes once each, bottom layer first), the classify guard on F′'s fixed offset,
+    the entry-confirmed test of the readers (no runtime exists below `STEP_CONFIRMED` but a refused start), and the
+    land air's floor clamp (`extent` already clamps it).
+- **Independent review:** one `code-reviewer` pass; see "Review".
+- **Full suite, CI-style** (art moved aside, `godot/.godot` deleted and re-imported, exit 0;
+  `./tools/run_tests_parallel.sh --jobs 4`, 12 shards): see "Full suite" below.
+- **Frames:** none. No room can be admitted at the foot (B1, B4), so there is nothing dug to draw.
 
 ## Source
 

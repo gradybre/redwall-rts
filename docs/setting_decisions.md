@@ -1720,10 +1720,10 @@ questions:
 Engineering records: decision 1932 and decision 1931 on `feat/room-foreman-slice-c2`. The C2 lane records this
 ruling in 1932 and points to here.
 
-**Superseded by / amended by (note added 2026-10-21, when this entry reached master).** The entry above is the
-2026-10-14 record as written then (PR #259); only its link to decision 1932 was corrected. It stayed off master
-until 2026-10-21, so the later rulings below were recorded without it, and decision 1932 does not point here. Line
-numbers are at origin/master `e0e7065a`.
+**Superseded by / amended by (note added 2026-10-21, when this entry reached master; its two open points were
+closed by Brendan on 2026-10-22).** The entry above is the 2026-10-14 record as written then (PR #259); only its link
+to decision 1932 was corrected. It stayed off master until 2026-10-21, so the later rulings below were recorded
+without it, and decision 1932 does not point here. Line numbers are at origin/master `e0e7065a`.
 
 - **"Full 4 m clear height": confirmed on 2026-10-15, and its open part settled.** Brendan's "Painted height"
   (decision 1971 P-1971-3 (b), `decisions/1971-one-basic-claw-stroke-digs-any-reachable-cube.md:25`) is recorded
@@ -1738,14 +1738,15 @@ numbers are at origin/master `e0e7065a`.
   - Decision 1943's matrix suites dig most rooms one cube high to keep CI time down, and keep the full 4 m on the
     7 × 7 Kitchen (`decisions/1943-rooms-dug-on-every-side-of-their-access.md:169–175`). That is test scope, not a
     height rule.
-- **"General motion": its mechanism is replaced by decision 1971 (2026-10-15); one part is open.** Brendan's "I
-  just want the basic claw stroke that digs anything" and P-1971-1 (b) "Approve" make the approved claw stroke M1
-  the one stroke, with four wall rows derived from its own clips (1971:9–15, 21; this file, lines 1433–1435).
+- **"General motion": superseded by decision 1971 (2026-10-15) for room digging, its contact rule included.**
+  Brendan's "I just want the basic claw stroke that digs anything" and P-1971-1 (b) "Approve" make the approved claw
+  stroke M1 the one stroke, with four wall rows derived from its own clips (1971:9–15, 21; this file, lines
+  1433–1435).
   - Under that build, contact and patch are proved on the struck (bottom) cube (1971:59, 394). Only the upper quanta
     are paid without contact, "in the spirit of DEC-060" (1971:324–328).
-  - **Open, for Brendan (raised 2026-10-21):** does this entry's "exact contact with the struck face is not required"
-    still stand for room digging, or did 1971's contact proof on the struck cube replace it? Neither record says.
-    Until he rules, neither is read as overriding the other.
+  - **Closed 2026-10-22, Brendan: "1971 governs"** (in chat, relayed by the coordinator). This entry's "exact contact
+    with the struck face is not required" is superseded by decision 1971 for room digging: contact is proved on the
+    struck bottom cube, as built. The safety proofs this entry kept still apply, as 1971 keeps them.
 - **"Not yet diggable": superseded on 2026-10-19** by P-1990-1 (b) "Keep the mole, build real" and P-1990-2 (a)
   "Stays free, show bill" (`decisions/1990-slice-c3-scoping-what-closes-slice-c.md:36–37`). The panel never showed
   these words.
@@ -1754,14 +1755,16 @@ numbers are at origin/master `e0e7065a`.
   - The real Confirm route refuses "No way in: needs a way down to level N" until a level has a way in
     (`decisions/1991-slice-c3-the-real-confirm-route-crew-and-stop.md:11–13`;
     `godot/scripts/core/underground_room_confirm.gd:29`). Slice D2 binds the way down (decisions 2052 and 2053).
-- **Test leave on the retired pick rows ("not ruled"): given as "Yes, tests only".** Decisions 1931 and 1932 record
-  it (`decisions/1932-the-claw-down-stroke-cannot-open-an-underground-room.md:27–28`;
+- **Test leave on the retired pick rows ("not ruled"): given as "Yes, tests only" on 2026-10-13** (see the order of
+  the rulings, below). Decisions 1931 and 1932 record it
+  (`decisions/1932-the-claw-down-stroke-cannot-open-an-underground-room.md:27–28`;
   `decisions/1931-slice-c2-room-foreman-scoping-stopped-for-rulings.md:49`). C2.1's foreman proof runs on the
   content-6 pick fixture under it, taking no height or price from the pick
   (`decisions/1933-the-room-foreman-on-the-fixed-tick.md:16`).
-- **Open, for Brendan (raised 2026-10-21): the order of the rulings.** Decisions 1931 and 1932 date "One basic front
-  stroke" (M3, rooms one quantum high) and "Yes, tests only" to 2026-10-13 (1932:24–28), the day before this entry.
-  Yet this entry chooses none of 1932's options and says the test leave was not ruled. Both were written to master on
-  2026-10-15 (commit `fec1ca65`); this entry was written at 11:41 on 2026-10-14. So either those two answers came
-  after this entry, in the C2 session Brendan started himself, or this entry replaced them. The 2026-10-15 rulings
-  govern either way; only the history differs.
+- **The order of the rulings: closed 2026-10-22, Brendan: "Oct 13 came first"** (in chat, relayed by the
+  coordinator). "One basic front stroke" (M3, rooms one quantum high) and "Yes, tests only" were ruled on 2026-10-13,
+  as decisions 1931 and 1932 say (1932:24–28). This entry's "not ruled" for the test leave was written at 11:41 on
+  2026-10-14, before those two rulings had been relayed to it; they reached the records only on 2026-10-15 (commit
+  `fec1ca65`). So this entry's "General motion" and "Full 4 m clear height" followed the 2026-10-13 stroke ruling,
+  the test leave stands as given on 2026-10-13, and the 2026-10-15 rulings above replaced the stroke and height
+  rulings of both days.

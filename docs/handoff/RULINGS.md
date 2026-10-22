@@ -184,6 +184,12 @@ Every row was checked against the record named.
 | The room foreman's PROPOSALS (1933 P-1933-1–3), 2026-10-15 | **"Approve"**, all (a) as recommended: crews walk in like the entry crew (ADR 1219), built in C2.3; a stopped room keeps its paid phases and releases only the worker; builders take turns on the whole footprint. (Relayed by the coordinator) | [1933](../decisions/1933-the-room-foreman-on-the-fixed-tick.md) |
 | The rounded walls' PROPOSALS (1914 P-1914-1–4), 2026-10-15 | **P-1914-2 "Keep as built"**: the wall band lies outside the cells, so a room's lip may read up to ~0.85 m wider than its cells. **P-1914-1, -3, -4 "Approve"**, all (a): no player-facing rounding setting; a one-cell wall between rooms keeps its crest; the rounded-walls live harness runs by hand. (Relayed by the coordinator) | [1914](../decisions/1914-rounded-hand-dug-walls.md) |
 
+## 2026-10-14
+
+| Topic | Ruling | Recorded in |
+|---|---|---|
+| Slice C2's 1932 (the down stroke cannot open a room) | **"General motion"**: rooms dug with a general claw motion, exact contact not required, safety proofs kept (DEC-060 precedent). **"Full 4 m clear height"** for underground rooms (amends DEC-054; how the mole reaches it is the lane's PROPOSAL). **"Not yet diggable"** shown until rooms can be dug. Test leave on the retired pick rows not ruled ("I will manually start this shortly"). (Relayed by the coordinator.) Reached master 2026-10-21; the height is confirmed by "Painted height" (2026-10-15), "Not yet diggable" superseded by P-1990-1/-2 (2026-10-19); "exact contact not required" superseded by 1971 for room digging (Brendan, 2026-10-22: **"1971 governs"**); 1932's 2026-10-13 rulings ("One basic front stroke", "Yes, tests only") came first and had not been relayed when this was written (Brendan, 2026-10-22: **"Oct 13 came first"**): see DEC-062's note | DEC-062; [1932](../decisions/1932-the-claw-down-stroke-cannot-open-an-underground-room.md) |
+
 ## 2026-10-15
 
 | Topic | Ruling | Recorded in |
@@ -264,6 +270,12 @@ Every row was checked against the record named.
 | Slice D2's scoping (2052 P-2052-1–11), 2026-10-20 | **"Approve, start phase 1"**: P-2052-1, -2, -3, -5, -6, -9, -10 and -11 **(a)** as recommended; P-2052-7 **(a)**, a labelled stand-in moves stock into R until HAUL-H3+. **P-2052-4 (b), "Keep them as proof of concept"**: in the demo the Burrow mouth, Hatch with ladder and ways on levels 1–3 stay placeable as clearly labelled proof of concept; only the Stair-head is the real, qualified way down. **P-2052-8 superseded** by a pacing ruling, **"Building the stair should be ~30s–1m"**: the whole full-level stair, Confirm to level 1 open, takes 30–60 real seconds at 1x (pacing study, decision 2081); D2 assumes no build duration; the way's progress card stays. (Relayed by the coordinator) | [2052](../decisions/2052-slice-d2-scoping-binding-a-way-down-to-room-digs.md) "Brendan's rulings" |
 | Slice D2: the Mound hatch (2052 P-2052-10, amended), 2026-10-20 | **"Mound hatch stays PoC too."** The demo's Mound hatch stays placeable as a labelled proof of concept until MOUND-REAL, consistent with P-2052-4 (b); P-2052-10 (a)'s locking is withdrawn. (Relayed by the coordinator) | [2052](../decisions/2052-slice-d2-scoping-binding-a-way-down-to-room-digs.md) "Brendan's rulings" |
 | The steady-tick fixes and the per-row tokens (1970), 2026-10-21 | Brendan: **"Fixes now, then tokens"**. Build F1–F4 now, re-measure, then build P-1952-1 (a)'s per-row write tokens: "Later, if needed" is triggered, because the 2 ms target is still missed after activation and phase-spreading stage 1. The tokens are scoped in 1970 and their files cleared before they are built. (Relayed by the coordinator) | [1970](../decisions/1970-steady-tick-cost.md) |
+
+## 2026-10-22
+
+| Topic | Ruling | Recorded in |
+|---|---|---|
+| DEC-062's two open points (raised when PR #259 was revived) | **"1971 governs"**: DEC-062's "exact contact with the struck face is not required" is superseded by decision 1971 for room digging; contact is proved on the struck bottom cube, as built. **"Oct 13 came first"**: 1932's "One basic front stroke" and "Yes, tests only" were ruled on 2026-10-13; DEC-062's "not ruled" was written before they were relayed to it. (Relayed by the coordinator) | DEC-062's note |
 
 ## Standing rules (not dated rulings)
 

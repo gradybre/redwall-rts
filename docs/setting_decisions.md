@@ -1690,3 +1690,85 @@ quoted in decision 2001 as W1–W14.
     512, −128 and 0 convert exactly.
 
 Engineering record: [decision2001](decisions/2001-mound-homes.md).
+
+### DEC-062 — Rooms are dug with a general claw motion to the full 4 m clear height
+
+On 2026-10-14, Brendan answered the question that slice C2's
+[decision 1932](decisions/1932-the-claw-down-stroke-cannot-open-an-underground-room.md) raises. That record is on
+branch `feat/room-foreman-slice-c2` at `70462eaa`, not yet on master. It found that the downward claw stroke (M1)
+cannot open an underground room. The coordinator relayed his answers, given in chat through multiple-choice
+questions:
+
+- **How moles open a room: "General motion".** Rooms are dug with a general claw digging motion into the face,
+  following DEC-060's tread precedent:
+  - exact contact with the struck face is **not required**;
+  - the physical safety proofs stay (feet supported, no body or limb through solid earth or structure);
+  - the work is counted by the Job/Work model as usual.
+
+  This replaces P-C2-1's "dig rooms with the down stroke" (decision 1931) and settles 1932's options. It is none of
+  1932's (a)–(d): no new exact-contact stroke has to be authored before rooms can be dug.
+- **Room height: "Full 4 m clear height".** An underground room is dug to its level's full clear height: 4 m, four
+  quanta per cell (SET-BUILD-001 §3; level pack `clear_height` 4096 u). **This amends DEC-054.** A room's height
+  no longer follows the reach of the published dig strokes, and its upper volume is no longer left as protected
+  earth.
+  - DEC-054's "no earth benches, steps or climbing" is not re-ruled here. How a 0.9 m mole works a 4 m face is for
+    the lane to propose. Examples are a temporary bench removed afterwards, top-down from a cut access, or a lifted
+    stance. The lane brings it back as a PROPOSAL; it is not invented silently.
+  - Per-cell bills scale with the four quanta (BAL-UG-001 / DEC-059): wood 1000, stone 1000 milli-U; 16,920 milli-WU;
+    8,000 milli-U `excavated_earth`.
+- **The panel until rooms can be dug: "Not yet diggable".** Until the room foreman can actually dig on active
+  content, the build panel says in words that underground rooms cannot be dug yet, and shows no price.
+- **Test leave for the foreman's job logic on the retired pick rows: not ruled.** Brendan answered "I will manually
+  start this shortly", meaning he is starting the C2 session himself. Ask him there.
+
+Engineering records: decision 1932 and decision 1931 on `feat/room-foreman-slice-c2`. The C2 lane records this
+ruling in 1932 and points to here.
+
+**Superseded by / amended by (note added 2026-10-21, when this entry reached master; its two open points were
+closed by Brendan on 2026-10-22).** The entry above is the 2026-10-14 record as written then (PR #259); only its link
+to decision 1932 was corrected. It stayed off master until 2026-10-21, so the later rulings below were recorded
+without it, and decision 1932 does not point here. Line numbers are at origin/master `e0e7065a`.
+
+- **"Full 4 m clear height": confirmed on 2026-10-15, and its open part settled.** Brendan's "Painted height"
+  (decision 1971 P-1971-3 (b), `decisions/1971-one-basic-claw-stroke-digs-any-reachable-cube.md:25`) is recorded
+  as DEC-054's addendum of 2026-10-15 (this file, lines 1423–1438). It gives the same height, 4,096 u (4 quanta),
+  and the same bill per cell (1971:30–49).
+  - The proposal this entry asked for, how a 0.9 m mole works a 4 m face, is P-1971-3 (b) itself. The claws strike
+    each column's bottom quantum, and the quanta above are worked from the same station and paid as part of the
+    same work (1971:57–67, 324–328). DEC-054's "no earth benches, steps or climbing" stays (line 1437).
+  - It took effect in the game on 2026-10-17, when content 12 was mounted and 1971's LEGACY one-quantum band was
+    deleted (decision 1972 Phase 3b, `decisions/1972-activating-contents-11-and-12-scoping.md:5`, `:822`).
+    SET-BUILD-001 §7.2 carries the same note (`building_model_amendment.md:233–237`).
+  - Decision 1943's matrix suites dig most rooms one cube high to keep CI time down, and keep the full 4 m on the
+    7 × 7 Kitchen (`decisions/1943-rooms-dug-on-every-side-of-their-access.md:169–175`). That is test scope, not a
+    height rule.
+- **"General motion": superseded by decision 1971 (2026-10-15) for room digging, its contact rule included.**
+  Brendan's "I just want the basic claw stroke that digs anything" and P-1971-1 (b) "Approve" make the approved claw
+  stroke M1 the one stroke, with four wall rows derived from its own clips (1971:9–15, 21; this file, lines
+  1433–1435).
+  - Under that build, contact and patch are proved on the struck (bottom) cube (1971:59, 394). Only the upper quanta
+    are paid without contact, "in the spirit of DEC-060" (1971:324–328).
+  - **Closed 2026-10-22, Brendan: "1971 governs"** (in chat, relayed by the coordinator). This entry's "exact contact
+    with the struck face is not required" is superseded by decision 1971 for room digging: contact is proved on the
+    struck bottom cube, as built. The safety proofs this entry kept still apply, as 1971 keeps them.
+- **"Not yet diggable": superseded on 2026-10-19** by P-1990-1 (b) "Keep the mole, build real" and P-1990-2 (a)
+  "Stays free, show bill" (`decisions/1990-slice-c3-scoping-what-closes-slice-c.md:36–37`). The panel never showed
+  these words.
+  - The demo's panel digs with decision 1912's proof-of-concept mole, labelled "proof of concept: free", and the
+    ledger shows the bill (`godot/demo/build_panel/demo_build.gd:93`, `:135`).
+  - The real Confirm route refuses "No way in: needs a way down to level N" until a level has a way in
+    (`decisions/1991-slice-c3-the-real-confirm-route-crew-and-stop.md:11–13`;
+    `godot/scripts/core/underground_room_confirm.gd:29`). Slice D2 binds the way down (decisions 2052 and 2053).
+- **Test leave on the retired pick rows ("not ruled"): given as "Yes, tests only" on 2026-10-13** (see the order of
+  the rulings, below). Decisions 1931 and 1932 record it
+  (`decisions/1932-the-claw-down-stroke-cannot-open-an-underground-room.md:27–28`;
+  `decisions/1931-slice-c2-room-foreman-scoping-stopped-for-rulings.md:49`). C2.1's foreman proof runs on the
+  content-6 pick fixture under it, taking no height or price from the pick
+  (`decisions/1933-the-room-foreman-on-the-fixed-tick.md:16`).
+- **The order of the rulings: closed 2026-10-22, Brendan: "Oct 13 came first"** (in chat, relayed by the
+  coordinator). "One basic front stroke" (M3, rooms one quantum high) and "Yes, tests only" were ruled on 2026-10-13,
+  as decisions 1931 and 1932 say (1932:24–28). This entry's "not ruled" for the test leave was written at 11:41 on
+  2026-10-14, before those two rulings had been relayed to it; they reached the records only on 2026-10-15 (commit
+  `fec1ca65`). So this entry's "General motion" and "Full 4 m clear height" followed the 2026-10-13 stroke ruling,
+  the test leave stands as given on 2026-10-13, and the 2026-10-15 rulings above replaced the stroke and height
+  rulings of both days.

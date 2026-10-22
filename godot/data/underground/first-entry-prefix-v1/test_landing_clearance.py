@@ -222,6 +222,25 @@ def bounds(boxes: list) -> list:
     return [min(b[i] for b in air) for i in range(3)] + [max(b[i + 3] for b in air) for i in range(3)]
 
 
+CARRY_ROWS = (32, 37)  # Decision 2046: the grip families' ground CARRY rows (wood, stone).
+STAND_PAST_FP = 50  # Decision 2054 E2: the level-1 store's yaw-0 stand, 50 u past F'(5) down the flight.
+
+
+def foot_air(boxes: dict) -> tuple:
+    """Decision 2046 (P-2054-2 (a)): F'(5)'s widened air relative to F', as the entry bindings derive it: the envelope
+    over 47's BODY/TURN boxes and the carry rows' grounded ones (from the floor up), and one extra box over the carry
+    rows' raised load (boxes wholly above the floor)."""
+    grounded = [b for b in boxes[RETREAT] if b[6] in BODY_ROLES]
+    raised = []
+    for row in CARRY_ROWS:
+        for box in (b for b in boxes[row] if b[6] in BODY_ROLES):
+            (raised if box[1] > 0 else grounded).append(box)
+    envelope = [min(b[i] for b in grounded) for i in range(3)] + [max(b[i + 3] for b in grounded) for i in range(3)]
+    envelope[1] = max(envelope[1], 0)
+    extra = [min(b[i] for b in raised) for i in range(3)] + [max(b[i + 3] for b in raised) for i in range(3)]
+    return envelope, extra
+
+
 def uncontained(layout: int, boxes: dict) -> list:
     """Every ground edge whose row's body at either end leaves that stop's air (WorldRoutes' endpoint body test)."""
     PUB.select(layout)
@@ -371,6 +390,42 @@ class LandingClearance(unittest.TestCase):
                         self.assertEqual(uncovered(box, covers), 0, "M%d landing %d row %d at %s" % (
                             layout, landing, row, root))
         self.assertEqual(deepest, PUB.DECK_DEPTH, "the deck slab is exactly as deep as the deepest body")
+
+    def test_the_foot_air_holds_both_carry_rows_and_clears_every_part(self) -> None:
+        """Decision 2046 (P-2054-2 (a); decision 2054 B3, decision 2092 §2): F'(5)'s air, widened by the ground carry
+        rows 32 and 37, is an envelope over their grounded boxes and 47's, and one extra box over their raised load.
+        Both clear every installed part and the run-out's walls; every carry body box lies in one of them (WorldRoutes'
+        endpoint test); their footing lies on the deck rows, never cut; one box bounding both would reach 28 u into
+        the last sill's deck. The CARRY span straight on to the level-1 store's yaw-0 stand (50 u past F'(5), decision
+        2054 E2) sweeps both carry rows clear of every part."""
+        PUB.select(5)
+        parts = PUB.parts_all(V10.json.loads(V10.pinned(V10.SPEC, V10.SPEC_SHA)))
+        fp = Landing(PUB.MODULES).fp
+        envelope, extra = foot_air(self.boxes)
+        self.assertEqual(envelope, [-679, 0, -679, 679, 937, 679], "the grounded union")
+        self.assertEqual(extra, [-714, 447, -714, 714, 821, 714], "the raised load's union")
+        for name, box in (("envelope", envelope), ("extra", extra)):
+            placed = swept(box + [0], fp, fp)
+            self.assertEqual([i for i, part in enumerate(parts) if overlap(placed, part)], [], name)
+            self.assertTrue(-1024 <= placed[0] and placed[3] <= 1024 and placed[2] >= PUB.END_WALL, name)
+        for row in CARRY_ROWS:
+            for box in (b for b in self.boxes[row] if b[6] in BODY_ROLES):
+                above = box[:1] + [max(box[1], 0)] + box[2:4] + [box[4]] + box[5:6]
+                if above[1] >= above[4]: continue
+                self.assertTrue(any(all(air[i] <= above[i] and above[i + 3] <= air[i + 3] for i in range(3))
+                                    for air in (envelope, extra)), "row %d box %s" % (row, box))
+            for stance in (b for b in self.boxes[row] if b[6] == 1):
+                rows = PUB.deck_rows(PUB.MODULES)
+                self.assertGreaterEqual(fp[2] + stance[2], -1024 * (rows[-1] + 1))
+                self.assertLessEqual(fp[2] + stance[5], -1024 * rows[0])
+        whole = [min(envelope[i], extra[i]) for i in range(3)] + [max(envelope[i], extra[i]) for i in range(3, 6)]
+        deck = parts[PUB.part_base(PUB.MODULES - 1) + 42]  # The last sill's deck.
+        self.assertEqual(overlap(swept(whole + [0], fp, fp), deck)[2], 28, "one box meets the sill deck")
+        stand = [fp[0], fp[1], fp[2] - STAND_PAST_FP]
+        for row in CARRY_ROWS:
+            for box in (b for b in self.boxes[row] if b[6] in BODY_ROLES):
+                sweep = swept(box, fp, stand)
+                self.assertEqual([i for i, part in enumerate(parts) if overlap(sweep, part)], [], "span row %d" % row)
 
     def test_rooted_decks_are_covered_by_the_rooms_support(self) -> None:
         """Every fixture deck of 53/54/55/71/72 at each landing lies in parts, bearings and the retained floor."""

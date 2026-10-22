@@ -41,9 +41,9 @@
   "consumers": {
     "godot/scripts/core/underground_profiles.gd": "4684fce53085b62f4fea85a26a862bd6a99b881dec10827a4802f8d5d0119bdc",
     "godot/scripts/core/underground_work_face.gd": "1ad3eab1c62df90f0e41c78f0ccf484f4d04b630ca825b50dedcca2a6be4f731",
-    "godot/scripts/core/underground_connector_contacts.gd": "6e92297d747030f97e40dcd343bec7d977f8b8a5da7a4ee398ff93aeaf9d06d0",
+    "godot/scripts/core/underground_connector_contacts.gd": "a5e9db2da65f0bde084c3827aa046f119c85b17c3a65d39671d66e552aa9d9b2",
     "godot/scripts/core/underground_routes.gd": "b6b570efc04ea821915f7e43be7f1f98f2ffdac21d7dda67867ea4fd8c1d9dbc",
-    "godot/scripts/core/underground_world_routes.gd": "0c004f9fc8beb9403787521208d542782d53b8473510a3b5c9f1a737fce01c04",
+    "godot/scripts/core/underground_world_routes.gd": "f80cc81175f6329ca6b132b28555f24b3f3aa6313e44ccfa19fb223469ccc149",
     "godot/demo/cast/underground_actor.gd": "b0ef7640d2b5626eb95c162d19318d9b3985a51479d19dfdf9a38e0176a06e91",
     "godot/demo/cast/underground_actor_content.gd": "388374964d20879b6b896021ebde7927e472634ea8a32b6834ec7b1b5042157f",
     "godot/data/underground/mole-worker/mole_profile_driver.gd": "db7c2051d5d4d4b642a5c1442be4241de3dd4802780bcace6d91d44e5f643064",
@@ -165,6 +165,71 @@
       "path": "godot/scripts/core/underground_routes.gd",
       "from": "0fde2c69d853462a375dd6dd025368c9bf47b14fccb87dd6b27b5775688f5f15",
       "to": "b6b570efc04ea821915f7e43be7f1f98f2ffdac21d7dda67867ea4fd8c1d9dbc"
+    },
+    {
+      "path": "godot/scripts/core/underground_world_routes.gd",
+      "from": "0c004f9fc8beb9403787521208d542782d53b8473510a3b5c9f1a737fce01c04",
+      "to": "4510cffd9cdcec2e62ca23e5b122e1ee59a0f880c868ebe1235fb16ae2a6b764"
+    },
+    {
+      "path": "godot/scripts/core/underground_world_routes.gd",
+      "from": "4510cffd9cdcec2e62ca23e5b122e1ee59a0f880c868ebe1235fb16ae2a6b764",
+      "to": "a4f5f4d5943118f9ff827e285dac707b7690cd5e458f6e2009c5deec9cb72190"
+    },
+    {
+      "path": "godot/scripts/core/underground_connector_contacts.gd",
+      "from": "6e92297d747030f97e40dcd343bec7d977f8b8a5da7a4ee398ff93aeaf9d06d0",
+      "to": "f6538b1e4e16dc472b670b8984bfddf033d24946dbd19c4286cac556c58b0355"
+    },
+    {
+      "path": "godot/scripts/core/underground_world_routes.gd",
+      "from": "a4f5f4d5943118f9ff827e285dac707b7690cd5e458f6e2009c5deec9cb72190",
+      "to": "3ba4c6b2ce77bf177e3f4afb0649cb0d526016f9b63cdeb73d3349aabd8c32d4"
+    },
+    {
+      "path": "godot/scripts/core/underground_world_routes.gd",
+      "from": "3ba4c6b2ce77bf177e3f4afb0649cb0d526016f9b63cdeb73d3349aabd8c32d4",
+      "to": "ef3b6f46d38e0d06362495b47449b82ed71d31bc8646951dc6ff8cbd1f8d0ea1"
+    },
+    {
+      "path": "godot/scripts/core/underground_world_routes.gd",
+      "from": "ef3b6f46d38e0d06362495b47449b82ed71d31bc8646951dc6ff8cbd1f8d0ea1",
+      "to": "97d515cfc49fb17b05f7887c74b61224b73ff7e9cdc5512da663f197534d5190"
+    },
+    {
+      "path": "godot/scripts/core/underground_connector_contacts.gd",
+      "from": "f6538b1e4e16dc472b670b8984bfddf033d24946dbd19c4286cac556c58b0355",
+      "to": "7844d0c068e532f7bb6ebd1554a3ef507f1dd0ca1911cedc4ffa85da03fc93e7"
+    },
+    {
+      "path": "godot/scripts/core/underground_connector_contacts.gd",
+      "from": "7844d0c068e532f7bb6ebd1554a3ef507f1dd0ca1911cedc4ffa85da03fc93e7",
+      "to": "900f49f4401e5f046e87c57aebbe77c61232eca6fa90e61f84f82655117ca87a"
+    },
+    {
+      "path": "godot/scripts/core/underground_world_routes.gd",
+      "from": "97d515cfc49fb17b05f7887c74b61224b73ff7e9cdc5512da663f197534d5190",
+      "to": "df73e8ecebc77861160e47303ad35722d4507c6bf00c17671b6eaaff83df2a11"
+    },
+    {
+      "path": "godot/scripts/core/underground_world_routes.gd",
+      "from": "df73e8ecebc77861160e47303ad35722d4507c6bf00c17671b6eaaff83df2a11",
+      "to": "35c7a2bc181950ae474970398466088c9312a20e8ca0f14ed90b01e801093eea"
+    },
+    {
+      "path": "godot/scripts/core/underground_connector_contacts.gd",
+      "from": "900f49f4401e5f046e87c57aebbe77c61232eca6fa90e61f84f82655117ca87a",
+      "to": "cf02faf98c6c0071e57a2f1ff14a599fd7520a06305351eb611903590c35e119"
+    },
+    {
+      "path": "godot/scripts/core/underground_connector_contacts.gd",
+      "from": "cf02faf98c6c0071e57a2f1ff14a599fd7520a06305351eb611903590c35e119",
+      "to": "a5e9db2da65f0bde084c3827aa046f119c85b17c3a65d39671d66e552aa9d9b2"
+    },
+    {
+      "path": "godot/scripts/core/underground_world_routes.gd",
+      "from": "35c7a2bc181950ae474970398466088c9312a20e8ca0f14ed90b01e801093eea",
+      "to": "f80cc81175f6329ca6b132b28555f24b3f3aa6313e44ccfa19fb223469ccc149"
     }
   ]
 }

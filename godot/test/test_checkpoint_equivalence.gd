@@ -76,3 +76,27 @@ func test_the_underground_spare_checkpoint_equals_its_replay_and_reloads() -> vo
 	point, load each with its content, resave."""
 	_assert_replay_matches(Recipes.SPARE)
 	_assert_loads_and_resaves(Recipes.SPARE, Recipes.underground_content())
+
+
+func test_the_underground_flight_checkpoint_equals_its_replay_and_reloads() -> void:
+	"""underground_flight (decision 2045): the whole M5 flight is about 92,500 ticks, longer than CI's per-suite budget,
+	so its replay proof is one suite a segment (test_underground_flight_<k>.gd: point k - 1 loaded, flown to point k
+	restored along the way, compared byte for byte; segment 0 from tick 0). Here: every segment has its suite, and
+	every committed point loads with its content and resaves."""
+	var points: PackedStringArray = Recipes.flight_points()
+	for index: int in points.size():
+		var path: String = "res://test/test_underground_flight_%02d.gd" % index
+		var suite: Script = load(path) as Script
+		assert_true(suite != null, "%s proves %s" % [path, points[index]])
+		if suite == null: continue
+		var methods: PackedStringArray = PackedStringArray()
+		for method: Dictionary in suite.get_script_method_list():
+			methods.append(String(method["name"]))
+		assert_true(methods.has("test_segment_%02d_restored_along_the_way_saves_as_the_uninterrupted_flight" % index),
+			"%s has its segment test" % path)
+	var committed: Array = Store.read_manifest(Recipes.FLIGHT).get("points", {}).keys()
+	committed.sort()
+	var expected: Array = Array(points)
+	expected.sort()
+	assert_equal(committed, expected, "the committed points are the recipe's")
+	_assert_loads_and_resaves(Recipes.FLIGHT, Recipes.underground_content())

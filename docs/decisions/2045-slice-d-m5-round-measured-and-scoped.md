@@ -1,0 +1,1269 @@
+# 2045 — Slice D, the M5 round: the full flight mounted, measured and scoped (stopped for rulings)
+
+Date: 2026-10-19 · Status: Accepted. Phase 1 (measure and scope) stopped for rulings; Brendan ruled P-2045-1 to
+P-2045-6, all (a), on 2026-10-19 (see "Brendan's rulings"). The build phase stopped again under that ruling's own
+condition: WorldRoutes and Locations still did not fit (see "Build phase"). Brendan ruled P-2045-7 to P-2045-10, all
+(a), on 2026-10-19/20, and the build continues (see "Brendan's rulings on P-2045-7 to -10").
+
+Number range: 2045–2049 (the D-flight lane's phase 2b). This is the M5 round's record; decision
+[2044](2044-slice-d-2b-1-m5-flight-runtime-scoping-and-claims.md) holds the lane's claims, every ruling so far
+(P-2044-1 to -17) and the M2 interim, which is PR #275.
+
+- **Branch:** `feat/slice-d-m5-full`, cut from `14d7f42e` (PR #275's head). **Worktree:** `scratchpad/wt-m5`.
+- **The brief** (from the coordinator): switch the runtime to M5; run the M5 chain on a scratch mount as far as it
+  goes and measure every cold operation per module, without projecting; make exact cost fixes inside the claims
+  where they keep outcomes identical under the cache checks; write this record with the measurements, the ground
+  re-proof fix and how it is proved exact, every file or function outside the claims, and proposals; then stop.
+
+## Brendan's rulings (2026-10-19)
+
+Relayed by the coordinator: Brendan answered in chat through AskUserQuestion.
+
+| Proposal | Ruling | What it means |
+|---|---|---|
+| P-2045-1 to P-2045-4 | **(a), "Approve all four"** | Four items outside the claims are cleared: `underground_budget.gd` `BINDINGS_AND_GROWTH_BYTES` +22,879 B (and up to +24,576 B more if P-2045-6's scratch list needs it); `underground_geometry_journal.gd` `_row_changed` compares the owner, with a reused-slot, new-owner test; `underground_locations.gd` `restore_state_bytes` clears `_prism_key[0]`, with a mid-preparation restore-versus-fresh spend test; `underground_world_routes.gd` `_endpoint_observation_refusal` charges a memo-answered observation at its real cost, proved as §5 and Slice C's three cautions |
+| P-2045-5 and P-2045-6 | **(a), "Batch + exact fixes"** | Batch the deep floor graph's edges as the work area batches its stations; keep making exact fixes in the claims (contact air, strips, Locations landing counts); no bound raise. **If Locations or any cold operation still cannot fit after both, the lane stops and reports before (b), the Placements transaction** |
+
+Indexed in `docs/handoff/RULINGS.md`. Master moved to `e841d89e` (#276 station retirement, #277 C3 with room record
+v2 and the `bind_underground_way_in` seam); this branch merges it only after #275 (M2) lands, on the coordinator's
+word. Build order: the rulings; the four outside-claim changes with their tests; the batching; the exact fixes;
+re-measure every landing; fix the two non-budget stops (the module-0 pre-clearance applies if either is that case);
+the chain to level 1; then the census pass, the full gates and frames.
+
+## In short
+
+- **First refusal (today's bound, after this round's four exact fixes):** tick 34,927, module 0's sill, the
+  bindings' entry operation (`ROOM_MASK_OPERATION_BUDGET`, 1,048,603 tried). It is the installation that publishes
+  landing 1 and its **40 deep stations** (M2's landing 1 had 10).
+- **Measured past the bound** (a scratch clone with the budget lifted, so each number is real spend): module 0's
+  sill needs 1.70 M in the bindings and 1.57 M in Locations; landing 1's floor graph publication 3.33 M in
+  WorldRoutes; module 1's sill 1.95 M (bindings) and 1.97 M (Locations); landing 2's floor graph 3.81 M and
+  Locations 2.28 M. The cost is not module 4's accumulation, as 2044 projected: **it is the size of each landing's
+  deep stage, and it starts at landing 1.**
+- **Two functional stops past the bound** (claimed code): a haul begun on a deep floor (tick 35,770), and module 2's
+  T0″ from landing 2 (tick 49,454). Modules 3 and 4 were not reached.
+- **Outside the claims:** the bindings reserve (+22,879 B), the journal's owner compare (P-2044-18), the kept prisms'
+  key on restore (one line in Locations `restore_state_bytes`), and stage 1's observation charge. Proposals
+  P-2045-1 to -6.
+
+## 1. What was done
+
+| Commit | What |
+|---|---|
+| `cf4e1779` | **The runtime mounts M5.** `qualified-m5-runtime-v1/tread_geometry.gd` `MODULES` 5; the work area's `CUT_ROWS` 27; the route composition, entry site and entry composition preload `qualified-stairs-m5-v1`; the contact retirement scope's table census 36/190/26/235/301/154; Frontier `MAX_BYTES` 51,476 (P-2044-2 (a)). |
+| `036f6d05` | Exact cost fixes 1–3 (§3), the retirement scope's registry rows (`SOURCE32` 10,253, `SOURCE64` 1,087), the renewed source pins. |
+| `e8c15121` | Exact cost fix 4 (§3) and the terrain scope re-check (fix 2's final form). |
+
+`qualified-stairs-m5-v1` was already published and byte-identical (`test_publish_m5_flight.py`, 10 tests OK); no data
+changed. The M5 mount leaves the branch knowingly red in two places until the rulings, both listed in §6: the memory
+census refuses Frontier `MAX_BYTES` 51,476 until the bindings reserve grows (P-2045-1), and the suites and the two
+ADR 1240 checkpoints pinned to the M2 bundle are stale (the census and checkpoint pass of 2044's claim 16 runs once,
+in the build phase).
+
+## 2. How it was measured
+
+- **The chain.** `underground_host_case.gd`'s `_begin_live_entry` on the mounted Session, sustained exactly as the M2
+  whole-flight suites are (`_sustain`: needs held full, R's staged stock topped up), with the cache checks **off**
+  (spend as production spends). Scratch only, in APFS clones of the worktree, never committed:
+  `scratchpad/m5r/instrument.py` adds counters to `WorldRoutes.Clearance.spend` (route preparations and the bindings'
+  timber clearances), the bindings' `_entry_spend` and Locations' `_spend`, and `test_zz_m5_measure.gd` prints each
+  interval's peak at every plan change and installation. A backtrace tracer charges every check to its call chain
+  where a refusal needed explaining.
+- **The same chain with the cache checks on** (every runtime cache and each new fix's cross-check running) was run
+  through module 0 twice, after each round of fixes: **no `RUNTIME_CACHE_STALE` report**, and the same refusal at
+  the same tick.
+- **Past the bound.** To measure what each operation actually needs after the first refusal, the same chain was run
+  in a clone whose `Space.MAX_CHECKS` is 268,435,456: nothing refuses on budget, and each counter is that
+  operation's true spend under today's code. These are **measurements, not projections**; they say how far over
+  1,048,576 each operation is, and where the chain would go next.
+
+## 3. Exact cost fixes made inside the claims
+
+Each changes spend only; admitted masks, refusal codes per edge and the saved state are unchanged while the
+operation stays under the bound (Slice C's caution 1), and each is checked by the cache checks in every test run.
+
+1. **A WORK contact's station rows by search** (`underground_entry_bindings.gd` `_timber_profile`,
+   `_station_rows_start`). The rows were scanned whole (190 rows at 12 checks) twice per installed contact. When the
+   STATION rows are ordered by endpoint (one check a row; the M5 Frontier's are) the scan starts at the endpoint's
+   first row, found by binary search, and stops after its last: the same rows in the same order, so the same answer.
+   Unordered rows are scanned from row 0 as before.
+2. **The timber scope re-check after a terrain read** (`_timber_terrain`, `_terrain_scope_checked`). It was charged
+   2,048 checks after every terrain window. A terrain read changes no part of the operation scope, and every
+   operation that reads terrain re-checks the scope on entry and before it returns (`_timber_physical`,
+   `_workpiece_physical`), so the per-window re-check is no longer charged. With the cache checks on it still runs
+   after every window, unspent, and reports a refusal. (2044's M2 round moved the same re-check out of the refresh
+   and staging loops.)
+3. **Heading first** (`underground_world_routes.gd` `_profile_edge_refusal`, Slice C's hold for this lane, plus new
+   private helpers `_heading_first_refusal` and `_segment_headings_refusal`). A profile's segment-heading test reads
+   only its descriptor, its selection policy and the edge's immutable path; it ran after both endpoint observations
+   (256 checks each) and the endpoint boxes. It now runs first: a profile it refuses is refused by the full proof as
+   well (the full proof is the endpoints and then the segments, which refuse at that heading or earlier), and a pass
+   changes nothing because the full proof still runs. With the cache checks on, each such refusal is confirmed,
+   unspent, by the segment proof. On M5's module 0 this removed 541,372 of a 968,770-check preparation (448
+   heading-refused profile proofs at 1,208 each). `test_underground_route_memos.gd` (29/29),
+   `test_underground_world_routes.gd`, `test_underground_stair_carry_routes.gd` and
+   `test_underground_entry_bindings.gd` pass with it.
+4. **One Region pass for an installation's natural bearings** (`_timber_dependencies`,
+   `_timber_natural_verdicts`, `_timber_natural_pass`, `_timber_bearing`'s new `natural` argument). The live Region
+   rows were scanned once per natural or strip bearing; module 0's sill has 25. They are now judged against every
+   bearing in one pass (a row charged as one bearing's scan charges it, plus one check per bearing it is tested
+   against), and each bearing's verdict is used at its own place in the bearing order, so the refusal and its code
+   are unchanged. Over 62 bearings, or when a bearing box would be refused, each bearing is scanned as before.
+   Module 0's sill: 228,600 checks became 26,594.
+
+## 4. Measurements
+
+### 4.1 Stages and their task counts (measured from the foreman's plans)
+
+| Stage | Plans at | Tasks | Made of |
+|---|---:|---:|---|
+| 0 | tick 1 | 13 | L0: rows 0–1, 4 cubes × 3 phases, + L0 |
+| 1 | tick 2,232 | 7 | T0: row 2, 2 cubes × 3, + T0 |
+| 2 | tick 3,361 | 150 | the top metre of rows 3–26 (48 cubes) + T1–T6 (module 0) |
+| 3 | tick 34,926 (32,748 with M stocked) | 127 | landing 1: layer 2 of rows 7–26 (40 cubes) + T0′–T6′ (module 1) |
+| 4 | tick 42,735 (M stocked) | 97 | landing 2: layer 3 of rows 12–26 (30 cubes) + T0″–T6″ (module 2) |
+| 5–6 | not reached | 67 / 37 (from the Frontier) | layers 4 and 5 (20 and 10 cubes) + seven installs each |
+
+Every stage fits `Progress.MAX_TASKS` 160 (P-2044-8 (a)). In all: 498 tasks, 154 cubes × 3 + 36 installs.
+
+### 4.2 The first refusal (today's bound, the fixes in)
+
+**Tick 34,927, the last task of stage 2: module 0's sill (T6, the eighth installation, the one that makes
+landing 1).** The entry bindings' operation budget runs out (`ROOM_MASK_OPERATION_BUDGET`, from `_entry_spend`):
+the installation's one entry budget is carried through its preflight, its staging and its Location staging, and
+they need 326,000, 618,000 and 110,000 checks of it (1,048,603 tried against 1,048,576). Before fixes 1–4 the same
+installation refused at the same tick with 1,035,336 spent and the WorldRoutes peak at 968,770.
+
+The sill is where M5 first differs in kind from M2: it publishes landing 1 and the **40 deep stations of layer 2**
+(M2's landing 1 had 10). Its installed contacts are 47 (M2: 17) and its bearings 25.
+
+### 4.3 Per module, per cold operation
+
+Peaks per interval, cache checks off, against `Space.MAX_CHECKS` 1,048,576 (share in brackets). "Past the bound"
+figures come from the unbounded clone and are each operation's true spend; from module 1 on that clone also kept M
+stocked (§4.6), so its ticks run about 2,200 earlier than the bounded chain's. A module here is its landing's deep
+stage plus its seven treads (module 1: ticks 32,748–42,735; module 2: from 42,735).
+
+| Interval | WorldRoutes | Locations | Bindings entry op | Bindings timber |
+|---|---:|---:|---:|---:|
+| The entry's confirmation (tick 0) | 478,272 (45.6 %) | 378,861 | 542,447 | — |
+| Stage 0, L0 (ticks 1–2,232) | 467,836 | 198,208 | 367,526 | 250,019 |
+| Stage 1, T0 (to tick 3,361) | 482,204 | 420,139 | 384,420 | 235,992 |
+| Stage 2, the top metre's 48 cubes (to tick 30,000) | 573,472 (54.7 %), rising about 4,000 a 1,000 ticks | 287,881 | — | — |
+| Stage 2, T1–T5 and module 0's sill (to tick 34,927), **refuses** | 594,209 | 551,624 | **1,048,603 tried** | 613,485 |
+| *Past the bound:* T1–T5 and the sill | 1,745,283 (166 %) | 1,565,004 (149 %) | 1,704,420 (163 %) | 613,485 |
+| *Past the bound:* landing 1's floor graph published (tick 35,000) | **3,331,208 (318 %)** | — | — | — |
+| *Past the bound, module 1:* landing 1's floor graph published | **3,331,208 (318 %)** | 1,816,683 (173 %) | — | — |
+| *Past the bound, module 1:* landing 1's deep phases (40 cubes) | 1,094,904 at first, falling to 928,841 as stations retire; 12 preparations over the bound | 1,517,751 (145 %) | — | — |
+| *Past the bound, module 1:* T0′–T6′ and module 1's sill (to tick 42,735) | 627,407 | **1,972,180 (188 %)** | **1,953,599 (186 %)** | 686,927 |
+| *Past the bound, module 2:* landing 2's floor graph published (60 new ground edges, 654 image volumes) | **3,808,940 (363 %)** | **2,275,188 (217 %)** | — | — |
+| *Past the bound, module 2:* landing 2's deep phases (30 cubes; to tick 49,454) | up to 1,392,269 (133 %); 60 preparations over the bound | 1,966,254 (188 %) | — | — |
+| Modules 3 and 4 | **not reached** (§4.6: the chain stops at module 2's T0″) | | | |
+
+### 4.4 What dominates past the bound (landing 1)
+
+From the backtrace tracer, ticks 34,926–35,770 (about thirteen preparations):
+
+- **WorldRoutes** (13.9 M charged over the window).
+  - The **deep floor graph's publication** (tick 35,000): 80 new ground edges compiled in full, 320 admitted
+    profile proofs at about 10,000 checks each: **3,331,208** in one preparation.
+  - **Every deep phase on landing 1 after it: about 1,095,000** with 111 carried ground edges, 42 carried stair
+    edges and 4 recompiled. Of that, carried admitted ground profiles 478,396 (372), refused-profile re-proofs
+    141,232 (496, all `WORLD_ROUTE_ENDPOINT_BODY`; heading refusals now cost 1,324 for 1,316), recompiled ground
+    edges 231,068, stair edges 55,459, eligibility 32,827.
+  - By call site over the window: per-profile endpoint observations 2,247,680 (+ 954,368 per edge, + 442,368 on
+    stair rows), full-proof volume scans about 8.5 M (`subtract_role` under `_body_covered` 2,032,148,
+    `_solid_contacts_covered` 1,714,960 + 1,271,468, `_body_blocked` 1,695,440, `_subtract_pending_bearer` 847,720,
+    stance `blocked`/`covered` about 800,000), `_carry_hull_clean` 377,251.
+- **Locations, 1,816,683 at the peak.** The witness passes and per-record refreshes over the 47 new installed
+  records; the largest call sites over the window: `_installed_landing_count` under `_installed_row_site` and `_installed_record_kind`
+  (1,445,640 each), `_installed_record_kind` / `_installed_surface_site` in `_derive_witnesses` (about 1.3 M each),
+  `_pass_landing_count` (705,600 twice), `_covered` 784,392, `_record_obstacles_refusal` 667,512.
+- **Bindings, the sill: 1,704,420**: the contacts' air (`_timber_air_box`, one Region scan per contact: 214,320 in
+  the preflight and 221,088 in staging), the strips' staging (`_stage_strips` 109,692 + `_timber_support_residual`
+  41,920), the part partition (33,088 + 32,768 scope re-checks), the new Locations' datum lookups
+  (`_timber_datum_ref` 70,044).
+
+**Landing 2 is worse than landing 1, though it has fewer stations (30 against 40):** the image has grown to 654
+volumes (423 at landing 1), so a full ground compile's volume scans cost more: the floor graph's 60 new edges took
+3,808,940, about 15,300 checks for each of 240 admitted profile proofs (10,000 at landing 1). Every scan in a full
+proof charges one check per image row, so this grows with every module however few edges a landing has.
+
+### 4.5 Frontier bytes
+
+`Frontier.required_bytes` for M5's table census (36 / 190 / 26 / 235 / 301 / 154 rows): **51,476 B** (wire file
+49,656 B). M2's: 16,232. The bound before this round, 28,597, is 22,879 short; the shared bindings reserve
+`Budget.BINDINGS_AND_GROWTH_BYTES` (524,544) is fully assigned, so it must grow by the same amount (P-2045-1).
+
+### 4.6 Two functional stops past the bound (not budget refusals; claimed code, for the build phase)
+
+**1. A haul from a deep floor.** In the unbounded clone the chain first stopped at **tick 35,770, stage 3 task 6**:
+`PROFILE_VARIANT_UNAUTHORED`, from `Profiles.query_travel_profile_into` under Routes `refresh_travel_actor`, called by
+the hauler's `_next_leg` for a haul the foreman began from landing 1's floor (`_open` → `_begin_haul` →
+`_haul`): the leg is a claw floor row that the hauler's tooled posture does not match. It happened with R stocked
+at 3,000 and at 12,000 milli. M2's deep stage (10 cubes) never hauled from a floor. The foreman's deep haul legs are
+this lane's (claimed); the fix (climb to the surface leg by leg before a haul, as the installer does since 2044) is
+for the build phase. For the measurement, the clone then stocked M directly (scratch) so that no phase hauls
+mid-stage. (A run that also kept R at 12,000 milli of each stock stopped at tick 48,054 with the inventory's
+`CAPACITY_EXCEEDED`, R's pile filling with stock beside the spoil; that is the stand-in's own artifact, and R went
+back to the suites' 3,000.)
+
+**2. Module 2's T0″ from landing 2.** With M stocked, the chain ran through module 1 and landing 2's deep stage and
+stopped at **tick 49,454, stage 4 task 90 (installation 15, module 2's T0″)** with `ROUTE_TURN_PROFILE`: the
+installer, climbing off landing 2's floor leg by leg (2044's fix), is on landing 1 at (0, −1,024, −6,825) with its
+next leg to (300, −2,048, −11,882). Two landings below the surface never occurred in M2. The installer and the stair
+path are this lane's; the fix is for the build phase. **Modules 3 and 4 were therefore not reached**, and nothing
+is projected for them here.
+
+## 5. The ground-edge re-proof (the brief's question), and how it is proved exact
+
+**What M5 measured.** Carried ground edges' refused profiles are refused on three grounds only, at module 0 and on
+landing 1 alike: `ROUTE_SOURCE_STEP_SPAN` (already free, before any observation), `WORLD_ROUTE_PROFILE_HEADING` and
+`WORLD_ROUTE_ENDPOINT_BODY`. **None refused on Space volumes or terrain.** So a skip keyed on "refused on Space"
+(a stored refusal class per profile) would save nothing here, and skipping refused profiles wholesale stays unsafe
+(Slice C's caution: a refusal can turn on unjournaled terrain).
+
+**The fix, in two parts.**
+
+1. **Heading first: built** (§3 fix 3). It is exact for every edge, carried or not: the heading test reads only
+   immutable inputs, and the full proof refuses wherever it refuses.
+2. **Endpoint-body refusals: the observations' charge (P-2045-4).** Each refused profile still pays one endpoint
+   observation (256 checks) and the endpoint boxes' replayed spend before it is refused on the endpoint's body. The
+   observation is answered from stage 1's memo, which is kept only inside one edge compile (`_observed`,
+   `_observed_key`, keyed by `_observe_serial`), so what it answers is fixed by the compile alone and never by
+   history. Charging an answered observation what it does (a key compare and a record copy) instead of a fresh
+   observation's 256 keeps the spend deterministic across save and load, and changes no answer.
+   `_endpoint_observation_refusal` is stage 1's function, outside the six held for this lane, so it needs Slice C.
+   The endpoint boxes' memo (decision 1952) is kept across preparations, so its replayed spend must stay what the
+   live check spends: it is not touched.
+
+**How each is proved exact (Slice C's three cautions, recorded in 2044).**
+
+1. *Spend versus outcome.* Outcome: each edge's admitted mask, its refusal code, the certificate's generation,
+   geometry and content revisions, the saved WorldRoutes wire and the ADR 1240 checkpoints' state. Spend: `remaining`,
+   `_proof_checks` (runtime only, never saved) and a `WORLD_ROUTE_CHECK_CAPACITY` refusal. The build phase confirms
+   that the dig benchmark's SHA trace hashes no spend field before comparing it.
+2. *Master's differential scenarios under the bound.* The trace scenarios (`REDWALL_DIG_TRACE`, the room run and the
+   entry run) and the save-parity runs are first run on master with a counter that fails if any preparation reaches
+   `WORLD_ROUTE_CHECK_CAPACITY`; only then are the trace and the checkpoints compared byte for byte. A scenario that
+   reaches it on master is named, with its changed outcome, as P-2044-15's ruled effect.
+3. *Stage 1's caches.* The cache-checks run still goes through `_endpoint_observation_refusal` for every
+   observation; `test_underground_route_memos.gd`'s differential compile (code, spend, error, certificate row,
+   descriptor, endpoint record, pace, and every short budget) stays green, as it is now with heading first.
+
+Also for heading first: under the cache checks every heading refusal is confirmed by the segment proof (unspent),
+and a contradiction reports `RUNTIME_CACHE_STALE`; the M5 chain ran through module 0 with the checks on and none
+was reported.
+
+## 6. Everything needed outside the claims (one list)
+
+| # | File and function | Why | Proposal |
+|---|---|---|---|
+| O-1 | `scripts/core/underground_budget.gd` `BINDINGS_AND_GROWTH_BYTES` | +22,879 B for Frontier `MAX_BYTES` 51,476 (§3's fixes added no storage); and, if P-2045-6 (a) builds the contact-air candidate list as a fixed bindings scratch, up to 24,576 B more (one int32 per Region slot); ledger rows | P-2045-1 |
+| O-2 | `scripts/core/underground_geometry_journal.gd` `_row_changed` | P-2044-18: compare the owner slot and generation, so a SUPPORT row removed and re-added with the same box and role but another owner, in one stage, is a change; with a test of the reused-slot, new-owner case. No Slice C lane holds it; phase-spreading stage 2 names the journal but waits for M5 | P-2045-2 |
+| O-3 | `scripts/core/underground_locations.gd` `restore_state_bytes` (Slice C hold) | Clear the kept prisms' key (`_prism_key[0] = 0`) on entry, before `_restore_current_refusal` re-proves the witnesses: a Placements bank restored in place keeps its instance and may restore an equal revision. The landing key needs nothing (it is keyed by the witness pass serial, which a restore never repeats). Neither stage 1's WorldRoutes caches nor C3's room runtime is involved. With a test that restores mid-preparation and compares the spend with a fresh run | P-2045-3 |
+| O-4 | `scripts/core/underground_world_routes.gd` `_endpoint_observation_refusal` (stage 1's, Slice C) | Charge an observation answered from the in-compile memo what it does, not 256 (§5 part 2) | P-2045-4 |
+| O-5 | none new for the entry runtime, Session, Profiles, stair motion or catalog | The M5 mount needed none of them | — |
+
+**Not outside the claims, but recorded:** fixes 1, 2 and 4 are in the claimed bindings; fix 3 is in
+`_profile_edge_refusal`, held for this lane, with two new private helpers beside it (as `_carry_hull_clean` was);
+the bindings gained a `CacheChecks` preload. The successor-pattern pre-clearance (P-2044-17) and the episode lookup
+budget pre-clearance were **not used** this round.
+
+**Slice C's answers, recorded** (relayed by the coordinator, 2026-10-19):
+
+1. The M2 round's Locations and WorldRoutes edits beyond the named functions (`_order_prisms`,
+   `_cached_prisms_hold`, `_landing_boxes`, `_landing_key`, `_prism_tops`, `PASS_LANDINGS`, `TOP_BIAS`, the
+   `_allocate_banks` resizes, `_carry_hull_clean`) are now on both Slice C lanes' hold lists. Neither lane touches
+   Locations, WorldRoutes, the geometry journal or the Session.
+2. P-2044-18: no Slice C lane holds the journal and Slice C does not object; it is proposed here (P-2045-2) with a
+   test of the reused-slot, new-owner case, and is not edited before Brendan rules.
+3. The restore key: the exact function is O-3. It is neither stage 1's WorldRoutes caches (`_observed`,
+   `_observed_key`, `_pace_inputs`) nor C3's room restore or `_read_state`. A restore-mid-preparation spend test
+   comes with it either way.
+4. Slice C's lanes add no Locations spend; their route peaks go down (a 12×4 room: 798,332 → 518,302).
+
+## 7. Proposals
+
+**P-2045-1 — The bindings reserve for M5's Frontier.**
+
+- **(a) Raise `Budget.BINDINGS_AND_GROWTH_BYTES` by 22,879 B (524,544 → 547,423) with a ledger row, so Frontier
+  `MAX_BYTES` 51,476 fits the fully assigned reserve.** About 23 KB against about 43.9 MB of headroom under the
+  150 MB gate.
+- (b) Per-module Frontiers chained by the foreman (2044's P-2044-2 (b)): no raise, but five bundles' digests and a
+  Frontier switch in the foreman.
+
+**Recommendation: (a).**
+
+**P-2045-2 — The geometry journal and owner changes (P-2044-18).**
+
+- **(a) One line in `underground_geometry_journal.gd` `_row_changed`: compare the owner slot and generation as well,
+  with a test that removes a SUPPORT row and re-adds one with the same box and role but another owner in one stage,
+  in a reused slot, and sees the change.** ADR 1205's ground carry gains the same guarantee.
+- (b) Refuse to carry a stair row whose decks or bodies meet SUPPORT of any other owner: a Space scan per edge,
+  most of what the carried form saves.
+
+**Recommendation: (a).**
+
+**P-2045-3 — Restore and the kept prisms.**
+
+- **(a) Clear the kept prisms' key at the start of `underground_locations.gd` `restore_state_bytes` (one line, a
+  Slice C-held Locations function), with a test that restores mid-preparation and compares the spend with a fresh
+  run.**
+- (b) Key the prisms on a Locations restore epoch instead: the same function still has to move the epoch.
+
+**Recommendation: (a).**
+
+**P-2045-4 — The charge for an observation answered inside one compile.**
+
+- **(a) Clear `_endpoint_observation_refusal` (stage 1, Slice C) to charge a memo answer a fixed small amount (the
+  key compare and the record copy) instead of `PREPARED_OBSERVATION_CHECKS` (256).** The memo lives only inside one
+  edge compile, so the spend stays a function of the compile, never of history; answers are unchanged; proved as §5.
+- (b) Leave it: the refused profiles' endpoint observations stay at 256 each (141,232 a deep phase on landing 1).
+
+**Recommendation: (a)**, because it is exact, deterministic and touches one function; but it is not enough on its
+own (P-2045-5).
+
+**P-2045-5 — The deep stage's size (the measured bottleneck).**
+
+M5's landing 1 cuts layer 2 under 20 rows from 40 deep stations, all installed by module 0's sill, with their whole
+floor graph published at once and live for the whole stage; landing 2 does the same for 30. Measured: module 0's
+sill 1.70 M checks in the bindings and 1.57 M in Locations; landing 1's floor graph publication 3.33 M in
+WorldRoutes; landing 1's deep phases about 1.10 M (WorldRoutes) and up to 1.82 M (Locations); module 1's sill
+1.95 M and 1.97 M; landing 2's floor graph 3.81 M and Locations 2.28 M. A full ground compile's cost also grows with
+the image (10,000 checks a profile at 423 volumes, 15,300 at 654), so fewer live edges help but do not by themselves
+stop later landings from growing. The bound is 1.05 M and is not to be raised (ruled).
+
+- **(a) Batch the deep floor graph, as the work area batches the surface stations (ADR 1229): the stair path and
+  foreman (claimed) publish only the next batch's stations' walks (for example four rows, eight stations), joined
+  when its first cut opens and retired with the batch after it; the strips stay as staged.** This bounds the live
+  ground edges and the publication spike by the batch, not the stage. It leaves the 47 Locations the sill creates
+  (they are installed contacts of the sill; creating them mid-stage needs an issuer no claim has, as P-2044-12
+  found), so Locations' witness work and the sill's own operation still need their exact fixes in the claimed
+  Locations functions and bindings (P-2045-6). To be measured before it is relied on.
+- (b) As (a), and also move the deep stations out of the sill's installed contacts into per-batch Locations,
+  through a new Placements transaction (outside the claims, several hundred lines, like P-2044-12 (b)).
+- (c) Re-plan the dig so no landing cuts more than one module's rows at a time: not available; layer 2 of rows 12–26
+  can only be struck from depth 1 (2043 §3).
+
+**Recommendation: (a), with P-2045-6**, measured landing by landing; **if Locations still cannot fit at landing 1
+or 2 with (a) and P-2045-6 built, the lane stops and asks for (b)**, which is the change that bounds Locations by
+the batch too.
+
+**P-2045-6 — Exact cost fixes in claimed code for the sill and Locations (no new clearance; for the record).**
+
+- **(a) Continue under P-2044-15's "Exact cost fixes" in the claimed files: one Region pass for an installation's
+  contact air in the bindings (a per-contact candidate list instead of a Region scan per contact; a fixed scratch,
+  a ledger row), the strips' staging, and in the held Locations functions the landing counts outside a witness pass
+  (`_installed_landing_count` under `stage_refresh`'s per-record refresh) — each proved like §3 and measured on the
+  mount.**
+- (b) Stop at P-2045-5 (a) and re-measure first.
+
+**Recommendation: (a)**, built together with P-2045-5 (a) and re-measured module by module; if a landing still
+cannot fit, the lane stops again with the numbers.
+
+## 8. Gates this round
+
+Phase 1 only (no suite-wide gates; the build phase runs them):
+
+- `test_underground_world_routes.gd`, `test_underground_entry_bindings.gd` and `test_underground_stair_carry_routes.gd`
+  pass with fixes 1–3; `test_underground_route_memos.gd` failed one test (the cache-checks confirmation then observed
+  the endpoints and left a different endpoint record than an unchecked run), fixed by confirming with the segment
+  proof only, then 29/29. After fix 4: `test_underground_entry_bindings.gd` and `test_underground_m5_entry_costs.gd`
+  54/54. 0 unexpected errors or warnings, 0 leaks in each.
+- The analyzer (`tools/gdscript_warnings.py --max 0 --port 6505`): 0 warnings in 1,638 files. No function this
+  round added is over 30 lines, and none of the two edited files gained one.
+- `docs/validation/state_registry_coverage.py` PASS (206 modules, 847 rows).
+- `test_publish_m5_flight.py` 10/10 (the M5 bundle unchanged).
+- The M5 chain with the cache checks on, through module 0: no `RUNTIME_CACHE_STALE`.
+
+## Source
+
+Decision 2044 (claims, P-2044-1 to -17, the M2 measurements and Slice C's cautions); 2043 §3 (M5's geometry and dig
+order); 1972 "Phase 3b"; 1953 §6 (stage 1's caches); decision 1990 (C3's seam, for awareness: D2 fills it). The
+coordinator's brief and Slice C's answers of 2026-10-19. Measurements: `scratchpad/m5r/` (logs `a1`–`a3`, `b1`–`b2`,
+`u1`–`u5`, `v1`), from the clones `m5a`, `m5b`, `m5u` and `m5v`.
+
+## Build phase (2026-10-19): built, re-measured, and stopped under the P-2045-5/-6 ruling
+
+The rulings' stop condition holds: **after P-2045-5 (a) and P-2045-6 (a), WorldRoutes (at module 0's sill) and
+Locations (from module 0's sill on) still cannot fit `Space.MAX_CHECKS`.** The lane stops here, before (b) (the
+Placements transaction) and before the census pass, the full gates and the frames, which wait for a chain that
+reaches level 1. Two non-budget stops were found past the bound as well: one is fixed, one is a design gap.
+
+### Built
+
+| Commit | What |
+|---|---|
+| `e0f01b30` | The rulings, here and in `docs/handoff/RULINGS.md` |
+| `ada355ea` | **P-2045-1** `BINDINGS_AND_GROWTH_BYTES` 547,423 (+22,879). **P-2045-2** the journal's `_row_changed` compares the owner slot and generation; `test_underground_geometry_journal_owner.gd` (4 tests: unchanged row, reused slot with a new owner slot, a new owner generation, box/role/presence still count). **P-2045-3** Locations `restore_state_bytes` forgets the kept prisms first; `test_a_restore_re_derives_kept_prisms_and_spends_as_a_fresh_load` (an in-place restore with prisms kept, and kept boxes that no longer match, spends exactly what the same restore spends with nothing kept, and re-derives the prisms). `restore_state_bytes` refuses while an operation is open, so "mid-preparation" is between two preparations of a running entry |
+| `ba11e40c` | **P-2045-5 (a)**: the deep floor graph is joined a block at a time (stair path `floor_block`, `floor_missing`, `_floor_pairs(…, row)`, foreman `_open_deep_floor`): D to the landing row's column-1 station, one straight walk down the column-1 spine to the block's nearest row (over the spine strips), and the block's own spine and crossings; a block's walks leave with its stations (`retire_row`). **P-2045-6 (a)**: the bindings' Region scans read a row's z extent first (`Z_READ_CHECKS` 2 of a box read's 12) and the rest only when it meets the tested bounds (`_z_misses`): the contacts' air, the part clearance and staging, the natural rows and installed bearings, the workpiece air and foot, the support residual and the datum lookup |
+| `4fb4c06f`, `1af18805` | **P-2045-6 (a)** in the held Locations functions: a Placement row's LANDING datums are kept for the open Locations operation (its token) as well as a witness pass, keyed also by the Catalog revision, and sorted by (level, low z) so a record compares only its own (`_landing_scope`, `_order_landings`, `_landing_order_key`, `_landing_sorted`, `_checked_landing_count`, `_scanned_landing_count`); with the cache checks on a kept count is compared, unspent, with the per-record scan. Registry rows updated |
+| `506b44e1` | **P-2045-4 (a)**, after Slice C's question: an observation answered from stage 1's in-compile memo is charged `ANSWERED_OBSERVATION_CHECKS` (51: both kept keys compared, one record copied) instead of 256. **The cases, measured:** over the preparations above 600,000 checks, 157,668 observations were answered and 62,725 observed live; module 0's sill requalification answered 263 (67,328 checks charged for them, about 13,400 of real work) and observed 88; landing 2's block publications answered none (every observation was a first one). The memos differential (29/29, every short budget) stays green; the save/load parity re-runs with the census pass |
+| `dff8923f` | The M2-pinned suites on the mounted M5 bundle: the work area (59 Locations, 301 endpoints), the handling certificates and bundle source (`qualified-stairs-m5-v1`), the first-prefix fixture's Sites (160) |
+| `1b591b60` | **Stop 1 fixed** (`_haul_or_climb`, foreman): a phase short of inputs on a deep floor walks the crew up to X on its own legs under the phase's BUILD Job, turning as it goes, and hauls from there; every leg's end re-checks. **Two-row floor blocks**: four rows took landing 2's first block to 1,291,518 checks; two take it to 864,051 |
+| `ad7d3723` | origin/master `1b71992b` merged (#275 M2, #276, #277); no conflicts; the focused suites (259 tests) pass after a fresh import. Generated files are regenerated in the census pass |
+
+Built and removed again (not committed): taking a ground row at the crew's current heading before a turn, for the
+U0' stop below. Every candidate (approach 45, retreat 49, the all-yaw walk 42) is refused there with
+`WORLD_ROUTE_ENDPOINT_BODY`, so it changed nothing.
+
+Focused suites after each step: 0 failures, 0 unexpected errors or warnings, 0 leaks. The cache checks (every test
+run) found no `RUNTIME_CACHE_STALE`.
+
+### Re-measured, every landing reached (cache checks off)
+
+Bounded is today's `Space.MAX_CHECKS`; unbounded is the scratch clone with the bound lifted (real spend). "M stocked"
+runs fed M directly so that no phase hauls, as in §4.6; the others ran the real haul.
+
+| Point | WorldRoutes | Locations | Bindings entry | Bindings timber |
+|---|---:|---:|---:|---:|
+| Module 0 before its sill (to tick 30,000) | ≤ 573,472 | ≤ 414,000 | ≤ 542,447 | ≤ 231,669 |
+| Module 0's sill (tick 34,927) | **1,691,368 (161 %)** | **1,108,077 (106 %)** | 956,047 (91 %) | 403,812 |
+| Landing 1, two-row blocks | 590,822 – 610,838 | **1,091,580 – 1,304,088** | — | — |
+| Module 1's sill (M stocked) | 557,940 | **1,397,555** | 969,679 (92 %) | 398,387 |
+| Landing 2, two-row blocks (M stocked, to tick 50,300) | 780,725 – 865,311 | **1,258,989 – 1,629,919** | — | — |
+| Modules 3 and 4 | not reached (below) | | | |
+
+Before this phase the same points were: the sill 1,745,283 / 1,565,004 / 1,704,420; landing 1's floor graph
+3,331,208 / 1,816,683; module 1's sill 627,407 / 1,972,180 / 1,953,599; landing 2's floor graph 3,808,940 /
+2,275,188. The batching took every landing's WorldRoutes peak under the bound; the bindings now fit with 8 % to spare.
+
+**First refusal, bounded:** tick 34,927, module 0's sill (task 150 of stage 2), WorldRoutes
+`WORLD_ROUTE_CHECK_CAPACITY` in the installation's route requalification (`_stage_timber_routes`). Of its 1.69 M,
+770,048 is `_preparation_refusal`'s source pass, charged twice for each of the 44 old edges the sill's staging
+does not let carry (29 ground, 15 stair), and most of the rest is those edges' full proofs.
+
+**Where Locations still spends** (landing 2, the traced window): outside the held functions, the per-record scans of
+every Placement slot in `_installed_record_kind` and `_installed_surface_site` (with their source charge, 1,024
+outside a witness pass), and `_record_geometry_refusal`'s `_covered` and `_record_obstacles_refusal`; together about
+70 % of each witness pass and refresh. The held functions' remaining share (`_natural_floor_site`'s two Site
+lookups, the landing counts) is about a fifth: no fix inside the claims can bring 1.63 M under 1.05 M.
+
+### Non-budget stops
+
+1. **Fixed: a haul from a deep floor** (`1b591b60`). Landing 1's stage runs through with the real haul.
+2. **A design gap: climbing up through a landing.** A crew coming up module j arrives at U0' (landing j) facing up
+   the flight; the way on up (P-2044-16 (a): U0' → F' backing on the retreat 47, then 72, 55 and the ascent) needs it
+   to face down. Routes turns only a ground actor (`ROUTE_TURN_PROFILE`: the crew still carries the stair's family),
+   and no ground row at its heading fits U0''s air (approach 45, retreat 49 and the all-yaw walk 42 are each refused
+   `WORLD_ROUTE_ENDPOINT_BODY`). M2 never climbed through a landing. Every later module needs it: module 2's T0''
+   installer (tick 49,454 earlier) and landing 2's hauls (tick 50,336) both stop here. **This is §4.6's stop 2.**
+3. **New: `STEP2_ACTIVITY_FORBIDS_WORK`** at tick 45,414 in the real-haul run, when T0''s order was committed at X:
+   the crew's schedule forbade work. The whole flight now spans days, and the entry runtime ends the chain on this
+   refusal although its gap text says it waits for a work hour (`underground_entry_runtime.gd`, the C2 follow-up's
+   file). The M-stocked runs, whose timing differs, did not meet it.
+
+### Everything else needed outside the claims (one list)
+
+| # | File and function | Why | Proposal |
+|---|---|---|---|
+| O-6 | `underground_world_routes.gd` `edge_refusal` / `_preparation_refusal` (Slice C) | The prepared source and claim pass is charged before and after every uncarried edge (2 × `SOURCE_PASS_CHECKS`); module 0's sill pays 770,048 of its 1.69 M for it. Charged once per preparation, with the cache checks re-running it per edge unspent, the sill would be about 0.92 M. Needs Slice C to confirm no callback inside a preparation can change source or claim truth | P-2045-7 |
+| O-7 | `underground_locations.gd` `_installed_record_kind`, `_installed_surface_site`, `_record_geometry_refusal` (`_covered`, `_record_obstacles_refusal`) (Slice C hold) | The per-record scans above; exact fixes of the same kind as §3 (find the record's Room's Placement rows once per pass or operation, keyed like the kept prisms; the z-first Region read) | P-2045-8 |
+| O-8 | Data and paths in the claims, but a design choice: the M5 bundle's U0' stop and the stair path's up-route | Climbing through a landing | P-2045-9 |
+| O-9 | `underground_entry_runtime.gd` (the C2 follow-up's) | `STEP2_ACTIVITY_FORBIDS_WORK` should wait, as its gap text says, not end the chain | P-2045-10 |
+
+### Proposals
+
+**P-2045-7 — The route requalification's source pass.**
+- **(a) Clear `edge_refusal`/`_preparation_refusal` to prove the prepared source and claim pass once per
+  preparation and charge it once, re-running it per edge, unspent, under the cache checks.** Exact if nothing inside a
+  preparation can change source or claim truth, which Slice C confirms first.
+- (b) Leave it, and spread the sill's staging so fewer old edges lose their carry (not exact: it changes what the
+  sill stages).
+
+**Recommendation: (a).**
+
+**P-2045-8 — Locations' per-record scans.**
+- **(a) Clear the three Locations functions for exact fixes of §3's kind, measured landing by landing.**
+- (b) The Placements transaction (P-2045-5 (b)): deep stations' Locations per batch, so fewer records are witnessed
+  at once. Larger, and the scans per record stay.
+
+**Recommendation: (a)**; (b) only if (a) does not bring landing 2 under the bound.
+
+**P-2045-9 — Climbing up through a landing.**
+- **(a) Re-size U0' (the M5 publisher, the clearance test) so that the all-yaw walk 42 fits there, then turn at U0'
+  on 42 before the retreat 47.** The clearance test decides first whether the body clears module j−1's sill and
+  module j's T0 (42's ±712 u body reaches about 480 u past the sill's far edge, with T0's deck below the floor).
+- (b) Keep each landing's hub D as a lasting stop (today it retires with T0's last leg) and route the way up through
+  it on 42 (U0' → D, a turn at D, D → F' on 47). It needs the same fit at U0' for the first walk.
+- (c) Qualify a rooted half-turn from facing up to facing down on a landing floor: new motion, which is ruled out.
+
+**Recommendation: (a)**, proved by the clearance test before any runtime change; if the body does not clear, stop
+with the numbers.
+
+**P-2045-10 — The schedule refusal ends the chain.**
+- **(a) The C2 follow-up's owner (or this lane, cleared) makes the entry runtime wait on
+  `STEP2_ACTIVITY_FORBIDS_WORK`, as its gap row says.**
+- (b) The whole-flight suites hold the crew's schedule open as they hold its needs (a stand-in only).
+
+**Recommendation: (a)**, with (b) for the suites until it lands.
+
+### Gates
+
+Not run: the census pass, the full sharded suite and the frames wait for a chain that reaches level 1, per the
+brief. The focused suites, the registry coverage, the decision numbers and the source pins pass on `ad7d3723`; the
+analyzer (port 6505) reports 0 warnings in 1,660 files once the journal test's duck-typed fixture fields are
+annotated.
+
+## Brendan's rulings on P-2045-7 to -10 (2026-10-19/20)
+
+Relayed by the coordinator: Brendan answered in chat through AskUserQuestion; every ruling is the recommended (a).
+Slice C cleared every function involved, with conditions.
+
+| Proposal | Ruling | What it means, with Slice C's conditions |
+|---|---|---|
+| P-2045-7 | **(a)** | WorldRoutes `edge_refusal` and `_preparation_refusal` are held for this lane. **Built as Slice C designed, not as a bare "charge once":** charging once while still scanning every time would undercount real work, and the bound is also the worst-case stall ceiling. So the repeated scan itself is skipped: `prepared_identity_refusal` (cheap) still runs on every call; the source and claim pass (`SpaceOwner.prepared_refusal`'s `_sources_refusal(true)` and `_claims_refusal(true)`) is memoised once per preparation, keyed on the Space owner's source and claim columns (as `prepared_has_changes` reads them), charged once plus the key compare; under the cache checks every skipped pass also runs in full and a difference is reported. The bracket around `_compile_edge` keeps its meaning, because real drift forces a rescan. This is the ruled "charge once", done honestly. **The memo's key is recorded below for phase-spreading stage 2** |
+| P-2045-8 | **(a)** | `_installed_record_kind`, `_installed_surface_site` and `_record_geometry_refusal` are free for exact fixes only, proved under the cache checks. Slice C's multi-heading lane edits Locations `_rebuild_allocation` (FRONTIER_HEAP_WORDS sizing): **not touched here**; a need for it stops the lane. The Placements transaction stays a fallback, asked for before it starts |
+| P-2045-9 | **(a)** | U0' is re-sized so the all-yaw walk 42 fits there and the crew turns; the clearance test is written first |
+| P-2045-10 | **(a)** | In `underground_entry_runtime.gd` (held by this lane), `STEP2_ACTIVITY_FORBIDS_WORK` waits for a work hour instead of ending the chain; decision 1940's finished-crew walk-out and alert path stay intact; a test on a real schedule shows a wait across a rest hour resumes and does not restart. The suites may hold the crew's schedule open as they hold its needs |
+
+Then: re-measure every landing (modules 3 and 4 included), reach level 1, the census pass and regeneration after the
+merge, the full sharded suite (every suite under about 8 CI-minutes), frames; stop and report. A cold operation that
+still cannot fit stops the lane with its numbers. Indexed in `docs/handoff/RULINGS.md`.
+
+## Second build phase (2026-10-20): every cold operation fits; stopped at the U0' clearance test
+
+**Where it stands.** With P-2045-7, -8 and -10 built, **every cold operation fits `Space.MAX_CHECKS` through
+landing 2**, on a real schedule with real hauls. The chain then stops where the crew must climb up through landing 1
+(§"Non-budget stops" 2). **P-2045-9 (a) as ruled fails its clearance test**: the all-yaw walk 42's footing at U0'
+reaches 63 u past the floor that is never cut. The lane stops here and reports, as the ruling asks for a failing
+clearance test. The census pass, the full sharded suite and the frames still wait for a chain that reaches level 1.
+
+### Built
+
+| Commit | What |
+|---|---|
+| `5f263c92` | The rulings and Slice C's conditions, here and in RULINGS.md |
+| `45acb7fc` | **P-2045-7 (a), Slice C's design.** `_preparation_refusal` proves the prepared source and claim pass once per route preparation and keeps it under `_prepared_key`; while the key holds the scan itself is skipped and only `PREPARED_KEY_CHECKS` (9) is charged; `prepared_identity_refusal` still runs on every call (in `_carried_context_refusal`); with the cache checks on, a skipped pass runs in full and a refusal reports `RUNTIME_CACHE_STALE` ("prepared pass"). This is the ruled "charge once", done honestly: the work the bound charges is the work done. **The memo's key, for phase-spreading stage 2:** `[route token, Space token, SpaceOwner._stage_token, _s_header[17] (staged geometry revision), _header[17] (live geometry revision), _changed_count, _install_row, _room_row, _furniture_count]` (the last three are the pass's typed transitions). Registry row added. Test: `test_a_preparation_proves_the_prepared_pass_once_while_its_key_holds` (a repeat charges the key compare; a changed key scans again; source drift the key cannot see is reported by the cache checks) |
+| `07b33ba7` | **P-2045-8 (a).** `_installed_record_kind` and `_installed_surface_site` visit present Placement rows only (`_next_placement`: the next present row found natively when the presence column is 0/1, else every row as before), so the 255 empty slots of `MAX_PLACEMENTS` are never visited or charged; the same rows in the same order. `_record_geometry_refusal` needed no change. `_rebuild_allocation` was not touched |
+| `4c60233b` | **P-2045-10 (a).** The refusal came from inside one tick: the installer's climb off a landing, and the foreman's climb before a haul, arrive at X holding a Job and in the same tick release it for a HAUL Job, which Jobs refuses in a rest hour. The runtime already waits a crew that holds no Job (`_crew_ready`), so the wait is placed where the commitment is made: both now wait at X, still holding their Job, until the hour permits work. The entry runtime and decision 1940's walk-out are unchanged. **Deviation from the ruling's file:** the change is in the installer and foreman (both held by this lane), not `underground_entry_runtime.gd`, because the runtime never sees the refusal before the foreman has failed |
+| (this commit) | `test_underground_m5_rest_wait.gd`: on a real schedule (needs and R's stock sustained, the schedule not), the chain reaches X in a rest hour at tick 45,414, waits there holding the order's Job, and the same order goes on after the rest hour; the chain keeps running. **1 test, 0 failures, but 1,012 s in a focused run**: over CI's shard guard (about 8 minutes). It goes in the slow tier now and must start from an ADR 1240 checkpoint near tick 45,000, which the census and regeneration pass adds once the chain reaches level 1 |
+
+### Re-measured (cache checks off, today's bound, real schedule, real hauls)
+
+| Point | WorldRoutes | Locations | Bindings entry | Bindings timber |
+|---|---:|---:|---:|---:|
+| Module 0 before its sill | ≤ 573,472 | ≤ 414,000 | ≤ 542,447 | ≤ 231,669 |
+| Module 0's sill (tick 34,926) | **963,081 (91.8 %)** | 643,977 | **956,047 (91.2 %)** | 403,812 |
+| Landing 1 (40 cubes) | ≤ 590,822 | ≤ 732,888 | — | — |
+| Module 1's treads and sill (to tick 50,011) | 397,857 | 820,745 | **969,679 (92.5 %)** | 398,387 |
+| Landing 2 (to tick 51,157; M stocked: to 51,775) | ≤ 812,438 | **≤ 919,999 (87.7 %)** | — | — |
+| Modules 3 and 4 | not reached | | | |
+
+The bounded chain completes module 1 (plans stage 4 at tick 50,011) and stops at tick 51,157 on landing 2's first
+haul climb, at landing 1's U0' (`ROUTE_TURN_PROFILE`). The M-stocked run stops at the same place for module 2's T0''
+(tick 51,775). Neither is a budget refusal.
+
+### P-2045-9 (a): the clearance test, written first, fails
+
+The test (kept in `scratchpad/m5r/test_landing_clearance_u0_42.py`, not committed, since it fails) sizes U0' by the
+all-yaw walk 42 and checks it at every landing on M2 and M5:
+
+- **42's body at U0' clears every installed part**, at every landing, and holds the retreat 47's and the approach 45's
+  bodies: the turn's air is there.
+- **42's footing does not stand on floor that stays:** its stance reaches 406 u downhill, to z −7,231 on landing 1, and
+  the deck rows that are never cut end at −7,168: **63 u over module j's first row**, which layer j + 1 cuts and
+  where T0 then sits 128 u below the floor. The same 63 u at every landing.
+- **The turn cannot use a smaller footing.** Routes turns only an actor on an all-yaw selection
+  (`_turn_actor_leaf`: `ROUTE_TURN_UNCERTIFIED` otherwise), and the turn proof requires that selection's whole
+  footing inside the stop's support (`_turn_body_leaf`). Only 42 is all-yaw. U0' sits where module j's ascent ends, so
+  it cannot move.
+
+**Where a 42 turn does fit** (the same scan, every landing): on the centre line from D's point (63 u uphill of U0')
+to 418 u further uphill (landing 1: z −6,762 to −6,344), clear of every installed part, T0 and its bearer included,
+with the footing on the deck rows.
+
+### P-2045-11 — Climbing up through a landing (for the coordinator and Brendan)
+
+- **(a) A turning stop R' on each landing (an installed contact of module j's T0, published with it), at D's point,
+  sized by 42; U0' sized by the approach 45 (the heading a crew arrives with) instead of the retreat 47; the way up
+  becomes U0' → R' on 45 (63 u, facing up), a turn at R' on 42, then R' → F' on 47 and on as today (F' → F on 72,
+  F → U on 55, the ascent).** Data in the publisher (a new stop per landing, U0''s sizing, the joins), the stair path's
+  up-route and the clearance test first; no new motion. R' cannot stand while the landing's deep stage runs (D and the
+  deep stations hold that air until T0's bearer is set), so it is published with T0, as U0' is.
+- (b) A rooted half-turn from facing up to facing down on a landing floor: new motion, ruled out.
+- (c) Retain floor under module j's first row's top 63 u (a deck over the cut): it is cut for layer j + 1 and T0
+  stands in it, so there is no floor to keep.
+
+**Recommendation: (a)**, with its clearance test (R' and both joins clear of every part, every body inside its stops'
+air, every footing on the deck rows) before any runtime change. A first pass of that check with the clearance
+test's own helpers already holds on M2 and on every M5 landing: 45 at U0' and swept U0' → R', 42 at R' and 47 swept
+R' → F' meet no part; 45's footing at U0' ends 94 u inside the deck rows and 42's at R' exactly on their edge; 45's
+body lies inside 42's air.
+
+## Brendan's ruling on P-2045-11 (2026-10-20)
+
+Relayed by the coordinator: Brendan answered in chat through AskUserQuestion.
+
+| Proposal | Ruling | What it means |
+|---|---|---|
+| P-2045-11 | **(a), the turning spot R'** | On each landing j ≥ 1, R' stands at D's point, is sized by the all-yaw claw walk 42 and is published with module j's T0 (an installed contact of T0, as U0' is). U0' is sized by the approach 45. The way up is U0' → R' on 45, a turn at R' on 42, then R' → F' on 47 and on as before. No new motion. **This supersedes P-2045-9** |
+
+**P-2045-9 (a) is recorded as failed:** its clearance test, written first, showed the all-yaw walk 42's footing at U0'
+running 63 u past the floor that is never cut (to z −7,231 against the deck rows' edge at −7,168 on landing 1; the
+same at every landing), and a Routes turn needs an all-yaw selection with its whole footing on support. The clearance
+test for R' (R', U0' on 45 and the three edges U0' → R', R' → F' and the turn, on M2 and every M5 landing) is
+committed before anything is built. Indexed in `docs/handoff/RULINGS.md`.
+
+## Third build phase (2026-10-20): R' built, level 1 reached past the bound, stopped on WorldRoutes
+
+**Where it stands.** With R' (P-2045-11 (a)) and the fixes below, **the M5 flight reaches level 1** (the chain ends
+`ENTRY_KITCHEN_UNBUILT`, the step after the flight, at tick 92,560) **only with the bound lifted**. With today's bound
+the chain stops at tick 67,863 on landing 3 (`SPACE_COMPANION_PREPARATION_REFUSED`, WorldRoutes 1,050,600 of
+1,048,576). Locations now fits through module 3's sill and goes over on landing 4. As the brief says ("if anything
+still blocks level 1, stop and report the numbers"), the lane stops here: the census pass, checkpoints, the sharded
+suite, mutation testing, the review and the frames wait for a chain that reaches level 1 under the bound.
+
+### Built
+
+| Commit | What |
+|---|---|
+| `66a2561a` | R''s clearance test, written first: R' clears every installed part on M2 and every M5 landing; U0' sized by 45; the edges U0' → R' (45), the turn at R' (42) and R' → F' (47); and the failing case kept as a test (`test_the_all_yaw_walk_cannot_stand_at_u0`, 63 u) |
+| `8e71ad9f` | R' on each landing: the publisher writes **`qualified-stairs-m5-v2`** (bundles are create-only; `qualified-stairs-m2-v1` is unchanged), the three compositions load it, the stair path's way up is U0' → R' → F', `BINDINGS_AND_GROWTH_BYTES` +160 B with its ledger row, 305 contact-retirement endpoints |
+| `aa8b3f83` | A crew on a yaw-exact row takes the all-yaw walk 42 before it turns (`_all_yaw_before_turn` in the foreman, `_face_and_travel` in the installer); Routes turns only an all-yaw selection |
+| `fb37ffff` | The installer's legs count as progress for the stall budget (module 3's T0 haul has many legs and was failing `ENTRY_FOREMAN_STALLED` while moving) |
+| `2ed939f6` | **P-2045-8 (a), continued.** Locations keeps an operation's installed-source verdict outside a witness pass (`_sources_key`, twelve words, `SOURCES_KEY_CHECKS` 12); verified in full under the cache checks |
+
+### Re-measured: the whole flight (cache checks off, real schedule, real hauls)
+
+Peaks per interval, in checks. Bounded: today's `MAX_CHECKS`; unbounded: the bound raised in a scratch clone only.
+
+| Interval (ticks) | WorldRoutes | Locations | Bindings entry | Bindings timber |
+|---|---:|---:|---:|---:|
+| Module 0's sill (34,926) | 963,081 | 503,309 | 958,095 | 404,068 |
+| Landing 1 (to 50,000) | 590,822 | 592,220 | 424,966 | 262,890 |
+| Module 1's sill (50,011) | 413,571 | 652,548 | 971,519 | 398,651 |
+| Landing 2 (to 65,000) | 812,438 | 752,961 | 471,687 | 278,324 |
+| Module 2's sill (65,009) | 637,618 | 814,649 | 904,999 | 377,238 |
+| **Landing 3** (to 78,000) | **1,085,695** (bounded: refused at 1,050,600, tick 67,863) | 926,564 | 504,897 | 270,249 |
+| Module 3's sill (78,135) | 905,023 | 987,176 | 761,886 | 333,662 |
+| **Landing 4** (to 90,000) | **1,395,013** | **1,110,593** | 558,118 | 287,839 |
+| **Module 4 and level 1** (to 92,560) | **1,212,854** | **1,148,976** | 560,599 | 306,960 |
+
+The source memo (`2ed939f6`) took Locations from 1,431,324 to 1,148,976 at the end (−20 %), and from 1,028,181 to
+814,649 at module 2's sill. WorldRoutes is unchanged by it.
+
+**What WorldRoutes spends past landing 2.** Its profile proofs scan every row of the route image, which grows with
+every installed part: about 423 checks per profile on landing 1, 654 on landing 2, 877 on landing 3 and 1,100 on
+landing 4. On landing 4's worst tick (1,087 image volumes): the carried ground edges 791,823 (101 edges; rows 43
+and 47 never carry, `_may_excuse_pending`), 4 recompiled ground edges 414,739 (16 profiles), stair edges 83,919,
+eligibility 39,490. The bounded run's last traced recompile (875 volumes) spent 921,612 on 10 ground edges'
+40 profiles. The scans are in Clearance (`blocked`, `subtract_role`, `_body_blocked`, `_solid_contacts_covered`),
+outside the six functions held for this lane. Locations' remaining spend on landings 3 and 4 is `_covered` and
+`_record_obstacles_refusal` in each record's stage refresh, both of which scan every image row.
+
+### The independent review, and what changed after it
+
+A code-reviewer agent reviewed the production changes above against Slice C's conditions. It found the index's order
+(C1) and candidate test (C2) correct, and the Contacts and marker changes sound. These were fixed:
+
+- **H1 (condition 3), Locations.** `_index_record_image` charged one check a row before the obstacle scan, so a
+  record whose first row blocks could run out of budget where master refused with `LOCATION_ENVELOPE_BLOCKED`.
+  - **Fixed:** the near rows are kept by `_record_obstacles_refusal`'s own scan, which master already pays for
+    (`_begin_near`, `_keep_near`). So the obstacle scan costs exactly what it did, with the same early exits and
+    codes, and `_covered` never costs more.
+  - The rows are kept in `_near`, sized once at configure (`NEAR_ROWS` 8,192 int32, the review's M2), so no array
+    is allocated per record. They are retained bytes now: the cold formula is back to 88 bytes a region (the
+    review's M1, Placements' copy agrees again).
+- **H1 (condition 3), WorldRoutes.** A lookup's band words could cost more than the full scan's rows.
+  - **Fixed:** before any work, a lookup whose band words plus band rows (`_band_prefix`) could reach the image's
+    row count scans every row at master's one check a row. So no scan costs more than master's.
+  - `subtract_role` now selects by the box `start` was given (every fragment lies inside it), at no cost, instead
+    of charging a hull.
+  - **What remains, for Slice C:** the one build per image (one check a row, a band word each, a band a row spans).
+    A proof whose master run ends within that build's cost of the bound (about 4 checks a row, roughly 5,000 at
+    1,300 rows) could now refuse where master answered. Condition 4 (charge the build honestly) and the strict
+    reading of condition 3 cannot both hold for that margin. This lane recommends accepting it. The measured peaks
+    show the index saving 0.75 M checks where master was over the bound.
+- **H2 (condition 4).** An uncharged checked rerun (the heading-first check, the carried stair decks and bodies)
+  could build the index, after which the budget was put back and the next charged scan used the index for free.
+  **Fixed:** those sites take `index_mark()` and `index_rewind()` it with the budget, so a checked run pays for the
+  build where an unchecked one does.
+- **LOW.** The band width is integer arithmetic (no float). A failed bulk spend leaves `remaining` above zero where
+  master's row-by-row spend ends at zero; the error and the answer are the same.
+
+Also found and fixed in this pass: `start()` wrote the new query box on the bindings' `TimberClearance`, which has
+none. This was a script error, caught by the regenerated checkpoints and the bounded run. Now only an indexed proof
+keeps it.
+
+**After the fixes:**
+
+- The bounded flight again ends `ENTRY_KITCHEN_UNBUILT` at tick 92,560, with the peaks above.
+- The ledger row is **+56,695 B**: the bindings reserve +23,039, Locations +33,416 (with the near rows' 32,776), the
+  work area +240. That gives live 106,178,061, headroom 43,821,939 (26,864,499 with decision 1880 folded in), and
+  slice G's remainder 3,599,219.
+- WorldRoutes' cold lease is 447,492.
+
+**The SHA trace and the marker.** The dig benchmark's trace stays byte-identical through `6a4ba075`. From the
+marker fix (`4d5c79c3`) on, it differs from the entry run's tick 1,488 onwards. The foreman saves and hashes
+`_last_install_stage`, and that value is now packed differently. The checkpoints' points fall on the same ticks.
+A trace of today's head with only the old packing put back (a scratch copy) is byte-identical to `47d0a115`'s, all 11,454 lines. So every change in this round except the marker's packing leaves the room loop and the entry run byte-identical, the review fixes included.
+
+### Everything needed outside the claims (this phase)
+
+| # | File and function | Why | Proposal |
+|---|---|---|---|
+| O-10 | `underground_world_routes.gd` Clearance: `blocked`, `subtract_role`, `_body_blocked`, `_solid_contacts_covered` (Slice C) | Per-profile cost grows with every installed part; landing 3 is over the bound | P-2045-12 |
+| O-11 | `underground_world_routes.gd` `_may_excuse_pending` (Slice C) | Rows 43/47 re-prove in full on every requalification | P-2045-12 (b) |
+
+### Proposals
+
+**P-2045-12 — WorldRoutes past landing 2.**
+- **(a) A z-ordered index over the route image's rows (sorted by box z-low, with a running maximum of z-high), so the
+  four Clearance scans visit only rows whose z-range meets the profile's swept box, charged per row visited plus the
+  binary search.** Exact: the same rows are tested and every skipped row is provably disjoint in z; under the cache
+  checks the full scan runs too and a difference reports `RUNTIME_CACHE_STALE`. The deep landings are 1,024 u apart,
+  so a profile on landing j meets about one landing's parts, roughly landing 1's per-profile cost at every landing
+  (an estimate, not measured).
+- (b) Let rows 43/47 carry when nothing their pending excuse reads has changed (the excuse's inputs in the carry key).
+  Landing 3's carried 43/47 proofs are 401,835 of its peak.
+- (c) Stop at M3 (three modules) until (a) lands: not a fix, and it changes the flight Brendan ruled.
+
+**Recommendation: (a)**, Slice C's code, with (b) if (a) leaves landing 4 within 10 % of the bound.
+
+**P-2045-13 — Locations on landing 4 (1,110,593 / 1,148,976).** Within P-2045-8 (a)'s clearance
+(`_record_geometry_refusal`): the same z-ordered read for `_covered` and `_record_obstacles_refusal`, or scope them to
+the record's landing as `_landing_scope` does the datums. Not built this phase, because WorldRoutes stops the chain
+first and the brief says stop. **(a) Build it in this lane alongside P-2045-12 (a); (b) wait for P-2045-12 and
+re-measure first.** Recommendation: (a).
+
+### The flight's ticks by kind (for decision 2081, the pacing study)
+
+Brendan's pacing ruling (2026-10-20, relayed): the whole stair, Confirm to level 1, should take 30–60 real seconds at
+1x, about 900–1,800 ticks. Nothing in this lane changes for it yet. Measured on the unbounded run (`2ed939f6` plus
+the scratch bound lift): **92,559 ticks**, about 51 real minutes at 1x. Each tick is classed by the stage the crew
+ended it in (foreman, installer, hauler) and whether the worker moved. A **rest wait** is a tick standing in a rest
+hour at a resting point (a hauler's stand, or X before a haul).
+
+| Kind | Ticks | Share |
+|---|---:|---:|
+| Cube work: WORK ticks (brace 1,645, cut 3,282, finish 2,512) | 7,439 | 8.0 % |
+| Cube work: entering WORK | 4,804 | 5.2 % |
+| Cube work: recovering to READY | 8,009 | 8.7 % |
+| Tread fitting and installs: WORK | 2,934 | 3.2 % |
+| Tread fitting and installs: handling | 2,196 | 2.4 % |
+| Tread fitting and installs: entering WORK | 1,080 | 1.2 % |
+| Tread fitting and installs: recovering | 3,474 | 3.8 % |
+| Hauls: walking (approach, to source, carry, home) | 6,622 | 7.2 % |
+| Hauls: lift and set down | 2,502 | 2.7 % |
+| **Walks and climbs: moving** | **41,328** | **44.7 %** |
+| Walks and climbs: standing (turns in place, leg ends, route waits) | 7,499 | 8.1 % |
+| Rest waits: at a haul stand | 2,966 | 3.2 % |
+| Rest waits: at X before a haul (P-2045-10) | 1,298 | 1.4 % |
+| Planning and requalification stalls (OPEN stages) | 408 | 0.4 % |
+
+Requalification costs no ticks of its own: the cold operations run inside one tick (their cost is checks, above).
+In all, 7,500 ticks fall in rest hours, and needs are held, not simulated. **By window:** Confirm to the first
+installs (to tick 3,361) 3,360; module 0 (50 cubes and its treads) 31,565; landing 1 (40 cubes) and module 1 15,085;
+landing 2 (30) and module 2 14,998; landing 3 (20) and module 3 13,126; landing 4 (10), module 4 and level 1 14,425.
+Each cube costs about 120–125 ticks of work, entry and recovery. Walking is 45 % on its own, so the ruled 900–1,800
+ticks need the walks shortened or the speed raised, as well as the cubes.
+
+**Timing in this lane's code.** Nothing new assumes a tick count except `test_underground_m5_rest_wait.gd`. It looks
+for the first rest hour the crew meets at X, which is at tick 45,414 today, under a 50,000-tick ceiling. A faster
+flight may never meet one, and the test would then need its own schedule. The foreman's `STAGE_TICK_LIMIT` (1,200)
+was there before.
+
+### Gates
+
+Analyzer on port 6505: 0 warnings in 1,662 files on `2ed939f6`. The focused suites for each commit above passed when
+it was committed. #278 (12 CI shards) is not on master yet; master is `d41269dd`, already merged in. Not run: the
+census pass, checkpoints, the sharded suite, mutation testing, the review and the frames, because level 1 is not
+reached under the bound.
+
+## Brendan's rulings on P-2045-12 and -13 (2026-10-20)
+
+Relayed by the coordinator: Brendan answered in chat through AskUserQuestion, **"Approve both."**
+
+| Proposal | Ruling | What it means |
+|---|---|---|
+| P-2045-12 | **(a), the route-image row index** | WorldRoutes `blocked`, `subtract_role`, `_body_blocked` and `_solid_contacts_covered` read candidate rows from an index instead of every row. Slice C holds the four functions and the index helper for this lane. (b), carrying rows 43/47, is not ruled: it would reverse ADR 1205 / ADR 1217 step 4e |
+| P-2045-13 | **(a)** | The same index for Locations `_covered` and `_record_obstacles_refusal` |
+
+**Slice C's conditions, all to be met:**
+
+1. Candidates are visited in ascending row order, never in index order. `subtract_cover` rewrites the fragment bank
+   row by row, and the order of overlapping rows decides the fragments (count, shapes, capacity refusals).
+2. The candidate test is a superset of `Space.overlaps`' true set, with the same open and closed faces. A fixture puts
+   face-touching rows on the index's boundaries.
+3. Spend: each scan spends one check a row today, and a failed spend means "blocked" in `blocked`/`_body_blocked`
+   and "false" in `subtract_role`/`_solid_contacts_covered`. **The only outcome change allowed is a scan that ran out
+   of budget on master now getting a real answer.** Every master scenario under the bound stays byte-identical: the
+   SHA trace and the checkpoints.
+4. The index is charged honestly: its build once per image plus each lookup's real cost; rebuilt or invalidated on
+   every image change (a new snapshot in `_begin_proof`, and the carry path); its memory a cold slice under ADR 1212.
+5. `_endpoint_observation_refusal`'s real-cost charge comes from the indexed scan, so the memo and a fresh observation
+   spend the same; `test_underground_route_memos.gd`'s differential replay at every budget stays green.
+6. A test still reaches `_pending_span_refusal`'s 4096 spend (only overlapping OBSTACLE rows do).
+
+**Pacing** (decision 2081, separate lane): the per-cube build is later replaced by a batched build with one entry
+time scale. P-2081-9 (a), **"Finish M5, then batch"**: M5 completes as briefed and lands as the exact reference;
+nothing changes for pacing here. Master is `163cf5b3` (#278: twelve CI shards), merged in as `47d0a115`. Indexed in
+`docs/handoff/RULINGS.md`.
+
+## Fourth build phase (2026-10-20/21): level 1 under the bound; a level-1 save does not load
+
+**Where it stands.** With P-2045-12 (a) and -13 (a) built, and one more exact fix in this lane's Contacts code, **the
+M5 flight reaches level 1 under today's bound**. The chain ends `ENTRY_KITCHEN_UNBUILT` at tick 92,560, as the unbounded
+runs did, and every cold operation fits. Outcomes are unchanged: the dig benchmark's SHA trace is byte-identical
+before and after each fix. **But a settlement saved after about tick 78,000 cannot be loaded.** The Space owner's
+load validation checks every changed row against every region, so its charge grows with the square of the regions:
+1,280,969 at tick 80,000 and 1,768,997 at the finish. That code is outside this lane's claims (P-2045-14 below). It
+also blocks the checkpoint-based whole-flight suites from tick 80,000 on, so the lane stops here as the brief asks.
+
+### Built
+
+| Commit | What |
+|---|---|
+| `47d0a115` | Merge of master `163cf5b3` (#278: twelve CI shards). Source pins regenerated; the slow tier keeps both notes |
+| `066e787e` | The P-2045-12/-13 rulings and Slice C's six conditions, here and in RULINGS.md |
+| `1c3d8847` | **P-2045-12 (a).** `Clearance` builds a row index once per proof image: 64 bands over the image's own z range, each a bitset of the rows whose half-open z range meets it (`INDEX_WORDS` 256 bits for `REGION_CAPACITY + SOURCE_CAPACITY` rows). `blocked`, `subtract_role`, `_body_blocked` and `_solid_contacts_covered` visit only the rows the bands select, ascending (`first_row`/`next_row`). `subtract_role` selects by its open fragments' hull, since a row that misses the hull re-emits every fragment unchanged. Only WorldRoutes' own proof turns the index on, so the work face and room approach scan as before. **P-2045-13 (a).** `_record_geometry_refusal` walks the record's image once (`_index_record_image`) and keeps, ascending, the rows that meet the hull of its envelope, support and air. `_record_obstacles_refusal` and `_covered` read only those |
+| `6a4ba075` | **An exact cost fix in this lane's Contacts code** (2044's claim 13: the deep stations' reach). `_legs_refusal` checks a deep station's stair legs (up to about 45 a way on landing 4), and each leg was followed by a `_scope_leaf` (2,048 checks). The leg check (`static_profile_edge_refusal`) is a pure read, and every caller has just passed a scope leaf. So the scope cannot change between legs, and one leaf after the last leg gives the same answer as one after each. With the cache checks on, the skipped leaves run unspent and a refusal is reported. Contacts on landing 4: 1,105,317 → 921,265 |
+| `4d5c79c3` | **Fix:** `fb37ffff`'s installer progress marker overflowed the foreman's saved 32-bit `_last_install_stage` at installer stage 8 and up, so a save mid-haul refused (`ENTRY_SAVE_SHAPE`). It is now packed by width and pinned by a test |
+| `9dd5e805` | **Fix:** the entry progress record's section-6 bound was ADR 1218's 4,591 bytes, though decision 2044 raised `MAX_WIRE_BYTES` to 11,307. M5's 150-task stage could not be saved (`SAVE_S6_ELEMENT_COUNT`). Registry, schema and capacity audit regenerated |
+| `02b54943` | The census pass. Reviewed deltas; `world_routes_cold` 379,648 → 447,232 (the index's `INDEX_BYTES` 67,584 inside the cold lease); Locations controls +640; the M5 work area's endpoints +240; the bindings reserve +23,039; the memory pack regenerated. One ledger row (now +56,695 B, see the review fixes below) |
+| `3cd7c13b` | **P-2045-8 (a), continued.** A cold load's Locations re-proof had no landing scope, so it re-derived every Placement row's LANDING datums for every record, twice. It now keeps them under a pass serial of its own, checked against the per-record scan under the cache checks. Loading the finish: 1,053,649 → 653,361 |
+
+**Slice C's conditions, met:**
+
+1. **Row order.** Candidates come from a bitset, walked ascending.
+2. **Superset of `Space.overlaps`.** Two positive-volume boxes that overlap in z share an integer z, and both name that z's band. A query whose box is invalid, or which lies outside the image, selects nothing (`Space.overlaps` accepts no such pair).
+   - Fixture: `test_the_row_index_keeps_every_overlapping_row_on_its_band_boundaries`. Rows touch the query's faces at the band boundaries 200 and 300, and one row straddles a boundary. Every overlapping row is selected, and `blocked`, `covered` and the fragments equal the full scan's.
+   - The cache checks also verify every selection in every test run (`_check_selection`, unspent), and every Locations index use (`_check_near`).
+3. **Spend.** The only outcome that changes is a scan that ran out of budget row by row, which now reaches its real answer (`test_the_row_index_charges_its_work_and_only_answers_where_the_full_scan_ran_out`). Every scenario under the bound is byte-identical:
+   - The dig benchmark's SHA trace (`REDWALL_DIG_TRACE`, 11,454 lines over the room loop and the entry run) is byte-identical across three revisions: before the index (`47d0a115`), with it (`1c3d8847`), and with the Contacts fix (`6a4ba075`).
+   - The unbounded M5 flight ends on the same tick with the same refusal before and after the index.
+   - The checkpoints were regenerated because their sources changed. The spare chain's points fall on the same ticks as before.
+4. **Honest charge.** Build: one check a row for the extent pass, one a band word for the clear, and one a band a row spans. Lookup: the band words it ORs, plus one check a candidate visited. The index is rebuilt when the image's `Volumes` object or row count changes; each `_begin_proof` allocates a new `Clearance` with a new snapshot, and the carry path never changes the image. Memory is a cold slice inside WorldRoutes' `COLD_BYTES`, reviewed in the census (ADR 1212).
+5. **`_endpoint_observation_refusal`** reads no image rows. Its charges (51 answered, 256 fresh) are not scans, so the index does not touch them, and the memo and a fresh observation still spend the same. `test_underground_route_memos.gd` (29 tests, the differential replay at every budget) is green.
+6. **The 4096 span proof.** `test_an_overlapping_pending_obstacle_still_pays_its_span_proof`: an OBSTACLE row that overlaps the body under an excusing profile still pays the 4,096 checks; a face-touching row is not selected.
+
+### Measured: the whole flight under the bound (cache checks off, real schedule, real hauls)
+
+| Owner | Peak | Where |
+|---|---:|---|
+| WorldRoutes | 649,811 (62 %) | the finish (was 1,395,013 on landing 4) |
+| Locations | 870,951 (83 %) | landing 4 (was 1,148,976) |
+| Bindings, entry | 971,519 (92.7 %) | module 1's sill (unchanged) |
+| Bindings, timber clearance | 404,068 | module 0's sill (unchanged) |
+| Contacts | 921,265 (88 %) | landing 4 (was 1,105,317) |
+
+The flight ends `ENTRY_KITCHEN_UNBUILT` at tick 92,560 under the real bound. Its stage ticks, plans and finish are the
+unbounded runs', so §"The flight's ticks by kind" stands.
+
+### Loading a level-1 save (the cold load, measured on the committed flight checkpoints)
+
+| Point | Space owner restore | Locations re-proof |
+|---|---:|---:|
+| tick 75,000 | 955,979 | 404,150 |
+| tick 80,000 | **1,280,969** | 551,086 |
+| tick 90,000 | **1,392,493** | 544,032 |
+| the finish (92,559) | **1,768,997** | 651,747 (was 1,053,649) |
+
+The Space owner's figure is almost all `_overlap_refusal` (1,725,282 at the finish). A load marks every row changed
+(`_mark_loaded_changes`), and each changed row is compared with every validation region. The live chain never pays
+this: it validates only the rows each stage changes. Nothing else in the load is over the bound.
+
+### Everything needed outside the claims (this phase)
+
+| # | File and function | Why | Proposal |
+|---|---|---|---|
+| O-12 | `underground_space_owner.gd` `_overlap_refusal` (the Space owner; no lane holds it for Slice D) | A load's overlap validation is quadratic in the regions. A save after about tick 78,000 cannot be loaded, and the whole-flight checkpoints from tick 80,000 on (the last three segments, the finish suites) cannot be used | P-2045-14 |
+
+### Proposals
+
+**P-2045-14 — The Space owner's load validation.**
+- **(a) The same row index for `_overlap_refusal`.** Bin the staged regions by z once per validation. For each changed row, compare only the regions its z range meets, in the same ascending order of the validation heap, so the same pairs are tested and the same first refusal is returned. Charge it the way P-2045-12 is charged, and keep the full scan under the cache checks. Slice C's six conditions apply as written. The estimated charge is about 1,300 changed rows times one landing's neighbours, roughly 0.1–0.2 M (not measured).
+- (b) Have a load skip the pairwise validation for rows the save already proved disjoint. Not exact: a save's bytes are untrusted input.
+- (c) A larger load budget. Ruled out (no `MAX_CHECKS` raise).
+
+**Recommendation: (a)**, by whichever lane the Space owner's code belongs to, or this lane if Brendan clears it.
+
+### The flight as checkpoints, and what its suites cost
+
+`0b3e9ce0` makes the whole M5 flight a checkpoint recipe (ADR 1240), so no suite replays it from tick 0.
+
+- **The recipe, `underground_flight`:** the host suites' sustained flight, saved at 17 ticks and at the finish
+  (92,559).
+  - The stand-ins moved into the chain fixture (`Chain.sustain`). They now refill only present residents, because a
+  free Needs row must stay zero for the save; a spawn writes the whole row, so the flight is the same.
+  - It runs no day boundary, as the host suites' `run_tick` loops run none.
+- **The segment suites, `test_underground_flight_00`–`17`:** segment *k* loads point *k*−1, flies to point *k*, and
+  compares the save there with the committed point byte for byte. Along the way it replaces the runtime by its record
+  every 11 ticks and cold-restores the route owners every 23. These replace decision 2044's restored whole entry and
+  its second process, and carry DEC-059's never-back-at-M count.
+- **The other suites:** the rest-wait test starts at tick 45,000. The finish suites (whole chain, crew leaves, crew
+  lost) load the finish.
+
+**Results** (six suites at a time, beside other work):
+
+- **Segments 00–14 pass, 15 of 18.** Each one's end is byte-identical to the uninterrupted flight. That holds across
+  thousands of runtime replacements and route cold restores, so save, restore and resume are proved exact through
+  tick 80,000.
+- **The rest-wait test passes from its checkpoint**, in 3 s.
+- **Waiting on P-2045-14:** segments 15–17, the finish suites and `test_checkpoint_equivalence.gd`'s flight test.
+  Their starting points cannot load (the Space owner's load, above).
+
+**Their time is a second problem.** Segment times run from 65 s to 547 s. A 250-tick window at tick 70,000 (landing
+3's deep stage) takes:
+
+| Checks on | Checks off | Before the deep stage |
+|---:|---:|---:|
+| 44 s | 13.8 s (55 ms a tick) | 0.56 s |
+
+The cache checks triple the time and the restores add about 10 %. In that window:
+
+- Contacts' phase observation runs 106 times: 60 from the work owner's `work_tick_refusal` → `worker_refusal`, and 22
+  from `output_refusal`.
+- Each one re-proves the deep station's whole reach: M → X, the stair legs, F′ → D, D → station and back. That makes
+  530 reachability searches.
+- So **every Work tick on a deep station re-proves its reach at about 1 M checks.** This is within the bound, but
+  costs tens of milliseconds a tick. REQ-SET-163 asks for a simulation tick under 2 ms at p99.
+- My 2045 cache checks (`_check_selection`, `_check_near`, `_check_skipped_leaf`) are about 15 % of the checked time.
+
+**P-2045-15 — A deep station's reach, proved once per phase.**
+- **(a) Keep a deep station's reach proof for its phase while every input it read holds:**
+  - the route graph and certificate generations;
+  - the Frontier revision;
+  - the Space geometry revision;
+  - the stops and the Locations' payload revisions.
+
+  Work ticks would then charge the key compare, as P-2045-7 keeps the prepared pass. With the cache checks on, a kept
+  proof is re-run and compared. This lane's own functions would change (`_deep_reach_refusal`, `_deep_output_refusal`,
+  decision 2044's claim 13), together with `_entry_contact_observation`'s call (Contacts, to be cleared).
+- (b) Leave it, and give the flight's segment suites a tier of their own outside the default CI run. This is a CI
+  policy ruling.
+- (c) Leave both. The segment suites then exceed CI's per-suite guard, and the deep stages cost tens of milliseconds
+  a tick.
+
+**Recommendation: (a).** It is exact, it is this lane's own code, and it serves the pacing study's batched build too
+(decision 2081).
+
+### Gates
+
+- **SHA trace:** see above.
+- **Contracts:** the CI contract commands and the underground-memory job pass after the census pass (the memory pack
+  check, its 285 refusal tests, the census tests, the ledger arithmetic and the merge gate).
+- **Focused suites:** all pass on `46a20449`:
+  - WorldRoutes (63)
+  - Locations (69)
+  - route memos (29)
+  - bindings (46)
+  - Contacts (37)
+  - work face (31)
+  - room approach (27)
+  - route composition (20)
+  - first prefix
+  - the M5 suites
+  - save/load parity (`test_settlement_save_underground.gd`)
+- **Not run, because the lane stops:**
+  - the full sharded suite at 12 shards and the weights regenerated from it;
+  - mutation testing;
+  - the frames.
+- **The independent review is done** (above).
+
+## Brendan's rulings on P-2045-14 and -15, and the min-cost rule (2026-10-21)
+
+Relayed by the coordinator. Brendan: **"Cost lane first."**
+
+| Item | Ruling | What it means |
+|---|---|---|
+| P-2045-15 | **(a)** | A deep station's reach proved once per phase, in this lane's deep-reach functions and `_entry_contact_observation` (Contacts, cleared). Exact under the cache checks, charged honestly. Measure a Work tick's milliseconds before and after, cache checks off, against REQ-SET-163's 2 ms; if it does not get there, say how far off it is |
+| P-2045-14 | **(a)** | The row index for the Space owner's `_overlap_refusal`, same visit order (Slice C cleared `underground_space_owner.gd` for this lane). Add a test that loads a save from after tick 78,000 |
+| The index margin | **Not accepted** | Every index (WorldRoutes, Locations, the Space owner) follows a **min-cost rule**: no proof spends more than master's; an outcome may change only from a budget refusal to a real answer. Prove it with a test: a proof at master's exact cost admits. If the rule is unworkable, stop and report |
+
+Also relayed: do not touch Routes; do not edit Locations `prepared_refusal`, `_prepared_retention_refusal` or
+`_installed_witnesses_refusal`; record the reach's double charge (below) without changing its spend; measure the
+held `edge_refusal` and the entry bindings after the work; report Work-tick milliseconds and transition seconds before
+and after with decision 2082's meter, cache checks off. Indexed in `docs/handoff/RULINGS.md`.
+
+## Fifth build phase (2026-10-21): the cost lane, then M5 finished
+
+### Built
+
+| Commit | What |
+|---|---|
+| `c4072f71` | **P-2045-15, as an exact scan fix.** `_legs_refusal` scanned every edge row from row 0 for each of a deep station's legs (up to about 90 a reach), reading each present row's metadata. The legs now share one ascending scan of the rows' ends (`_leg_edge_row`); never charged more than the per-leg scans, checked against them under the cache checks |
+| `48c3eaa9` | **The min-cost rule, WorldRoutes.** An indexed scan is charged when it ends (`settle`), never more than the rows master's linear scan visits by the same exit. The build and any dearer exit are owed (`_index_debt`) and repaid from later scans' savings. A lookup that could cost a full scan scans every row, as master does. Checked reruns rewind the debt with the index (`index_mark`/`index_rewind`) |
+| `faae397d` | **P-2045-14 (a).** With 16 or more changed rows (a load marks every row), `_overlap_refusal` bins the validation positions by z band once and compares each changed row only with the positions its bands select, in heap order, so the same pairs are tested in the same order and the same first refusal returns. Charged by the same min-cost rule (`_overlap_settle`); the index is a cold slice, released when the validation returns; the cache checks verify every selection |
+| `b7fe192d` | M5's saved stair leg lists fit their record: the longest hop list is 56, the record admitted 20, so tick 85,000's checkpoint could not be read back. `MAX_STAIR_LEGS` 64; the writer refuses a list the reader would not admit. The timber scope re-check after each terrain window runs again, as master ran it, at 64 checks |
+| `436716e5` | A tread order's legs share the same edge scan (`_tread_legs_refusal`); the tread body proof's region prefilter reads regions in place |
+| `dbffddc2` | The second review's fixes (below) |
+
+**The memo as ruled was built and shelved.** A deep station's reach was keyed on the route graph and certificate
+generations, the Frontier revision, the Space geometry revision, the stops and the Locations payload revisions. In the
+deep stage that key changes about every 4 ticks (a cut, a haul, a station retirement), so the memo never answered a
+Work tick in the flight. The time was in the leg scans (`c4072f71`, `436716e5`), which now cost what they read. The
+memo is not committed.
+
+### The min-cost rule, and its proofs
+
+Every index now charges `min(its own work plus debt, master's rows by the same exit)` per scan. So no proof spends more
+than master's, and at master's exact budget every proof gives master's answer.
+
+- **WorldRoutes:** `test_a_proof_at_masters_exact_cost_still_admits_with_the_index` (+0, +1 and +300 checks),
+  `test_the_row_index_never_charges_a_scan_more_than_master_and_repays_its_build`,
+  `test_an_indexed_lookup_never_costs_more_than_the_full_scan`, `test_an_empty_fragment_set_scans_as_master`,
+  `test_a_lookup_that_could_cost_a_full_scan_scans_every_row_as_master`.
+- **The Space owner:** `test_the_overlap_index_admits_at_the_linear_validations_exact_cost` binary-searches the
+  linear validation's least budget, for an admission and for a contradiction found from the first row. The indexed
+  validation gives the same answer at that budget. `test_the_overlap_index_refuses_and_admits_as_the_linear_validation`
+  adds a one-unit overlap on a band's first unit.
+- **Locations:** the near rows are kept by the obstacle scan Locations already pays for (a check a row, as before), and
+  `_covered` over them spends no more than the full scan (`test_the_obstacle_scan_keeps_every_row_...`).
+
+The rule is workable; no lane stop.
+
+### P-2045-14: loading a late save
+
+| Point | Space owner restore before | after |
+|---|---:|---:|
+| the finish (tick 92,559) | 1,768,997 (over the bound) | 341,174 |
+
+Every flight point after tick 78,000 now loads. Segments 15–17 load ticks 80,000, 85,000 and 90,000. The
+finish suites load the finish and assert it: `_finished_entry`, "the underground_flight finish checkpoint loads".
+`test_checkpoint_equivalence.gd` replays the flight from tick 0 against every point. The Locations re-proof of the
+finish is 651,747.
+
+### Measured: decision 2082's meter, the whole flight, cache checks off
+
+| Run | Commit | Flight total | Cold transitions | Work ticks over 33.3 ms | Ticks 100–500 ms |
+|---|---|---:|---:|---:|---:|
+| before | `ea9c7ed6` | 1,749.5 s | 758, 1,096.1 s | 3,933 (+283.6 s) | 1,858 |
+| leg scan, index, overlap | `faae397d` | 1,577.1 s | 757, 1,049.5 s | 2,417 (+188.9 s) | 1,306 |
+| tread legs | `436716e5` | 1,486.2 s | 752, 1,074.0 s | 2,144 (+60.9 s) | 14 |
+| **final code** (quiet machine) | `dbffddc2` | **1,337.3 s** | 746, 966.1 s | 1,534 (+45.3 s) | 65 |
+
+The `436716e5` run shared the machine with the mutation run, so its seconds are high. The final run had the machine
+to itself. Against the start of the phase, the whole flight is **412 s faster (−23.6%)**. Cold transitions are 130 s
+faster (−11.9%). The Work ticks' time over 33.3 ms fell from 283.6 s to 45.3 s (−84%).
+
+**Against REQ-SET-163's 2 ms, the lane does not get there.**
+- **Work ticks.** A deep-stage Work tick went from 56 to 23 ms (landing 3, profiled). That is still about **11×** the
+  2 ms. The slow Work tick's time over 33.3 ms fell from 283.6 s to 45.3 s, and the 100–500 ms ticks fell from 1,858 to
+  65 (final run).
+- **The p99 tick.** In the final run, 698 of the flight's 92,559 ticks take over 100 ms, so the p99 tick (the 926th
+  slowest) lies in the 20–100 ms band. That is **10–50×** the 2 ms.
+- **Cold transitions.** They are about 1.3 s each on average (966 s over 746; a cube hand-over is 1.2–3.4 s), about
+  **650×** the 2 ms.
+  They are `_run_cold_operation`/Placements `prepare_phase_refresh`, outside this lane's claims, and are the pacing
+  study's subject (decision 2081, batched build; decision 1953 stage 2).
+
+**Held functions, after the work** (2,500 ticks from tick 60,000, cache checks off):
+- Contacts' `edge_refusal`: 0.9 s, 0.36 ms a tick.
+- The entry bindings' timber stage, its routes and Locations calls: about 2.2 s.
+
+Neither is where a Work tick's time goes now. The rest of the 23 ms is the deep reach's reachability searches
+(`worker_refusal` → the phase observation), each one exact and charged.
+
+**The tightest check margin** is the phase structure (decision 2082's `struct`): 1,014,458 on landing 4, 96.7% of
+`MAX_CHECKS`, unchanged by this phase. A sixth module or a wider landing would need it looked at first.
+
+### The reach's double charge (recorded, not changed)
+
+Contacts' `_path_refusal` calls `WorldRoutes.profile_reachability_refusal`. The search spends from WorldRoutes' own
+budget, and Contacts then charges the same amount again from its fragments budget, mostly as a flat precharge. Each
+reachability search a deep reach makes is therefore paid twice: once where it runs, and once in Contacts' bound.
+Outcomes are exact, and the spend is unchanged, as ruled.
+
+**P-2045-16 — the reach's double charge.**
+- (a) Contacts charges only the work it does itself, and reads the search's real spend from WorldRoutes' result
+  instead of precharging it. Contacts' landing-4 peak would fall by the searches' share, not measured.
+- (b) Leave it. Contacts' peak stays 88%.
+
+**Recommendation: (b) for M5.** It fits, and (a) moves a bound shared with Slice C's Routes work. Revisit it with
+decision 2081's batched build.
+
+### The second independent review, and what changed after it
+
+The review covered the leg scan, the index and its min-cost rule, the overlap index and the late saves.
+
+| # | Finding | Fix (`dbffddc2`) |
+|---|---|---|
+| H1 | With no fragment left, `subtract_role` still selected by the empty hull and could charge more than master | It scans linearly when `count == 0` (`linear_first`), as master does; tested at master's exact charge |
+| H2 | An installer's haul climbs up to 56 hop legs and one to M, but the hauler's list was saved under `MAX_LEGS` 24 | `Progress.MAX_HAUL_LEGS` 72 for the entry hauler (room builders keep 24 through `read_state`'s `max_legs`); the writer refuses a longer list; `MAX_WIRE_BYTES` 13,947 → 14,907; registry, schema, audit and census regenerated |
+| H3 | The progress marker's stair-leg field froze after leg 31 | Stair leg 6 bits, haul leg 7, trips 10; max 1,073,741,823; tested past leg 31 |
+| M | An empty image's lookup returned row 0 | -1 |
+| L | `index_rewind` could restore a mark from another image; `allocate` kept old debt | Both fixed |
+
+**Ledger:** the row is now **+70,423 B** (the leg lists +13,968: the stair lists +9,504, the haul list +2,304 in the
+chain and +1,920 in the two record images). Live with reserve 106,191,789 B; headroom 43,808,211 B.
+
+### Mutation testing
+
+There were 22 single-substitution mutants of the new code, each run against its named suites. The first run left
+eight alive, and one did not apply. Tests were added for five: the lookup guard, the Locations hull's one-unit edge,
+the overlap index's last band, an early contradiction at master's exact cost, and the leg writer's refusal. The second
+run killed those five, the retargeted one, and two new ones (the empty-set scan, the haul list bound).
+
+**Three survive**, each equivalent in outcome:
+- `overlap_index_from` set to 1: the threshold only chooses when to index, and the min-cost rule makes either choice
+  spend no more.
+- The tread legs' closing scope leaf dropped: the caller's next leaf refuses the same tick.
+- The per-window timber re-check dropped: the operation's closing scope leaf refuses the same tick. Only the window
+  at which a terrain observer's change is caught differs.
+
+### The third independent review (of `dbffddc2`)
+
+**Nothing at CRITICAL or HIGH.** The reviewer checked that every exit of `subtract_role`, `blocked`, `_body_blocked`
+and `_solid_contacts_covered` settles exactly once with master's rows. It found the overlap index and the near rows
+keep master's order and answers, and the hauler's writer and both entry readers agree at 72. Its MEDIUM and LOW test
+gaps are closed by tests:
+- the entry hauler writes 72 legs and refuses 73;
+- a rewind to another image's mark forgets the index;
+- an empty image's lookup selects no row.
+
+Two LOWs are left as notes:
+- The hauler's writer guard is the entry's 72 for every reader. A room builder writes one leg, so its record never
+  reaches its own reader's 24.
+- With exactly 64 up legs, the marker's stair field would clamp leg 64 to 63, at a stage change. The longest list is 56.
+
+### The full suite at 12 shards: what it found
+
+The first 12-shard run (`17a2c10d`) failed eight tests in seven suites. None was a wrong answer from this phase's
+code. All were expectations this branch had left behind, fixed in `58646391`:
+- **The entry record's section-6 bound** is 14,907, not ADR 1229's 4,591. This affected the registry row, the schema
+  rule and the section maximum, 26,460,370. These suites had not been re-run since decision 2044 raised the bound.
+- **WorldRoutes' cold lease** carries the row index, so the companion-lifetime figure is 842,788 (`INDEX_BYTES`
+  67,876).
+- **Content 12's edge plan** has M5's 237 edges: per landing, five floor edges, seven joins at F′ and R′, then the next
+  module's 33 edges; landing 5 adds five floor edges.
+- **The paid-assembly fixtures' Locations arena held 64.** M5's 59 work-area endpoints and the prefix's stops overflow
+  it (`LOCATION_ARENA_FULL`). This has been so since M5 was mounted; master passes. The fixture now holds 128.
+- **An outcome change, of the one kind the min-cost rule allows.**
+  `test_underground_room_station_retirement.gd` dug decision 1942's large room without retirement to show that a
+  phase commit's route proof ran out of checks at about 100 live edges (`SPACE_COMPANION_PREPARATION_REFUSED`). With
+  the row index the same proof reaches its real answer. The room is finished with every chain kept (128 edges), and
+  the peak proof is 338,317 checks, 32% of the bound.
+  - The test now asserts that answer.
+  - Retirement is still built and tested; it bounds the live edges, not just the checks.
+  - For Slice C: a master scenario that was over the bound now completes. No scenario under the bound changed
+    (§"Fourth build phase", condition 3).
+
+**The flight's segment times** in that run (Mac, five shards at a time) ran 45–669 s. Segments 10 (55,000 → 60,000),
+12 (65,000 → 70,000) and 15 (80,000 → 85,000) took 468, 537 and 669 s. CI's budget is about 8 minutes a suite, and
+decision 2044 measured CI at about this Mac's speed (median ratio 1.01).
+
+- **First split** (`ffce9b77`): points at 57,500, 67,500 and 82,500. The time is concentrated in each stretch's dense
+  cube hand-overs, so two halves were still long: 67,500 → 70,000 took 493 s and 82,500 → 85,000 took 606 s.
+- **Second split** (`5db015ca`): points at 68,750 and 83,250.
+
+The flight is now **23 segments (00–22)**, from 19 to 345 s each in the verified run. Every existing point is
+byte-identical, and the finish is still tick 92,559. The finish suites take about 4 s each, since they load the finish
+checkpoint: whole chain, crew leaves, crew lost at the finish. `test_checkpoint_equivalence.gd` takes 205 s.
+
+Two suites outside this lane's flight are over 8 minutes in the same run:
+- `test_underground_room_station_retirement.gd`, 597 s. It was 580 s before.
+- `test_settlement_save_underground.gd`, 496 s. It was listed at 258 s.
+
+Neither is changed by this phase beyond the retirement test's new answer.
+
+### Frames
+
+The frames are in `scratchpad/m5frames/{1280x720,1920x1080}/`, 27 at each size, with a contact sheet
+`sheet1280.png`. They came from a scratch capture script, which is not committed.
+
+**What the script does.** It loads the committed flight checkpoint at tick 90,000 and runs the chain on to its finish,
+sustained as the suites sustain it. The demo's `EntryWorkerView` presenter draws the crew over the live Space's
+installed SUPPORT rows near it, and a frame is saved every 40 ticks while the mole moves.
+
+**What they show.** The mole walks M5's last landing deck and the bottom module's tread supports, and stops at the
+finish, tick 92,559 (`ENTRY_KITCHEN_UNBUILT`, level 1).
+
+**Limits:**
+- In the first three frames at each size the camera sits inside a deck.
+- Natural earth and OBSTACLE rows are not drawn, so the stair reads as supports in the dark.
+- The frames cover only the last 2,560 ticks, not the whole descent. Earlier stretches would load earlier points the
+  same way.
+
+### Gates
+
+- **The full suite at 12 shards** passed on the final head (`5db015ca` plus the weights): 599 suites, 13,195 tests,
+  1,510,844 assertions, 0 failures, 0 unexpected errors or warnings, 0 leaks. `verify --count 12` passes.
+  - `tools/ci_test_shard_weights.json` and the slow tier were regenerated from that run (`1489bb80`). The plan
+    estimates every shard at about 958 s.
+- **Every flight segment passes**, from 19 to 345 s each. The whole chain and the crew-finish suites pass in about
+  4 s each, and the checkpoint equivalence suite in 205 s.
+- **Contracts:**
+  - the memory pack check and its census and budget tests (300);
+  - the ledger arithmetic and the merge gate;
+  - the capacity audit and the section-6 schema generator.
+- **The analyzer** on port 6505: 0 warnings in 1,689 files.
+- **Mutation:** 22 mutants. Three survive; they are explained above.
+- **Reviews:** the second review's three HIGHs are fixed (`dbffddc2`). The third review found nothing at HIGH or
+  above, and its test gaps are closed (`17a2c10d`).
+- **Disk:** the measurement clones are deleted. One scratch clone is kept for the final meter and deleted after it.
+
+### After the round: master merged, and Slice C's paw certificate measurement
+
+**Master merged.** `b689c0e7` merges origin/master `e0e7065a`: #280, the pacing study, and #281, slice D2 phase 1.
+Only the shard weights conflicted; this branch's were kept, then regenerated.
+
+Slice C saw 15 failures and 12 timber-scope cache reports when it merged master with this branch's old head
+`ea9c7ed6`. Those failures are this phase's fixes:
+- the level-1 load (`faae397d`);
+- the timber scope re-check (`b7fe192d`);
+- the stale expectations (`58646391`).
+
+On the merge:
+- the timber, paid-assembly and D2 suites pass;
+- the checkpoints are current;
+- the contracts pass.
+
+The full 12-shard suite on the merge is below. The cache checks are always on in the suite: the test framework sets
+them.
+
+**P-2045-17 — the paw physical certificate (Slice C's steady-tick measurement: about 3.4 ms a call, on about 19% of
+master's entry-prefix ticks, inside `Routes.advance_tick`).**
+
+On module 0, which is all of master's prefix, `qualified-m5-runtime-v1/paw_physical_certificate.gd` hands every call
+to the published `qualified-claw-runtime-v2` certificate unchanged. So the time is the published proof, re-run each
+time WorldRoutes' assembly admission or a certificate read asks (`underground_world_routes.gd` `_assembly_admission`,
+`_certificate_refusal`).
+
+That proof is cache-free by design ("No retained packet, source observer or paid-state mutation lives here"). It
+re-reads, in order:
+- the owners;
+- the selection;
+- the World and the terrain scratch;
+- every Space source row and claim (charged `512 + 2 × (sources + regions)`);
+- the endpoint and the piece;
+- the body and stance volumes against the Space and the terrain.
+
+**An exact memo is possible only with a key over every one of those inputs.** The Space owner's source and claim
+columns have one (P-2045-7 keys on them). The World binding, the terrain scratch, the Locations endpoint, the
+Placement row and the Contacts fragments would each need a revision a memo can compare. Some of those owners have no
+such counter today.
+
+The memo would also have to live in WorldRoutes, because the certificate is static and holds no state. Slice C is now
+adding its own members there (`_search_memo`, `_search_chains`). So it is not built in this lane. Not measured here
+either: the code path is master's, unchanged by this branch.
+
+- **(a)** A memo in WorldRoutes, keyed on those revisions plus the selection's every field, answered at the proof's
+  real charge (as P-2045-4 charges an answered observation), with the full proof re-run and compared under the cache
+  checks. It needs the missing revisions, from their owners' lanes.
+- (b) Leave it until decision 2081's batched build, which removes most per-tick handling.
+
+**Recommendation: (a), owned by Slice C's steady-tick lane.** The call site, the key's owners and the new members are
+all in or next to WorldRoutes. This lane can supply the module-translation half for M5's later modules.
+
+**The full suite on the merge** (`b689c0e7`, 12 shards, five at a time, with the cache checks on) **passes**:
+- 601 suites, 13,228 tests and 1,511,096 assertions;
+- 0 failures, 0 unexpected errors or warnings, 0 leaks;
+- `verify --count 12` passes.
+
+The machine was busier than in the earlier run (load about 9). The slowest flight segment took 441 s, under the
+8-minute budget. The shard weights were regenerated from this run.
+
+The analyzer, on port 6505, reports 0 warnings in 1,699 files.
+
+## Brendan's rulings on P-2045-16 and P-2045-17 (2026-10-21)
+
+Relayed by the coordinator: Brendan answered in chat through AskUserQuestion.
+
+| Proposal | Ruling | What it means |
+|---|---|---|
+| P-2045-16 | **(b)**, "Leave it for now" | The reach precharge stays charged to both Routes' search budget and Contacts' fragments budget; Contacts' spend is unchanged. Revisit in the cost lane only if Contacts' peak ever binds |
+| P-2045-17 | **(a)**, "Slice C's steady-tick lane" | Slice C's steady-tick lane owns the exact memo for `qualified-m5-runtime-v1/paw_physical_certificate.gd` (about 3.4 ms a call on about 19 % of ticks), with Slice D's clearance of the exact hunks, after this branch merges |
+

@@ -428,10 +428,12 @@ func test_a_room_past_the_edge_bound_digs_to_the_end_with_its_finished_chains_re
 	assert_equal(runtime.state_of(room), Runtime.RECORD_NONE, "finished, out and released")
 
 
-func test_without_retirement_the_large_room_runs_out_of_route_budget() -> void:
+func test_without_retirement_the_large_room_keeps_every_chain_and_now_fits() -> void:
 	"""The same large room dug by its foreman alone (retirement runs in the room runtime, so none happens): every
-	finished chain stays, and at 100 live edges a phase commit's route proof exhausts Space.MAX_CHECKS. This is
-	master's behaviour, kept as the proof that the room needs retirement."""
+	finished chain stays. On master, at 100 live edges a phase commit's route proof exhausted Space.MAX_CHECKS
+	(SPACE_COMPANION_PREPARATION_REFUSED). Decision 2045: WorldRoutes' row index (P-2045-12 (a)) under the min-cost
+	rule charges no proof more than master, and this proof, which ran out on master, now reaches its real answer: the
+	room is finished with every chain kept, its peak proof well inside the bound. The one outcome change the rule allows."""
 	var room: Vector2i = _room(LARGE_WIDTH, LARGE_DEPTH)
 	if room == NULL_REF: return
 	var foreman: Foreman = Foreman.new()
@@ -449,10 +451,10 @@ func test_without_retirement_the_large_room_runs_out_of_route_budget() -> void:
 		if not foreman.is_running(): break
 	print("ROOM-RETIREMENT without ticks=%d edges=%d peak_checks=%d done=%d code=%s" % [_h.tick,
 		_h._routes._live.edge_count, peak, foreman.done_cubes(), code])
-	assert_equal(code, &"SPACE_COMPANION_PREPARATION_REFUSED", "the route proof ran out of checks")
-	assert_true(foreman.done_cubes() < foreman.total_cubes(), "the room is not finished: %d" % foreman.done_cubes())
+	assert_equal(code, &"", "no refusal")
+	assert_equal(foreman.done_cubes(), foreman.total_cubes(), "the room is finished")
 	assert_true(_h._routes._live.edge_count >= 95, "every chain kept: %d edges" % _h._routes._live.edge_count)
-	assert_true(peak * 20 > Retirement.Space.MAX_CHECKS * 19, "the last proof spent over 95%% of the budget: %d" % peak)
+	assert_true(peak * 2 < Retirement.Space.MAX_CHECKS, "the peak proof is under half the bound: %d" % peak)
 
 
 func test_two_builders_dig_and_only_finished_unheld_chains_go() -> void:

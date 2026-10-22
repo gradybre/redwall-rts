@@ -195,9 +195,11 @@ func test_the_stair_path_classifies_h_the_sill_and_the_first_landing() -> void:
 func test_the_stair_path_plans_the_sill_and_the_carry_after_the_descent() -> void:
 	"""Six words an edge; the descent's 33 WALK edges first, then the sill's 2 WALK edges and 17 CARRY edges, which
 	wait for the sill's arrival A(T6). Decision 2044 (M2): landing 1's twelve floor edges, module 1's P' -> A(L0'), 30
-	tread and 2 sill edges, and landing 2's five floor edges follow (102 in all)."""
+	tread and 2 sill edges, and landing 2's five floor edges follow. Decision 2045 (M5): landings 1-4 each add five floor
+	edges and seven ground joins (R', P-2045-11), then the next module's P' -> A, 30 tread and 2 sill edges; landing 5
+	ends it with five floor edges (237 in all)."""
 	var plan: PackedInt32Array = StairPath.edge_plan()
-	assert_equal(plan.size(), StairPath.PLAN_WORDS * (33 + 2 + 17 + 12 + 1 + 30 + 2 + 5), "edge census")
+	assert_equal(plan.size(), StairPath.PLAN_WORDS * (33 + 2 + 17 + 4 * (5 + 7 + 1 + 30 + 2) + 5), "edge census")
 	assert_equal(StairPath.descent_words(), StairPath.PLAN_WORDS * 33, "the descent's words")
 	var carry: int = 0
 	for at: int in range(0, plan.size(), StairPath.PLAN_WORDS):

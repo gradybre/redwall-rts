@@ -647,13 +647,18 @@
      "bytes": 0,
      "carried_by": "joint pack (the reserve is a pack contribution)",
      "store": "Decision 1972 (P-1972-2 (a)): PROFILE_BYTES 278,528 -> 282,624 (+4,096 B reserve), its own ledger row, so content 12's paired bank keeps the joint plus the Session and retirement slices inside one assigned reserve"
+    },
+    {
+     "bytes": 23039,
+     "carried_by": "joint pack (the reserve is a pack contribution)",
+     "store": "Decision 2045 (P-2045-1 (a), P-2045-11 (a)): BINDINGS_AND_GROWTH_BYTES 524,544 -> 547,583 (+22,879 B for M5's Frontier MAX_BYTES 51,476, +160 B for v2's four turning spots R'; Frontier 51,636 B), its own ledger row"
     }
    ],
    "delta": {
     "int_constants_added": [
      [
       "BINDINGS_AND_GROWTH_BYTES",
-      "524544"
+      "547583"
      ],
      [
       "PROFILE_BYTES",
@@ -719,6 +724,11 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "decision 2044 (P-2044-16): the M5 landing and deep-hub reach (walk-off, hub D) and the row path helper; cold-path caller logic only, fewer allocation sites, no retained member"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "Decision 2045 (P-2045-15): the stair legs' shared edge scan keeps, for one _legs_refusal call, a local Dictionary of the first edge row per (from, to) ends (at most one entry a scanned row, Routes.MAX_EDGES 1,536) and a one-word cursor; cold locals released with the call, no retained member; and the CacheChecks preload and the legs' one scope leaf (no storage)"
     }
    ],
    "delta": {
@@ -759,9 +769,10 @@
     ],
     "allocation_sites": {
      "([": 3,
-     ".new(": 2,
+     ".new(": 4,
      "=[": 2,
-     "PackedInt32Array(": 1,
+     "={": 2,
+     "PackedInt32Array(": 3,
      "range(": 2,
      "return[": 1
     }
@@ -842,6 +853,21 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "decision 1943: FRONTIER_MAX_STATIONS (5) and FRONTIER_HEAP_WORDS (168 -> 280) size only the room-frontier publication's cold Query packets, charged in its CONTROL_BYTES row; no Locations member or bank changes"
+    },
+    {
+     "bytes": 512,
+     "carried_by": "new contribution",
+     "store": "Decision 2045: the witness pass's landing order (_landing_sorted, PASS_LANDINGS 64 int64 = 512 B) and its key widened by the scanned-landing count (_landing_key 4 -> 5 int64, +8 B counted in the next row's total); runtime only, rebuilt per pass, never saved"
+    },
+    {
+     "bytes": 128,
+     "carried_by": "new contribution",
+     "store": "Decision 2045 (P-2045-8 (a), P-2045-13 (a)): the operation source key (_sources_key, 12 int64 = 96 B), _landing_key's fifth word (8 B) and the record image hull (_near_hull, 6 int32 = 24 B); never saved. SOURCES_KEY_CHECKS is a check count"
+    },
+    {
+     "bytes": 32776,
+     "carried_by": "new contribution",
+     "store": "Decision 2045 (P-2045-13 (a)): the record image's near rows (_near, NEAR_ROWS 8192 int32 = 32,768 B, sized once at configure) and their count (_near_count, 8 B), kept by _record_obstacles_refusal's own scan for _covered; never saved"
     }
    ],
    "delta": {
@@ -883,8 +909,24 @@
       "PackedInt64Array"
      ],
      [
+      "_landing_sorted",
+      "PackedInt64Array"
+     ],
+     [
       "_loading_rows",
       "bool"
+     ],
+     [
+      "_near",
+      "PackedInt32Array"
+     ],
+     [
+      "_near_count",
+      "int"
+     ],
+     [
+      "_near_hull",
+      "PackedInt32Array"
      ],
      [
       "_prism_boxes",
@@ -899,6 +941,10 @@
       "PackedInt64Array"
      ],
      [
+      "_sources_key",
+      "PackedInt64Array"
+     ],
+     [
       "_sources_pass",
       "int"
      ],
@@ -910,7 +956,9 @@
     "resizes_added": [
      "_air_box.resize(6)",
      "_landing_boxes.resize(7 * PASS_LANDINGS)",
-     "_landing_key.resize(4)",
+     "_landing_key.resize(5)",
+     "_landing_sorted.resize(PASS_LANDINGS)",
+     "_near.resize(NEAR_ROWS)",
      "_prism_boxes.resize(6 * ConnectorCatalog.MAX_PARTS)",
      "_prism_key.resize(8)",
      "_prism_tops.resize(ConnectorCatalog.MAX_PARTS)",
@@ -947,12 +995,20 @@
       "256"
      ],
      [
+      "NEAR_ROWS",
+      "Budget.REGION_CAPACITY + Budget.SOURCE_CAPACITY"
+     ],
+     [
       "PASS_LANDINGS",
       "64"
      ],
      [
       "SCHEMA",
       "2"
+     ],
+     [
+      "SOURCES_KEY_CHECKS",
+      "12"
      ],
      [
       "TOP_BIAS",
@@ -1264,10 +1320,10 @@
      ".duplicate(": 1,
      ".new(": 1,
      "=[": 1,
-     "PackedInt32Array(": 5,
-     "PackedInt64Array(": 3,
+     "PackedInt32Array(": 7,
+     "PackedInt64Array(": 5,
      "in[": -1,
-     "range(": 4
+     "range(": 5
     }
    }
   },
@@ -2050,6 +2106,11 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "decision 1951: the region and source scans walk present rows with PackedByteArray.find/count (two static helpers); no member, packet or resize"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "shared cold arena (space_overlap_index_cold)",
+     "store": "Decision 2045 (P-2045-14 (a)): the overlap validation's z-band index (_overlap_bands OVERLAP_BANDS x words, _overlap_set words, _overlap_prefix 65 int32; at most 50,180 B at REGION_CAPACITY) allocated only while one validation runs and released before _overlap_refusal returns, and its scalar controls (_overlap_words, _overlap_low, _overlap_high, _overlap_width, _overlap_debt, 40 B, and the static overlap_index_from); never saved"
     }
    ],
    "delta": {
@@ -2061,10 +2122,63 @@
      [
       "_location_journal",
       "Journal"
+     ],
+     [
+      "_overlap_bands",
+      "PackedInt32Array"
+     ],
+     [
+      "_overlap_debt",
+      "int"
+     ],
+     [
+      "_overlap_high",
+      "int"
+     ],
+     [
+      "_overlap_low",
+      "int"
+     ],
+     [
+      "_overlap_prefix",
+      "PackedInt32Array"
+     ],
+     [
+      "_overlap_set",
+      "PackedInt32Array"
+     ],
+     [
+      "_overlap_width",
+      "int"
+     ],
+     [
+      "_overlap_words",
+      "int"
+     ],
+     [
+      "overlap_index_from",
+      "int"
+     ]
+    ],
+    "resizes_added": [
+     "_overlap_bands.resize(OVERLAP_BANDS * words)",
+     "_overlap_prefix.resize(OVERLAP_BANDS + 1)",
+     "_overlap_set.resize(words)"
+    ],
+    "int_constants_added": [
+     [
+      "OVERLAP_BANDS",
+      "64"
+     ],
+     [
+      "OVERLAP_INDEX_FROM",
+      "16"
      ]
     ],
     "allocation_sites": {
-     ".new(": 2
+     ".new(": 2,
+     "PackedInt32Array(": 3,
+     "range(": 2
     }
    }
   },
@@ -2478,6 +2592,16 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "decision 2044 (P-2044-16, Slice C clearance): the carried stair form and _carry_hull_clean, whose hull is held in the existing _support stance scratch; no retained member, packet or allocation site"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "WorldRoutes CONTROL_RESERVE (world_routes_controls)",
+     "store": "Decision 2045 (P-2045-7 (a)): the prepared pass key (_prepared_key, 9 int64 = 72 B), counted inside CONTROL_RESERVE by the census item world_routes_controls; never saved. ANSWERED_OBSERVATION_CHECKS and PREPARED_KEY_CHECKS are check counts"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "WorldRoutes cold lease (COLD_BYTES +INDEX_BYTES)",
+     "store": "Decision 2045 (P-2045-12 (a), Slice C's min-cost rule): the route-image row index inside each proof's Clearance packet: INDEX_BANDS 64 band bitsets and two candidate sets of INDEX_WORDS 256 int32 each, the bands' 65 row-count prefix words and the min-cost controls (debt, each set's mode, band words and visited rows; INDEX_BYTES 67,876 B), plus a six-word query box; cold, released with the proof; WorldRoutes COLD_BYTES 379,648 -> 447,524, inside Budget.COLD_BYTES 1,048,960"
     }
    ],
    "delta": {
@@ -2575,6 +2699,10 @@
       "int"
      ],
      [
+      "_prepared_key",
+      "PackedInt64Array"
+     ],
+     [
       "_proof_checks",
       "int"
      ],
@@ -2588,6 +2716,8 @@
      ]
     ],
     "resizes_added": [
+     "_band_prefix.resize(INDEX_BANDS + 1)",
+     "_bands.resize(INDEX_BANDS * words)",
      "_edge_memo.resize(EDGE_MEMO_SLOTS * EDGE_MEMO_STRIDE)",
      "_edge_memo_stamp.resize(EDGE_MEMO_STAMP)",
      "_endpoint_entries.resize(ENDPOINT_MEMO_ENTRIES * ENDPOINT_ENTRY_WORDS)",
@@ -2600,11 +2730,20 @@
      "_pace_inputs.resize(PACE_INPUT_WORDS)",
      "_pace_memo.resize(PACE_SLOTS * PACE_WORDS)",
      "changes.resize(Journal.STAGED_STRIDE * CHANGE_CAPACITY)",
+     "out.resize(0)",
+     "out.resize(0)",
+     "out.resize(0)",
      "out.resize(CERT_WIRE_BYTES)",
+     "out.resize(_index_words)",
+     "query.resize(6)",
      "record.envelope.resize(6)",
      "record.support.resize(6)"
     ],
     "int_constants_added": [
+     [
+      "ANSWERED_OBSERVATION_CHECKS",
+      "2 * OBSERVED_KEY + 9 + 12 + 6 * Locations.MAX_AIR_EXTRA"
+     ],
      [
       "CERT_WIRE_BYTES",
       "8 * CERT_WIRE_HEADER + EDGE_CAPACITY * (MASK_BYTES + 4 + 16) + 2 * Journal.WIRE_BYTES"
@@ -2631,7 +2770,7 @@
      ],
      [
       "COLD_BYTES",
-      "SNAPSHOT_BYTES + 48 * FRAGMENT_CAPACITY + 28 * CHANGE_CAPACITY + 1024"
+      "SNAPSHOT_BYTES + 48 * FRAGMENT_CAPACITY + 28 * CHANGE_CAPACITY + INDEX_BYTES + 1024"
      ],
      [
       "EDGE_MEMO_INPUTS",
@@ -2666,6 +2805,26 @@
       "1 << 46"
      ],
      [
+      "INDEX_BANDS",
+      "64"
+     ],
+     [
+      "INDEX_BYTES",
+      "4 * INDEX_WORDS * INDEX_BANDS + 4 * INDEX_WORDS * INDEX_SETS + 4 * INDEX_BANDS + 36"
+     ],
+     [
+      "INDEX_ROWS",
+      "32 * INDEX_WORDS"
+     ],
+     [
+      "INDEX_SETS",
+      "2"
+     ],
+     [
+      "INDEX_WORDS",
+      "256"
+     ],
+     [
       "OBSERVED_KEY",
       "6"
      ],
@@ -2680,6 +2839,10 @@
      [
       "PACE_WORDS",
       "6"
+     ],
+     [
+      "PREPARED_KEY_CHECKS",
+      "9"
      ]
     ],
     "int_constants_removed": [
@@ -2738,6 +2901,54 @@
       ],
       [
        [
+        "_band_prefix",
+        "PackedInt32Array"
+       ],
+       [
+        "_bands",
+        "PackedInt32Array"
+       ],
+       [
+        "_deferred",
+        "PackedByteArray"
+       ],
+       [
+        "_index_debt",
+        "int"
+       ],
+       [
+        "_index_high",
+        "int"
+       ],
+       [
+        "_index_low",
+        "int"
+       ],
+       [
+        "_index_rows",
+        "int"
+       ],
+       [
+        "_index_volumes",
+        "Space.Volumes"
+       ],
+       [
+        "_index_width",
+        "int"
+       ],
+       [
+        "_index_words",
+        "int"
+       ],
+       [
+        "_lookup",
+        "PackedInt32Array"
+       ],
+       [
+        "_visited",
+        "PackedInt32Array"
+       ],
+       [
         "box",
         "PackedInt32Array"
        ],
@@ -2778,6 +2989,10 @@
         "Space.Snapshot"
        ],
        [
+        "indexed",
+        "bool"
+       ],
+       [
         "next_count",
         "int"
        ],
@@ -2786,8 +3001,20 @@
         "PackedInt32Array"
        ],
        [
+        "query",
+        "PackedInt32Array"
+       ],
+       [
         "remaining",
         "int"
+       ],
+       [
+        "set_a",
+        "PackedInt32Array"
+       ],
+       [
+        "set_b",
+        "PackedInt32Array"
        ]
       ]
      ]
@@ -2795,9 +3022,11 @@
     "allocation_sites": {
      ".new(": 2,
      "=[": 3,
-     "PackedInt32Array(": 3,
-     "PackedInt64Array(": 10,
-     "range(": 1
+     "PackedByteArray(": 1,
+     "PackedInt32Array(": 11,
+     "PackedInt64Array(": 11,
+     "range(": 3,
+     "return[": 1
     }
    }
   },

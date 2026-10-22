@@ -1512,6 +1512,40 @@ func test_staged_change_meeting_the_path_is_rechecked_and_refused() -> void:
 	assert_equal(_binding._carried_edges, 1, "staged far change misses every sweep")
 
 
+func test_a_preparation_proves_the_prepared_pass_once_while_its_key_holds() -> void:
+	"""Decision 2045 (P-2045-7 (a)): inside one route preparation over a sealed Space stage, the prepared source and
+	claim pass is scanned once; a repeat while the key holds charges the key compare only, and a changed key (here the
+	owner's changed-row count) scans it again."""
+	_actual_fixture()
+	_publish_route()
+	var token: int = _stage_distant_geometry()
+	_lease = _budget.acquire(Budget.COLD_BYTES)
+	var begun: Routes.Result = _binding.begin_prepare(_lease, token)
+	assert_equal(begun.error, &"", "a real preparation over the staged candidate")
+	var before: int = _binding._proof.remaining
+	assert_equal(_binding._preparation_refusal(), &"", "the first pass")
+	var first: int = before - _binding._proof.remaining
+	assert_true(first >= Binding.SOURCE_PASS_CHECKS, "the first pass is scanned and charged in full")
+	before = _binding._proof.remaining
+	assert_equal(_binding._preparation_refusal(), &"", "a repeat")
+	assert_equal(before - _binding._proof.remaining, first - Binding.SOURCE_PASS_CHECKS + Binding.PREPARED_KEY_CHECKS,
+		"a repeat charges the key compare, not the scan")
+	_owner._changed_count += 1
+	before = _binding._proof.remaining
+	_binding._preparation_refusal()
+	assert_equal(before - _binding._proof.remaining, first, "a changed key scans again")
+	_owner._changed_count -= 1
+	_binding._preparation_refusal()
+	var row: int = _owner._s_o_present.find(1)
+	var fact: int = _owner._s_o_a[row]
+	_owner._s_o_a[row] = fact + 1 # Source drift the key cannot see: the cache checks' full pass reports it.
+	expect_diagnostic("prepared pass")
+	assert_equal(_binding._preparation_refusal(), &"", "the memo answers")
+	_owner._s_o_a[row] = fact
+	_end(begun.token)
+	assert_true(_owner.abort(token), "candidate discarded")
+
+
 func test_journal_overflow_falls_back_to_a_full_recheck() -> void:
 	"""ADR1205: evicted history raises the floor above the certificate, which is then proved in full."""
 	_actual_fixture()
@@ -1747,3 +1781,234 @@ func test_cold_certificate_image_refuses_every_corrupt_field_and_keeps_live_bank
 	assert_equal(_binding.restore_state_bytes(_lease, images[1]), Binding.REFUSE_LOAD_BUSY, "open preparation")
 	_end(token)
 	assert_equal(_restore_cold_images(images), &"", "the intact images restore")
+
+
+func _indexed(boxes: Array[PackedInt32Array], roles: PackedInt32Array, on: bool, checks: int = 1048576) -> Binding.Clearance:
+	"""Decision 2045 (P-2045-12 (a)): the same fixture proof with the row index on or off."""
+	var proof: Binding.Clearance = _proof(boxes, roles, checks)
+	proof.indexed = on
+	return proof
+
+
+func _selected(proof: Binding.Clearance, bounds: PackedInt32Array) -> PackedInt32Array:
+	"""Every row the index selects for `bounds`, in the order a scan visits them."""
+	var out: PackedInt32Array = PackedInt32Array()
+	var selection: PackedInt32Array = PackedInt32Array()
+	var row: int = proof.first_row(bounds, selection, 0)
+	while row >= 0:
+		out.append(row)
+		row = proof.next_row(selection, row)
+	return out
+
+
+func _z_rows(spans: Array) -> Array[PackedInt32Array]:
+	"""Ten-unit columns at the given half-open z spans."""
+	var boxes: Array[PackedInt32Array] = []
+	for span: Vector2i in spans:
+		boxes.append(PackedInt32Array([0, 0, span.x, 10, 10, span.y]))
+	return boxes
+
+
+func test_the_row_index_keeps_every_overlapping_row_on_its_band_boundaries() -> void:
+	"""Decision 2045 (P-2045-12 (a), Slice C's condition 2): the image spans z 0..6400, so the 64 bands are 100 wide.
+	Rows that touch a query only at a face (which `Space.overlaps` refuses) fall in the next band; a row straddling
+	a band boundary is in both. Every overlapping row is selected, and every scan answers as the full scan does."""
+	var boxes: Array[PackedInt32Array] = _z_rows([Vector2i(0, 100), Vector2i(100, 200), Vector2i(200, 300),
+		Vector2i(199, 201), Vector2i(300, 400), Vector2i(6300, 6400)])
+	var roles: PackedInt32Array = PackedInt32Array([Space.SUPPORTED_VOID, Space.OBSTACLE, Space.SUPPORTED_VOID,
+		Space.SUPPORTED_VOID, Space.OBSTACLE, Space.SUPPORTED_VOID])
+	assert_equal(Binding.INDEX_ROWS, Budget.REGION_CAPACITY + Budget.SOURCE_CAPACITY, "a bit for every snapshot row")
+	var proof: Binding.Clearance = _indexed(boxes, roles, true)
+	assert_equal(_selected(proof, PackedInt32Array([0, 0, 200, 10, 10, 300])), PackedInt32Array([2, 3]),
+		"the band [200, 300): its own row and the straddling one, not the rows touching its faces")
+	assert_equal(_selected(proof, PackedInt32Array([0, 0, 199, 10, 10, 200])), PackedInt32Array([1, 3]),
+		"one unit under the boundary: band 1's rows only")
+	for query: PackedInt32Array in [PackedInt32Array([0, 0, 200, 10, 10, 300]), PackedInt32Array([0, 0, 100, 10, 10, 200]),
+			PackedInt32Array([0, 0, 199, 10, 10, 201]), PackedInt32Array([0, 0, 300, 10, 10, 6300]),
+			PackedInt32Array([0, 0, 0, 10, 10, 6400]), PackedInt32Array([0, 0, 6400, 10, 10, 6500]),
+			PackedInt32Array([10, 0, 0, 20, 10, 6400])]:
+		for row: int in boxes.size():
+			if Space.overlaps(query, boxes[row]):
+				assert_true(_selected(proof, query).has(row), "row %d overlaps %s and is selected" % [row, query])
+		var full: Binding.Clearance = _indexed(boxes, roles, false)
+		var fast: Binding.Clearance = _indexed(boxes, roles, true)
+		assert_equal(fast.blocked(query), full.blocked(query), "blocked %s" % query)
+		assert_equal(fast.covered(query, Space.SUPPORTED_VOID), full.covered(query, Space.SUPPORTED_VOID), "covered %s" % query)
+		assert_equal(fast.fragments.slice(0, 6 * fast.count), full.fragments.slice(0, 6 * full.count), "fragments %s" % query)
+
+
+func test_the_row_index_subtracts_overlapping_rows_in_row_order() -> void:
+	"""Decision 2045 (P-2045-12 (a), Slice C's condition 1): overlapping covers in other bands than their row order
+	leave the same fragments, count, shapes and order, as the full scan."""
+	var boxes: Array[PackedInt32Array] = [PackedInt32Array([0, 0, 2000, 6, 10, 2150]),
+		PackedInt32Array([3, 0, 100, 10, 10, 2250]), PackedInt32Array([0, 0, 50, 10, 5, 2120]),
+		PackedInt32Array([2, 2, 2100, 8, 8, 2400]), PackedInt32Array([0, 0, 6300, 10, 10, 6400]),
+		PackedInt32Array([0, 0, 0, 10, 10, 40])]
+	var roles: PackedInt32Array = PackedInt32Array([Space.SUPPORTED_VOID, Space.SUPPORTED_VOID, Space.SUPPORTED_VOID,
+		Space.SUPPORTED_VOID, Space.SUPPORTED_VOID, Space.SUPPORT])
+	for query: PackedInt32Array in [PackedInt32Array([0, 0, 1990, 10, 10, 2240]), PackedInt32Array([0, 0, 0, 10, 10, 2400])]:
+		var full: Binding.Clearance = _indexed(boxes, roles, false)
+		var fast: Binding.Clearance = _indexed(boxes, roles, true)
+		full.start(query)
+		fast.start(query)
+		assert_equal(fast.subtract_role(Space.SUPPORTED_VOID), full.subtract_role(Space.SUPPORTED_VOID), "answer")
+		assert_true(full.count > 1, "the fixture leaves several fragments")
+		assert_equal(fast.count, full.count, "fragment count")
+		assert_equal(fast.fragments.slice(0, 6 * fast.count), full.fragments.slice(0, 6 * full.count), "shapes, in order")
+		var limit: PackedInt32Array = PackedInt32Array([0, 0, 0, 10, 10, 2200])
+		assert_equal(fast.subtract_role(Space.SUPPORTED_VOID, limit), full.subtract_role(Space.SUPPORTED_VOID, limit), "limited")
+		assert_equal(fast.fragments.slice(0, 6 * fast.count), full.fragments.slice(0, 6 * full.count), "limited shapes")
+
+
+func test_the_row_index_never_charges_a_scan_more_than_master_and_repays_its_build() -> void:
+	"""Decision 2045 (Slice C's min-cost rule): an indexed scan is charged at most the rows master's scan visits; the
+	build and any dearer exit are owed, and repaid from later scans' savings. So no proof spends more than master's,
+	and once the build is repaid a lookup costs its band words and rows."""
+	var boxes: Array[PackedInt32Array] = []
+	var roles: PackedInt32Array = PackedInt32Array()
+	for index: int in 600:
+		boxes.append(PackedInt32Array([0, 0, 10000 + 10 * index, 10, 10, 10005 + 10 * index]))
+		roles.append(Space.OBSTACLE)
+	boxes.append(PackedInt32Array([0, 0, 0, 10, 10, 10]))
+	roles.append(Space.SUPPORTED_VOID)
+	var query: PackedInt32Array = PackedInt32Array([0, 0, 0, 10, 10, 10])
+	var full: Binding.Clearance = _indexed(boxes, roles, false)
+	var fast: Binding.Clearance = _indexed(boxes, roles, true)
+	var charges: PackedInt32Array = PackedInt32Array()
+	for lookup: int in 8:
+		var before: int = fast.remaining
+		assert_false(full.blocked(query), "master: nothing blocks")
+		assert_false(fast.blocked(query), "the index: nothing blocks")
+		charges.append(before - fast.remaining)
+		assert_true(1048576 - fast.remaining <= 1048576 - full.remaining, "never more than master after lookup %d" % lookup)
+	assert_equal(charges[0], 601, "the first lookup pays as master; the build is owed")
+	assert_equal(charges[7], 20, "repaid: 19 band words and the one row the band holds")
+	assert_equal(fast._index_debt, 0, "nothing owed")
+
+
+func test_a_proof_at_masters_exact_cost_still_admits_with_the_index() -> void:
+	"""Decision 2045 (Slice C's min-cost rule): a proof whose master run ends exactly at its budget (every scan of a
+	mixed image, a few hundred checks short of where the old build charge would have refused) admits with the index on,
+	with the same answers and fragments, for every budget from master's total up."""
+	var boxes: Array[PackedInt32Array] = []
+	var roles: PackedInt32Array = PackedInt32Array()
+	for index: int in 1300:
+		var z: int = 40 * index
+		boxes.append(PackedInt32Array([0, 0, z, 20, 10, z + 60]))
+		roles.append([Space.SUPPORTED_VOID, Space.SUPPORT, Space.OBSTACLE, Space.DRY_SOLID][index % 4])
+	var queries: Array[PackedInt32Array] = []
+	for index: int in 12:
+		queries.append(PackedInt32Array([0, 0, 3000 * index + 7, 20, 10, 3000 * index + 400]))
+	var master: Array = _scan_series(_indexed(boxes, roles, false), queries)
+	var cost: int = 1048576 - master[0]
+	for slack: int in [0, 1, 300]:
+		var fast: Binding.Clearance = _indexed(boxes, roles, true, cost + slack)
+		var run: Array = _scan_series(fast, queries)
+		assert_equal(fast.error, &"", "admits at master's cost + %d (%d)" % [slack, cost])
+		assert_equal(run.slice(1), master.slice(1), "the same answers and fragments at + %d" % slack)
+	var short: Binding.Clearance = _indexed(boxes, roles, false, cost - 1)
+	_scan_series(short, queries)
+	assert_equal(short.error, &"WORLD_ROUTE_CHECK_CAPACITY", "master itself refuses one check short")
+
+
+func _scan_series(proof: Binding.Clearance, queries: Array[PackedInt32Array]) -> Array:
+	"""[remaining, then each query's blocked, covered and fragments] for one proof."""
+	var out: Array = [0]
+	for query: PackedInt32Array in queries:
+		out.append(proof.blocked(query))
+		out.append(proof.covered(query, Space.SUPPORTED_VOID))
+		out.append(proof.fragments.slice(0, 6 * proof.count))
+		out.append(proof.subtract_role(Space.SUPPORT, query))
+	out[0] = proof.remaining
+	return out
+
+
+func test_an_overlapping_pending_obstacle_still_pays_its_span_proof() -> void:
+	"""Decision 2045 (P-2045-12 (a), Slice C's condition 6): `_body_blocked` reaches `_pending_span_refusal`'s 4096
+	spend for an OBSTACLE overlapping the body under an excusing profile; a face-touching one is never selected."""
+	for touching: bool in [false, true]:
+		var binding: Binding = Binding.new()
+		binding._bounds = PackedInt32Array([0, 0, 0, 10, 10, 10])
+		binding._descriptor.profile_id = 2
+		binding._installation = Locations.InstallationContext.new()
+		var z: int = 10 if touching else 5
+		var boxes: Array[PackedInt32Array] = [PackedInt32Array([0, 0, z, 10, 10, z + 10])]
+		var roles: PackedInt32Array = PackedInt32Array([Space.OBSTACLE])
+		for far: int in 40:
+			boxes.append(PackedInt32Array([0, 0, 6000 + 10 * far, 10, 10, 6005 + 10 * far]))
+			roles.append(Space.SUPPORTED_VOID)
+		binding._proof = _indexed(boxes, roles, true)
+		var spent: int = binding._proof.remaining
+		assert_equal(binding._body_blocked(Vector3i.ZERO, Vector3i(0, 0, -1)), not touching, "touching %s" % touching)
+		spent -= binding._proof.remaining
+		assert_equal(spent >= 4096, not touching, "the span proof's 4096 checks, touching %s (%d)" % [touching, spent])
+
+
+func test_an_indexed_lookup_never_costs_more_than_the_full_scan() -> void:
+	"""Decision 2045 (P-2045-12 (a), the review's H1 and H2): a lookup whose band words and band rows could reach the
+	image's row count scans every row instead, at master's one check a row; and an index built by an uncharged checked
+	rerun is forgotten with the debt it moved (`index_rewind`), as an unchecked run never built it."""
+	var boxes: Array[PackedInt32Array] = _z_rows([Vector2i(0, 100), Vector2i(6300, 6400)])
+	var roles: PackedInt32Array = PackedInt32Array([Space.SUPPORTED_VOID, Space.SUPPORTED_VOID])
+	var proof: Binding.Clearance = _indexed(boxes, roles, true)
+	var mark: Array = proof.index_mark()
+	assert_false(proof.blocked(PackedInt32Array([0, 0, 0, 10, 10, 6400])), "nothing blocks")
+	assert_equal(1048576 - proof.remaining, 2, "every band: the full scan, one check a row, as master")
+	assert_true(proof.index_mark()[0] != null and proof.index_mark()[1] > 0, "the index was built, and is owed")
+	proof.index_rewind(mark)
+	assert_true(proof.index_mark()[0] == null and proof.index_mark()[1] == 0, "a rewind forgets the build and its debt")
+
+
+func test_an_empty_fragment_set_scans_as_master() -> void:
+	"""Decision 2045 (the review's H1): with no fragment left, `subtract_role` ends at the first row of its role that meets
+	`limit`, wherever it lies; indexed, it scans linearly as master does, charging exactly master's rows."""
+	var boxes: Array[PackedInt32Array] = _z_rows([Vector2i(5000, 5100), Vector2i(0, 100), Vector2i(6300, 6400)])
+	var roles: PackedInt32Array = PackedInt32Array([Space.SUPPORT, Space.SUPPORTED_VOID, Space.SUPPORT])
+	var limit: PackedInt32Array = PackedInt32Array([0, 0, 4000, 10, 10, 6000])
+	var spent: PackedInt32Array = PackedInt32Array()
+	for on: bool in [false, true]:
+		var proof: Binding.Clearance = _indexed(boxes, roles, on)
+		proof.start(PackedInt32Array([0, 0, 0, 10, 10, 100]))
+		assert_true(proof.subtract_role(Space.SUPPORTED_VOID), "the void covers the box, indexed %s" % on)
+		assert_equal(proof.count, 0, "no fragment left")
+		var before: int = proof.remaining
+		assert_true(proof.subtract_role(Space.SUPPORT, limit), "nothing left to cover")
+		spent.append(before - proof.remaining)
+	assert_equal(spent[1], spent[0], "the same charge as master: its first SUPPORT row meeting the limit, row 0")
+	assert_equal(spent[0], 1, "one check")
+
+
+func test_a_lookup_that_could_cost_a_full_scan_scans_every_row_as_master() -> void:
+	"""Decision 2045 (the review's guard): a query whose band words and band rows reach the row count is not indexed
+	(nothing deferred, nothing owed for it): it scans every row and charges a check a row. A narrow query is indexed."""
+	var boxes: Array[PackedInt32Array] = _z_rows([Vector2i(0, 100), Vector2i(1000, 1100), Vector2i(2000, 2100),
+		Vector2i(3000, 3100), Vector2i(4000, 4100), Vector2i(6300, 6400)])
+	var roles: PackedInt32Array = PackedInt32Array([Space.SUPPORT, Space.SUPPORT, Space.SUPPORT, Space.SUPPORT,
+		Space.SUPPORT, Space.SUPPORT])
+	var proof: Binding.Clearance = _indexed(boxes, roles, true)
+	var selection: PackedInt32Array = PackedInt32Array()
+	assert_equal(proof.first_row(PackedInt32Array([0, 0, 1000, 10, 10, 1050]), selection, 0), 1, "a narrow query")
+	assert_equal(proof._deferred[0], 1, "is indexed")
+	assert_equal(proof.first_row(PackedInt32Array([0, 0, 0, 10, 10, 6400]), selection, 0), 0, "the whole image")
+	assert_equal(proof._deferred[0], 0, "is scanned as master scans it")
+	assert_equal(selection.size(), 0, "with no selection")
+
+
+func test_a_rewind_to_another_images_mark_forgets_the_index() -> void:
+	"""Decision 2045 (the review's L): a mark taken while the index held one image does not keep an index of another;
+	an empty image selects nothing."""
+	var a: Binding.Clearance = _indexed(_z_rows([Vector2i(0, 100), Vector2i(6300, 6400)]),
+		PackedInt32Array([Space.SUPPORT, Space.SUPPORT]), true)
+	var b: Binding.Clearance = _indexed(_z_rows([Vector2i(0, 200), Vector2i(3000, 3100), Vector2i(6300, 6400)]),
+		PackedInt32Array([Space.SUPPORT, Space.SUPPORT, Space.SUPPORT]), true)
+	assert_false(a.blocked(PackedInt32Array([0, 0, 0, 10, 10, 50])), "image A indexed")
+	var mark: Array = a.index_mark()
+	assert_true(mark[0] != null, "the mark holds image A")
+	a.image = b.image
+	assert_false(a.blocked(PackedInt32Array([0, 0, 0, 10, 10, 50])), "image B indexed")
+	assert_true(a.index_mark()[0] != null and a.index_mark()[0] != mark[0], "the index holds image B")
+	a.index_rewind(mark)
+	assert_true(a.index_mark()[0] == null, "a rewind to A's mark forgets B's index")
+	var empty: Binding.Clearance = _indexed([] as Array[PackedInt32Array], PackedInt32Array(), true)
+	var selection: PackedInt32Array = PackedInt32Array()
+	assert_equal(empty.first_row(PackedInt32Array([0, 0, 0, 10, 10, 10]), selection, 0), -1, "an empty image: no row")

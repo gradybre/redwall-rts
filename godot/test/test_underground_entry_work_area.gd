@@ -8,8 +8,8 @@ const WorkAreaSource := preload("res://scripts/core/underground_entry_work_area.
 ## ADR1217 step 5: the production work area is the claw bundle's (stations at +/-1430, H's claw air). ADR1229: the
 ## mounted bundle is the T1-T6 one, which keeps the claw bundle's L0/T0 rows on content 10's row ids; decision 1972
 ## mounts its successor v10 on content 12 (the same rows 0-66). Decision 2044 (P-2044-15): the M2 interim bundle is
-## mounted (v10's rows first), and the contact-retirement scope replays its table census.
-const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-m2-v1/catalog_source.gd")
+## mounted (v10's rows first), and the contact-retirement scope replays its table census. Decision 2045: M5's.
+const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-m5-v2/catalog_source.gd")
 const MoleCatalog := preload("res://data/underground/mole-worker/mole_profile_catalog.gd")
 const ClawPins := preload("res://data/underground/mole-worker/qualified-claw-stairs-v11/catalog_source.gd")
 const WA_PROFILE_SHA: String = Bundle.PROFILE_SHA
@@ -161,12 +161,12 @@ func test_actual_material_aliases_do_not_create_extra_locations() -> void:
 	immutable selectors describe this source; the descent stations' paths wait until they are worked."""
 	_probe = Probe.new()
 	_probe.before_each()
-	# Decision 2044 (M2): a pair of cut stations a row for the flight's twelve rows (29 endpoints); stage 1's pair joins
-	# with its first cut, so H and stage 0's four stations reach both storages (20 paths) beside the eight haul edges.
-	assert_equal(_probe._world._locations._live.count, 29, "original nine, two haul stands, eighteen descent stations")
+	# Decision 2044: a pair of cut stations a row for the flight's rows (decision 2045: M5's 27, 59 endpoints); stage 1's
+	# pair joins with its first cut, so H and stage 0's four stations reach both storages (20 paths) beside eight haul edges.
+	assert_equal(_probe._world._locations._live.count, 59, "original nine, two haul stands, forty-eight descent stations")
 	assert_equal(_probe._world._routes._live.edge_count, 28, "stage 0's 20 directed paths plus eight haul edges")
-	assert_equal(_probe._source.row_count(4, Bundle.FRONTIER_REVISION), 97,
-		"explicit extra travel selectors, the installed arrival selectors, the stair, landing and deep stops (M2)")
+	assert_equal(_probe._source.row_count(4, Bundle.FRONTIER_REVISION), 305,
+		"explicit extra travel selectors, the installed arrival selectors, the stair, landing and deep stops (M5)")
 
 
 func test_entry_foreman_drives_all_twelve_l0_phases_from_the_frontier() -> void:

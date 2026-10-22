@@ -4,6 +4,9 @@ extends "res://test/framework/test_case.gd"
 ## landing; P-2044-14 (a) publishes no floor walk-off or back-up and joins a landing to its module on ground rows.
 
 const StairPath := preload("res://scripts/core/underground_entry_stair_path.gd")
+const Progress := preload("res://scripts/core/underground_entry_progress.gd")
+const Installer := preload("res://scripts/core/underground_entry_installer.gd")
+const Hauler := preload("res://scripts/core/underground_entry_hauler.gd")
 const Tread := preload("res://data/underground/mole-worker/qualified-m5-runtime-v1/tread_geometry.gd")
 const StairPins := preload("res://data/underground/mole-worker/qualified-stair-carry-v13/catalog_source.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
@@ -109,15 +112,16 @@ func test_module_zero_plan_is_v10s_then_the_landings() -> void:
 
 func test_landings_cross_on_71_72_and_join_at_f_prime() -> void:
 	"""P-2044-16 (a): each landing has the walk-off F -> F' and back-up F' -> F (family 0); the ground joins all start or
-	end at F' (F' -> P', F' -> H', F' -> D, H' -> F', U0' -> F', P' -> F', D -> F'); nothing on the ground touches F
-	or U."""
+	end at F' (F' -> P', F' -> H', F' -> D, H' -> F', P' -> F', D -> F'), but for decision 2045's U0' -> D (the turning
+	spot R', P-2045-11 (a)); nothing on the ground touches F or U."""
 	var plan: PackedInt32Array = StairPath.edge_plan()
 	var floor_edges: Dictionary = {}
 	var joins: Dictionary = {}
 	var at_f: Array[int] = [StairPath.KIND_F, StairPath.KIND_UF]
 	for at: int in range(0, plan.size(), StairPath.PLAN_WORDS):
 		var edge: Vector4i = Vector4i(plan[at], plan[at + 1], plan[at + 2], plan[at + 3])
-		var at_fp: bool = plan[at] == StairPath.KIND_FP or plan[at + 2] == StairPath.KIND_FP
+		var at_fp: bool = plan[at] == StairPath.KIND_FP or plan[at + 2] == StairPath.KIND_FP \
+			or (plan[at] == StairPath.KIND_U and plan[at + 2] == StairPath.KIND_D)
 		assert_false(plan[at + 4] == -1 and (plan[at] in at_f or plan[at + 2] in at_f), "no ground edge at F or U: %s" % edge)
 		if plan[at + 4] == 0 and at_fp: floor_edges[edge] = true
 		if plan[at + 4] == -1 and at_fp: joins[edge] = true
@@ -129,7 +133,7 @@ func test_landings_cross_on_71_72_and_join_at_f_prime() -> void:
 		for join: Vector4i in [Vector4i(StairPath.KIND_FP, landing, StairPath.KIND_P, foot),
 				Vector4i(StairPath.KIND_FP, landing, StairPath.KIND_H, foot),
 				Vector4i(StairPath.KIND_H, foot, StairPath.KIND_FP, landing),
-				Vector4i(StairPath.KIND_U, foot, StairPath.KIND_FP, landing),
+				Vector4i(StairPath.KIND_U, foot, StairPath.KIND_D, landing),
 				Vector4i(StairPath.KIND_P, foot, StairPath.KIND_FP, landing),
 				Vector4i(StairPath.KIND_FP, landing, StairPath.KIND_D, landing),
 				Vector4i(StairPath.KIND_D, landing, StairPath.KIND_FP, landing)]:
@@ -150,16 +154,18 @@ func test_hops_down_cross_each_landing_by_its_floor_and_p_prime() -> void:
 
 
 func test_hops_up_climb_back_through_each_landing() -> void:
-	"""Up from module 1's T3: its ascents to U0', the retreat to F', the back-up to F, the half-turn onto U, the floor
-	ascent onto module 0's sill, then up to X."""
+	"""Up from module 1's T3: its ascents to U0', on to the turning spot R' on the approach 45 and back to F' on the
+	retreat 47 (decision 2045, P-2045-11 (a)), the back-up to F, the half-turn onto U, the floor ascent onto module 0's
+	sill, then up to X."""
 	var stops: StairPath.Stops = _full_stops()
 	var hops: Array = StairPath.hops_up(stops, StairPath.global_level(1, 3))
-	assert_equal(hops[4], [stops.fp[1], StairPins.CLAW_RETREAT_ROWS[0]], "U0' -> F' on landing 1")
-	assert_equal(hops[5], [stops.f[1], StairPins.STAIR_EMPTY_FLOOR_ROWS[1]], "the back-up")
-	assert_equal(hops[6], [stops.uf[1], StairPins.CLAW_TURN_ROW], "the half-turn")
-	assert_equal(hops[7], [stops.u[StairPath.global_level(0, 6) + 1], StairPins.CLAW_ASCENT_ROW], "onto module 0's sill")
+	assert_equal(hops[4], [stops.d[1], StairPins.CLAW_APPROACH_ROWS[2]], "U0' -> R' on landing 1, facing up")
+	assert_equal(hops[5], [stops.fp[1], StairPins.CLAW_RETREAT_ROWS[0]], "R' -> F', turned to face down")
+	assert_equal(hops[6], [stops.f[1], StairPins.STAIR_EMPTY_FLOOR_ROWS[1]], "the back-up")
+	assert_equal(hops[7], [stops.uf[1], StairPins.CLAW_TURN_ROW], "the half-turn")
+	assert_equal(hops[8], [stops.u[StairPath.global_level(0, 6) + 1], StairPins.CLAW_ASCENT_ROW], "onto module 0's sill")
 	assert_equal(hops[hops.size() - 1], [stops.x, StairPins.CLAW_APPROACH_ROWS[2]], "ends at X")
-	assert_equal(hops.size(), 4 + (1 + 2 + 1 + 7) + 1, "hop count")
+	assert_equal(hops.size(), 4 + (2 + 2 + 1 + 7) + 1, "hop count")
 
 
 func test_deep_stations_classify_by_landing_row_and_column() -> void:
@@ -172,3 +178,69 @@ func test_deep_stations_classify_by_landing_row_and_column() -> void:
 	assert_equal(StairPath.classify_deep(Vector3i(0, -1024 * landing, z)), Vector3i(-1, 0, 0), "not a column")
 	assert_equal(StairPath.classify_deep(Vector3i(-300, -1024 * landing, z + 1)), Vector3i(-1, 0, 0), "off the row")
 	assert_equal(StairPath.classify_deep(Vector3i(-300, -1024 * StairPath.MODULES, z)), Vector3i(-1, 0, 0), "no floor below")
+
+
+func test_every_m5_hop_list_fits_the_saved_leg_lists() -> void:
+	"""Decision 2045: an installation plan's down, up and chain lists are saved with at most Progress.MAX_STAIR_LEGS legs
+	each; every M5 hop list (down to and up from every level, to and from every landing's walk-off) fits."""
+	var stops: StairPath.Stops = _full_stops()
+	var longest: int = 0
+	for module: int in StairPath.MODULES:
+		for level: int in range(-1, 7):
+			var at: int = StairPath.global_level(module, level)
+			longest = maxi(longest, maxi(StairPath.hops_down(stops, at).size(), StairPath.hops_up(stops, at).size()))
+	for landing: int in range(1, StairPath.MODULES):
+		longest = maxi(longest, StairPath.hops_down_to_walk_off(stops, landing).size())
+		longest = maxi(longest, StairPath.hops_up_from_walk_off(stops, landing).size())
+		longest = maxi(longest, StairPath.hops_up_from_landing(stops, landing).size())
+	assert_equal(longest, 56, "up from module 4's deepest stop to X")
+	assert_true(longest <= Progress.MAX_STAIR_LEGS, "every list fits the saved record")
+	assert_true(longest + 1 <= Progress.MAX_HAUL_LEGS, "and an installer's haul up its whole list, then to M (the review's H2)")
+
+
+func _legs_record(count: int) -> Progress.Writer:
+	"""A stair leg list of `count` legs as the installer writes it."""
+	var rows: PackedInt64Array = PackedInt64Array()
+	for leg: int in count: rows.append_array(PackedInt64Array([leg, 1, 7 * leg, 1000 + leg]))
+	var w: Progress.Writer = Progress.Writer.new()
+	Installer._write_legs(w, rows)
+	return w
+
+
+func test_a_leg_list_the_reader_admits_round_trips_and_a_longer_one_refuses_the_capture() -> void:
+	"""Decision 2045: the writer refuses (`overflow`) exactly the lists the reader cannot read back."""
+	var fits: Progress.Writer = _legs_record(Progress.MAX_STAIR_LEGS)
+	assert_false(fits.overflow, "the longest admitted list writes")
+	var r: Progress.Reader = Progress.Reader.new()
+	r.bytes = fits.bytes
+	var rows: PackedInt64Array = Installer._read_legs(r)
+	assert_false(r.bad, "and reads back")
+	assert_equal(rows.size(), 4 * Progress.MAX_STAIR_LEGS, "every leg")
+	assert_equal(rows[rows.size() - 1], 1000 + Progress.MAX_STAIR_LEGS - 1, "in order")
+	assert_true(_legs_record(Progress.MAX_STAIR_LEGS + 1).overflow, "one leg more refuses the capture")
+
+
+class NoJobs extends RefCounted:
+	## The writer's owners packet when its haul holds no Job (it reads no handle).
+	var jobs: RefCounted = null
+
+
+func _haul_record(count: int) -> Progress.Writer:
+	"""An entry haul of `count` legs, written as the hauler writes it."""
+	var hauler: Hauler = Hauler.new()
+	hauler._o = NoJobs.new()
+	for index: int in count:
+		var leg: Hauler.Leg = Hauler.Leg.new()
+		leg.target = Vector2i(index, 1)
+		hauler._legs.append(leg)
+	var w: Progress.Writer = Progress.Writer.new()
+	hauler.write_state(w)
+	return w
+
+
+func test_an_entry_haul_of_the_longest_climb_writes_and_a_longer_one_refuses() -> void:
+	"""Decision 2045 (the review's H2): the entry hauler writes up to MAX_HAUL_LEGS legs and refuses one more, the
+	reader's bound; the room builders' records keep MAX_LEGS."""
+	assert_false(_haul_record(Progress.MAX_HAUL_LEGS).overflow, "the longest admitted haul writes")
+	assert_true(_haul_record(Progress.MAX_HAUL_LEGS + 1).overflow, "one leg more refuses the capture")
+	assert_true(Progress.MAX_LEGS < Progress.MAX_HAUL_LEGS, "the room builders' bound is the smaller")

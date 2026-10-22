@@ -2,8 +2,8 @@ extends "res://test/framework/test_case.gd"
 ## ADR 1229: the T1-T6 bundle through the actual Catalog, Recipes, Assemblies and Frontier readers, in a fixture
 ## Profiles store. Decision 1972: the mounted bundle is `qualified-stairs-v10`, on content 12 (content 10's rows 0-66
 ## byte for byte, then the claw wall rows 67-70 and the stair carry 71-84).
-## Decision 2044 (P-2044-15): the mounted Session runs its successor, the M2 interim `qualified-stairs-m2-v1` (v10's
-## rows first); nothing here grants a Location, route or Job.
+## Decision 2044 (P-2044-15): the mounted Session ran its successor, the M2 interim `qualified-stairs-m2-v1` (v10's
+## rows first); decision 2045 mounts M5's `qualified-stairs-m5-v1`. Nothing here grants a Location, route or Job.
 
 const Host := preload("res://scripts/systems/settlement_system.gd")
 const Session := preload("res://scripts/core/underground_session.gd")
@@ -14,7 +14,7 @@ const Recipes := preload("res://scripts/core/underground_connector_recipes.gd")
 const Frontier := preload("res://scripts/core/underground_entry_frontier.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-v10/catalog_source.gd")
-const Mounted := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-m2-v1/catalog_source.gd")
+const Mounted := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-m5-v2/catalog_source.gd")
 const Pins := preload("res://data/underground/mole-worker/qualified-claw-stairs-v11/catalog_source.gd")
 const Tread := preload("res://data/underground/mole-worker/qualified-claw-runtime-v2/tread_geometry.gd")
 const CAPACITIES: Vector3i = Vector3i(85, 637, 8)
@@ -104,7 +104,7 @@ func test_structure_carries_the_flight_and_the_stair_paces() -> void:
 	assert_equal(_assemblies._header[5], 8, "L0, T0..T6")
 	var o: Session.Retirement.Owners = _session._retirement_owners
 	assert_equal([o.world_routes._catalog._live.header[8], o.world_routes._catalog._live.digests.decode_s64(0)],
-		[Mounted.CONTENT_REVISION, Mounted.CATALOG_DIGEST_0], "the mounted structure is the M2 interim's (decision 2044)")
+		[Mounted.CONTENT_REVISION, Mounted.CATALOG_DIGEST_0], "the mounted structure is M5's (decision 2045)")
 	assert_equal(Mounted.CONTENT_REVISION, Bundle.CONTENT_REVISION, "on the same content")
 
 

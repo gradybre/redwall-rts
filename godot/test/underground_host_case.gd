@@ -57,15 +57,13 @@ const PREFIX_INSTALLS: int = 2
 ## near tick 12,000 both reach their GDD 5.2 seek thresholds, DEC-059's shift change finds no rested idle mole, and
 ## the crew waits at rest. So the whole-flight suites keep every resident's hunger and rest full and R's staged stock
 ## topped up (`_sustain`), stand-ins for the kitchen and stores the settlement does not have yet.
-const DESCENT_DONE_TICK: int = 20229
-const FLIGHT_TICK_LIMIT: int = 40000
-## The stand-ins: every 20 ticks the needs are refilled; every 50 ticks a staged input below 3,000 milli gets 3,000.
-const SUSTAIN_NEEDS_EVERY: int = 20
-const SUSTAIN_STOCK_EVERY: int = 50
-const SUSTAIN_STOCK_MILLI: int = 3000
-## [task index, cut Work, hauled units, installation Work, groups INSTALLED] at the finish: the last stage's 37 tasks,
-## 34 cubes x 4,230, 36 hauled units, 32,000 + 12,000 + 6 x 5,640 for module 0 and 45,840 for module 1's seven groups.
-const DESCENT_LEDGER: Array = [37, 143820, 36, 123680, 15]
+## Decision 2045 (M5): five modules, 36 groups, each landing's deep stage first; the flight finishes on tick 92,559
+## (the committed underground_flight checkpoint's finish, test/fixtures/checkpoint_recipes.gd).
+const DESCENT_DONE_TICK: int = 92559
+## [task index, cut Work, hauled units, installation Work, groups INSTALLED] at the finish. Decision 2044 (M2) was
+## [37, 143820, 36, 123680, 15]. Decision 2045 (M5, read from the flight's finish): the last stage's 37 tasks, 154
+## cubes x 4,230, 117 hauled units and 261,200 mWU fastening 36 groups (L0 and five modules of T0..T6).
+const DESCENT_LEDGER: Array = [37, 651420, 117, 261200, 36]
 ## The groups the prefix and module 0 install (L0, T0..T6).
 const MODULE_ZERO_INSTALLS: int = 8
 ## ADR1221: the live chain's route owners are cold-restored this often (ticks; prime).
@@ -240,16 +238,9 @@ func _done_ledger(o: Session.Retirement.Owners, foreman: RefCounted) -> Array:
 
 
 func _sustain(o: Session.Retirement.Owners, entry: Settlement.UndergroundEntryRuntime, tick: int) -> void:
-	"""Decision 2044: the whole-flight stand-ins (see DESCENT_DONE_TICK), run before each tick's run_tick."""
-	if tick % SUSTAIN_NEEDS_EVERY == 0:
-		var needs: RefCounted = o.residents.needs()
-		for at: int in range(0, needs._need_value.size(), Needs.NEED_COUNT):
-			needs._need_value[at + Needs.NEED_HUNGER] = Needs.NEED_MAX
-			needs._need_value[at + Needs.NEED_REST] = Needs.NEED_MAX
-	if tick % SUSTAIN_STOCK_EVERY != 1: return
-	for key: StringName in [&"wood", &"stone"]:
-		if _staged_milli(o, entry._output, o.items.compiled_id(key)) < SUSTAIN_STOCK_MILLI:
-			_stage(o, entry._output, key, SUSTAIN_STOCK_MILLI)
+	"""Decision 2044: the whole-flight stand-ins (see DESCENT_DONE_TICK, `Chain.sustain`), run before each tick."""
+	var code: StringName = Chain.sustain(o, entry._output, tick)
+	if code != &"": assert_equal(code, &"", "the stand-ins before tick %d" % tick)
 
 
 func _staged_milli(o: Session.Retirement.Owners, container: Vector2i, item: int) -> int:
@@ -373,17 +364,18 @@ func _first_trip_done(entry: Settlement.UndergroundEntryRuntime) -> bool:
 
 
 func _finished_entry() -> Array:
-	"""[owners, runtime, crew worker, its resident row, next tick] of the live entry run to its finishing tick."""
-	var live: Array = _begin_live_entry()
-	var o: Session.Retirement.Owners = live[0]
-	var entry: Settlement.UndergroundEntryRuntime = live[1]
-	var tick: int = 1
-	while entry.is_running() and tick < FLIGHT_TICK_LIMIT:
-		_sustain(o, entry, tick) # Decision 2044: the M2 flight outlasts the cohort's means (see DESCENT_DONE_TICK).
-		assert_true(_host.run_tick(tick), "the settlement tick itself never fails: %s" % _host.last_refusal())
-		tick += 1
-	assert_equal(tick - 1, DESCENT_DONE_TICK, "the entry finished on its own tick")
-	return [o, entry, live[2], o.residents.directory().get_typed_row(live[2]), tick]
+	"""[owners, runtime, crew worker, its resident row, next tick] of the live entry at its finishing tick: the committed
+	underground_flight checkpoint's finish (decision 2045: test_underground_flight_<k>.gd prove every point of it equals
+	the sustained flight replayed from tick 0), or [] when it did not load."""
+	_checkpoint_loaded = true
+	var refusal: String = Store.load_into(_host, GameManager, Recipes.FLIGHT, Recipes.FINISH_POINT, _content)
+	assert_equal(refusal, "", "the underground_flight finish checkpoint loads")
+	if refusal != "": return []
+	var o: Session.Retirement.Owners = _host.underground_session()._retirement_owners
+	var entry: Settlement.UndergroundEntryRuntime = _host.underground_entry()
+	var worker: Vector2i = entry.crew().worker
+	assert_equal(GameManager.clock().completed_tick(), DESCENT_DONE_TICK, "the entry finished on its own tick")
+	return [o, entry, worker, o.residents.directory().get_typed_row(worker), GameManager.clock().completed_tick() + 1]
 
 
 func _pose(o: Session.Retirement.Owners, worker: Vector2i) -> Transforms.Pose:

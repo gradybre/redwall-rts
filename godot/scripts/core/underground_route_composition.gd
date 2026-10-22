@@ -11,9 +11,10 @@ const Catalog := preload("res://scripts/core/underground_connector_catalog.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
 ## Decision 1972: the T1-T6 first-entry bundle on content 12 (`qualified-stairs-v10`, Frontier revision 9 on source 4,
 ## workpieces on source 5); ADR1229 mounted v9 (content 10), ADR1217 step 5 the claw bundle `qualified-claw-v6`.
-## Decision 2044: the M2 interim (`qualified-stairs-m2-v1`, 97 parts, Frontier revision 10; P-2044-15), the first
-## two modules of the M5 flight to level 1 (the target), v10's successor.
-const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-m2-v1/catalog_source.gd")
+## Decision 2044: the M2 interim (`qualified-stairs-m2-v1`, 97 parts; P-2044-15) mounted M5's first two modules.
+## Decision 2045: the M5 flight to level 1 (`qualified-stairs-m5-v2`, 232 parts, Frontier revision 10; v1 before the
+## turning spot R', P-2045-11 (a)), v10's successor.
+const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-m5-v2/catalog_source.gd")
 ## ADR1229: the claw stair tables Routes samples for the stair and short-step rows 51-55; decision 1972: the stair-carry
 ## tables for the rooted rows 71-84, a second bank of the same owner.
 const StairMotion := preload("res://scripts/core/underground_stair_motion.gd")

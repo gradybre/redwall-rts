@@ -61,8 +61,10 @@ MODULE_DROP, MODULE_RUN = 1024, 5120
 MODULES = 5
 ROWS = 27
 END_WALL = -1024 * ROWS
-OUTPUT = HERE / "qualified-stairs-m5-v1"
-RES = "res://data/underground/first-entry-prefix-v1/qualified-stairs-m5-v1/"
+## Decision 2045 (P-2045-11 (a)): M5's successor `qualified-stairs-m5-v2` adds the turning spot R' on each landing and
+## sizes U0' by the approach 45; M2's interim `qualified-stairs-m2-v1` keeps P-2044-16 (a)'s design.
+OUTPUT = HERE / "qualified-stairs-m5-v2"
+RES = "res://data/underground/first-entry-prefix-v1/qualified-stairs-m5-v2/"
 
 
 def select(modules: int) -> None:
@@ -72,9 +74,14 @@ def select(modules: int) -> None:
     MODULES = modules
     ROWS = 2 + 5 * modules
     END_WALL = -1024 * ROWS
-    name = "qualified-stairs-m%d-v1" % modules
+    name = "qualified-stairs-m5-v2" if modules == 5 else "qualified-stairs-m2-v1"
     OUTPUT = HERE / name
     RES = "res://data/underground/first-entry-prefix-v1/%s/" % name
+
+
+def turning() -> bool:
+    """Decision 2045 (P-2045-11 (a)): whether the selected layout publishes the turning spot R' (M5's v2 only)."""
+    return MODULES == 5
 
 
 def part_count() -> int:
@@ -416,8 +423,13 @@ def add_module_stops(t: Tables, module: int) -> dict:
            "P": t.add_endpoint([INSTALLED, t0, floor, TRANSIT] + stop_point(module, -1, V10.STATION) + [V10.APPROACH]),
            "A0": t.add_endpoint([INSTALLED, t0, floor, TRANSIT] + stop_point(module, -1, V10.ARRIVAL) + [V10.DESCENT]),
            "U0": t.add_endpoint([INSTALLED, t0, floor, TRANSIT] + stop_point(module, -1, V10.ASCENT_START)
-                                + [RETREAT]),  # P-2044-16 (a): U0' backs down the landing to F' on 47.
+                                + [V10.APPROACH_UP if turning() else RETREAT]),
            "A": [], "S": [], "Us": []}
+    # P-2044-16 (a): U0' backed down the landing to F' on 47. Decision 2045 (P-2045-11 (a)): a crew arrives at U0'
+    # facing up, so U0' is sized by the approach 45 and the way on is U0' -> R' on 45, a turn at R' (D's point, sized
+    # by the all-yaw walk 42, published with this module's T0 once D has gone), then R' -> F' on 47.
+    if turning():
+        out["R"] = t.add_endpoint([INSTALLED, t0, floor, TRANSIT] + stop_point(module, -1, DEEP_INSIDE) + [DEEP_TRAVEL])
     for level in range(V10.TREADS + 1):
         asm, at = assembly_of(module, level), tread_landing_ordinal(module, level)
         out["A"].append(t.add_endpoint([INSTALLED, asm, at, TRANSIT] + stop_point(module, level, V10.ARRIVAL)

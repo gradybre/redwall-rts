@@ -367,6 +367,7 @@ func write_state(w: Progress.Writer) -> void:
 	w.i32(_queue.size())
 	for item: int in _queue:
 		w.i32(item)
+	if _legs.size() > Progress.MAX_HAUL_LEGS: w.overflow = true # Decision 2045: never a record the reader refuses.
 	w.i32(_legs.size())
 	for leg: Leg in _legs:
 		w.ref(leg.target)
@@ -385,15 +386,17 @@ func write_state(w: Progress.Writer) -> void:
 	w.i32(_trips)
 
 
-func read_state(r: Progress.Reader, owners: RefCounted, crew: RefCounted, home: int) -> StringName:
-	"""ADR1218: decode a saved haul under the parent's owners and BUILD Job, then re-prove its handles."""
+func read_state(r: Progress.Reader, owners: RefCounted, crew: RefCounted, home: int,
+		max_legs: int = Progress.MAX_HAUL_LEGS) -> StringName:
+	"""ADR1218: decode a saved haul under the parent's owners and BUILD Job, then re-prove its handles. Decision 2045:
+	the entry's haul admits MAX_HAUL_LEGS legs; a room builder's keeps its own record's bound (`max_legs`)."""
 	_o = owners
 	_crew = crew
 	_project = r.ref()
 	_home = r.i32()
 	for index: int in r.ranged(0, Progress.MAX_QUEUE):
 		_queue.append(r.i32())
-	for index: int in r.ranged(1, Progress.MAX_LEGS):
+	for index: int in r.ranged(1, max_legs):
 		var leg: Leg = Leg.new()
 		leg.target = r.ref()
 		leg.profile = r.i32()

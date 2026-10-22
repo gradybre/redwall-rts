@@ -147,8 +147,19 @@ func haul_trips() -> int:
 
 
 func progress_marker() -> int:
-	"""Changes whenever the installation or its haul advances a stage; the foreman's stall budget reads it."""
-	return _stage * 1024 + (_hauler.trips() * 16 + _hauler.stage() if _hauler != null else 0)
+	"""Changes whenever the installation or its haul advances a stage; the foreman's stall budget reads it. Decision
+	2045: and whenever a leg of the installer's own climb or descent, or of its haul's approach, is reached, so a long
+	way down through several landings (module 3's T0 is many legs from M) is progress, not a stall. Packed into the
+	saved 32-bit field (`_last_install_stage`): stage < 16, stair leg < 64 (MAX_STAIR_LEGS), haul leg < 128
+	(MAX_HAUL_LEGS 72), haul stage < 8, trips < 1,024, so it never exceeds 2,147,483,647."""
+	if _hauler == null: return marker_of(_stage, _stair_leg, 0, 0, 0)
+	return marker_of(_stage, _stair_leg, _hauler._leg, _hauler.stage(), _hauler.trips())
+
+
+static func marker_of(installer_stage: int, stair_leg: int, haul_leg: int, haul_stage: int, trips: int) -> int:
+	"""Decision 2045: `progress_marker`'s packing, each part clamped to its width."""
+	return (((clampi(installer_stage, 0, 15) * 64 + clampi(stair_leg, 0, 63)) * 128 + clampi(haul_leg, 0, 127)) * 8
+		+ clampi(haul_stage, 0, 7)) * 1024 + clampi(trips, 0, 1023)
 
 
 func advance(tick: int) -> StringName:
@@ -237,6 +248,9 @@ func _leg_ups(tick: int) -> StringName:
 	var arrived: int = _arrived(leg.target, leg.profile, leg.revision, tick)
 	if arrived < 0: return &"ENTRY_INSTALLER_ROUTE_HELD"
 	if arrived == 0: return &""
+	# Decision 2045 (P-2045-10 (a)): at X, still holding the order's Job, wait for a work hour before the haul's own.
+	var worker: int = _o.residents.directory().get_typed_row(_crew.worker)
+	if 4 * (_stair_leg + 1) >= _plan.ups.size() and _o.jobs.schedule().rests_now(worker): return &""
 	_stair_leg += 1
 	if 4 * _stair_leg < _plan.ups.size(): return _face_and_travel(_plan_leg(_plan.ups, 4 * _stair_leg), tick)
 	_plan.ups = PackedInt64Array()
@@ -251,8 +265,21 @@ func _face_and_travel(leg: Hauler.Leg, tick: int) -> StringName:
 	"""Turn to a yaw-exact leg's heading when the crew does not face it, then route on the leg."""
 	var code: StringName = _o.routes.read_actor_into(_crew.worker, _actor)
 	if code == &"" and not _all_yaw(leg.profile) and _actor.yaw != _yaw(leg.profile):
-		code = WorldRoutes.turn_actor(_o.binding, _crew.worker, _job_ref(), _yaw(leg.profile), Space.MAX_CHECKS)
+		if _actor.profile_id < 0 or not _all_yaw(_actor.profile_id): code = _travel_profile(WALK_ROW) # Decision 2045.
+		if code == &"":
+			code = WorldRoutes.turn_actor(_o.binding, _crew.worker, _job_ref(), _yaw(leg.profile), Space.MAX_CHECKS)
 	return _travel(leg.profile, leg.revision, leg.target, tick) if code == &"" else code
+
+
+## Decision 2045 (P-2045-11 (a)): Routes turns only an actor on an all-yaw selection; a crew that arrived on a
+## yaw-exact row (at the turning spot R', on the approach 45) first takes the all-yaw claw walk, which R' is sized by.
+const WALK_ROW: int = 42
+
+
+func _travel_profile(profile: int) -> StringName:
+	"""Decision 2045: refresh the idle crew onto one travel row where it stands, without requesting a route."""
+	var revision: int = _o.profiles._live.quantities[Profiles.L_REVISION * _o.profiles._profile_capacity + profile]
+	return _o.routes.refresh_travel_actor(_crew.worker, _job_ref(), profile, revision, _content, 0, -1, NULL_REF)
 
 
 func _open_chain(queue: PackedInt32Array, tick: int) -> StringName:
@@ -699,8 +726,10 @@ func _write_plan(w: Progress.Writer) -> void:
 
 
 static func _write_legs(w: Progress.Writer, rows: PackedInt64Array) -> void:
-	"""ADR1229: a stair leg list, count first, each leg as Progress.LEG_BYTES."""
+	"""ADR1229: a stair leg list, count first, each leg as Progress.LEG_BYTES. Decision 2045: a list longer than the
+	reader admits refuses the capture (`overflow`) instead of writing a record that cannot be read back."""
 	@warning_ignore("integer_division") var count: int = rows.size() / 4
+	if count > Progress.MAX_STAIR_LEGS: w.overflow = true
 	w.i32(count)
 	for leg: int in count:
 		w.ref(Vector2i(rows[4 * leg], rows[4 * leg + 1]))

@@ -16,6 +16,8 @@ extends RefCounted
 ##   underground_spare  install_<o>_stage_<s>   the host suites' chain with a spare mole, its crew a few
 ##                                              ticks into installation <o>'s installer stage <s>
 ##                                              (decision 1895)
+##   underground_flight tick_<n>, finish        the host suites' whole M5 flight, sustained, at each of
+##                                              FLIGHT_TICKS and on the tick the entry stops (decision 2045)
 ##
 ## Only a replay that costs much more than a load (about 1-2 s) earns a recipe. The generated surface
 ## settlement reaches ARCH-SAVE-006's fork (tick 3000) in 0.5 s, so the test_settlement_save_parity_<n>
@@ -28,13 +30,15 @@ const Settlement := preload("res://scripts/systems/settlement_system.gd")
 const SettlementSave := preload("res://scripts/core/settlement_save.gd")
 const SaveHeader := preload("res://scripts/core/save_header.gd")
 const Placements := preload("res://scripts/core/underground_connector_placements.gd")
+const SimClockCost := preload("res://scripts/core/sim_clock.gd")
 
 ## This script and the GameManager autoload: the roots of every recipe's source fingerprint.
 const SELF_PATH: String = "res://test/fixtures/checkpoint_recipes.gd"
 const GAME_MANAGER_PATH: String = "res://scripts/systems/game_manager.gd"
 const UNDERGROUND: String = "underground_entry"
 const SPARE: String = "underground_spare"
-const NAMES: PackedStringArray = [UNDERGROUND, SPARE]
+const FLIGHT: String = "underground_flight"
+const NAMES: PackedStringArray = [UNDERGROUND, SPARE, FLIGHT]
 ## 100 ms host frames: exactly three ticks at 1x.
 const FRAME_USEC: int = 100000
 
@@ -56,6 +60,19 @@ const TICK_USEC: int = 33334
 ## order the live chain crosses them. The underground_host_case.gd chain finishes its prefix by tick 3462.
 const LOSS_STAGES: Array = [[0, 10], [0, 2], [0, 4], [0, 5], [0, 6], [0, 7], [1, 9]]
 const SPARE_LIMIT: int = 8000
+
+
+## Decision 2045: the whole M5 flight's points. Each tick_<n> is saved when tick n completes, FINISH_POINT on the tick
+## the entry stops (92,560 today). One segment is replayed per suite (test_underground_flight_<k>.gd: the previous
+## point loaded, the runtime and route owners restored along the way, the next point compared byte for byte), so each
+## suite replays a stretch that fits CI's per-suite budget (the dense cube hand-overs of
+## 55,000-60,000, 67,500-70,000 and 82,500-85,000 split further).
+## test_underground_m5_rest_wait.gd starts at tick 45,000.
+const FLIGHT_TICKS: PackedInt32Array = [6000, 12000, 18000, 24000, 30000, 36000, 41000, 45000, 50000, 55000, 57500,
+	60000, 65000, 67500, 68750, 70000, 75000, 80000, 82500, 83250, 85000, 90000]
+const FINISH_POINT: String = "finish"
+## No whole flight runs past this tick (the M5 flight stops at 92,560).
+const FLIGHT_LIMIT: int = 120000
 
 
 class Built:
@@ -83,6 +100,27 @@ class Stepper extends RefCounted:
 		return ok
 
 
+class FlightStepper extends Stepper:
+	"""Decision 2045: the host suites' whole-flight step: their stand-ins (`Chain.sustain`), the `between` hook (a
+	restored replay's restores), then run_tick. Their run_tick loops never run a day boundary, so `day` does nothing."""
+	var between: Callable = Callable()
+	var refused: String = ""
+
+	func step(tick: int) -> bool:
+		"""The stand-ins and `between` before the tick, as `underground_host_case._whole_entry` orders them."""
+		var o: RefCounted = host.underground_session()._retirement_owners
+		var code: StringName = Chain.sustain(o, host.underground_entry()._output, tick)
+		if code != &"" and refused == "":
+			refused = "the stand-ins refused before tick %d: %s" % [tick, code]
+		if between.is_valid() and not between.call(tick) and refused == "":
+			refused = "the restores refused before tick %d" % tick
+		return super.step(tick)
+
+	func day(_absolute_day: int, _season: int) -> bool:
+		"""The host suites' loops run no day boundary."""
+		return true
+
+
 static func roots() -> PackedStringArray:
 	"""The fingerprint roots shared by every recipe: this script (which preloads the settlement and
 	the fixtures) and the one autoload the simulation reaches by name. The UI, economy and entity
@@ -97,6 +135,8 @@ static func build(name: String) -> Built:
 		return _build_underground()
 	if name == SPARE:
 		return _build_spare()
+	if name == FLIGHT:
+		return _build_flight()
 	var unknown: Built = Built.new()
 	unknown.error = "no checkpoint recipe named '%s' (known: %s)" % [name, ", ".join(NAMES)]
 	return unknown
@@ -120,8 +160,9 @@ static func _save_point(built: Built, host: Node, point: String) -> void:
 
 
 static func _bind(built: Built, stepper: Stepper, name: String) -> bool:
-	"""Bind `stepper` to the autoload clock; a refusal fails the build."""
-	if GameManager.bind_simulation(stepper.step, stepper.host.run_day_boundary):
+	"""Bind `stepper` to the autoload clock; a refusal fails the build. A FlightStepper brings its own day."""
+	var day: Callable = (stepper as FlightStepper).day if stepper is FlightStepper else stepper.host.run_day_boundary
+	if GameManager.bind_simulation(stepper.step, day):
 		return true
 	if built.error == "":
 		built.error = "%s: bind refused %s" % [name, GameManager.last_refusal()]
@@ -270,3 +311,74 @@ static func _drive_spare(built: Built, stepper: Stepper) -> void:
 	_check_steps(built, stepper, SPARE)
 	if not pending.is_empty() and built.error == "":
 		built.error = "%s: %s never reached by tick %d" % [SPARE, ", ".join(pending), SPARE_LIMIT]
+
+
+# --- underground_flight --------------------------------------------------------------------------
+
+static func flight_point(index: int) -> String:
+	"""The name of the flight's point `index`: tick_<n> for FLIGHT_TICKS[index], FINISH_POINT after them."""
+	return "tick_%06d" % FLIGHT_TICKS[index] if index < FLIGHT_TICKS.size() else FINISH_POINT
+
+
+static func flight_points() -> PackedStringArray:
+	"""Every flight point, in flight order."""
+	var points: PackedStringArray = PackedStringArray()
+	for index: int in FLIGHT_TICKS.size() + 1:
+		points.append(flight_point(index))
+	return points
+
+
+static func begin_flight(host: Node, content: RefCounted) -> StringName:
+	"""The host suites' live entry (`_begin_live_entry`): the world generated and mounted, the clock started, the
+	entry begun with its staged stock."""
+	var refused: StringName = &"FIXTURE_CONTENT" if content == null else Chain.mount_and_compose(host, content)
+	if refused == &"" and not GameManager.start_game():
+		refused = &"FIXTURE_CLOCK"
+	return refused if refused != &"" else Chain.begin_entry(host)
+
+
+static func _build_flight() -> Built:
+	"""The whole flight from tick 0, saved at every point."""
+	var built: Built = Built.new()
+	var host: Node = Settlement.new()
+	var refused: StringName = begin_flight(host, Chain.load_content())
+	if refused != &"":
+		built.error = "%s: the chain did not start (%s)" % [FLIGHT, refused]
+	else:
+		drive_flight(built, FlightStepper.new(host), flight_points())
+	host.free()
+	_release(built)
+	return built
+
+
+static func drive_flight(built: Built, stepper: FlightStepper, points: PackedStringArray) -> void:
+	"""Bind `stepper` and advance one tick a frame, saving each of `points` on the tick it names (FINISH_POINT when
+	the entry stops), until the last is saved; then unbind."""
+	if not _bind(built, stepper, FLIGHT): return
+	var host: Node = stepper.host
+	var pending: PackedStringArray = points.duplicate()
+	while not pending.is_empty() and stepper.failed_tick < 0 and stepper.refused == "" and built.error == "" \
+			and GameManager.clock().completed_tick() < FLIGHT_LIMIT and host.underground_entry().is_running():
+		if GameManager.advance_host_time(_one_tick_usec()) != 1:
+			built.error = "%s: a frame did not run exactly one tick" % FLIGHT
+		var due: String = "tick_%06d" % GameManager.clock().completed_tick()
+		if not host.underground_entry().is_running() and pending.has(FINISH_POINT): due = FINISH_POINT
+		if pending.has(due):
+			GameManager.unbind_simulation()
+			_save_point(built, host, due)
+			pending.remove_at(pending.find(due))
+			if not pending.is_empty() and not _bind(built, stepper, FLIGHT): return
+	GameManager.unbind_simulation()
+	_check_steps(built, stepper, FLIGHT)
+	if stepper.refused != "" and built.error == "": built.error = "%s: %s" % [FLIGHT, stepper.refused]
+	if not pending.is_empty() and built.error == "":
+		built.error = "%s: %s never reached (stopped at tick %d)" % [FLIGHT, ", ".join(pending),
+			GameManager.clock().completed_tick()]
+
+
+static func _one_tick_usec() -> int:
+	"""The host time that owes exactly one more tick from the clock's present debt (TICK_USEC drifts a tick every
+	50,000 frames, and the flight is longer)."""
+	@warning_ignore("integer_division") var usec: int = (SimClockCost.TICK_COST - GameManager.clock().debt()
+		+ SimClockCost.TICKS_PER_SECOND - 1) / SimClockCost.TICKS_PER_SECOND
+	return usec

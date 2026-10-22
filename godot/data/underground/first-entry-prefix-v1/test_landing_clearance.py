@@ -7,6 +7,9 @@ treads, posts and sill, the next module's T0 included), from the published profi
 - ground rows (42 all-yaw claw WALK, 43/45 approaches, 47 retreat): each BODY and TURN box swept along the edge's
   polyline must meet no part (WorldRoutes needs that air void; an installed part is SUPPORT, not void);
 - the same rows' stops: each BODY and TURN box at the stop (the Locations air the bindings prove);
+- decision 2045 (P-2045-11 (a)): the turning spot R' at D's point, sized by 42 and published with module j's T0, and
+  U0' sized by 45; the way up U0' -> R' on 45, the turn at R' on 42, R' -> F' on 47 (M5's bundle; M2 keeps its own
+  published design, and R' is checked on its geometry too);
 - rooted rows (53 onto the floor, 54 off it, 55 the floor turn, 71 walk-off, 72 back-up): every fixture deck must be
   covered by the Room's support at that landing (parts, retained natural bearings and the retained floor). Their
   bodies may meet the Room's own SUPPORT, and every part here is SUPPORT, so no body test applies to them.
@@ -98,6 +101,12 @@ def uncovered(box: list, covers: list) -> int:
     return sum((p[3] - p[0]) * (p[4] - p[1]) * (p[5] - p[2]) for p in pieces)
 
 
+def turning() -> bool:
+    """Decision 2045 (P-2045-11 (a)): whether the selected layout's published bundle has the turning spot R' (M5's
+    `qualified-stairs-m5-v2`; M2's interim bundle keeps P-2044-16 (a)'s U0' -> F' on 47)."""
+    return PUB.MODULES == 5
+
+
 class Landing:
     """The stops and edges P-2044-16 (a) puts on landing j, in the source frame."""
 
@@ -116,6 +125,7 @@ class Landing:
         self.p = PUB.stop_point(module, -1, L0_P)
         self.u0 = PUB.stop_point(module, -1, L0_U)
         self.d = PUB.stop_point(module, -1, PUB.DEEP_INSIDE)  # The deep hub: the landing row's station, centred.
+        self.r = self.d  # Decision 2045: the turning spot R', at D's point once D has gone with T0's last leg.
         rows = PUB.deep_rows(landing)
         first = rows[0] - 1 if len(rows) else None
         self.deep = {} if first is None else {
@@ -128,8 +138,8 @@ class Landing:
         if self.last:
             return []
         edges = [(APPROACH, [self.fp, self.p]), (APPROACH, [self.fp, self.h]), (RETREAT, [self.h, self.fp]),
-                 (RETREAT, [self.u0, self.fp]), (RETREAT, [self.p, self.fp]), (APPROACH, [self.fp, self.d]),
-                 (RETREAT, [self.d, self.fp])]
+                 (RETREAT, [self.p, self.fp]), (APPROACH, [self.fp, self.d]), (RETREAT, [self.d, self.fp])]
+        edges += [(ASCENT_APPROACH, [self.u0, self.r])] if turning() else [(RETREAT, [self.u0, self.fp])]
         if self.first_row is not None:
             top = self.deep[(self.first_row, 1)]
             edges += [(WALK, self.l_walk(self.d, top)), (WALK, self.l_walk(top, self.d))]
@@ -154,7 +164,8 @@ class Landing:
         F' and U0' on the retreat 47, H' and P' on 43, the deep hub D and the deep stations on the claw WALK 42."""
         if self.last:
             return []
-        return [(RETREAT, self.fp), (RETREAT, self.u0), (APPROACH, self.h), (APPROACH, self.p), (WALK, self.d)] \
+        return [(RETREAT, self.fp), (ASCENT_APPROACH if turning() else RETREAT, self.u0), (APPROACH, self.h),
+                (APPROACH, self.p), (WALK, self.d)] \
             + [(WALK, point) for point in self.deep.values()]
 
     def air_row(self, point: list) -> int:
@@ -263,6 +274,45 @@ class LandingClearance(unittest.TestCase):
                 for row, point in site.ground_stops()[:5]:
                     first = next(e for e in t.endpoint if e[0] == V10.INSTALLED_CONTACT and e[4:7] == point)
                     self.assertEqual(first[7], row, "M%d landing %d stop %s" % (layout, landing, point))
+
+    def test_the_turning_spot_r_clears_every_part_on_every_landing(self) -> None:
+        """Decision 2045 (P-2045-11 (a)), on M2's and every M5 landing's geometry: R' (D's point) sized by the all-yaw
+        walk 42 meets no installed part, T0 and its bearer included, with its footing on the deck rows; U0' sized by
+        the approach 45 likewise; the approach 45 swept U0' -> R' and the retreat 47 swept R' -> F' meet no part; and
+        the turn at R' holds both headings' bodies (45 arriving facing up, 47 leaving facing down) in 42's air."""
+        walk, up = bounds(self.boxes[WALK]), bounds(self.boxes[ASCENT_APPROACH])
+        for row in (ASCENT_APPROACH, RETREAT):
+            need = bounds(self.boxes[row])
+            self.assertTrue(all(walk[i] <= need[i] and need[i + 3] <= walk[i + 3] for i in range(3)), "row %d in 42" % row)
+        for layout in (2, 5):
+            PUB.select(layout)
+            parts = PUB.parts_all(V10.json.loads(V10.pinned(V10.SPEC, V10.SPEC_SHA)))
+            for landing in range(1, PUB.MODULES):
+                site = Landing(landing)
+                rows = PUB.deck_rows(landing)
+                low, high = -1024 * (rows[-1] + 1), -1024 * rows[0]
+                for row, line in ((WALK, [site.r, site.r]), (ASCENT_APPROACH, [site.u0, site.u0]),
+                                  (ASCENT_APPROACH, [site.u0, site.r]), (RETREAT, [site.r, site.fp])):
+                    for box in (b for b in self.boxes[row] if b[6] in BODY_ROLES):
+                        sweep = swept(box, line[0], line[1])
+                        self.assertEqual([i for i, part in enumerate(parts) if overlap(sweep, part)], [],
+                                         "M%d landing %d row %d %s" % (layout, landing, row, line))
+                for row, point in ((WALK, site.r), (ASCENT_APPROACH, site.u0)):
+                    for box in (b for b in self.boxes[row] if b[6] == 1):  # STANCE
+                        self.assertGreaterEqual(point[2] + box[2], low, "M%d landing %d %d" % (layout, landing, row))
+                        self.assertLessEqual(point[2] + box[5], high)
+                self.assertTrue(all(walk[i] <= up[i] and up[i + 3] <= walk[i + 3] for i in range(3)))
+
+    def test_the_all_yaw_walk_cannot_stand_at_u0(self) -> None:
+        """The record of P-2045-9 (a)'s failed clearance test: 42's footing at U0' reaches 63 u past the deck rows that
+        are never cut, onto module j's first row (cut for layer j + 1, T0 128 u below the floor), on every landing."""
+        for layout in (2, 5):
+            PUB.select(layout)
+            for landing in range(1, PUB.MODULES):
+                site = Landing(landing)
+                low = -1024 * (PUB.deck_rows(landing)[-1] + 1)
+                reach = min(site.u0[2] + b[2] for b in self.boxes[WALK] if b[6] == 1)
+                self.assertEqual(low - reach, 63, "M%d landing %d" % (layout, landing))
 
     def test_the_old_joins_at_f_and_u_collide_with_the_sill(self) -> None:
         """The record of P-2044-14 (a)'s error: at F (343 u) rows 43 and 47 reach 69 u into the sill deck, row 45

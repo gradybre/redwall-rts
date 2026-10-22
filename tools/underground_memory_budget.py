@@ -64,7 +64,8 @@ def furniture_bridge(index: dict) -> tuple[set[str], dict]:
     source = index["underground_space_owner"].text
     declarations = dict(re.findall(r"^var (_[A-Za-z0-9_]+): (Packed[A-Za-z0-9]+Array)\b", source, re.M))
     transient = {"_furniture_input_entries", "_furniture_pins", "_furniture_entries", "_furniture_rows"}
-    assert len(declarations) == 72 and transient <= declarations.keys(), "unreconciled SpaceOwner column"
+    overlap = {"_overlap_bands", "_overlap_set", "_overlap_prefix"} # Decision 2045: cold, per validation.
+    assert len(declarations) == 75 and transient | overlap <= declarations.keys(), "unreconciled SpaceOwner column"
     assert all(declarations[name] == "PackedInt32Array" for name in transient), "furniture bridge width drift"
     pin = source.split("func _pin_furniture_packet(", 1)[1].split("\n\nfunc ", 1)[0]
     clear = source.split("func _clear_furniture_admissions()", 1)[1].split("\n\nfunc ", 1)[0]
@@ -75,11 +76,31 @@ def furniture_bridge(index: dict) -> tuple[set[str], dict]:
     assert "_furniture_input_entries = entries.duplicate()" not in pin, "unaccounted copied input observation"
     assert all(f"{name} = PackedInt32Array()" in clear for name in transient), "unreleased furniture image"
     assert "return 60 * pair_count + 16 if pair_count > 0 and pair_count <= MAX_REGIONS else 0" in source
-    return set(declarations) - transient, {
+    return set(declarations) - transient - overlap, {
         "members": sorted(transient), "private_bytes_per_pair": 60, "numeric_control_bytes": 16,
         "borrowed_entry_bytes_per_pair": 16,
         "scope": "Exact shared cold lease only; borrowed input is owned by the caller's separately charged packet.",
     }
+
+
+def overlap_index_cold(index: dict) -> dict:
+    """Decision 2045 (P-2045-14 (a)): the overlap validation's z-band index is allocated only while one validation
+    runs and released before `_overlap_refusal` returns; at most OVERLAP_BANDS + 1 bitsets of the region capacity and
+    a 65-word prefix, inside the shared cold arena."""
+    source = index["underground_space_owner"].text
+    build = source.split("func _build_overlap_index()", 1)[1].split("\n\nfunc ", 1)[0]
+    release = source.split("func _overlap_refusal()", 1)[1].split("\n\nfunc ", 1)[0]
+    assert all(line in build for line in ("_overlap_bands.resize(OVERLAP_BANDS * words)", "_overlap_set.resize(words)",
+                                          "_overlap_prefix.resize(OVERLAP_BANDS + 1)")), "overlap index allocation drift"
+    assert all(f"{name}.clear()" in release for name in ("_overlap_bands", "_overlap_set", "_overlap_prefix")), \
+        "unreleased overlap index"
+    bands = resolve(index, "underground_space_owner", "OVERLAP_BANDS")
+    words = (resolve(index, "underground_budget", "REGION_CAPACITY") + 31) // 32
+    total = 4 * words * (bands + 1) + 4 * (bands + 1)
+    shared = resolve(index, "underground_budget", "COLD_BYTES")
+    assert total <= shared, "overlap index exceeds the shared cold arena"
+    return {"bytes": total, "bands": bands, "words": words, "shared_cold_bytes": shared,
+            "scope": "Cold: allocated per validation (loads and seals with 16 or more changed rows), empty at rest."}
 
 
 def quote_payload(index: dict) -> dict:
@@ -1095,7 +1116,7 @@ def build(index: dict | None = None) -> dict:
                     "source_program", "short_program", "mole_profile_driver", "settlement_system", "underground_route_composition"))
     return {"schema": 1, "scope": "source-derived logical allocation pack; runtime qualification remains open",
             "runtime_qualified": False, "pack": pack, "columns": groups, "quote": quote,
-            "furniture_bridge_cold": bridge, "connector_recipe_reservation": recipes,
+            "furniture_bridge_cold": bridge, "space_overlap_index_cold": overlap_index_cold(index), "connector_recipe_reservation": recipes,
             "excavation_start_controls": start,
             "entry_structure_reservation": entry_structure,
             "entry_world_reservation": entry_world,

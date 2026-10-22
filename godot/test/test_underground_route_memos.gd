@@ -665,8 +665,9 @@ func test_an_observation_is_kept_only_inside_its_compile() -> void:
 
 
 func test_an_answered_observation_spends_first_and_leaves_exactly_what_was_kept() -> void:
-	"""Decision 1953: a repeat inside one compile spends the same checks before it answers, refuses when they do not
-	fit, and leaves `_endpoint` exactly as the kept observation left it."""
+	"""Decision 1953: a repeat inside one compile spends before it answers, refuses when the spend does not fit, and
+	leaves `_endpoint` exactly as the kept observation left it. Decision 2045 (P-2045-4 (a)): it spends what answering
+	does, ANSWERED_OBSERVATION_CHECKS, the same with the cache checks on or off."""
 	if not _fixture(): return
 	var binding: WorldRoutes = _h._binding
 	assert_true(binding._locations().read_location_into(_h.parking, binding._endpoint) == &"", "a real record")
@@ -685,9 +686,9 @@ func test_an_answered_observation_spends_first_and_leaves_exactly_what_was_kept(
 	binding._endpoint.air[0] = -5
 	var before: int = binding._proof.remaining
 	assert_equal(binding._endpoint_observation_refusal(_h.parking, point), &"", "answered")
-	assert_equal(before - binding._proof.remaining, WorldRoutes.Locations.PREPARED_OBSERVATION_CHECKS, "the same spend")
+	assert_equal(before - binding._proof.remaining, WorldRoutes.ANSWERED_OBSERVATION_CHECKS, "an answer's spend")
 	assert_true(WorldRoutes._records_equal(binding._endpoint, kept), "left exactly as kept")
-	binding._proof.remaining = WorldRoutes.Locations.PREPARED_OBSERVATION_CHECKS - 1
+	binding._proof.remaining = WorldRoutes.ANSWERED_OBSERVATION_CHECKS - 1
 	assert_true(binding._endpoint_observation_refusal(_h.parking, point) != &"", "a spend that does not fit refuses")
 	binding._compiling = false
 	binding._location_token = 0

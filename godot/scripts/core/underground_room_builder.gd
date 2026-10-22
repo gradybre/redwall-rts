@@ -1380,4 +1380,4 @@ func _read_hauler(r: EntryProgress.Reader) -> StringName:
 	haul.storage = _ctx.storage
 	haul.output = _ctx.staging
 	_hauler = Hauler.new()
-	return _hauler.read_state(r, _ctx.owners, haul, _job)
+	return _hauler.read_state(r, _ctx.owners, haul, _job, EntryProgress.MAX_LEGS)

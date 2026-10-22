@@ -1,7 +1,7 @@
 extends "res://test/underground_host_case.gd"
 ## Decision 1940: once the live entry is done, its crew leaves the underground route roster from rest and walks out
-## to H by ADR1219's timed walk, reserved until it arrives. The test runs the whole entry to its finishing tick first
-## (DESCENT_DONE_TICK), so this suite is in the slow tier. A lost crew's removal is in
+## to H by ADR1219's timed walk, reserved until it arrives. The test starts from the whole entry's finishing tick
+## (DESCENT_DONE_TICK; decision 2045: the committed underground_flight checkpoint's finish). A lost crew's removal is in
 ## test_underground_entry_crew_lost_at_finish.gd (split so CI can shard the two whole flights apart; decision 2044, CI
 ## time); `_finished_entry()` is underground_host_case.gd's.
 
@@ -37,6 +37,7 @@ func test_the_finished_crew_leaves_the_roster_and_walks_out_to_h() -> void:
 	timed walk to H, reserved, its Transform unmoved until arrival places it on H facing as it stood; the walk is
 	saved and restored exactly, and on arrival the crew is released, Routes' occupancy current."""
 	var done: Array = _finished_entry()
+	if done.is_empty(): return
 	var o: Session.Retirement.Owners = done[0]
 	var entry: Settlement.UndergroundEntryRuntime = done[1]
 	var worker: Vector2i = done[2]

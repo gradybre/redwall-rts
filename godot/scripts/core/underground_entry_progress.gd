@@ -37,13 +37,18 @@ const MAX_QUEUE: int = 24
 ## ADR1229: a tread order walks four legs up the stair before M. Decision 2044: from the deepest module, twelve legs
 ## up to X, the arrival and a retreat before them and M after (15), with room to spare.
 const MAX_LEGS: int = 24
+## Decision 2045 (review): the entry's haul legs. An installer's haul climbs its plan's whole up list (up to 56 legs on
+## M5 v2) before M, so the entry hauler's saved list admits MAX_HAUL_LEGS; MAX_LEGS stays the room-dig builders' bound.
+const MAX_HAUL_LEGS: int = 72
 ## ADR1229: each of a tread plan's down, up and (DEC-059) chain leg lists. Decision 2044: 15 legs down to module 4.
-const MAX_STAIR_LEGS: int = 20
+## Decision 2045: M5 v2's longest list is 56 hops (up from module 4's deepest stop to X, through every landing's R');
+## a saved list of 21 could not be read back. 64, with a test that every M5 hop list fits.
+const MAX_STAIR_LEGS: int = 64
 const MAX_QUOTE_LINES: int = 4
 ## One haul at most is live: the foreman's (STAGE_HAUL) or its installation's, never both.
 const MAX_WIRE_BYTES: int = HEADER_BYTES + RUNTIME_FIXED_BYTES + MAX_ENDPOINTS * 8 + CREW_BYTES + FOREMAN_FIXED_BYTES \
 	+ MAX_TASKS * TASK_BYTES + INSTALLER_FIXED_BYTES + MAX_QUOTE_LINES * QUOTE_LINE_BYTES \
-	+ HAULER_FIXED_BYTES + MAX_QUEUE * 4 + MAX_LEGS * LEG_BYTES + 3 * MAX_STAIR_LEGS * LEG_BYTES
+	+ HAULER_FIXED_BYTES + MAX_QUEUE * 4 + MAX_HAUL_LEGS * LEG_BYTES + 3 * MAX_STAIR_LEGS * LEG_BYTES
 const REFUSE_VERSION: StringName = &"ENTRY_SAVE_VERSION"
 const REFUSE_SHAPE: StringName = &"ENTRY_SAVE_SHAPE"
 const REFUSE_NONCANONICAL: StringName = &"ENTRY_SAVE_NONCANONICAL"

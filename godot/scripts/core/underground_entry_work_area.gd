@@ -22,9 +22,9 @@ const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 ## ADR1229: the descent cuts seven cube rows (rows 0-2 for L0/T0, rows 3-6 for T2-T6 and the stair foot). Decision
-## 2044: the flight's rows, 12 for the M2 interim (P-2044-15) and 27 for M5 (the target): the tread geometry's
-## `ROWS`, written as a literal so the memory census (REG-C4-R01) can resolve it; a test holds the two equal.
-const CUT_ROWS: int = 12
+## 2044: the flight's rows, 12 for the M2 interim (P-2044-15) and 27 for M5 (mounted by decision 2045): the tread
+## geometry's `ROWS`, written as a literal so the memory census (REG-C4-R01) can resolve it; a test holds the two equal.
+const CUT_ROWS: int = 27
 const FIRST_DEEP_STATION: int = 11
 ## H, M, R, the first six cut stations and two stands (FIRST_DEEP_STATION), then a pair of cut stations a row from
 ## row 3: 11 + 2 * (CUT_ROWS - 3), written as a sum of products for the census (REG-C4-R01): 29 for M2, 59 for M5.

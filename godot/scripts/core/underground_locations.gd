@@ -32,6 +32,8 @@ const I32_FIELDS: int = 22
 const I64_FIELDS: int = 2
 const ROW_BYTES: int = 106
 const MAX_LOCATIONS: int = 4096 # An engineering allocation ceiling, not a player room limit.
+## Decision 2045 (P-2045-13 (a)): the most image rows `_near` keeps, one int32 each (a larger image is scanned whole).
+const NEAR_ROWS: int = Budget.REGION_CAPACITY + Budget.SOURCE_CAPACITY
 const STORAGE_CELL_U: int = 2048 # Existing 2m placement-pile identity, with a real floor namespace.
 const WORLD_COPY_CONTROL_BYTES: int = 256 # Private116B record plus guards coexist with the admitted observation.
 const RESOLVE_CONTROL_BYTES: int = 512 # Caller frame36B/ref8B plus bounded scalar lookup frames; no image or array allocation.
@@ -388,8 +390,17 @@ var _sources_pass: int = 0 # ADR1229 increment 6b: the witness pass whose instal
 var _landing_boxes: PackedInt32Array = PackedInt32Array() # Sized at configure.
 var _landing_key: PackedInt64Array = PackedInt64Array() # Sized at configure.
 const PASS_LANDINGS: int = 64 # M5's 41 LANDING regions; a variant with more takes the per-record scan.
+## Decision 2045 (P-2045-6 (a)): the datums are kept for a whole Locations operation (its token) as well as a pass, and
+## ordered by (level, low z, index) so a record finds its candidates by search.
+var _landing_sorted: PackedInt64Array = PackedInt64Array() # Sized at configure.
 var _remaining: int = 0
 var _snapshot: Space.Snapshot = null
+## Decision 2045 (P-2045-13 (a)): the record image's rows near the record. `_record_obstacles_refusal` already reads
+## every row of the record's image; it keeps, ascending, those meeting the hull of the record's envelope, support and
+## air (`_near`, `_near_count`; -1 when not kept), and `_covered` reads only those. Sized once at configure.
+var _near_hull: PackedInt32Array = PackedInt32Array([0, 0, 0, 0, 0, 0])
+var _near: PackedInt32Array = PackedInt32Array()
+var _near_count: int = -1
 var _region: Owner.Region = Owner.Region.new()
 var _record: Record = Record.new()
 var _math: IntMath.IntResult = IntMath.IntResult.new()
@@ -458,7 +469,9 @@ func _allocate_banks(capacity: int, arena_bytes: int) -> void:
 	_prism_key.resize(8)
 	_prism_tops.resize(ConnectorCatalog.MAX_PARTS)
 	_landing_boxes.resize(7 * PASS_LANDINGS)
-	_landing_key.resize(4)
+	_landing_key.resize(5)
+	_landing_sorted.resize(PASS_LANDINGS)
+	_near.resize(NEAR_ROWS)
 	_live.allocate(capacity, _air_slots)
 	_stage.allocate(capacity, _air_slots)
 
@@ -2094,16 +2107,55 @@ func _air_obstacles_refusal(record: Record) -> StringName:
 
 
 func _record_obstacles_refusal(record: Record) -> StringName:
-	"""All blockers remain authoritative; only the exact original pending prism can receive its physical proof."""
+	"""All blockers remain authoritative; only the exact original pending prism can receive its physical proof.
+	Decision 2045 (P-2045-13 (a)): the same scan keeps the rows near the record for `_covered` (`_keep_near`)."""
 	var rows: Space.Volumes = _snapshot.volumes
+	_begin_near(record)
 	for row: int in rows.role.size():
 		if not _spend():
+			_near_count = -1
 			return &"LOCATION_OPERATION_BUDGET"
+		_keep_near(rows, row)
 		if rows.role[row] in BLOCKING_ROLES and Space.overlaps(record.envelope, rows.box_at(row)) \
 				and not _loaded_workpiece_volume(rows, row):
 			var code: StringName = _pending_entry_record_refusal(record, row)
-			if code != &"": return code
+			if code != &"":
+				_near_count = -1
+				return code
 	return &""
+
+
+func _begin_near(record: Record) -> void:
+	"""Decision 2045: the record's hull, and no row kept yet (-1 when the image has more rows than `_near` holds)."""
+	for axis: int in 3:
+		_near_hull[axis] = mini(record.envelope[axis], record.support[axis])
+		_near_hull[axis + 3] = maxi(record.envelope[axis + 3], record.support[axis + 3])
+		for index: int in record.air_count:
+			_near_hull[axis] = mini(_near_hull[axis], record.air[6 * index + axis])
+			_near_hull[axis + 3] = maxi(_near_hull[axis + 3], record.air[6 * index + axis + 3])
+	_near_count = 0 if _snapshot.volumes.role.size() <= _near.size() else -1
+
+
+func _keep_near(rows: Space.Volumes, row: int) -> void:
+	"""Keep `row` when it meets the hull (a row's box is valid: `Volumes.append` admits no other)."""
+	if _near_count >= 0 and rows.lo_x[row] < _near_hull[3] and _near_hull[0] < rows.hi_x[row] \
+			and rows.lo_y[row] < _near_hull[4] and _near_hull[1] < rows.hi_y[row] \
+			and rows.lo_z[row] < _near_hull[5] and _near_hull[2] < rows.hi_z[row]:
+		_near[_near_count] = row
+		_near_count += 1
+
+
+func _check_near(box: PackedInt32Array) -> void:
+	"""With the cache checks on, unspent: the hull holds `box`, and every row that overlaps `box` was kept."""
+	if not CacheChecks.enabled: return
+	if not Space.contains_box(_near_hull, box):
+		CacheChecks.report("record image index", "a queried box leaves the record's hull")
+	var kept: int = 0
+	for row: int in _snapshot.volumes.role.size():
+		if kept < _near_count and _near[kept] == row:
+			kept += 1
+		elif Space.overlaps(box, _snapshot.volumes.box_at(row)):
+			CacheChecks.report("record image index", "row %d overlaps a box it was not kept for" % row)
 
 
 func _loaded_workpiece_volume(rows: Space.Volumes, row: int) -> bool:
@@ -2225,12 +2277,17 @@ func _installation_snapshot_into(record: Record, physical: Sites, site: Vector2i
 
 
 func _covered(box: PackedInt32Array, role: int) -> bool:
-	"""Exact disjoint subtraction detects interior holes; sampled corners are insufficient."""
+	"""Exact disjoint subtraction detects interior holes; sampled corners are insufficient.
+	Decision 2045 (P-2045-13 (a)): with the record's rows kept (`_near_count` >= 0, every row meeting `box`), only
+	those, in row order. Every fragment lies inside `box`; a row that misses `box` re-emits each fragment unchanged."""
 	var pending: Array[PackedInt32Array] = [box]
 	var rows: Space.Volumes = _snapshot.volumes
-	for row: int in rows.role.size():
+	var near: bool = _near_count >= 0
+	if near: _check_near(box)
+	for at: int in _near_count if near else rows.role.size():
 		if not _spend():
 			return false
+		var row: int = _near[at] if near else at
 		if rows.role[row] != role:
 			continue
 		var next: Array[PackedInt32Array] = []
@@ -2323,16 +2380,90 @@ static func installed_prism_into(issuer: RefCounted, row: int, ordinal: int, out
 	return _installed_world_box(issuer, row, low, high, out)
 
 
+func _next_placement(issuer: RefCounted, from: int) -> int:
+	"""Decision 2045 (P-2045-8 (a)): the first Placement row at or after `from` that the full slot scan would not skip:
+	when the presence column holds only 0 and 1, the next present row, found natively, so an empty slot is never
+	visited or charged (as the bindings' Region scans since decision 2044); otherwise every row, as before. -1 past
+	the capacity."""
+	var present: PackedByteArray = issuer._live.present
+	if from >= issuer._capacity: return -1
+	if present.count(0) + present.count(1) != present.size(): return from
+	var at: int = present.find(1, from)
+	return at if at >= 0 and at < issuer._capacity else -1
+
+
+## Decision 2045 (P-2045-8 (a)): the installed-source verdict kept for the rest of one Locations operation outside a
+## witness pass: [operation token, Placements instance, its bank revision, Catalog, variant, group and recipe
+## revisions, Catalog row and group count, the Assemblies and Recipes headers]; token 0 = none. Never saved.
+var _sources_key: PackedInt64Array = PackedInt64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+
+
+func _record_sources_charge(issuer: RefCounted) -> int:
+	"""Decision 2045: the source proof's charge, `_sources_charge()`, or the key compare when the open operation already
+	proved these sources (`_sources_key`)."""
+	return SOURCES_KEY_CHECKS if _op_sources_held(issuer) else _sources_charge()
+
+
+func _record_sources_current(issuer: RefCounted) -> bool:
+	"""Decision 2045: `_pass_sources_current`, kept for the open operation outside a witness pass while its key holds.
+	Nothing it reads changes inside one operation but through the key's own words; with the cache checks on a kept
+	verdict is re-derived and a difference is reported."""
+	if _op_sources_held(issuer):
+		if CacheChecks.enabled and not _installed_sources_current(issuer):
+			CacheChecks.report("installed sources", "operation %d" % _token)
+		return true
+	var current: bool = _pass_sources_current(issuer)
+	if current and not _in_witness_pass and _token != 0: _sources_key_into(issuer, _sources_key)
+	return current
+
+
+## Decision 2045: the words `_sources_key` compares.
+const SOURCES_KEY_CHECKS: int = 12
+
+
+func _op_sources_held(issuer: RefCounted) -> bool:
+	"""Decision 2045: whether the open operation already proved this issuer's sources at the current key."""
+	if _in_witness_pass or _token == 0 or issuer == null or _sources_key[0] != _token: return false
+	for at: int in SOURCES_KEY_CHECKS:
+		if _sources_key[at] != _sources_key_word(issuer, at): return false
+	return true
+
+
+func _sources_key_into(issuer: RefCounted, out: PackedInt64Array) -> void:
+	"""Decision 2045: record the current key."""
+	for at: int in SOURCES_KEY_CHECKS: out[at] = _sources_key_word(issuer, at)
+
+
+func _sources_key_word(issuer: RefCounted, at: int) -> int:
+	"""Decision 2045: one word of the installed-source key."""
+	var header: PackedInt64Array = issuer._live.header
+	match at:
+		0: return _token
+		1: return issuer.get_instance_id()
+		2: return header[issuer.H_REVISION]
+		3: return header[issuer.H_CATALOG_REV]
+		4: return header[issuer.H_VARIANT_REV]
+		5: return header[issuer.H_GROUP_REV]
+		6: return header[issuer.H_RECIPE_REV]
+		7: return header[issuer.H_CATALOG_ROW]
+		8: return header[issuer.H_GROUP_COUNT]
+		9: return issuer._assemblies._header[0] if issuer._assemblies != null else -1
+		10: return issuer._recipes._header[0] if issuer._recipes != null else -1
+	return issuer._assemblies._header[5] if issuer._assemblies != null else -1
+
+
 func _installed_surface_site(record: Record, physical: Sites) -> Vector2i:
 	"""A real installed prism and exact Catalog datum may locate its paid lower cube; arbitrary y-minus-one cannot."""
-	if physical == null or _installation == null or _installation.issuer == null or not _spend(_sources_charge()):
-		return NULL_REF
+	if physical == null or _installation == null or _installation.issuer == null: return NULL_REF
 	var issuer: RefCounted = _installation.issuer.get_ref()
-	if not _pass_sources_current(issuer): return NULL_REF
+	if not _spend(_record_sources_charge(issuer)) or not _record_sources_current(issuer): return NULL_REF
 	if _installation_active() and installation_scope_refusal(self, _installation) != &"": return NULL_REF
 	var found: Vector2i = NULL_REF
 	var matches: int = 0
-	for row: int in issuer._capacity:
+	var row: int = -1
+	while true:
+		row = _next_placement(issuer, row + 1) # Decision 2045: present rows only, each charged its visit.
+		if row < 0: break
 		if not _spend(): return NULL_REF
 		if issuer._live.present[row] != 1: continue
 		if not _spend(32): return NULL_REF
@@ -2348,7 +2479,7 @@ func _installed_surface_site(record: Record, physical: Sites) -> Vector2i:
 		if site != NULL_REF:
 			found = site
 			matches += 1
-	return found if matches == 1 and _pass_sources_current(issuer) else NULL_REF
+	return found if matches == 1 and _record_sources_current(issuer) else NULL_REF
 
 
 func _sources_charge() -> int:
@@ -2379,17 +2510,20 @@ func _installed_record_kind(record: Record) -> int:
 	"""Derive the witness from current immutable LANDING geometry; no saved flag or cube-height inference applies."""
 	if _installation == null: return 0
 	var issuer: RefCounted = _installation.issuer.get_ref() if _installation.issuer != null else null
-	if issuer == null or not _spend(_sources_charge()): return -1
+	if issuer == null or not _spend(_record_sources_charge(issuer)): return -1
 	var matches: int = 0
 	var current: bool = false
-	for row: int in issuer._capacity:
+	var row: int = -1
+	while true:
+		row = _next_placement(issuer, row + 1) # Decision 2045: present rows only, each charged its visit.
+		if row < 0: break
 		if not _spend(): return -1
 		if issuer._live.present[row] != 1: continue
 		if not _spend(32): return -1
 		if issuer._live.i32[issuer.ROOM_SLOT * issuer._capacity + row] != record.room.x \
 				or issuer._live.i32[(issuer.ROOM_SLOT + 1) * issuer._capacity + row] != record.room.y: continue
 		if not current:
-			if not _pass_sources_current(issuer): return -1
+			if not _record_sources_current(issuer): return -1
 			current = true
 		if not _installed_row_source(issuer, row, record.room): return -1
 		var count: int = _installed_landing_count(issuer, row, record)
@@ -2570,11 +2704,28 @@ func _prisms_cached(issuer: RefCounted, row: int, prefix: int) -> bool:
 func _installed_landing_count(issuer: RefCounted, row: int, record: Record) -> int:
 	"""An exact authored landing is recognized before either prefix or ordinary Site fallback is considered.
 	Decision 2044: inside a witness pass the row's datums are derived once (`_pass_landings`) and each record compares
-	them at four checks a datum, as it compares the pass's prisms."""
-	if _in_witness_pass:
+	them at four checks a datum, as it compares the pass's prisms. Decision 2045 (P-2045-6 (a)): likewise for the rest
+	of one Locations operation (its refreshes), and a record compares only the datums of its own level and low z."""
+	if _landing_scope() != 0:
 		var landings: int = _pass_landings(issuer, row)
 		if landings == -1: return -1
-		if landings >= 0: return _pass_landing_count(landings, record)
+		if landings >= 0: return _checked_landing_count(issuer, row, record, _pass_landing_count(landings, record))
+	return _scanned_landing_count(issuer, row, record)
+
+
+func _checked_landing_count(issuer: RefCounted, row: int, record: Record, kept: int) -> int:
+	"""Decision 2045: with the cache checks on, a count from kept datums is compared, unspent, with the per-record
+	scan, and a difference is reported."""
+	if kept < 0 or not CacheChecks.enabled: return kept
+	var spent: int = _remaining
+	var scanned: int = _scanned_landing_count(issuer, row, record)
+	_remaining = spent
+	if scanned >= 0 and scanned != kept: CacheChecks.report("landing datums", "row %d: %d kept, %d scanned" % [row, kept, scanned])
+	return kept
+
+
+func _scanned_landing_count(issuer: RefCounted, row: int, record: Record) -> int:
+	"""The per-record scan: every region of the row's variant, each LANDING compared in full."""
 	var catalog: ConnectorCatalog = issuer._catalog
 	var variant: int = issuer._live.i32[issuer.CATALOG_ROW * issuer._capacity + row]
 	var first: int = catalog._live.variants[ConnectorCatalog.V_REGION_START * ConnectorCatalog.MAX_VARIANTS + variant]
@@ -2593,7 +2744,9 @@ func _pass_landings(issuer: RefCounted, row: int) -> int:
 	"""The row's LANDING datums in `_landing_boxes`, derived at the per-record scan's own charges once per pass; their
 	count, -1 when the budget is spent, or -2 when the variant has more than PASS_LANDINGS (the per-record scan)."""
 	var generation: int = issuer._live.i32[row]
-	if _landing_key[0] == _witness_pass and _landing_key[1] == row and _landing_key[2] == generation:
+	var scope: int = _landing_scope()
+	if scope != 0 and _landing_key[0] == scope and _landing_key[1] == row and _landing_key[2] == generation \
+			and _landing_key[4] == issuer._catalog._live.header[0]:
 		return int(_landing_key[3])
 	_landing_key[0] = 0
 	var catalog: ConnectorCatalog = issuer._catalog
@@ -2607,11 +2760,38 @@ func _pass_landings(issuer: RefCounted, row: int) -> int:
 		if not _spend(32): return -1
 		_pass_landing_into(issuer, row, first + index, at)
 		at += 1
-	_landing_key[0] = _witness_pass
+	if not _order_landings(at): return -1
+	_landing_key[0] = scope
 	_landing_key[1] = row
 	_landing_key[2] = generation
 	_landing_key[3] = at
+	_landing_key[4] = issuer._catalog._live.header[0]
 	return at
+
+
+func _landing_scope() -> int:
+	"""Decision 2045: how long derived LANDING datums are kept: a witness pass (its serial, negated) or else the open
+	Locations operation (its token, never repeated); 0 when neither, so nothing is kept. The datums are a pure function
+	of the Placement row's generation and the Catalog; the scope only bounds how long that is trusted. A cold load's
+	row re-proof (`_loading_rows`) is one synchronous operation over an unchanging image and keeps them under a pass
+	serial of its own (decision 2045: the M5 finish's load re-derived every row's datums for every record)."""
+	if _in_witness_pass or _loading_rows: return -_witness_pass
+	return _token
+
+
+static func _landing_order_key(level: int, low_z: int, index: int) -> int:
+	"""Decision 2045: (level, low z) first, then the datum's index; the index fits PASS_LANDINGS (64)."""
+	return (level * 4294967296 + (low_z + 2147483648)) * PASS_LANDINGS + index
+
+
+func _order_landings(count: int) -> bool:
+	"""Decision 2045: `_landing_sorted` keyed by (level, low z, index), charged four checks a datum."""
+	if not _spend(4 * count): return false
+	for at: int in PASS_LANDINGS:
+		_landing_sorted[at] = _landing_order_key(_landing_boxes[7 * at], _landing_boxes[7 * at + 3], at) if at < count \
+			else 9223372036854775807
+	_landing_sorted.sort()
+	return true
 
 
 func _pass_landing_into(issuer: RefCounted, row: int, region: int, at: int) -> void:
@@ -2630,13 +2810,18 @@ func _pass_landing_into(issuer: RefCounted, row: int, region: int, at: int) -> v
 
 
 func _pass_landing_count(landings: int, record: Record) -> int:
-	"""How many of the pass's datums the record's section and level equal exactly; -1 when the budget is spent."""
+	"""How many of the kept datums the record's section and level equal exactly; -1 when the budget is spent.
+	Decision 2045 (P-2045-6 (a)): only the datums of the record's level and low z can equal it; they are found by search
+	(16 checks) and compared at four checks each, as every datum was before. The count is the same."""
 	if not _spend(4): return -1
 	if not _owner._region_live(record.section, _owner_token > 0): return 0
+	if not _spend(16): return -1
+	var low: int = _landing_order_key(record.level, _installed_section_bound(record.section.x, 2), 0)
 	var matched: int = 0
-	for index: int in landings:
+	for at: int in range(_landing_sorted.bsearch(low), landings):
+		if _landing_sorted[at] >= low + PASS_LANDINGS: break
 		if not _spend(4): return -1
-		if _landing_boxes[7 * index] != record.level: continue
+		var index: int = posmod(_landing_sorted[at], PASS_LANDINGS)
 		var same: bool = true
 		for axis: int in 6:
 			same = same and _landing_boxes[7 * index + 1 + axis] == _installed_section_bound(record.section.x, axis)
@@ -3080,7 +3265,9 @@ func capture_state_into(cold_token: int, out: PackedByteArray) -> StringName:
 
 
 func restore_state_bytes(cold_token: int, bytes: PackedByteArray) -> StringName:
-	"""Decode into the inactive bank; malformed, stale or retained-ref changes leave live bytes intact."""
+	"""Decode into the inactive bank; malformed, stale or retained-ref changes leave live bytes intact. Decision 2045
+	(P-2045-3 (a)): kept prisms are forgotten first (an in-place Placements restore may repeat their key)."""
+	_prism_key[0] = 0
 	if _frontier != null:
 		_remaining = -1
 		return &"LOCATION_FRONTIER_CONTEXT"
@@ -3144,6 +3331,7 @@ func _loaded_rows_refusal() -> StringName:
 	_prepare_record_scratch()
 	if not _air_pool_canonical(self, _stage):
 		return &"LOCATION_IMAGE_AIR"
+	_witness_pass += 1 # Decision 2045: a serial no earlier pass or load used, for `_landing_scope`.
 	_loading_rows = true
 	var code: StringName = _loaded_rows_loop_refusal()
 	_loading_rows = false

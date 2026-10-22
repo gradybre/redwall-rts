@@ -268,9 +268,32 @@ func _open(tick: int) -> StringName:
 	var ref: Vector2i = _owners.jobs.ref_of(_job)
 	var queue: PackedInt32Array = PackedInt32Array()
 	if code == &"": code = _phase_units(task, queue)
-	if code == &"" and not queue.is_empty(): return _begin_haul(task, opened.ref, queue, tick)
+	if code == &"" and not queue.is_empty(): return _haul_or_climb(task, opened.ref, queue, tick)
 	if code == &"": code = _assign()
 	return _place_actor(task, ref, tick) if code == &"" else code
+
+
+func _haul_or_climb(task: Task, project: Vector2i, queue: PackedInt32Array, tick: int) -> StringName:
+	"""Decision 2045: a phase short of inputs hauls them from the surface. A crew standing below it (a deep stage whose
+	first phases needed none, so it is already on a landing's floor) first walks up to the crossing arrival X on its
+	own legs, turning onto each row as it goes (the hauler cannot turn), and `_travel` begins the haul there. A pending
+	installation retreat is walked first, as `_begin_travel` walks it."""
+	var row: int = _owners.residents.directory().get_typed_row(_crew.worker)
+	var here: Vector2i = _owners.routes._resident_pair(Routes.R_LOCATION_SLOT, row)
+	var held: bool = _owners.jobs.job_of(row) == _owners.jobs.ref_of(_job)
+	if here == NULL_REF or _arriving() or _surface(_local_of(here)):
+		if held and _owners.jobs.schedule().rests_now(row): return &"" # P-2045-10 (a): at X, wait for a work hour.
+		var released: RefCounted = _owners.jobs.release_worker(row) if held else null # The climb's own Job.
+		if released != null and not released.ok: return released.error
+		return _begin_haul(task, project, queue, tick)
+	var code: StringName = &"" if held else _assign() # The climb walks under the phase's own BUILD Job.
+	if code != &"": return code
+	_set_stage(STAGE_TRAVEL)
+	if _retreat != NULL_REF: return _begin_travel(task, _owners.jobs.ref_of(_job), tick)
+	var hops: Array = _hops_to_crossing(_stops(), _local_of(here))
+	if hops.is_empty(): return REFUSE_PLAN
+	var first: PackedInt64Array = _first_leg(hops)
+	return _leg(_owners.jobs.ref_of(_job), Vector2i(first[0], first[1]), first[2], first[3], tick)
 
 
 func _create_phase_job(task: Task, project: Vector2i) -> StringName:
@@ -318,14 +341,14 @@ func _deep_landing(station: Vector2i) -> int:
 
 
 func _open_deep_floor(task: Task) -> StringName:
-	"""Decision 2044: before a deep stage's first phase opens, its landing's floor walks are published (once)."""
+	"""Decision 2044: before a deep phase opens, its landing's floor walks to its station are published. Decision 2045
+	(P-2045-5 (a)): only the station's block of rows is joined; a block's walks leave with its stations, and the next
+	block is joined when its first phase opens (nothing is prepared while the block is joined)."""
 	var landing: int = _deep_landing(task.station)
 	if landing == 0: return &""
-	var deep: StairPath.Deep = _deep(landing)
-	var stops: StairPath.Stops = _stops()
-	if StairPath._joined(_owners.routes, _hub(stops, landing), deep.at(deep.first_row, 1), Profiles.MODE_WALK): return &""
+	var row: int = StairPath.classify_deep(_local_of(task.station)).y
 	return StairPath.publish_floor(_owners.binding, _owners.routes, _paid.budget, _owners.binding._owner(),
-		_owners.locations, stops, deep, _content)
+		_owners.locations, _stops(), _deep(landing), row, _content)
 
 
 func _retire_landing_floor() -> StringName:
@@ -586,6 +609,11 @@ func _travel(tick: int) -> StringName:
 	if _actor.phase == Routes.PHASE_HELD: return &"ENTRY_FOREMAN_ROUTE_HELD"
 	if _actor.location != _leg_target or Routes.source_ready_leaf_refusal(_owners.routes, _crew.worker, job,
 			_leg_profile, _leg_revision, _content) != &"": return &""
+	var queue: PackedInt32Array = PackedInt32Array()
+	code = &"" if _phase_started(task) else _phase_units(task, queue) # Decision 2045: still short, so climb or haul.
+	if code != &"" or not queue.is_empty():
+		_stage_ticks = 0
+		return code if code != &"" else _haul_or_climb(task, _owners.sites.project_of(task.site), queue, tick)
 	if _leg_target != task.station:
 		_stage_ticks = 0
 		return _begin_travel(task, job, tick)
@@ -841,7 +869,7 @@ func _resume(tick: int) -> StringName:
 	var queue: PackedInt32Array = PackedInt32Array()
 	var code: StringName = &"" if _phase_started(task) else _phase_units(task, queue)
 	if code == &"" and not queue.is_empty():
-		return _begin_haul(task, _owners.sites.project_of(task.site), queue, tick)
+		return _haul_or_climb(task, _owners.sites.project_of(task.site), queue, tick)
 	if code == &"": code = _assign()
 	return _place_actor(task, _owners.jobs.ref_of(_job), tick) if code == &"" else code
 
@@ -1162,7 +1190,21 @@ func _face_profile(job: Vector2i, profile: int) -> StringName:
 		return &""
 	var yaw: int = profiles._live.fields[Profiles.F_YAW * profiles._profile_capacity + profile]
 	if _owners.routes.read_actor_into(_crew.worker, _actor) != &"" or _actor.yaw == yaw: return &""
-	return WorldRoutes.turn_actor(_owners.binding, _crew.worker, job, yaw, Space.MAX_CHECKS)
+	var code: StringName = _all_yaw_before_turn(job)
+	return WorldRoutes.turn_actor(_owners.binding, _crew.worker, job, yaw, Space.MAX_CHECKS) if code == &"" else code
+
+
+func _all_yaw_before_turn(job: Vector2i) -> StringName:
+	"""Decision 2045 (P-2045-11 (a)): Routes turns only an actor on an all-yaw selection. A crew that arrived on a
+	yaw-exact row (at the turning spot R', on the approach 45) first takes the all-yaw claw walk 42, which R' is sized
+	by, then turns; an actor already all-yaw turns as before."""
+	var profiles: RefCounted = _owners.profiles
+	var current: int = _actor.profile_id
+	if current >= 0 and profiles._live.fields[Profiles.F_YAW_KIND * profiles._profile_capacity + current] == Profiles.YAW_ALL:
+		return &""
+	var walk: int = StairPins.CLAW_WALK_ROW
+	return _owners.routes.refresh_travel_actor(_crew.worker, job, walk,
+		profiles._live.quantities[Profiles.L_REVISION * profiles._profile_capacity + walk], _content, 0, -1, NULL_REF)
 
 
 func _plan_stairs(plan: Installer.Plan) -> bool:

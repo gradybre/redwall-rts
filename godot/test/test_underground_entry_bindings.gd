@@ -1071,7 +1071,9 @@ func test_datum_and_profile_budget_exhaustion_stays_distinct_from_physical_refus
 
 func test_datum_lookup_charges_every_presence_and_all_live_metadata_reads() -> void:
 	"""Decision 2044 (P-2044-15, exact cost fixes): the scan visits present rows only (one native search), so an empty
-	slot costs nothing; any live candidate retains its presence charge and the full metadata charge."""
+	slot costs nothing; any live candidate retains its presence charge and its metadata charge. Decision 2045 (P-2045-6
+	(a)): a row whose role, level or owner rules it out, or whose z extent differs, is charged the presence and the z
+	extent only (Z_READ_CHECKS); a candidate that passes them is charged the whole box read (12)."""
 	var owner: Owner = _f._owner
 	var before: PackedByteArray = owner._s_r_present.duplicate()
 	var last: int = owner._region_capacity - 1
@@ -1082,11 +1084,11 @@ func test_datum_lookup_charges_every_presence_and_all_live_metadata_reads() -> v
 	assert_equal(_bindings._entry_checks, 0, "empty slots are not charged")
 	owner._s_r_present[last] = 1
 	owner._s_r_role[last] = Space.OBSTACLE
-	_bindings._entry_checks = 12
+	_bindings._entry_checks = Binding.Z_READ_CHECKS
 	assert_equal(_bindings._timber_datum_ref(), Vector2i(-3, 0), "live row cannot use incomplete metadata allowance")
-	_bindings._entry_checks = 13
+	_bindings._entry_checks = 1 + Binding.Z_READ_CHECKS
 	assert_equal(_bindings._timber_datum_ref(), NULL_REF, "complete live charge does not invent a matching datum")
-	assert_equal(_bindings._entry_checks, 0, "the presence and live metadata charges retained")
+	assert_equal(_bindings._entry_checks, 0, "the presence and the ruled-out row's metadata charges retained")
 	owner._s_r_present = before
 	owner._s_r_role[last] = role
 
@@ -1222,7 +1224,8 @@ func test_installed_landing_scan_keeps_exact_metadata_cost_and_full_generation_p
 
 
 func test_installed_kind_scan_charges_all_presence_and_live_metadata_before_permission() -> void:
-	"""All actual Placement slots are read, and the one real live source retains its complete metadata allowance."""
+	"""Every present Placement row is read, and the one real live source retains its complete metadata allowance.
+	Decision 2045 (P-2045-8 (a)): an empty slot is never visited, so it is not charged."""
 	if not _completed_timber(): return
 	var record: Locations.Record = Locations.Record.new()
 	record.envelope.resize(6)
@@ -1232,10 +1235,10 @@ func test_installed_kind_scan_charges_all_presence_and_live_metadata_before_perm
 	for row: int in _placements._capacity:
 		if _placements._live.present[row] == 1: live += 1
 	assert_equal(live, 1, "one actual completed Placement")
-	var charge: int = 1024 + _placements._capacity + 32 * live + _landing_scan_charge()
+	var charge: int = 1024 + live + 32 * live + _landing_scan_charge()
 	_f._locations._remaining = charge
 	assert_equal(_f._locations._installed_record_kind(record), 1, "full immutable installed-kind proof")
-	assert_equal(_f._locations._remaining, 0, "all empty presence and live metadata work charged")
+	assert_equal(_f._locations._remaining, 0, "every present row and its live metadata work charged")
 	_f._locations._remaining = charge - 1
 	assert_equal(_f._locations._installed_record_kind(record), -1, "insufficient allowance never grants witness")
 
@@ -1258,6 +1261,39 @@ func test_installed_contact_refresh_and_restore_use_actual_lower_paid_site() -> 
 	assert_equal(_f._locations.restore_state_bytes(cold, image), &"", "actual installed source survives load")
 	assert_true(_location_image(cold) == image, "canonical payload unchanged")
 	assert_equal(_f._budget.release(cold), &"", "original scope released")
+
+
+func test_a_restore_re_derives_kept_prisms_and_spends_as_a_fresh_load() -> void:
+	"""Decision 2045 (P-2045-3 (a)): between preparations of a running entry, an in-place restore of Locations forgets
+	the kept installed prisms first, so its witnesses re-derive them: it spends exactly what the same restore spends
+	with nothing kept (a fresh load), and kept prisms that no longer match the restored banks are never used."""
+	if not _completed_timber(): return
+	var ref: Vector2i = _installed_contact_ref()
+	var cold: int = _f._budget.acquire(Budget.COLD_BYTES)
+	_refresh_spend(cold, ref)
+	assert_equal(_f._locations._prism_key[0], 1, "a preparation keeps the prisms")
+	var image: PackedByteArray = _location_image(cold)
+	var derived: PackedInt32Array = _f._locations._prism_boxes.duplicate()
+	_f._locations._prism_key[0] = 0
+	assert_equal(_f._locations.restore_state_bytes(cold, image), &"", "a restore with nothing kept")
+	var fresh: int = _f._locations._domain._checks - _f._locations._remaining
+	assert_equal(_f._locations._prism_key[0], 1, "its witnesses keep them again")
+	for axis: int in 6: _f._locations._prism_boxes[axis] += 512 # Kept boxes that no longer match the banks.
+	assert_equal(_f._locations.restore_state_bytes(cold, image), &"", "an in-place restore with prisms kept")
+	assert_equal(_f._locations._domain._checks - _f._locations._remaining, fresh, "it spends what a fresh load spends")
+	assert_true(_f._locations._prism_boxes == derived, "the prisms were re-derived, not reused")
+	assert_equal(_f._budget.release(cold), &"", "original scope released")
+
+
+func _refresh_spend(cold: int, ref: Vector2i) -> int:
+	"""The checks one preparation's refresh of `ref` spends, through publication."""
+	var token: int = _f._locations.begin_prepare(cold).token
+	var before: int = _f._locations._remaining
+	assert_equal(_f._locations.stage_refresh(token, ref), &"", "refresh")
+	var spent: int = before - _f._locations._remaining
+	assert_equal(_f._locations.seal(token), &"", "sealed")
+	assert_true(_f._locations.publish(token), "published")
+	return spent
 
 
 func test_installed_restore_refuses_missing_prefix_paid_site_and_stale_source() -> void:

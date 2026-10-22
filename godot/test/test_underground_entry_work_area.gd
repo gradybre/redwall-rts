@@ -9,7 +9,7 @@ const WorkAreaSource := preload("res://scripts/core/underground_entry_work_area.
 ## mounted bundle is the T1-T6 one, which keeps the claw bundle's L0/T0 rows on content 10's row ids; decision 1972
 ## mounts its successor v10 on content 12 (the same rows 0-66). Decision 2044 (P-2044-15): the M2 interim bundle is
 ## mounted (v10's rows first), and the contact-retirement scope replays its table census. Decision 2045: M5's.
-const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-m5-v2/catalog_source.gd")
+const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-m5-v3/catalog_source.gd")
 const MoleCatalog := preload("res://data/underground/mole-worker/mole_profile_catalog.gd")
 const ClawPins := preload("res://data/underground/mole-worker/qualified-claw-stairs-v11/catalog_source.gd")
 const WA_PROFILE_SHA: String = Bundle.PROFILE_SHA

@@ -39,6 +39,9 @@ func _assert_flight_segment(index: int) -> void:
 		"%s: the flight restored along the way saves byte-identically to the uninterrupted one" % point)
 	assert_true(_restores > 0, "the runtime was replaced by its record along the way (%d)" % _restores)
 	assert_equal(_at_m, 0, "DEC-059 (P1): after T1 and before module 0's sill the fitter never stands at M")
+	if point == Recipes.FINISH_POINT: # Decision 2046 (P-2054-1 (a)): the live finishing tick closes both scopes.
+		assert_equal(_host.underground_session().current_refusal(), &"", "the finished Session is quiescent")
+		assert_equal(o.room_bindings.get("_timber_token"), 0, "no timber scope outlives the entry")
 
 
 func _restore_along_the_way(tick: int) -> bool:

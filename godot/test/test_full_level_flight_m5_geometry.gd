@@ -140,19 +140,25 @@ func test_the_floor_and_landing_stops() -> void:
 	assert_equal(out, PackedInt32Array([7, 7, 7]), "untouched")
 
 
-func test_m5_cuts_154_cubes_100_below_the_first_metre() -> void:
-	"""2 + 5 x 15 = 77 a column; module 0's cubes are today's flight's; the last box is the deepest run-out cube."""
-	assert_equal([Flight.layout_cube_count(M5), Flight.layout_deep_cube_count(M5)], [154, 100], "cubes")
+func test_m5_cuts_174_cubes_116_below_the_first_metre() -> void:
+	"""2043's 2 + 5 x 15 = 77 a column, two columns (154), and decision 2046's widened foot: rows 25 and 26 two more
+	columns five deep (20), 174; 116 below the first metre. Module 0's cubes are today's flight's; the last box is the
+	deepest run-out cube of the east side."""
+	assert_equal([Flight.layout_cube_count(M5), Flight.layout_deep_cube_count(M5)], [174, 116], "cubes")
+	assert_equal([Flight.layout_cube_count(Flight.LAYOUT_M2), Flight.layout_deep_cube_count(Flight.LAYOUT_M2)], [34, 10],
+		"M2 keeps the slot's two columns")
 	assert_equal([Flight.layout_cube_count(F40), Flight.layout_deep_cube_count(F40)], [142, 96], "F40 as recorded")
 	var boxes: PackedInt32Array = PackedInt32Array([7])
 	assert_true(Flight.layout_cubes_into(M5, boxes), "boxes")
-	assert_equal(boxes.size(), 154 * 6, "one box a cube")
+	assert_equal(boxes.size(), 174 * 6, "one box a cube")
 	var today: PackedInt32Array = PackedInt32Array()
 	assert_true(Flight.cubes_into(Flight.FIRST_ENTRY_STEPS, today), "today")
 	assert_equal(boxes.slice(0, today.size()), today, "module 0 is today's trench")
 	assert_equal(boxes.slice(today.size(), today.size() + 12), PackedInt32Array([-1024, -1024, -8192, 0, 0, -7168,
 		-1024, -2048, -8192, 0, -1024, -7168]), "row 7: module 1's first row, two deep")
-	assert_equal(boxes.slice(boxes.size() - 6), PackedInt32Array([0, -5120, -27648, 1024, -4096, -26624]), "last")
+	assert_equal(boxes.slice(boxes.size() - 6), PackedInt32Array([1024, -5120, -27648, 2048, -4096, -26624]), "last")
+	assert_equal(boxes.slice(boxes.size() - 120, boxes.size() - 114), PackedInt32Array([-2048, -1024, -27648, -1024, 0,
+		-26624]), "the end row's west side cube, top metre")
 	var seen: Dictionary = {}
 	for at: int in range(0, boxes.size(), 6):
 		var key: Vector3i = Vector3i(boxes[at], boxes[at + 1], boxes[at + 2])
@@ -169,14 +175,15 @@ func test_m5_parts_fit_the_catalog() -> void:
 	assert_equal([Flight.layout_part_count(M5), Flight.layout_part_count(F40)], [232, 276], "parts")
 
 
-func test_m5_bill_is_2043_s() -> void:
-	"""Fixtures wood 39,000, 261,200 milli-WU; total wood 77,500, stone 38,500, 912,620 milli-WU, earth 308,000.
-	F40 through the layout keeps its record."""
+func test_m5_bill_is_2043_s_with_the_widened_foot() -> void:
+	"""Fixtures wood 39,000, 261,200 milli-WU; 174 cubes at SET-BUILD-001 §7.2's price (decision 2046: 2043's 154 and
+	the foot's 20): total wood 82,500, stone 43,500, 997,220 milli-WU, earth 348,000. F40 through the layout keeps its
+	record."""
 	var bill: PackedInt64Array = PackedInt64Array([0, 0, 0, 0])
 	assert_true(Flight.layout_fixture_bill_into(M5, bill), "fixtures")
 	assert_equal(bill, PackedInt64Array([39000, 0, 261200, 0]), "fixtures")
 	assert_true(Flight.layout_total_bill_into(M5, bill), "total")
-	assert_equal(bill, PackedInt64Array([77500, 38500, 912620, 308000]), "total")
+	assert_equal(bill, PackedInt64Array([82500, 43500, 997220, 348000]), "total")
 	var record: PackedInt64Array = PackedInt64Array([0, 0, 0, 0])
 	assert_true(Flight.layout_total_bill_into(F40, bill) and Flight.total_bill_into(Flight.F40_STEPS, record), "F40")
 	assert_equal(bill, record, "F40 through the layout equals its record")

@@ -491,18 +491,29 @@ static func hops_up_from_floor(stops: Stops, landing: int) -> Array:
 
 class Deep extends RefCounted:
 	## One landing's deep station handles by (row - first_row) * 2 + column; NULL_REF where retired or not live.
+	## Decision 2046: then the foot's four lateral stations, by `lateral_index` (west and east of each foot row).
 	var landing: int = 0
 	var first_row: int = 0
 	var handles: Array[Vector2i] = []
 
 	func at(row: int, column: int) -> Vector2i:
-		"""One station handle, or NULL_REF."""
+		"""One station handle (a lateral one by its column, west or east), or NULL_REF."""
 		var index: int = (row - first_row) * 2 + column
+		if Tread.is_lateral(column): index = lateral_index(row, column)
+		elif column < 0 or column > 1 or row >= Tread.ROWS - 1: return NULL_REF
 		return handles[index] if row >= first_row and index >= 0 and index < handles.size() else NULL_REF
+
+	func lateral_index(row: int, column: int) -> int:
+		"""Decision 2046: where a lateral station's handle is filed (after the slot's), or -1 off the foot."""
+		var foot: int = Tread.ROWS - 1 - row
+		if foot < 0 or foot >= Tread.FOOT_ROWS or not Tread.is_lateral(column): return -1
+		return 2 * (Tread.ROWS - 1 - first_row) + 2 * foot + (0 if column == Tread.LATERAL_WEST else 1)
 
 
 static func classify_deep(point: Vector3i) -> Vector3i:
-	"""(landing, row, column) of a deep station's source-local point, or (-1, 0, 0)."""
+	"""(landing, row, column) of a deep station's source-local point, or (-1, 0, 0). Decision 2046: a lateral station
+	(`classify_lateral`) is filed by the foot row it stands on, its column west or east."""
+	if absi(point.x) == Tread.LATERAL_X: return classify_lateral(point)
 	if point.x != Tread.DEEP_X[0] and point.x != Tread.DEEP_X[1]: return Vector3i(-1, 0, 0)
 	if point.y >= 0 or point.y % Tread.MODULE_DROP != 0: return Vector3i(-1, 0, 0)
 	@warning_ignore("integer_division") var landing: int = -point.y / Tread.MODULE_DROP
@@ -511,6 +522,16 @@ static func classify_deep(point: Vector3i) -> Vector3i:
 	@warning_ignore("integer_division") var row: int = Tread.ROWS - 1 - inside / Tread.ROW_U
 	if landing < 1 or row < Tread.deep_first_row(landing) - 1 or row >= Tread.ROWS - 1: return Vector3i(-1, 0, 0)
 	return Vector3i(landing, row, 0 if point.x == Tread.DEEP_X[0] else 1)
+
+
+static func classify_lateral(point: Vector3i) -> Vector3i:
+	"""Decision 2046: (landing, foot row, LATERAL_WEST or LATERAL_EAST) of a lateral station's source-local point on
+	landing 1-4's floor, or (-1, 0, 0)."""
+	if absi(point.x) != Tread.LATERAL_X or point.y >= 0 or point.y % Tread.MODULE_DROP != 0: return Vector3i(-1, 0, 0)
+	@warning_ignore("integer_division") var landing: int = -point.y / Tread.MODULE_DROP
+	var row: int = Tread.lateral_row(point.z + Tread.ROW_U * Tread.ROWS)
+	if landing < 1 or landing >= MODULES or row < 0: return Vector3i(-1, 0, 0)
+	return Vector3i(landing, row, Tread.LATERAL_WEST if point.x < 0 else Tread.LATERAL_EAST)
 
 
 static func publish_floor(binding: WorldRoutes, routes: Routes, budget: Budget, owner: RefCounted,
@@ -530,7 +551,8 @@ static func publish_floor(binding: WorldRoutes, routes: Routes, budget: Budget, 
 	for pair: Array in _floor_pairs(stops, deep, row):
 		if code != &"": break
 		if pair[0] == NULL_REF or pair[1] == NULL_REF or _joined(routes, pair[0], pair[1], Profiles.MODE_WALK): continue
-		code = _stage_floor_edge(routes, begun.token, locations, owner, [pair[0], pair[1]], content_revision)
+		code = _stage_floor_edge(routes, begun.token, locations, owner, [pair[0], pair[1]], content_revision,
+			pair.size() > 2)
 		staged += 1
 	if code == &"" and staged > 0: code = binding.seal(begun.token)
 	if code == &"" and staged > 0: code = binding.publish(begun.token)
@@ -570,19 +592,35 @@ static func _floor_pairs(stops: Stops, deep: Deep, row: int) -> Array:
 		if at + 1 <= block.y:
 			out.append([deep.at(at, 1), deep.at(at + 1, 1)])
 			out.append([deep.at(at + 1, 1), deep.at(at, 1)])
+	if block.y == Tread.ROWS - 2: out.append_array(_lateral_pairs(deep, block.y))
+	return out
+
+
+static func _lateral_pairs(deep: Deep, last: int) -> Array:
+	"""Decision 2046: the foot's lateral walks, in the last block: each side's slot station on the last station row to
+	the lateral station of that row (a third entry: the corner keeps the lateral station's line, so the turn stays
+	clear of row 24's uncut sides) and back, then along the side to the end row's lateral station and back."""
+	var out: Array = []
+	for side: int in 2:
+		var column: int = Tread.LATERAL_WEST if side == 0 else Tread.LATERAL_EAST
+		var inner: Vector2i = deep.at(last, side)
+		var near: Vector2i = deep.at(last, column)
+		var end: Vector2i = deep.at(last + 1, column)
+		out.append_array([[inner, near, true], [near, inner], [near, end], [end, near]])
 	return out
 
 
 static func _stage_floor_edge(routes: Routes, token: int, locations: Locations, owner: RefCounted,
-		ends: Array[Vector2i], content_revision: int) -> StringName:
+		ends: Array[Vector2i], content_revision: int, along_first: bool = false) -> StringName:
 	"""One ground WALK over the floor: straight when the two stops share x or z, else an L along the slot's centre
-	line first (from a floor stop) or last (to one)."""
+	line first (from a floor stop) or last (to one). Decision 2046: `along_first` turns at the first stop's x on the
+	last stop's line (a walk onto a lateral station)."""
 	var first: Locations.Record = _record(locations, ends[0])
 	var last: Locations.Record = _record(locations, ends[1])
 	if first == null or last == null: return REFUSE_OWNER
 	var points: PackedInt32Array = PackedInt32Array([first.point.x, first.point.y, first.point.z])
 	if first.point.x != last.point.x and first.point.z != last.point.z:
-		var corner: Vector3i = Vector3i(first.point.x, first.point.y, last.point.z) if first.point.x == 0 \
+		var corner: Vector3i = Vector3i(first.point.x, first.point.y, last.point.z) if first.point.x == 0 or along_first \
 			else Vector3i(last.point.x, first.point.y, first.point.z)
 		points.append_array(PackedInt32Array([corner.x, corner.y, corner.z]))
 	points.append_array(PackedInt32Array([last.point.x, last.point.y, last.point.z]))

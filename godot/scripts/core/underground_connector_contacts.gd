@@ -1846,6 +1846,20 @@ func _retained_scope(placement: Vector2i, project: Vector2i, assembly: int, acti
 	return _scope_leaf()
 
 
+func close_finished_scope() -> StringName:
+	"""Decision 2046 (P-2054-1 (a), Brendan 2026-10-22; decision 2054 B1): every successful observation leaves its
+	scope valid for the paid tail that follows it, and nothing drops the last one, so after the entry's last paid
+	operation `_valid` stayed true and the Session stayed WORLD_RETIREMENT_BUSY (`retirement_refusal_in`). Once the
+	entry has finished, its retained scope is dropped as `discard_transition` drops it; refused while a proof runs or a
+	phase still holds its Space or companion lease. Idempotent."""
+	if _busy: return REFUSE_REENTRY
+	if _phase_space_token != 0 or _phase_companion_token != 0: return REFUSE_SCOPE
+	_valid = false
+	_primary_job = NULL_REF
+	_material_container = NULL_REF
+	return &""
+
+
 func discard_transition(placement: Vector2i, project: Vector2i, assembly: int, action: int) -> void:
 	"""Release only local exact-scope observations; there is no lease or authoritative progress to discard."""
 	if not _busy and not _phase_mode and placement == _placement and project == _project and assembly == _ordinal and action == _action:

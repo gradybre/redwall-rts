@@ -222,6 +222,37 @@ def bounds(boxes: list) -> list:
     return [min(b[i] for b in air) for i in range(3)] + [max(b[i + 3] for b in air) for i in range(3)]
 
 
+CARRY_ROWS = (32, 37)  # Decision 2046: the grip families' ground CARRY rows (wood, stone).
+STAND_PAST_FP = 50  # Decision 2054 E2: the level-1 store's yaw-0 stand, 50 u past F'(5) down the flight.
+
+
+def foot_air(boxes: dict) -> tuple:
+    """Decision 2046 (P-2054-2 (a)): F'(5)'s widened air relative to F', as the entry bindings derive it: the envelope
+    over 47's BODY/TURN boxes and the carry rows' grounded ones (from the floor up), and one extra box over the carry
+    rows' raised load (boxes wholly above the floor)."""
+    grounded = [b for b in boxes[RETREAT] if b[6] in BODY_ROLES]
+    raised = []
+    for row in CARRY_ROWS:
+        for box in (b for b in boxes[row] if b[6] in BODY_ROLES):
+            (raised if box[1] > 0 else grounded).append(box)
+    envelope = [min(b[i] for b in grounded) for i in range(3)] + [max(b[i + 3] for b in grounded) for i in range(3)]
+    envelope[1] = max(envelope[1], 0)
+    extra = [min(b[i] for b in raised) for i in range(3)] + [max(b[i + 3] for b in raised) for i in range(3)]
+    return envelope, extra
+
+
+def outside_cut(box: list) -> list:
+    """Decision 2046: the parts of a body box (above its floor) outside M5's open cut at the box's depth: the slot's
+    two cells, four over the foot rows, between the end wall and the stair top's row 0. Empty when it lies inside."""
+    out = []
+    for z0 in range(box[2] - box[2] % 1024, box[5], 1024):
+        row = -z0 // 1024 - 1
+        half = PUB.FOOT_HALF_X if row in PUB.foot_rows() else 1024
+        if row >= PUB.ROWS or row < 0 or box[0] < -half or box[3] > half:
+            out.append((row, box[0], box[3]))
+    return out
+
+
 def uncontained(layout: int, boxes: dict) -> list:
     """Every ground edge whose row's body at either end leaves that stop's air (WorldRoutes' endpoint body test)."""
     PUB.select(layout)
@@ -371,6 +402,80 @@ class LandingClearance(unittest.TestCase):
                         self.assertEqual(uncovered(box, covers), 0, "M%d landing %d row %d at %s" % (
                             layout, landing, row, root))
         self.assertEqual(deepest, PUB.DECK_DEPTH, "the deck slab is exactly as deep as the deepest body")
+
+    def test_the_foot_air_holds_both_carry_rows_and_clears_every_part(self) -> None:
+        """Decision 2046 (P-2054-2 (a); decision 2054 B3, decision 2092 §2): F'(5)'s air, widened by the ground carry
+        rows 32 and 37, is an envelope over their grounded boxes and 47's, and one extra box over their raised load.
+        Both clear every installed part and the run-out's walls; every carry body box lies in one of them (WorldRoutes'
+        endpoint test); their footing lies on the deck rows, never cut; one box bounding both would reach 28 u into
+        the last sill's deck. The CARRY span straight on to the level-1 store's yaw-0 stand (50 u past F'(5), decision
+        2054 E2) sweeps both carry rows clear of every part."""
+        PUB.select(5)
+        parts = PUB.parts_all(V10.json.loads(V10.pinned(V10.SPEC, V10.SPEC_SHA)))
+        fp = Landing(PUB.MODULES).fp
+        envelope, extra = foot_air(self.boxes)
+        self.assertEqual(envelope, [-679, 0, -679, 679, 937, 679], "the grounded union")
+        self.assertEqual(extra, [-714, 447, -714, 714, 821, 714], "the raised load's union")
+        for name, box in (("envelope", envelope), ("extra", extra)):
+            placed = swept(box + [0], fp, fp)
+            self.assertEqual([i for i, part in enumerate(parts) if overlap(placed, part)], [], name)
+            self.assertTrue(-1024 <= placed[0] and placed[3] <= 1024 and placed[2] >= PUB.END_WALL, name)
+        for row in CARRY_ROWS:
+            for box in (b for b in self.boxes[row] if b[6] in BODY_ROLES):
+                above = box[:1] + [max(box[1], 0)] + box[2:4] + [box[4]] + box[5:6]
+                if above[1] >= above[4]: continue
+                self.assertTrue(any(all(air[i] <= above[i] and above[i + 3] <= air[i + 3] for i in range(3))
+                                    for air in (envelope, extra)), "row %d box %s" % (row, box))
+            for stance in (b for b in self.boxes[row] if b[6] == 1):
+                rows = PUB.deck_rows(PUB.MODULES)
+                self.assertGreaterEqual(fp[2] + stance[2], -1024 * (rows[-1] + 1))
+                self.assertLessEqual(fp[2] + stance[5], -1024 * rows[0])
+        whole = [min(envelope[i], extra[i]) for i in range(3)] + [max(envelope[i], extra[i]) for i in range(3, 6)]
+        deck = parts[PUB.part_base(PUB.MODULES - 1) + 42]  # The last sill's deck.
+        self.assertEqual(overlap(swept(whole + [0], fp, fp), deck)[2], 28, "one box meets the sill deck")
+        stand = [fp[0], fp[1], fp[2] - STAND_PAST_FP]
+        for row in CARRY_ROWS:
+            for box in (b for b in self.boxes[row] if b[6] in BODY_ROLES):
+                sweep = swept(box, fp, stand)
+                self.assertEqual([i for i, part in enumerate(parts) if overlap(sweep, part)], [], "span row %d" % row)
+
+    def test_the_lateral_stations_and_their_walks_stay_in_the_cut(self) -> None:
+        """Decision 2046 (P-2054-3 (a)): on landings 1-4, each foot row's lateral station (x +-618) and the all-yaw
+        walks joining it (from the slot station on row 25, turning on the lateral station's line, then along the side
+        to row 26's) keep 42's body (and the dig row's) inside that landing's cut: four cells across over the foot rows,
+        whose side cubes are cut to the landing's depth, the slot's two elsewhere, short of the end wall. The dig row's
+        below-floor stroke lies in the side cube alone, its stance on the row's strip (the slot's width there). Turning
+        on the deep station's line instead would reach row 24's uncut side (the record of why the corner keeps the
+        lateral line)."""
+        PUB.select(5)
+        for landing in range(1, PUB.MODULES):
+            site = Landing(landing)
+            for row in PUB.foot_rows():
+                for side, _, dig in PUB.LATERAL_SIDES:
+                    point = PUB.lateral_point(landing, row, side)
+                    inner = site.deep[(PUB.ROWS - 2, 0 if side < 0 else 1)]
+                    for name, box in [("42", b) for b in self.boxes[WALK] if b[6] in BODY_ROLES] \
+                            + [("dig", b) for b in self.boxes[dig] if b[6] in BODY_ROLES and b[1] >= 0]:
+                        self.assertEqual(outside_cut(swept(box, point, point)), [], "landing %d row %d side %d %s" % (
+                            landing, row, side, name))
+                    for stroke in (b for b in self.boxes[dig] if b[6] == 4 and b[4] <= 0):  # WORK_STROKE below.
+                        cube = PUB.side_cube(row, side, landing + 1)
+                        placed = swept(stroke, point, point)
+                        self.assertTrue(all(cube[i] <= placed[i] and placed[i + 3] <= cube[i + 3] for i in (0, 2)),
+                                        "landing %d row %d side %d stroke %s in %s" % (landing, row, side, placed, cube))
+                    for stance in (b for b in self.boxes[WALK] + self.boxes[dig] if b[6] == 1):
+                        placed = swept(stance, point, point)
+                        self.assertTrue(-1024 <= placed[0] and placed[3] <= 1024, "on the slot's strip")
+                    corner = [inner[0], inner[1], point[2]]
+                    for line in ([inner, corner, point], [point, PUB.lateral_point(landing, PUB.ROWS - 1, side)]):
+                        for segment in range(len(line) - 1):
+                            for box in (b for b in self.boxes[WALK] if b[6] in BODY_ROLES):
+                                self.assertEqual(outside_cut(swept(box, line[segment], line[segment + 1])), [],
+                                                 "landing %d walk %s" % (landing, line))
+                    if row == PUB.ROWS - 2:
+                        wrong = [point[0], inner[1], inner[2]]
+                        self.assertTrue(any(outside_cut(swept(b, wrong, wrong)) for b in self.boxes[WALK]
+                                            if b[6] in BODY_ROLES), "turning on the deep station's line meets row 24")
 
     def test_rooted_decks_are_covered_by_the_rooms_support(self) -> None:
         """Every fixture deck of 53/54/55/71/72 at each landing lies in parts, bearings and the retained floor."""

@@ -371,17 +371,64 @@ func _retire_landing_floor() -> StringName:
 func _retire_deep_rows(task: Task) -> StringName:
 	"""Decision 2044: before a deep cube's BRACE starts, the stations of its row and of every row past it have
 	struck their last cube and the crew has left them: their edges and Locations leave, so the row's strip can go
-	with this BRACE (the entry structure's hook, P-2044-12 (a))."""
+	with this BRACE (the entry structure's hook, P-2044-12 (a)). Decision 2046: a side cube cuts no floor a station
+	stands on, so nothing leaves before it; the lateral stations, whose side cubes are the stage's first, leave before
+	its first slot cube (they stand on the foot rows' slot floor)."""
 	var landing: int = _deep_landing(task.station)
 	if landing == 0 or task.operation != Contract.OP_BRACE: return &""
+	var at: Vector3i = StairPath.classify_deep(_local_of(task.station))
+	if Tread.is_lateral(at.z): return &""
 	var deep: StairPath.Deep = _deep(landing)
-	var struck: int = StairPath.classify_deep(_local_of(task.station)).y + 1
-	for row: int in range(struck, Tread.ROWS - 1):
+	var code: StringName = _retire_laterals(deep)
+	for row: int in range(at.y + 1, Tread.ROWS - 1):
+		if code != &"": break
 		if deep.at(row, 0) == NULL_REF and deep.at(row, 1) == NULL_REF: continue
-		var code: StringName = StairPath.retire_row(_owners.binding, _owners.routes, _owners.locations, _paid.budget,
-			deep, row)
-		if code != &"": return code
-	return &""
+		code = StairPath.retire_row(_owners.binding, _owners.routes, _owners.locations, _paid.budget, deep, row)
+	return code
+
+
+func _retire_laterals(deep: StairPath.Deep) -> StringName:
+	"""Decision 2046: every live lateral station of the landing leaves, with its edges (none once they have left)."""
+	var left: Array[Vector2i] = []
+	for foot: int in Tread.FOOT_ROWS:
+		for column: int in [Tread.LATERAL_WEST, Tread.LATERAL_EAST]:
+			var handle: Vector2i = deep.at(Tread.ROWS - 1 - foot, column)
+			if handle != NULL_REF: left.append(handle)
+	if left.is_empty(): return &""
+	return StairPath.retire_stops(_owners.binding, _owners.routes, _owners.locations, _paid.budget, left)
+
+
+func _retire_footings(task: Task) -> StringName:
+	"""Decision 2046 (P-2054-3 (a)): the foot's side cubes lie under ground the work area stands on (the first cut
+	pair's full-length outer strip, and the slot's own land station of that row and side, whose cut is done). Before a
+	side cube's BRACE starts, every live endpoint whose footing stands on that cube's top face leaves with its edges;
+	the crew stands on the side cube's own station, 406 u outside it. No other cube is under a footing."""
+	if task.operation != Contract.OP_BRACE: return &""
+	var cube: Vector3i = _owners.sites.origin_of(task.site)
+	var local: Vector3i = cube - _world_point(_placement.x, 0, 0, 0)
+	if local.x >= -Tread.SLOT_HALF_WIDTH and local.x < Tread.SLOT_HALF_WIDTH: return &""
+	var left: Array[Vector2i] = []
+	var locations: Locations = _owners.locations
+	var stride: int = locations._capacity
+	for row: int in stride:
+		if locations._live.present[row] != 1: continue
+		var ref: Vector2i = Vector2i(row, locations._live.i32[Locations.GENERATION * stride + row])
+		if ref != task.station and _stands_on(locations, row, cube): left.append(ref)
+	if left.is_empty(): return &""
+	return StairPath.retire_stops(_owners.binding, _owners.routes, _owners.locations, _paid.budget, left)
+
+
+static func _stands_on(locations: Locations, row: int, cube: Vector3i) -> bool:
+	"""Decision 2046: whether a live Location's footing box lies on the cube's top face (its top at the cube's top,
+	its footprint meeting the cube's)."""
+	var stride: int = locations._capacity
+	var low: Vector3i = Vector3i(locations._live.i32[Locations.SUPPORT * stride + row],
+		locations._live.i32[(Locations.SUPPORT + 1) * stride + row], locations._live.i32[(Locations.SUPPORT + 2) * stride + row])
+	var high: Vector3i = Vector3i(locations._live.i32[(Locations.SUPPORT + 3) * stride + row],
+		locations._live.i32[(Locations.SUPPORT + 4) * stride + row], locations._live.i32[(Locations.SUPPORT + 5) * stride + row])
+	var size: int = Space.QUANTUM_U
+	return high.y == cube.y + size and low.x < cube.x + size and high.x > cube.x and low.z < cube.z + size \
+		and high.z > cube.z
 
 
 ## Decision 2044 (P-2044-7 (a)): the runtime plans stage by stage. A stage is the episodes that need one installed
@@ -646,6 +693,7 @@ func _start(tick: int) -> StringName:
 	var task: Task = _tasks[_index]
 	if _phase_started(task): return _resume_started(task)
 	var code: StringName = _retire_deep_rows(task)
+	if code == &"": code = _retire_footings(task)
 	if code == &"": code = _reserve_inputs(task)
 	if code != &"": return code
 	var result: RefCounted = _owners.sites.bind_worker(task.site)
@@ -884,6 +932,19 @@ func is_done() -> bool:
 	return _stage == STAGE_DONE
 
 
+func close_finished_scopes() -> StringName:
+	"""Decision 2046 (P-2054-1 (a), Brendan 2026-10-22): once the last stage has settled, the two scopes the entry's
+	last paid operation left open are closed, Contacts' retained observation and the entry provider's timber scope
+	(the Placement's authority), so the Session is quiescent and a painted room can be ordered (decision 2054 B1).
+	Refused, and nothing closed, before every installation has settled."""
+	if not is_done() or _paid == null or _install_count < installations(): return REFUSE_STATE
+	var code: StringName = _paid.contacts.close_finished_scope() if _paid.contacts != null else &""
+	var authority: RefCounted = _owners.placements._actual_authority() if _owners.placements != null else null
+	if code == &"" and authority != null and authority.has_method("close_finished_scope"):
+		code = authority.close_finished_scope()
+	return code
+
+
 func error() -> StringName:
 	"""The first refusal, or empty while running or after success."""
 	return _error if _stage == STAGE_FAILED else &""
@@ -1036,14 +1097,15 @@ func _deep(landing: int) -> StairPath.Deep:
 	var deep: StairPath.Deep = StairPath.Deep.new()
 	deep.landing = landing
 	deep.first_row = Tread.deep_first_row(landing) - 1
-	for index: int in 2 * (Tread.ROWS - 1 - deep.first_row): deep.handles.append(NULL_REF)
+	for index: int in 2 * (Tread.ROWS - 1 - deep.first_row) + 2 * Tread.FOOT_ROWS: deep.handles.append(NULL_REF)
 	var locations: Locations = _owners.locations
 	var room: Vector2i = _entry_room()
 	for row: int in locations._capacity:
 		if locations._live.present[row] != 1 or locations._ref_at(locations._live, Locations.ROOM_SLOT, row) != room: continue
 		var at: Vector3i = StairPath.classify_deep(_local_of_row(row))
-		if at.x == landing:
-			deep.handles[(at.y - deep.first_row) * 2 + at.z] = Vector2i(row, locations._get32(locations._live, Locations.GENERATION, row))
+		if at.x != landing: continue
+		var index: int = deep.lateral_index(at.y, at.z) if Tread.is_lateral(at.z) else (at.y - deep.first_row) * 2 + at.z
+		deep.handles[index] = Vector2i(row, locations._get32(locations._live, Locations.GENERATION, row))
 	return deep
 
 

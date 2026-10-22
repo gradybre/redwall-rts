@@ -26,9 +26,16 @@ const NULL_REF: Vector2i = Vector2i(-1, 0)
 ## geometry's `ROWS`, written as a literal so the memory census (REG-C4-R01) can resolve it; a test holds the two equal.
 const CUT_ROWS: int = 27
 const FIRST_DEEP_STATION: int = 11
+## Decision 2046 (P-2054-3 (a)): M5's last two rows (the foot) are cut a cell wider on each side; their top metre is
+## struck from four more land stations a cell further out (x +-SIDE_X, the slot's stand-off from the widened cut), after
+## the descent's: indices FIRST_SIDE_STATION on, west then east, row 25 then row 26.
+const FOOT_ROWS: int = 2
+const SIDE_STATIONS: int = 2 * FOOT_ROWS
 ## H, M, R, the first six cut stations and two stands (FIRST_DEEP_STATION), then a pair of cut stations a row from
-## row 3: 11 + 2 * (CUT_ROWS - 3), written as a sum of products for the census (REG-C4-R01): 29 for M2, 59 for M5.
-const ENDPOINTS: int = 5 + 2 * CUT_ROWS
+## row 3: 11 + 2 * (CUT_ROWS - 3), written as a sum of products for the census (REG-C4-R01): 29 for M2, 59 for M5;
+## decision 2046: then M5's four side stations, 63.
+const FIRST_SIDE_STATION: int = 5 + 2 * CUT_ROWS
+const ENDPOINTS: int = 5 + 2 * CUT_ROWS + SIDE_STATIONS
 const STORAGE: Array[int] = [1, 2]
 ## Decision 2044: the work area publishes H and stage 0's four cut stations only; stage 1's pair (7, 8) is a batch of
 ## its own, joined when its first cut opens (see SURFACE_BATCHES).
@@ -78,6 +85,7 @@ const HAUL_EDGES: Array[Vector3i] = [
 const GATEWAY_X: int = 2560
 const GATEWAY_Z: int = 1536
 const CUT_X: int = 1430
+const SIDE_X: int = CUT_X + 1024 # Decision 2046: 406 u outside the widened foot (x +-2048), as CUT_X is outside the slot.
 const H_AIR: Array[int] = [-485, 0, -578, 479, 930, 412]
 const H_FOOT: Array[int] = [-276, -1, -274, 299, 0, 249]
 const H_METADATA: Array[int] = [-4096, 0, -1024 * (CUT_ROWS + 2), 4096, 1, 4096]
@@ -91,6 +99,9 @@ const RIGHT_PAIR_AIR: Array[int] = [280, 0, 280 - 1024 * (CUT_ROWS + 1), 3816, 1
 const CUT_AIR: Array[int] = [-712, 0, -712, 712, 930, 712]
 const LEFT_FOOT: Array[int] = [-2966, -1, -1024 * (CUT_ROWS + 1), -1024, 0, 2454]
 const RIGHT_FOOT: Array[int] = [1024, -1, -1024 * (CUT_ROWS + 1), 2966, 0, 2454]
+## Decision 2046: a side station's row slice of the outer strip, a cell further out (outside the widened foot).
+const SIDE_LEFT_FOOT: Array[int] = [-3990, -1, 0, -2048, 0, 0]
+const SIDE_RIGHT_FOOT: Array[int] = [2048, -1, 0, 3990, 0, 0]
 
 
 class Published extends RefCounted:
@@ -105,9 +116,17 @@ static func point(origin: Vector3i, index: int) -> Vector3i:
 	if index == 1: return origin + Vector3i(-832, 0, 2048)
 	if index == 2: return origin + Vector3i(-832, 0, 1536)
 	if index == STAND_M or index == STAND_R: return point(origin, stock_of(index)) + STAND_OFFSET
+	if index >= FIRST_SIDE_STATION: return _side_point(origin, index)
 	var ordinal: int = index - 3 if index < STAND_M else index - FIRST_DEEP_STATION + 6
 	@warning_ignore("integer_division")
 	return origin + Vector3i(-CUT_X if ordinal % 2 == 0 else CUT_X, 0, -512 - (ordinal / 2) * 1024)
+
+
+static func _side_point(origin: Vector3i, index: int) -> Vector3i:
+	"""Decision 2046: a foot row's side station, west then east, on the row's centre a cell outside the slot's."""
+	var ordinal: int = index - FIRST_SIDE_STATION
+	@warning_ignore("integer_division") var row: int = CUT_ROWS - FOOT_ROWS + ordinal / 2
+	return origin + Vector3i(-SIDE_X if ordinal % 2 == 0 else SIDE_X, 0, -512 - row * 1024)
 
 
 static func _is_stand(index: int) -> bool:
@@ -164,6 +183,7 @@ static func _row_foot(origin: Vector3i, index: int, left: bool) -> PackedInt32Ar
 	first pair keeps the full strip under its full-length pair air."""
 	var at: Vector3i = point(origin, index)
 	var strip: Array[int] = LEFT_FOOT if left else RIGHT_FOOT
+	if index >= FIRST_SIDE_STATION: strip = SIDE_LEFT_FOOT if left else SIDE_RIGHT_FOOT # Decision 2046.
 	return PackedInt32Array([strip[0] + origin.x, strip[1] + origin.y, at.z - 512, strip[3] + origin.x, strip[4] + origin.y,
 		at.z + 512])
 

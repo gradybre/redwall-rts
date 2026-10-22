@@ -39,6 +39,18 @@ const ROW_U: int = 1024
 ## (224, 0, -544) then lands 138 u inside the cube, and the all-yaw WALK's turns (+-712) stay inside the 2 m slot.
 const DEEP_X: Array[int] = [-300, 300]
 const DEEP_INSIDE: int = 406
+## Decision 2046 (P-2054-3 (a), `qualified-stairs-m5-v3`): the last FOOT_ROWS rows are cut a cell wider on each side.
+## Their side cubes at layer j + 1 are struck from landing j's floor by a lateral station on each foot row's slot floor,
+## 406 u in from the slot's side (x -/+LATERAL_X), facing out (claw dig rows 58/62), LATERAL_BEHIND[k] u from the end
+## wall on the end row (k 0) and the row before it (k 1): there the all-yaw WALK's turns (+-712) clear the end wall and
+## row 24's uncut sides, and the dig rows' below-floor strokes lie inside the side cube.
+const FOOT_ROWS: int = 2
+const SLOT_HALF_WIDTH: int = 1024 # The slot's two cells, x -1,024..1,024 from the centre line.
+const LATERAL_X: int = SLOT_HALF_WIDTH - DEEP_INSIDE
+const LATERAL_BEHIND: Array[int] = [728, 1324]
+## A lateral station's column: west of column 0, east of column 1.
+const LATERAL_WEST: int = -1
+const LATERAL_EAST: int = 2
 
 
 static func valid_assembly(assembly: int) -> bool:
@@ -157,3 +169,14 @@ static func bearer_prism_into(assembly: int, root: Vector3i, out: PackedInt32Arr
 static func deep_first_row(landing: int) -> int:
 	"""The first row layer landing + 1 cuts: module j's first row (landing j's deep stations start one row uphill)."""
 	return 2 + 5 * landing
+
+
+static func lateral_row(behind: int) -> int:
+	"""Decision 2046: the foot row a lateral station `behind` u from the end wall stands on, or -1."""
+	var at: int = LATERAL_BEHIND.find(behind)
+	return ROWS - 1 - at if at >= 0 else -1
+
+
+static func is_lateral(column: int) -> bool:
+	"""Decision 2046: a lateral station's column (west or east of the slot's two)."""
+	return column == LATERAL_WEST or column == LATERAL_EAST

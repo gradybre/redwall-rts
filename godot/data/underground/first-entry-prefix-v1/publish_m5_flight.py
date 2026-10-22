@@ -31,6 +31,19 @@ translation, or follows from 2043 §3's construction order and 2044's rulings:
 Decision 2044 (P-2044-15, "Land M2 now"): `--m2` publishes `qualified-stairs-m2-v1`, the same construction with the
 first two modules only (12 rows, 15 assemblies, 97 parts), ending on module 1's floor 2,048 u down. M2 is an interim;
 M5 stays the target.
+
+Decision 2046 (P-2054-3 (a), Brendan 2026-10-22, "Widen it"): M5's successor `qualified-stairs-m5-v3` cuts the bottom
+run-out one cell wider on each side, so a painted level-1 room's front station can strike one cube and be reached by a
+turn (decision 2054 B4). The run-out's two rows (25, the last sill's far half, and 26, the end row) are cut four cells
+across, open to the sky as the slot is, at every depth: 20 more cubes (4 a layer), struck on their top faces with the
+qualified rows only (no new motion):
+
+- the top metre from land stations 406 u outside the widened cut (x +-2454, the slot's stations moved out a cell),
+  rows 58/62 as every land station, after the slot's own top metre of those rows (`add_land_top_metre`);
+- layer j + 1 from landing j's floor (j = 1..4), first in the stage: a lateral station on each row's slot floor 406 u
+  in from the slot's side (x +-618), facing out (58 at yaw 16384 west, 62 at yaw 49152 east), whose contact lands
+  138 u inside the side cube; it stands 728 u (row 26) or 1,324 u (row 25) from the end wall, where the all-yaw
+  WALK 42 it arrives on turns clear of the end wall and of row 24's uncut sides (`LATERAL_BEHIND`).
 """
 from __future__ import annotations
 
@@ -62,9 +75,10 @@ MODULES = 5
 ROWS = 27
 END_WALL = -1024 * ROWS
 ## Decision 2045 (P-2045-11 (a)): M5's successor `qualified-stairs-m5-v2` adds the turning spot R' on each landing and
-## sizes U0' by the approach 45; M2's interim `qualified-stairs-m2-v1` keeps P-2044-16 (a)'s design.
-OUTPUT = HERE / "qualified-stairs-m5-v2"
-RES = "res://data/underground/first-entry-prefix-v1/qualified-stairs-m5-v2/"
+## sizes U0' by the approach 45; M2's interim `qualified-stairs-m2-v1` keeps P-2044-16 (a)'s design. Decision 2046: M5's
+## `qualified-stairs-m5-v3` widens the bottom run-out (the module header).
+OUTPUT = HERE / "qualified-stairs-m5-v3"
+RES = "res://data/underground/first-entry-prefix-v1/qualified-stairs-m5-v3/"
 
 
 def select(modules: int) -> None:
@@ -74,7 +88,7 @@ def select(modules: int) -> None:
     MODULES = modules
     ROWS = 2 + 5 * modules
     END_WALL = -1024 * ROWS
-    name = "qualified-stairs-m5-v2" if modules == 5 else "qualified-stairs-m2-v1"
+    name = "qualified-stairs-m5-v3" if modules == 5 else "qualified-stairs-m2-v1"
     OUTPUT = HERE / name
     RES = "res://data/underground/first-entry-prefix-v1/%s/" % name
 
@@ -104,6 +118,16 @@ DIG_FORWARD = 56  # Claw dig row at yaw 0 (CLAW_DIG_ROWS[0]).
 DEEP_TRAVEL = V10.WALK  # 42, the all-yaw claw WALK.
 FLOOR_ARRIVAL, FLOOR_ASCENT, FLOOR_WALK_OFF = 343, 169, 686  # Decision 1972's F, U and F' beyond the sill's far edge.
 FIXTURE_WOOD = 39000
+## Decision 2046 (P-2054-3 (a)): the widened foot (the module header). M5 only; M2 reaches no level.
+FOOT_ROWS = 2
+FOOT_HALF_X = 2048
+SIDE_LAND_X = V10.CLAW_X + 1024  # 2454: the land stations' 406 u stand-off from the widened cut.
+LATERAL_X = 1024 - DEEP_INSIDE  # 618: 406 u in from the slot's side, the contact 138 u inside the side cube.
+## Each foot row's lateral station, from the end wall: the 42 turn (+-712) clears the end wall and row 24's uncut sides,
+## and rows 58/62's below-floor stroke (z -287..226 / -226..287) lies inside the row.
+LATERAL_BEHIND = {26: 728, 25: 1324}
+## (x sign, yaw, dig row) of a lateral station: west faces -X (58, as the east land stations), east +X (62).
+LATERAL_SIDES = ((-1, 16384, V10.DIG_RIGHT), (1, 49152, V10.DIG_LEFT))
 MAX_FRONTIER_BYTES = 56000  # P-2044-2 (a): the raised Frontier bound; set to the measured size once final.
 
 
@@ -169,14 +193,32 @@ def landings_all() -> list:
     return out
 
 
+def foot_rows() -> range:
+    """Decision 2046: the rows cut four cells across (M5's last two; none on the M2 interim, which reaches no level)."""
+    return range(ROWS - FOOT_ROWS, ROWS) if MODULES == 5 else range(0)
+
+
 def cut_groups() -> list:
-    """v10's six groups, then each later module's five rows at its full depth (2043 §3)."""
+    """v10's six groups, then each later module's five rows at its full depth (2043 §3); decision 2046: the foot rows
+    four cells across."""
     out = [c["bounds_u"] for c in V10.json.loads(V10.pinned(V10.SPEC, V10.SPEC_SHA))["cut_groups"]] \
         + V10.cut_rows()
     for module in range(1, MODULES):
         for row in range(2 + 5 * module, 7 + 5 * module):
-            out.append([-1024, -1024 * (module + 1), -1024 * (row + 1), 1024, 0, -1024 * row])
+            half = FOOT_HALF_X if row in foot_rows() else 1024
+            out.append([-half, -1024 * (module + 1), -1024 * (row + 1), half, 0, -1024 * row])
     return out
+
+
+def side_cube(row: int, side: int, layer: int) -> list:
+    """Decision 2046: the foot row's side cube (side -1 west, +1 east) at `layer` (1 the top metre)."""
+    x0 = -FOOT_HALF_X if side < 0 else 1024
+    return [x0, -1024 * layer, -1024 * (row + 1), x0 + 1024, -1024 * (layer - 1), -1024 * row]
+
+
+def lateral_point(landing: int, row: int, side: int) -> list:
+    """Decision 2046: the lateral station on landing j's floor that strikes the foot row's side cube at layer j + 1."""
+    return [side * LATERAL_X, -MODULE_DROP * landing, END_WALL + LATERAL_BEHIND[row]]
 
 
 def structure(spec: dict, old: bytes, ground: bytes, profile: bytes) -> tuple:
@@ -302,9 +344,12 @@ def strip_boxes(landing: int) -> list:
 
 
 def strip_box(landing: int, row: int) -> list:
-    """One floor row's strip under landing j's floor: x +-768, 128 u deep, the row's full length."""
+    """One floor row's strip under landing j's floor: x +-768, 128 u deep, the row's full length. Decision 2046: a foot
+    row's spans the slot (x +-1,024), so a lateral station's footing, 406 u in from the slot's side, stands on it (no
+    post bearing lies there: module 4's last post is in row 24)."""
     y = -MODULE_DROP * landing
-    return [-STRIP_HALF_X, y - STRIP_DEPTH, -1024 * (row + 1), STRIP_HALF_X, y, -1024 * row]
+    half = 1024 if row in foot_rows() else STRIP_HALF_X
+    return [-half, y - STRIP_DEPTH, -1024 * (row + 1), half, y, -1024 * row]
 
 
 def deep_rows(landing: int) -> range:
@@ -372,16 +417,24 @@ def deep_station_point(landing: int, row: int, column: int) -> list:
 
 
 def add_land_top_metre(t: Tables, prefix_episodes: list) -> None:
-    """Rows 7-26's top metre from surface stations at +-1430 u, prefix 2, as v10's rows 3-6 (no bearings)."""
+    """Rows 7-26's top metre from surface stations at +-1430 u, prefix 2, as v10's rows 3-6 (no bearings); decision
+    2046: then the foot rows' side cubes from stations a cell further out (+-2454), once their row's slot is cut."""
     for row in range(7, ROWS):
         for left in (True, False):
-            x = -V10.CLAW_X if left else V10.CLAW_X
-            point = [x, 0, -1024 * row - 512]
-            endpoint = t.add_endpoint([SURFACE, -1, 0, WORK] + point + [V10.WALK])
-            station = t.add_station(endpoint, 49152 if left else 16384, V10.DIG_LEFT if left else V10.DIG_RIGHT)
             box = [-1024 if left else 0, -1024, -1024 * (row + 1), 0 if left else 1024, 0, -1024 * row]
-            prefix_episodes.append(box + [7, 2, station, station, station, 0, 0, 0, 0, V10_M, V10_R, endpoint,
-                                          V10.FACE])
+            _land_episode(t, prefix_episodes, -V10.CLAW_X if left else V10.CLAW_X, row, left, box)
+    for row in foot_rows():
+        for left in (True, False):
+            _land_episode(t, prefix_episodes, -SIDE_LAND_X if left else SIDE_LAND_X, row, left,
+                          side_cube(row, -1 if left else 1, 1))
+
+
+def _land_episode(t: Tables, prefix_episodes: list, x: int, row: int, left: bool, box: list) -> None:
+    """One top-metre cube struck from a land station at `x` on the row's centre, facing the slot."""
+    point = [x, 0, -1024 * row - 512]
+    endpoint = t.add_endpoint([SURFACE, -1, 0, WORK] + point + [V10.WALK])
+    station = t.add_station(endpoint, 49152 if left else 16384, V10.DIG_LEFT if left else V10.DIG_RIGHT)
+    prefix_episodes.append(box + [7, 2, station, station, station, 0, 0, 0, 0, V10_M, V10_R, endpoint, V10.FACE])
 
 
 def add_strips(t: Tables, landing: int) -> list:
@@ -491,6 +544,13 @@ def add_deep(t: Tables, landing: int, naturals: int) -> dict:
     ranges = {first_row: (naturals, 4), first_row + 1: (naturals + 8, 8), first_row + 2: (naturals + 16, 8),
               first_row + 3: (naturals + 24, 2)}
     episodes = {}
+    for row in sorted(foot_rows(), reverse=True):  # Decision 2046: the side cubes first, from the end wall.
+        for side, yaw, dig in LATERAL_SIDES:
+            endpoint = t.add_endpoint([INSTALLED, sill, floor, WORK] + lateral_point(landing, row, side) + [DEEP_TRAVEL])
+            station = t.add_station(endpoint, yaw, dig)
+            t.episode.append(side_cube(row, side, landing + 1) + [7, 8 + 7 * (landing - 1), station, station, station,
+                                                                  0, 0, 0, 0, V10_M, V10_R, endpoint, V10.FACE])
+            episodes[(row, side * 2)] = len(t.episode) - 1
     for row, column in deep_order(landing):
         station, endpoint = stations[(row - 1, column)]
         box = [-1024 + 1024 * column, -MODULE_DROP * (landing + 1), -1024 * (row + 1), 1024 * column,

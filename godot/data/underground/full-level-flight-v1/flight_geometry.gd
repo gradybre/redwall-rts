@@ -427,29 +427,35 @@ static func landing_stop_into(layout: int, module: int, behind: int, out: Packed
 
 
 static func layout_cube_count(layout: int) -> int:
-	"""Every cut cube of the slot, two columns; -1 for no layout."""
+	"""Every cut cube: each row's columns (decision 2046: four on M5's foot rows) times its depth; -1 for no layout."""
 	if not layout_valid(layout): return -1
 	var total: int = 0
 	for row: int in layout_row_count(layout):
-		total += layout_floor_depth(layout, row)
-	return WIDTH_CUBES * total
+		total += layout_row_width_cubes(layout, row) * layout_floor_depth(layout, row)
+	return total
 
 
 static func layout_deep_cube_count(layout: int) -> int:
 	"""Cubes below the top metre (decision 2041 F7): every cube but one a column a row."""
-	return layout_cube_count(layout) - WIDTH_CUBES * layout_row_count(layout) if layout_valid(layout) else -1
+	if not layout_valid(layout): return -1
+	var top: int = 0
+	for row: int in layout_row_count(layout):
+		top += layout_row_width_cubes(layout, row)
+	return layout_cube_count(layout) - top
 
 
 static func layout_cubes_into(layout: int, out: PackedInt32Array) -> bool:
-	"""Every cut cube as a box, in the same storage order as `cubes_into` (not a dig order). False, `out` untouched,
-	for no layout."""
+	"""Every cut cube as a box, in the same storage order as `cubes_into` (not a dig order): by row, then column from
+	-x (decision 2046: four on M5's foot rows), then layer from the top. False, `out` untouched, for no layout."""
 	if not layout_valid(layout): return false
 	out.resize(6 * layout_cube_count(layout))
 	var at: int = 0
 	for row: int in layout_row_count(layout):
-		for column: int in WIDTH_CUBES:
+		var across: int = layout_row_width_cubes(layout, row)
+		@warning_ignore("integer_division") var west: int = -QUANTUM * across / 2
+		for column: int in across:
 			for layer: int in layout_floor_depth(layout, row):
-				_write_cube(out, at, -HALF_WIDTH + QUANTUM * column, layer, row)
+				_write_cube(out, at, west + QUANTUM * column, layer, row)
 				at += 6
 	return true
 

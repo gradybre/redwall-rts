@@ -16,8 +16,8 @@ const Provider := preload("res://scripts/core/underground_room_world_bindings.gd
 ## the claw bundle, content 9).
 ## Decision 2044: the M2 interim (`qualified-stairs-m2-v1`, 97 parts; P-2044-15) mounted M5's first two modules.
 ## Decision 2045: the M5 flight to level 1 (`qualified-stairs-m5-v2`, 232 parts, Frontier revision 10; v1 before the
-## turning spot R', P-2045-11 (a)), v10's successor.
-const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-m5-v2/catalog_source.gd")
+## turning spot R', P-2045-11 (a)), v10's successor. Decision 2046: `qualified-stairs-m5-v3`, the foot widened.
+const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-m5-v3/catalog_source.gd")
 const StructureScope := preload("res://scripts/core/underground_world_structure_scope.gd")
 const EntryStructure := preload("res://scripts/core/underground_entry_structure.gd")
 

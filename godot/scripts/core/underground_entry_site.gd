@@ -10,8 +10,8 @@ const EntryPlan := preload("res://scripts/core/underground_entry_plan.gd")
 ## the claw bundle, content 9).
 ## Decision 2044: the M2 interim (`qualified-stairs-m2-v1`, 97 parts; P-2044-15) mounted M5's first two modules.
 ## Decision 2045: the M5 flight to level 1 (`qualified-stairs-m5-v2`, 232 parts, Frontier revision 10; v1 before the
-## turning spot R', P-2045-11 (a)), v10's successor.
-const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-m5-v2/catalog_source.gd")
+## turning spot R', P-2045-11 (a)), v10's successor. Decision 2046: `qualified-stairs-m5-v3`, the foot widened.
+const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-m5-v3/catalog_source.gd")
 const CATALOG_ROW: int = 0 # The bundle structure has exactly one entry variant.
 const CELL_U: int = 1024
 const REFUSE_NONE_FOUND: StringName = &"ENTRY_SITE_NONE_FOUND"

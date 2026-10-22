@@ -14,6 +14,11 @@ const Tread := preload("res://data/underground/mole-worker/qualified-m5-runtime-
 const Connectors := preload("res://scripts/core/room_connectors.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const CacheChecks := preload("res://scripts/core/runtime_cache_checks.gd")
+## Decision 2046 (P-2054-2 (a)): the flight's foot F'(5) is classified by the stair path and widened by the ground
+## carry rows of the grip certificate's families.
+const StairPath := preload("res://scripts/core/underground_entry_stair_path.gd")
+const Grip := preload("res://data/underground/mole-worker/qualified-claw-runtime-v1/grip_certificate.gd")
+const FOOT_CARRY_FAMILIES: int = 2 # Wood (carry row 32) and stone (37).
 const ENTRY_FIXED_BYTES: int = 4096
 const ENTRY_EPISODE_FIELDS: int = 19
 const ENTRY_BEARING_FIELDS: int = 9
@@ -127,6 +132,11 @@ class AdmissionAuthority extends Placements.Authority:
 		"""ADR 1228: judge a load's staged Placement image against the restored Space."""
 		var actual: RefCounted = host.get_ref() if host != null else null
 		return actual._restoration_refusal(cold) if actual != null else REFUSE_ENTRY_COLD
+
+	func close_finished_scope() -> StringName:
+		"""Decision 2046 (P-2054-1 (a)): the finished entry closes the timber scope its last paid operation pinned."""
+		var actual: RefCounted = host.get_ref() if host != null else null
+		return actual._close_finished_timber() if actual != null else REFUSE_ENTRY_COLD
 
 var _entry_frontier: Frontier = null
 var _entry_placements: Placements = null
@@ -1602,6 +1612,19 @@ func _discard_timber(placement: Vector2i, project: Vector2i, cold: int) -> void:
 	_timber_token = 0
 
 
+func _close_finished_timber() -> StringName:
+	"""Decision 2046 (P-2054-1 (a), Brendan 2026-10-22; decision 2054 B1): a paid operation's publication clears the
+	Placement's controls but never asks this provider to discard its timber scope (only a discarded operation does), so
+	the last operation's `_timber_token` outlived the entry and the Session stayed WORLD_RETIREMENT_BUSY. Once the entry
+	has finished it is closed here, exactly as `_discard_timber` closes it, and only when no operation still holds it:
+	the Placement is not prepared on that lease and no proof is reading. Idempotent."""
+	if _entry_busy or _reading: return REFUSE_MASK_BUSY
+	if _timber_token == 0: return &""
+	if _entry_placements != null and _entry_placements._cold_token == _timber_token: return REFUSE_ENTRY_COLD
+	_discard_timber(_timber_placement, _timber_project, _timber_token)
+	return &""
+
+
 func _timber_connections(proof: TimberClearance) -> StringName:
 	"""The exact authored group must physically connect to every proved bearing; no span-strength formula is inferred."""
 	_read_timber_install()
@@ -1967,7 +1990,64 @@ func _station_rows_start(endpoint: int, rows: int) -> Vector2i:
 
 
 func _timber_profile_envelope(endpoint: int) -> StringName:
-	"""Select the exact immutable source; support and occupied air retain independent complete bounds."""
+	"""Select the exact immutable source; support and occupied air retain independent complete bounds. Decision 2046
+	(P-2054-2 (a)): the flight's foot F'(5) then also holds the ground carry rows (`_foot_carry_air`)."""
+	_entry_contact.air_count = 0
+	var code: StringName = _timber_selected_envelope(endpoint)
+	if code == &"" and _foot_walk_off(endpoint): code = _foot_carry_air()
+	return code
+
+
+func _foot_walk_off(endpoint: int) -> bool:
+	"""Decision 2046: the last landing's walk-off stop F'(5), the flight's foot on level 1, by its source-local point
+	(the stair path's own classification)."""
+	var local: Vector3i = Vector3i(_entry_frontier._field(Frontier.ENDPOINT, endpoint, 4),
+		_entry_frontier._field(Frontier.ENDPOINT, endpoint, 5), _entry_frontier._field(Frontier.ENDPOINT, endpoint, 6))
+	return StairPath.classify(local) == Vector2i(StairPath.KIND_FP, StairPath.MODULES)
+
+
+func _foot_carry_air() -> StringName:
+	"""Decision 2046 (P-2054-2 (a), Brendan 2026-10-22; decision 2054 B3, decision 2092 §2): F'(5)'s surveyed air held
+	one empty body facing down the flight, so no loaded row could stand or leave there. It is widened by each ground
+	CARRY row (the grip certificate's two families, 32 wood and 37 stone; content 12's rows, no new motion): its stance
+	joins the footing, its grounded body and turn boxes join the envelope, and its raised load (the boxes wholly above
+	the floor) one extra air box (ADR 1215). One box over all of them would reach 28 u into the last sill's deck; the
+	two clear every part (`test_landing_clearance.py`). Locations and WorldRoutes prove the rest, as for any endpoint."""
+	var profiles: Profiles = _entry_placements._profiles
+	var raised: bool = false
+	for family: int in FOOT_CARRY_FAMILIES:
+		var row: int = Grip.carry_of(family)
+		var first: int = profiles._live.fields[Profiles.F_FIRST_BOX * profiles._profile_capacity + row]
+		for box: int in range(first, first + profiles._live.fields[Profiles.F_BOX_COUNT * profiles._profile_capacity + row]):
+			if not _entry_spend(24): return REFUSE_MASK_BUDGET
+			var role: int = profiles._live.boxes[6 * profiles._box_capacity + box]
+			var code: StringName = &""
+			if role == Profiles.STANCE_SUPPORT: code = _timber_extend_support(profiles, box, _entry_contact.point, false)
+			elif role == Profiles.BODY_HELD_LOAD or role == Profiles.TURN_RECOVERY:
+				if profiles._live.boxes[profiles._box_capacity + box] <= 0:
+					code = _timber_extend_envelope(profiles, box, _entry_contact.point)
+				else:
+					code = _extend_extra_air(profiles, box, not raised)
+					raised = true
+			if code != &"": return code
+	_entry_contact.air_count = 1 if raised else 0
+	return &""
+
+
+func _extend_extra_air(profiles: Profiles, box: int, first: bool) -> StringName:
+	"""Decision 2046: enlarge (or start) F'(5)'s one extra air box by a raised load box, at the stop's point."""
+	var point: Vector3i = _entry_contact.point
+	for axis: int in 3:
+		var low: int = int(point[axis]) + profiles._live.boxes[axis * profiles._box_capacity + box]
+		var high: int = int(point[axis]) + profiles._live.boxes[(axis + 3) * profiles._box_capacity + box]
+		if not Space.int32(low) or not Space.int32(high): return REFUSE_TIMBER_CONTACT
+		_entry_contact.air[axis] = low if first else mini(_entry_contact.air[axis], low)
+		_entry_contact.air[axis + 3] = high if first else maxi(_entry_contact.air[axis + 3], high)
+	return &""
+
+
+func _timber_selected_envelope(endpoint: int) -> StringName:
+	"""The selected source's own footing and air (the endpoint's station or travel profile)."""
 	var profile: int = _timber_profile(endpoint)
 	var profiles: Profiles = _entry_placements._profiles
 	if profile == -2: return REFUSE_MASK_BUDGET
@@ -2095,8 +2175,23 @@ func _timber_contact_air(proof: TimberClearance, token: int, staging: bool) -> S
 		proof.remaining = _entry_checks
 		if code == &"": code = _timber_profile_foot(proof, endpoint)
 		if code == &"": code = _timber_air_box(proof, token, staging)
+		if code == &"": code = _timber_extra_air_box(proof, token, staging)
 		if code != &"": return code
 	return &""
+
+
+func _timber_extra_air_box(proof: TimberClearance, token: int, staging: bool) -> StringName:
+	"""Decision 2046 (P-2054-2 (a)): F'(5)'s extra air box (ADR 1215) is proved as the envelope is, against every
+	physical and foreign-claim blocker, but it must lie wholly in completed void (ADR 1215's rule for extra air, which
+	Locations repeats): no exterior is staged for it. Nothing for a single-box endpoint."""
+	if _entry_contact.air_count == 0: return &""
+	var extra: PackedInt32Array = _entry_contact.air.slice(0, 6)
+	if not staging:
+		var code: StringName = _timber_terrain(proof, extra, Terrain.EXCLUSIONS, token)
+		if code != &"": return code
+	var code: StringName = _timber_void_residual(proof, extra, staging)
+	if code != &"": return code
+	return &"" if proof.count == 0 else REFUSE_TIMBER_CONTACT
 
 
 func _timber_air_box(proof: TimberClearance, token: int, staging: bool) -> StringName:
@@ -2104,8 +2199,21 @@ func _timber_air_box(proof: TimberClearance, token: int, staging: bool) -> Strin
 	if not staging:
 		var code: StringName = _timber_terrain(proof, _entry_contact.envelope, Terrain.EXCLUSIONS, token)
 		if code != &"": return code
+	var residual: StringName = _timber_void_residual(proof, _entry_contact.envelope, staging)
+	if residual != &"": return residual
+	for fragment_row: int in proof.count:
+		for axis: int in 6: proof.box[axis] = proof.fragments[fragment_row * 6 + axis]
+		var code: StringName = _stage_timber_exterior(proof, token) if staging \
+			else _timber_terrain(proof, proof.box, Terrain.EXTERIOR, token)
+		if code != &"": return code
+	return &""
+
+
+func _timber_void_residual(proof: TimberClearance, box: PackedInt32Array, staging: bool) -> StringName:
+	"""What of `box` no completed void covers, left in the proof's fragments; any other physical or foreign-claim
+	blocker meeting it refuses (the envelope's region pass, shared with F'(5)'s extra air box)."""
 	var owner: Owner = _entry_placements._space
-	proof.start(_entry_contact.envelope)
+	proof.start(box)
 	var row: int = -1
 	while true:
 		row = _next_region_row(owner, row + 1, staging)
@@ -2116,17 +2224,12 @@ func _timber_air_box(proof: TimberClearance, token: int, staging: bool) -> Strin
 		if role == Space.FLOOR_DATUM or _timber_claim(row, staging) \
 				or (not staging and _workpiece_live_row(row)): continue
 		if not proof.spend(Z_READ_CHECKS): return REFUSE_MASK_BUDGET
-		if _z_misses(owner, row, staging, _entry_contact.envelope): continue
+		if _z_misses(owner, row, staging, box): continue
 		if not proof.spend(12 - Z_READ_CHECKS): return REFUSE_MASK_BUDGET
 		_timber_region_box(row, staging, proof.cover)
-		if not Space.overlaps(_entry_contact.envelope, proof.cover): continue
+		if not Space.overlaps(box, proof.cover): continue
 		if role != Space.SUPPORTED_VOID or not _timber_void_row(row, staging): return REFUSE_TIMBER_CONTACT
 		if not proof.subtract_cover(): return REFUSE_MASK_BUDGET
-	for fragment_row: int in proof.count:
-		for axis: int in 6: proof.box[axis] = proof.fragments[fragment_row * 6 + axis]
-		var code: StringName = _stage_timber_exterior(proof, token) if staging \
-			else _timber_terrain(proof, proof.box, Terrain.EXTERIOR, token)
-		if code != &"": return code
 	return &""
 
 
@@ -2260,6 +2363,15 @@ func _timber_profile_foot(proof: TimberClearance, endpoint: int) -> StringName:
 	if profile < 0: return REFUSE_TIMBER_CONTACT
 	var profiles: Profiles = _entry_placements._profiles
 	if _stair_stop(profiles, profile): return &"" # ADR1229: the stop's footing is the READY stance (above).
+	var code: StringName = _profile_foot(proof, profiles, profile)
+	if code != &"" or not _foot_walk_off(endpoint): return code
+	for family: int in FOOT_CARRY_FAMILIES: # Decision 2046: F'(5)'s carry rows, each on its own stance.
+		if code == &"": code = _profile_foot(proof, profiles, Grip.carry_of(family))
+	return code
+
+
+func _profile_foot(proof: TimberClearance, profiles: Profiles, profile: int) -> StringName:
+	"""Each of the profile's below-plane occupied/recovery boxes is covered by the profile's own authored stance."""
 	var first: int = profiles._live.fields[Profiles.F_FIRST_BOX * profiles._profile_capacity + profile]
 	var end: int = first + profiles._live.fields[Profiles.F_BOX_COUNT * profiles._profile_capacity + profile]
 	for box: int in range(first, end):

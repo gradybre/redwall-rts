@@ -24,8 +24,9 @@ const TERRAIN_BYTES: int = 131072
 const LAYOUT_COLD_BYTES: int = 262144
 ## ADR1212: +256 so the enlarged Contacts control (ADR1215 Record air) stays inside a fully assigned reserve.
 ## Decision 2045 (P-2045-1 (a)): +22,879 so M5's Frontier (`MAX_BYTES` 51,476, was 28,597) stays inside it, and +160
-## for v2's four turning spots (P-2045-11 (a); Frontier 51,636).
-const BINDINGS_AND_GROWTH_BYTES: int = 547583
+## for v2's four turning spots (P-2045-11 (a); Frontier 51,636). Decision 2046 (P-2054-3 (a)): +3,920 for v3's widened
+## foot (20 stations, endpoints and episodes; Frontier 55,556).
+const BINDINGS_AND_GROWTH_BYTES: int = 551503
 const I64_MAX: int = 9223372036854775807
 const REFUSE_BUSY: StringName = &"UNDERGROUND_COLD_BUSY"
 const REFUSE_BYTES: StringName = &"UNDERGROUND_COLD_CAPACITY"

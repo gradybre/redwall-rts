@@ -183,6 +183,50 @@ func test_on_the_widened_foot_the_end_walls_front_strikes_one_cube_and_is_turned
 	assert_true(_blocked(GROUND_ROW, Vector2i(turn.x - 1, depth.x), true) != "", "one unit west of the line: none")
 
 
+func test_a_run_out_one_row_longer_admits_a_side_wall_front_in_the_two_cell_slot() -> void:
+	"""Decision 2046 P-2046-1 (b), for the ruling: on today's 2-cell foot, row 42's turning depth is bounded by the end
+	wall and the last sill (712-824 u), so no side-wall station line meets it. With the run-out one row longer
+	(RUN_OUT + 1,024 = 2,560 u from the sill's far edge to the end wall) it turns 712-1,848 u from the wall, which holds
+	the side walls' stations in the middle row's cells (1,439-1,570 u west, 1,502-1,633 u east). One is built out: the corner on the slot's
+	centre line, the walk across on 68's own heading rows, the wall row at its station, all clear of the 2-cell walls,
+	the end wall and the sill moved one row further from the wall."""
+	var longer: int = Flight.RUN_OUT + Flight.QUANTUM
+	var reach: int = _turn_span(false, 2).x
+	var depth: Vector2i = Vector2i(reach, longer - reach)
+	assert_equal(depth, Vector2i(712, 1848), "row 42 turns 712-1,848 u from the end wall")
+	var expected: Array[Vector2i] = [Vector2i(1439, 1570), Vector2i(1502, 1633)]
+	for at: int in SIDE_WALL_ROWS.size():
+		var row: int = SIDE_WALL_ROWS[at]
+		var fits: Vector2i = _fits(row, 2, Flight.QUANTUM)
+		assert_equal(fits, expected[at], "row %d's stations in the middle row's cell" % row)
+		assert_true(fits.x >= depth.x and fits.y <= depth.y, "row %d: every one of them on a turnable line" % row)
+	var station: Vector2i = Vector2i(-Flight.HALF_WIDTH - _patch_x(SIDE_WALL_ROWS[0]), 1500)
+	var corner: Vector2i = Vector2i(0, station.y)
+	var sill: Vector2i = Vector2i(longer, Flight.RISE)
+	assert_equal(_blocked_at(GROUND_ROW, corner, sill), "", "row 42 turns at the corner on the centre line")
+	assert_equal(_blocked_at(SIDE_WALL_ROWS[0], station, sill), "", "the west wall row at its station")
+	assert_true(_blocked_at(GROUND_ROW, corner, Vector2i(_sill()[0], _sill()[1])) != "", "with today's run-out the corner meets the sill")
+
+
+func _patch_x(row: int) -> int:
+	"""A side wall row's contact patch plane along x, relative to its root (the struck face)."""
+	var boxes: Array[PackedInt32Array] = _boxes(row, PackedInt32Array([Profiles.CONTACT_PATCH]))
+	assert_equal(boxes[0][0], boxes[0][3], "a face plane across x")
+	return boxes[0][0]
+
+
+func _blocked_at(row: int, at: Vector2i, sill: Vector2i) -> String:
+	"""`_blocked` on the 2-cell slot against a sill whose far edge is `sill.x` from the end wall, `sill.y` high."""
+	for box: PackedInt32Array in _boxes(row, BODY_ROLES):
+		var low: Vector3i = Vector3i(at.x + box[0], box[1], at.y + box[2])
+		var high: Vector3i = Vector3i(at.x + box[3], box[4], at.y + box[5])
+		if low.z < 0: return "row %d meets the end wall" % row
+		if low.x < -Flight.HALF_WIDTH or high.x > Flight.HALF_WIDTH: return "row %d meets a side wall" % row
+		if high.z > sill.x and (maxi(low.y, 0) < sill.y or high.z > sill.x + Flight.RUN):
+			return "row %d meets the sill" % row
+	return ""
+
+
 func test_the_side_walls_still_admit_no_front_on_the_widened_foot() -> void:
 	"""Recorded, not asked: the side walls' stations (68 and 70, across z) stand 415-546 u or 1,439-1,570 u from the
 	end wall; row 42 still turns only 712-824 u from it (the end wall and the sill bound it, whatever the width), so

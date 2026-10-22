@@ -21,13 +21,15 @@ const SURFACE_ANCHOR: int = 0 # Mirrors underground_entry_frontier.gd; no Fronti
 ## Decision 2044: the M2 interim's Frontier (`qualified-stairs-m2-v1`) was 15/49/11/82/97/34. Decision 2045: the
 ## mounted Frontier is M5's (`qualified-stairs-m5-v2`, revision 10): v10's rows first, then the top metre past row 6,
 ## modules 1-4, the landings' floor stops, deep stations and strips (P-2044-16 (a)'s retained floor and landing stops);
-## `qualified-stairs-m5-v2` adds each landing's turning spot R' (P-2045-11 (a)): 305 endpoints.
+## `qualified-stairs-m5-v2` adds each landing's turning spot R' (P-2045-11 (a)): 305 endpoints. Decision 2046:
+## `qualified-stairs-m5-v3` widens the foot: 20 side cubes, each with its own station and endpoint (four on the land,
+## sixteen lateral ones on landings 1-4): 210 stations, 325 endpoints, 174 episodes.
 const INSTALLS: int = 36
-const STATIONS: int = 190
+const STATIONS: int = 210
 const CUTS: int = 26
 const BEARINGS: int = 235
-const ENDPOINTS: int = 305
-const EPISODES: int = 154
+const ENDPOINTS: int = 325
+const EPISODES: int = 174
 const L0_EPISODES: int = 4 # The first-entry prefix's L0 cubes, all of prefix 0.
 ## Capacities, Install, Station, rotation, Cut, Bearing, Endpoint plus travel, Episode, then the two workpiece rows.
 const SOURCE32: int = 6 + 9 * INSTALLS + 12 * STATIONS + 7 * CUTS + 9 * BEARINGS + 8 * ENDPOINTS + 19 * EPISODES + 12

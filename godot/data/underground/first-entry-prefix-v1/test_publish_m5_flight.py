@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Tests for the create-only M5 bundle (decisions 2043 and 2044).
+"""Tests for the create-only M5 bundle (decisions 2043 and 2044; decision 2046: `qualified-stairs-m5-v3`, the widened
+foot).
 
     python3 godot/data/underground/first-entry-prefix-v1/test_publish_m5_flight.py -v
 """
@@ -47,12 +48,16 @@ class M5Bundle(unittest.TestCase):
                 if table == 0 and index == 7: expected[6] = 2 + 3 + 20  # Landing 1's deck slab, bands, rows 7-26.
                 self.assertEqual(new[index], expected, (table, index))
 
-    def test_counts_are_2043s(self) -> None:
-        """36 installs, 26 cut groups, 154 cube episodes (54 top metre, 100 deep), 232 parts."""
+    def test_counts_are_2043s_with_the_widened_foot(self) -> None:
+        """36 installs, 26 cut groups, 174 cube episodes: 2043's 154 (54 top metre, 100 deep) and decision 2046's 20
+        side cubes, four a layer; 232 parts."""
         install, station, cut, bearing, endpoint, episode = self.frontier
-        self.assertEqual([len(install), len(cut), len(episode)], [36, 26, 154])
+        self.assertEqual([len(install), len(cut), len(episode)], [36, 26, 174])
         layers = [sum(1 for e in episode if e[4] == -1024 * layer) for layer in range(5)]
-        self.assertEqual(layers, [54, 40, 30, 20, 10])
+        self.assertEqual(layers, [58, 44, 34, 24, 14])
+        sides = [e for e in episode if e[0] < -1024 or e[3] > 1024]
+        self.assertEqual(len(sides), 20)
+        self.assertEqual({(e[2], e[0]) for e in sides}, {(z, x) for z in (-27648, -26624) for x in (-2048, 1024)})
         catalog = self.built["structure.ugconn"]
         self.assertEqual(struct.unpack_from("<7I", catalog, 20)[3], 232)
 
@@ -81,10 +86,36 @@ class M5Bundle(unittest.TestCase):
             self.assertEqual(cube[0], -1024)
             self.assertEqual((cube[4], cube[2], cube[5]), (row[7], row[5], row[8]))
 
+    def test_the_side_cubes_are_struck_on_their_top_faces(self) -> None:
+        """Decision 2046: each foot row's side cubes: the top metre from a land station 406 u outside the widened cut,
+        after the slot's top metre; layer j + 1 first in landing j's stage, end row first, west then east, from a
+        lateral station 406 u in from the slot's side on that row's slot floor, facing out (58 west, 62 east), at the
+        stage's prefix; no bearing is retained under a side cube."""
+        episode, station, endpoint = self.frontier[5], self.frontier[1], self.frontier[4]
+        top = [e for e in episode[:58] if e[0] < -1024 or e[3] > 1024]
+        self.assertEqual(top, episode[54:58], "after every slot cube of the top metre")
+        for e in top:
+            s = station[e[8]]
+            self.assertEqual([abs(s[1]), s[2], s[3]], [PUB.SIDE_LAND_X, 0, e[2] + 512])
+        for landing in range(1, 5):
+            first = 58 + sum(44 - 10 * (j - 1) for j in range(1, landing))
+            stage = episode[first:first + 4]
+            self.assertEqual([(e[2], e[0]) for e in stage], [(-27648, -2048), (-27648, 1024), (-26624, -2048),
+                                                            (-26624, 1024)], "landing %d" % landing)
+            for e in stage:
+                s = station[e[8]]
+                west = e[0] < 0
+                self.assertEqual([e[7], e[13], e[14]], [8 + 7 * (landing - 1), 0, 0])
+                self.assertEqual([s[1], s[2]], [-PUB.LATERAL_X if west else PUB.LATERAL_X, -1024 * landing])
+                self.assertEqual([s[4], s[5]], [16384, 58] if west else [49152, 62])
+                self.assertEqual(s[3], PUB.END_WALL + PUB.LATERAL_BEHIND[-e[2] // 1024 - 1])
+                self.assertEqual(endpoint[e[17]][7], PUB.DEEP_TRAVEL)
+
     def test_deep_episodes_follow_2044s_order(self) -> None:
-        """Row-major from the end wall, column 0 then 1, at prefix 8 + 7(j - 1); stations 406 u inside the uphill row."""
+        """Row-major from the end wall, column 0 then 1, at prefix 8 + 7(j - 1); stations 406 u inside the uphill row.
+        Decision 2046: each stage's four side cubes come first."""
         episode, station = self.frontier[5], self.frontier[1]
-        deep = episode[54:]
+        deep = [e for e in episode[58:] if -1024 <= e[0] and e[3] <= 1024]
         self.assertEqual([e[7] for e in deep[:40]], [8] * 40)
         self.assertEqual([e[7] for e in deep[-10:]], [29] * 10)
         self.assertEqual([(e[2], e[0]) for e in deep[:4]], [(-27648, -1024), (-27648, 0), (-26624, -1024), (-26624, 0)])

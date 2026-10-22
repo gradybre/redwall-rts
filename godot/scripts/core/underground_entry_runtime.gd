@@ -160,6 +160,8 @@ func advance(tick: int) -> StringName:
 	if not _foreman.is_done(): return &""
 	if _foreman.planned_installations() < _foreman.installations(): return _plan_stage(_foreman, _foreman._paid)
 	_step = STEP_DONE
+	code = _foreman.close_finished_scopes() # Decision 2046 (P-2054-1 (a)): the Session is quiescent once done.
+	if code != &"": push_error("ENTRY_FINISHED_SCOPE %s" % code)
 	return _stop(REFUSE_KITCHEN_UNBUILT) # ADR1227/1229: raised once, on the finishing tick (G9).
 
 

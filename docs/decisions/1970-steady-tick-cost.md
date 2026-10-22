@@ -691,6 +691,70 @@ rounds' p50, p95 and p99, in microseconds, ordinary ticks only:
 - **Live cross-checks:** with CacheChecks on, `test_underground_route_memos.gd`, `test_underground_room_search_memo.gd`
   and `test_underground_claw_digest_memo.gd` pass, as does every suite in the full run (§11).
 
+## 11. Gates (F1–F4 and the parking fix)
+
+**Branch.** `perf/steady-tick`. `origin/master` has not moved since this lane's base `e0e7065a`, so no merge was
+needed.
+
+**Full suite.** After `rm -rf godot/.godot` and a fresh import (exit 0), `./tools/run_tests_parallel.sh` ran master's
+12 shards:
+
+- 13,204 tests, 1,572,660 assertions, 0 failures;
+- 0 unexpected errors or warnings and 0 leaks;
+- 579 suite files, each executed exactly once.
+
+A first run failed in five shards. They had loaded stale checkpoints after the review fix to
+`underground_room_parking.gd`. The checkpoints were regenerated (the same save bytes as master), and the run above
+followed.
+
+**Analyzer.** `tools/gdscript_warnings.py --max 0 --port 6443`: 0 warnings in 1,676 files.
+
+**Decision numbers.** `decision_numbers.py` passes.
+
+**CI contracts.** Every Python step of `.github/workflows/tests.yml` that needs no Godot was run: 46 pass. The one
+failure is the CI aggregation step, which reads `SHARDS_RESULT`, a variable only GitHub Actions sets.
+
+**Memory (ADR 1212).**
+
+- +15,256 B new retained (`world_routes_search_memo`). The digest memo's 48 B are inside Profiles' `CONTROL_RESERVE`.
+- One live world plus reserve: 106,121,366 → 106,136,622 B.
+- Headroom below the 150 MB gate: 43,878,634 → 43,863,378 B.
+- With decision 1880's painted-room budget folded in, the headroom is 26,905,938 B, and 3,640,658 B are left for
+  slice G.
+
+**Exactness.** Covered in §10:
+
+- the SHA trace is byte-identical to master;
+- the checkpoints keep their exact save bytes;
+- live CacheChecks run across the full suite.
+
+**Independent review.** A `code-reviewer` subagent reviewed `e0e7065a..a193a848`. It found no equivalence break in
+F1–F4 and no CRITICAL or HIGH item. It fuzzed a port of `_sweep_meets` against brute force: 200,000 cases, 0
+mismatches. Its MEDIUM and LOW items, and how each was handled:
+
+| Severity | Finding | Handling |
+|---|---|---|
+| MEDIUM | Lateral endpoints left by the pre-fix composer stay unjoinable and are retried every order; §2a overclaimed "unchanged" | Fixed: `_ground_footed` passes them over; §2a now states both effects |
+| MEDIUM | The second sweep clause of `_crosses_taken` was untested | Fixed: a candidate two cells west against a taken parking three cells west |
+| MEDIUM | Two tangency mutants of `_sweep_meets` survived | Fixed: start-touching-moving-away and low-side tangent cases |
+| MEDIUM | F2's tests missed key words, query words and per-edge sections | Fixed: geometry, catalog and levels pokes; first and last generations, revision and content; an edge's and a reached endpoint's dead section |
+| MEDIUM | Promised proofs and §9 were missing | Fixed: §9, §10 and this section; F3 has a direct test |
+| LOW | `_crosses_taken` read a dead taken ref | Fixed: skipped, with a test |
+| LOW | Default arguments; non-quarter-turn yaws; int64 bound; doc slips | Fixed: explicit arguments and documented behaviour; "all six"; the key text and size; the north/south wording |
+| LOW | F1 changes the count of CacheChecks step-closure reports, not outcomes | Kept: diagnostics only |
+| LOW | Authored lateral parkings now face the new rules | Documented in §2a |
+
+**Mutation testing.** 34 mutants were run against the focused suites; 31 were killed. Six survived the first pass;
+tests were added, and three of those six were then killed. The three that still survive:
+
+- **`P10`**, `_ground_row` with no policy test: equivalent for content 12. The first certified all-yaw WALK row
+  compatible with the claw READY rows is row 42, the canonical ground row.
+- **`R01`**, F1's free-row test on the slot alone: equivalent in every reachable state. An unregistered row is always
+  (−1, 0): `ACTOR_NULL_FIELDS`, `_allocate` and both unregister functions write both words.
+- **`R03`**, F1 no longer skipping the `HANDLED_READY` idle word: this condition was carried over unchanged from
+  master. No suite (Routes, world phases, foreman, paid assembly handling or install) has an actor idle in that word
+  at a Routes tick. It is a pre-existing coverage gap, not new code.
+
 ## Source
 
 - REQ-SET-163 (`docs/game_gdd.md`); decisions 1951, 1952 (P-1952-1 and its ruling), 1953 §6–§7, 1954 §3.3, 1942,

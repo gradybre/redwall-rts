@@ -12,14 +12,15 @@ const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
 const StairPath := preload("res://scripts/core/underground_entry_stair_path.gd")
 const Grip := preload("res://data/underground/mole-worker/qualified-claw-runtime-v1/grip_certificate.gd")
+const Flight := preload("res://data/underground/full-level-flight-v1/flight_geometry.gd")
+const EntryBindings := preload("res://scripts/core/underground_entry_bindings.gd")
+const Space := preload("res://scripts/core/room_space.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const CARRY_ROWS: PackedInt32Array = [32, 37]
 const RETREAT_ROW: int = 47
 ## F'(5) in the stair top's frame (the stair path's own classification) and the stand 50 u past it.
 const FOOT: Vector3i = Vector3i(0, -5120, -26798)
-const STAND_PAST: int = 50
-const RUN_OUT: int = 1536
-const END_WALL_Z: int = -27648
+const STAND_PAST: int = 50 # As `test_landing_clearance.py`'s STAND_PAST_FP.
 
 
 func _record() -> Locations.Record:
@@ -113,9 +114,9 @@ func _stand(o: Session.Retirement.Owners, foot: Locations.Record) -> Vector2i:
 	stand.point = foot.point + Vector3i(0, 0, -STAND_PAST)
 	stand.section = foot.section; stand.room = foot.room; stand.level = foot.level
 	stand.role = Locations.ROLE_WORK
-	var wall: int = _host.underground_entry().origin().z + END_WALL_Z
-	var open: PackedInt32Array = PackedInt32Array([foot.point.x - 1024, foot.point.y, wall, foot.point.x + 1024,
-		foot.point.y + 1024, wall + RUN_OUT])
+	var wall: int = _host.underground_entry().origin().z + Flight.layout_end_wall_z(Flight.LAYOUT_M5)
+	var open: PackedInt32Array = PackedInt32Array([foot.point.x - Flight.HALF_WIDTH, foot.point.y, wall,
+		foot.point.x + Flight.HALF_WIDTH, foot.point.y + Flight.QUANTUM, wall + Flight.RUN_OUT])
 	for axis: int in 6: stand.envelope[axis] = open[axis]
 	stand.support = PackedInt32Array([stand.point.x - 406, stand.point.y - 1, stand.point.z - 406, stand.point.x + 406,
 		stand.point.y, stand.point.z + 406])
@@ -166,3 +167,41 @@ func test_a_carry_span_from_the_foot_to_the_level_one_stand_is_admitted() -> voi
 	assert_true(stand != NULL_REF, "the stand is published")
 	assert_equal(_span(o, foot, fp, stand, Profiles.MODE_CARRY), &"", "the CARRY span is admitted")
 	assert_equal(_span(o, foot, fp, stand, Profiles.MODE_WALK), &"", "and the empty WALK")
+
+
+func _extra_air_refusal(o: Session.Retirement.Owners, foot: Locations.Record, shift: Vector3i) -> StringName:
+	"""The entry provider's own proof of F'(5)'s extra air box (`_timber_extra_air_box`, its staging pass, which reads
+	the Space's staged copy: a stage begun on the live Space and aborted after), with the box moved by `shift`."""
+	var bindings: EntryBindings = o.room_bindings as EntryBindings
+	var contact: Locations.Record = bindings._entry_contact
+	contact.point = foot.point
+	contact.air_count = foot.air_count
+	for axis: int in 6: contact.air[axis] = foot.air[axis] + shift[axis % 3]
+	var proof: EntryBindings.TimberClearance = EntryBindings.TimberClearance.new()
+	proof.allocate_rows(o.space._region_capacity, Space.MAX_CHECKS)
+	bindings._timber_placement = _host.underground_entry()._foreman._placement
+	var begun: Owner.Result = o.space.begin_stage(o.space.revision())
+	assert_equal(begun.error, &"", "a Space stage over the live Space")
+	var code: StringName = bindings._timber_extra_air_box(proof, begun.token, true)
+	assert_true(o.space.abort(begun.token), "aborted")
+	bindings._timber_placement = NULL_REF
+	return code
+
+
+func test_the_extra_air_box_must_lie_in_completed_void() -> void:
+	"""Review M2: F'(5)'s extra box as published passes the provider's proof; moved down into the uncut earth under
+	level 1's floor (no completed void) or onto the last sill's deck (installed SOLID) it refuses
+	ENTRY_INSTALLED_CONTACT_REQUIRED; a single-box endpoint proves nothing here. Locations proves the box again on its
+	own rule (ADR 1215), which is the authority."""
+	var done: Array = _finished_entry()
+	if done.is_empty(): return
+	var o: Session.Retirement.Owners = done[0]
+	var foot: Locations.Record = _record()
+	assert_true(_stop(o, FOOT, foot) != NULL_REF, "F'(5)")
+	assert_equal(_extra_air_refusal(o, foot, Vector3i.ZERO), &"", "the published box is completed void")
+	assert_equal(_extra_air_refusal(o, foot, Vector3i(0, -Flight.QUANTUM, 0)), EntryBindings.REFUSE_TIMBER_CONTACT,
+		"under the floor: uncut earth")
+	assert_equal(_extra_air_refusal(o, foot, Vector3i(0, -380, 600)), EntryBindings.REFUSE_TIMBER_CONTACT,
+		"lowered onto the last sill's deck, still above the floor")
+	foot.air_count = 0
+	assert_equal(_extra_air_refusal(o, foot, Vector3i(0, -Flight.QUANTUM, 0)), &"", "no extra box, nothing proved")

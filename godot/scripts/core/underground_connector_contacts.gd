@@ -1850,13 +1850,16 @@ func close_finished_scope() -> StringName:
 	"""Decision 2046 (P-2054-1 (a), Brendan 2026-10-22; decision 2054 B1): every successful observation leaves its
 	scope valid for the paid tail that follows it, and nothing drops the last one, so after the entry's last paid
 	operation `_valid` stayed true and the Session stayed WORLD_RETIREMENT_BUSY (`retirement_refusal_in`). Once the
-	entry has finished, its retained scope is dropped as `discard_transition` drops it; refused while a proof runs or a
-	phase still holds its Space or companion lease. Idempotent."""
+	entry has finished, its retained scope is dropped as `discard_transition` and `discard_phase` drop theirs (the
+	phase's output and mode too); refused while a proof runs or a phase still holds its Space or companion lease.
+	Idempotent."""
 	if _busy: return REFUSE_REENTRY
 	if _phase_space_token != 0 or _phase_companion_token != 0: return REFUSE_SCOPE
 	_valid = false
+	_phase_mode = false
 	_primary_job = NULL_REF
 	_material_container = NULL_REF
+	_phase_output_container = NULL_REF
 	return &""
 
 

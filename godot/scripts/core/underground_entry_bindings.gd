@@ -2181,10 +2181,13 @@ func _timber_contact_air(proof: TimberClearance, token: int, staging: bool) -> S
 
 
 func _timber_extra_air_box(proof: TimberClearance, token: int, staging: bool) -> StringName:
-	"""Decision 2046 (P-2054-2 (a)): F'(5)'s extra air box (ADR 1215) is proved as the envelope is, against every
-	physical and foreign-claim blocker, but it must lie wholly in completed void (ADR 1215's rule for extra air, which
-	Locations repeats): no exterior is staged for it. Nothing for a single-box endpoint."""
+	"""Decision 2046 (P-2054-2 (a)): F'(5)'s extra air box (ADR 1215) is proved by the envelope's region pass, against
+	every physical and foreign-claim blocker, and must lie wholly in completed void: no exterior is staged for it.
+	Locations proves it again on ADR 1215's own rule, which exempts nothing and is the authority (this pass keeps the
+	envelope's exemptions: the datum, this operation's own claims and live workpieces). Nothing for a single-box
+	endpoint."""
 	if _entry_contact.air_count == 0: return &""
+	# A copy, cold and once a proof: the proof's own `box` is its subtraction scratch, and no member is retained.
 	var extra: PackedInt32Array = _entry_contact.air.slice(0, 6)
 	var code: StringName = &"" if staging else _timber_terrain(proof, extra, Terrain.EXCLUSIONS, token)
 	if code == &"": code = _timber_void_residual(proof, extra, staging)

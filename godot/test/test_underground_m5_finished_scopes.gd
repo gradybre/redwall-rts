@@ -44,8 +44,8 @@ func test_the_finished_session_is_quiescent_and_a_room_order_reaches_the_way_in(
 	var o: Session.Retirement.Owners = done[0]
 	var entry: Settlement.UndergroundEntryRuntime = done[1]
 	assert_equal(entry.step(), Settlement.UndergroundEntryRuntime.STEP_DONE, "the entry is done")
-	assert_false(o.contacts._valid, "Contacts holds no retained scope")
-	assert_equal(_bindings(o)._timber_token, 0, "the provider holds no timber scope")
+	assert_false(o.contacts._valid, "Contacts holds no retained scope (saved: the finish point saves it closed)")
+	assert_not_null(_bindings(o), "the provider (its timber scope is not saved: test_underground_flight_22.gd checks it live)")
 	assert_equal(_host.underground_session().current_refusal(), &"", "the Session is quiescent")
 	assert_not_null(_host.underground_session().room_orders(), "it lends its RoomOrders")
 	var rooms: int = _host.underground_session().room_orders().buildings_owner().live_room_count()

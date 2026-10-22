@@ -888,13 +888,13 @@ func close_finished_scopes() -> StringName:
 	"""Decision 2046 (P-2054-1 (a), Brendan 2026-10-22): once the last stage has settled, the two scopes the entry's
 	last paid operation left open are closed, Contacts' retained observation and the entry provider's timber scope
 	(the Placement's authority), so the Session is quiescent and a painted room can be ordered (decision 2054 B1).
-	Refused, and nothing closed, before every installation has settled."""
-	if not is_done() or _paid == null or _install_count < installations(): return REFUSE_STATE
-	var code: StringName = _paid.contacts.close_finished_scope() if _paid.contacts != null else &""
+	Refused, and nothing closed, before every installation has settled, or without Contacts or an authority that can
+	close its scope (review: nothing is reported closed that was not)."""
+	if not is_done() or _paid == null or _paid.contacts == null or _install_count < installations(): return REFUSE_STATE
 	var authority: RefCounted = _owners.placements._actual_authority() if _owners.placements != null else null
-	if code == &"" and authority != null and authority.has_method("close_finished_scope"):
-		code = authority.close_finished_scope()
-	return code
+	if authority == null or not authority.has_method("close_finished_scope"): return REFUSE_STATE
+	var code: StringName = _paid.contacts.close_finished_scope()
+	return code if code != &"" else authority.close_finished_scope()
 
 
 func error() -> StringName:

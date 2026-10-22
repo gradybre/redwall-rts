@@ -141,8 +141,11 @@ func walk_ticks_left() -> int:
 func advance(tick: int) -> StringName:
 	"""ADR1210 G7: one fixed tick of the planned foreman; its first refusal stops the chain for alerting.
 	ADR1219: while the crew walks to H the tick is the walk's; arrival places it on H the same tick. Decision 1940:
-	once done, the tick is the crew's leave."""
-	if is_leaving(): return _leave()
+	once done, the tick is the crew's leave. Decision 2046 (review M1): while it leaves, the finished entry's scopes are
+	closed again each tick, so a close refused on the finishing tick is not left open (both closes are idempotent)."""
+	if is_leaving():
+		_foreman.close_finished_scopes()
+		return _leave()
 	if not is_running(): return &""
 	if _foreman.awaiting_crew(): return _replace_crew(tick, false)
 	var code: StringName = _crew_loss_refusal()

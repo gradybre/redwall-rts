@@ -63,6 +63,13 @@ const LAYOUT_M2: int = 2
 const M2_MODULES: int = 2
 const MODULE_ROWS: int = 5 # A module's pitch: 3,584 u of treads and 1,536 u of run-out, 5,120 u.
 const MODULE_DROP: int = 1024
+## Decision 2046 (P-2054-3 (a), Brendan 2026-10-22, "Widen it"): M5's bottom run-out is cut one cell wider on each
+## side, so a painted level-1 room's front station can strike one cube and be reached by a turn (decision 2054 B4).
+## The run-out lies in the last two rows (the last sill's far half and the end row); both are cut four cells across,
+## open to the sky as the slot is, to the floor's depth. M2 (it reaches no level) and F40 keep the slot's two cells.
+const FOOT_ROWS: int = 2
+const FOOT_HALF_WIDTH: int = 2048
+const FOOT_SIDE_CUBES: int = 1 # Cubes a foot row adds per side, per layer.
 
 
 static func valid(steps: int) -> bool:
@@ -315,6 +322,28 @@ static func layout_floor_depth(layout: int, row: int) -> int:
 	if row < LANDING_ROWS: return 1
 	@warning_ignore("integer_division") var module: int = (row - LANDING_ROWS) / MODULE_ROWS
 	return module + 1
+
+
+static func layout_foot_rows(layout: int) -> int:
+	"""Decision 2046: the widened foot's rows, counted back from the end wall: M5's last two; none for M2 or F40; -1
+	for no layout."""
+	if not layout_valid(layout): return -1
+	return FOOT_ROWS if layout == LAYOUT_M5 else 0
+
+
+static func layout_foot_half_width(layout: int) -> int:
+	"""Decision 2046: the cut's half width over the foot rows: 2,048 u for M5, the slot's 1,024 u otherwise; -1 for no
+	layout."""
+	if not layout_valid(layout): return -1
+	return FOOT_HALF_WIDTH if layout == LAYOUT_M5 else HALF_WIDTH
+
+
+static func layout_row_width_cubes(layout: int, row: int) -> int:
+	"""Decision 2046: cubes across `row`: four on M5's foot rows, the slot's two elsewhere; -1 outside the flight."""
+	if layout_floor_depth(layout, row) < 0: return -1
+	var foot: bool = row >= layout_row_count(layout) - layout_foot_rows(layout)
+	@warning_ignore("integer_division") var across: int = 2 * layout_foot_half_width(layout) / QUANTUM
+	return across if foot else WIDTH_CUBES
 
 
 static func layout_tread_count(layout: int) -> int:

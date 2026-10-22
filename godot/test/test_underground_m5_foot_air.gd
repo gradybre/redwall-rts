@@ -203,5 +203,7 @@ func test_the_extra_air_box_must_lie_in_completed_void() -> void:
 		"under the floor: uncut earth")
 	assert_equal(_extra_air_refusal(o, foot, Vector3i(0, -380, 600)), EntryBindings.REFUSE_TIMBER_CONTACT,
 		"lowered onto the last sill's deck, still above the floor")
+	assert_equal(_extra_air_refusal(o, foot, Vector3i(0, -2 * Flight.QUANTUM, 0)), EntryBindings.REFUSE_TIMBER_CONTACT,
+		"deep in natural earth, where no Region lies: nothing covers it")
 	foot.air_count = 0
 	assert_equal(_extra_air_refusal(o, foot, Vector3i(0, -Flight.QUANTUM, 0)), &"", "no extra box, nothing proved")

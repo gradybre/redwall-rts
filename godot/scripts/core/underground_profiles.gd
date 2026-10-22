@@ -25,6 +25,12 @@ const CONTROL_RESERVE: int = 32768
 ## load revision, bank instance, anchor, profile revision, content revision, refused (1) or not (0).
 const ANCHOR_MEMO_SLOTS: int = 8
 const ANCHOR_MEMO_STRIDE: int = 6
+## Decision 1970 (F4): the claw image digest verdicts (`claw_program.gd` `_digest_matches`), one slot per program
+## (CLAW_DIGEST_V1, CLAW_DIGEST_V2) of CLAW_DIGEST_STRIDE words: load revision, bank instance, matched (1) or not (0).
+const CLAW_DIGEST_V1: int = 0
+const CLAW_DIGEST_V2: int = 1
+const CLAW_DIGEST_SLOTS: int = 2
+const CLAW_DIGEST_STRIDE: int = 3
 const I32_FIELDS: int = 18
 const I64_FIELDS: int = 3
 const BYTE_FIELDS: int = 2
@@ -220,6 +226,8 @@ var _step_closure_revision: int = 0
 var _step_closure_bank: int = 0
 ## Decision 1952: `Itinerary._anchor_refusal` answers as last read, with the revision and bank they were read at.
 var _anchor_memo: PackedInt64Array = PackedInt64Array()
+## Decision 1970 (F4): the claw image digest verdicts as last read, with the revision and bank they were read at.
+var _claw_digest_memo: PackedInt64Array = PackedInt64Array()
 var _worker_row: int = -1
 
 
@@ -228,6 +236,7 @@ func _init() -> void:
 	_identity.resize(3)
 	_query_values.resize(5)
 	_anchor_memo.resize(ANCHOR_MEMO_SLOTS * ANCHOR_MEMO_STRIDE)
+	_claw_digest_memo.resize(CLAW_DIGEST_SLOTS * CLAW_DIGEST_STRIDE)
 
 
 func configure(profiles: int, boxes: int, sources: int, arena_bytes: int) -> StringName:
@@ -258,6 +267,27 @@ func invalidate_runtime_caches() -> void:
 	"""Move the load token. Every bank write here calls it; so must anything that edits a bank in place."""
 	if _load_revision < IntMath.INT64_MAX:
 		_load_revision += 1
+
+
+func remembered_digest(slot: int) -> int:
+	"""Decision 1970 (F4): a claw program's digest verdict, 1 or 0, while the bank and load revision are the ones it was
+	read at; -1 for a loading, empty or poisoned (zero-token) store, or when nothing is remembered."""
+	var token: int = load_revision() if _live != null and not _loading else 0
+	var at: int = slot * CLAW_DIGEST_STRIDE
+	var memo: PackedInt64Array = _claw_digest_memo
+	if token == 0 or memo.size() != CLAW_DIGEST_SLOTS * CLAW_DIGEST_STRIDE or memo[at] != token \
+			or memo[at + 1] != _live.get_instance_id(): return -1
+	return memo[at + 2]
+
+
+func remember_digest(slot: int, matched: bool) -> void:
+	"""Decision 1970 (F4): keep one program's verdict, keyed on the store's current token and bank."""
+	var token: int = load_revision() if _live != null and not _loading else 0
+	if token == 0 or _claw_digest_memo.size() != CLAW_DIGEST_SLOTS * CLAW_DIGEST_STRIDE: return
+	var at: int = slot * CLAW_DIGEST_STRIDE
+	_claw_digest_memo[at] = token
+	_claw_digest_memo[at + 1] = _live.get_instance_id()
+	_claw_digest_memo[at + 2] = 1 if matched else 0
 
 
 func packed_memory_bytes() -> int:

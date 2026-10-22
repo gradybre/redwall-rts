@@ -55,6 +55,12 @@ const EDGE_MEMO_SLOTS: int = 16
 const EDGE_MEMO_STRIDE: int = 19
 const EDGE_MEMO_INPUTS: int = 11
 const EDGE_MEMO_STAMP: int = 6
+## Decision 1970 (F2): the room itinerary's whole-search memo (`underground_room_itinerary.gd`). SEARCH_MEMO_SLOTS
+## direct-mapped slots of SEARCH_MEMO_STRIDE int64 (the key, then what a successful search left: its spend, its chain
+## length, the search descriptor's five fields and its descriptor writes), each with SEARCH_CHAIN_EDGES chain pairs.
+const SEARCH_MEMO_SLOTS: int = 32
+const SEARCH_MEMO_STRIDE: int = 27
+const SEARCH_CHAIN_EDGES: int = 32
 ## Decision 1952: the endpoint-proof memo. `_profile_endpoint_refusal`'s per-box containment checks are a pure function
 ## of the observed endpoint's air and support boxes, the profile's boxes, the point and the Domain. An entry (by Location
 ## slot) keeps the observed boxes as ENDPOINT_ENTRY_WORDS int32 (point 3, envelope 6, support 6, air count 1, air 18);
@@ -348,6 +354,8 @@ var _witness_work: int = 0
 var _descriptor: Profiles.Descriptor = Profiles.Descriptor.new()
 var _edge_memo: PackedInt64Array = PackedInt64Array() # Decision 1952: EDGE_MEMO_SLOTS slots of EDGE_MEMO_STRIDE.
 var _edge_memo_stamp: PackedInt64Array = PackedInt64Array() # Graph, its publication, certificates, geometry, bank, load.
+var _search_memo: PackedInt64Array = PackedInt64Array() # Decision 1970: SEARCH_MEMO_SLOTS x SEARCH_MEMO_STRIDE.
+var _search_chains: PackedInt32Array = PackedInt32Array() # SEARCH_MEMO_SLOTS x 2 * SEARCH_CHAIN_EDGES chain pairs.
 @warning_ignore("unused_private_class_variable")
 var _edge_memo_epoch: int = 1
 @warning_ignore("unused_private_class_variable")
@@ -463,6 +471,8 @@ func _allocate_scratch() -> void:
 	_envelope.resize(6)
 	_edge_memo.resize(EDGE_MEMO_SLOTS * EDGE_MEMO_STRIDE)
 	_edge_memo_stamp.resize(EDGE_MEMO_STAMP)
+	_search_memo.resize(SEARCH_MEMO_SLOTS * SEARCH_MEMO_STRIDE)
+	_search_chains.resize(SEARCH_MEMO_SLOTS * 2 * SEARCH_CHAIN_EDGES)
 	_endpoint_memo.resize(ENDPOINT_MEMO_ENTRIES * Profiles.MAX_PROFILES)
 	_endpoint_entries.resize(ENDPOINT_MEMO_ENTRIES * ENDPOINT_ENTRY_WORDS)
 	_endpoint_entry_tags.resize(2 * ENDPOINT_MEMO_ENTRIES)

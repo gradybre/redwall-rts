@@ -48,7 +48,10 @@ static func find_into(owners: RefCounted, request: Request, out: Array[Vector2i]
 	for direction: Vector3i in _ordered(access.point, request.room_box):
 		for cells: int in [2, 3]:
 			var point: Vector3i = access.point + direction * (cells * CELL_U)
-			if not _between(access.point, request.room_box, point) and _clear(owners.profiles, request, access, point):
+			if not _between(access.point, request.room_box, point) and _clear(owners.profiles, request, access, point) \
+					and not (_lateral(owners.profiles, request, access.point, point) \
+						and _beside_the_way(owners.profiles, request, access.point, point)) \
+					and not _crosses_taken(owners, request, access.point, point):
 				var found: Vector2i = _parking_at(owners, request, access, point)
 				if found != NULL_REF:
 					out.assign([found])
@@ -71,7 +74,10 @@ static func _authored_parking(owners: RefCounted, request: Request, access: Loca
 		if ref == request.access or request.taken.has(ref) or request.keep_clear.has(ref) \
 				or _existing(locations, access, _point(locations, row)) != ref: continue
 		var point: Vector3i = _point(locations, row)
-		if _between(access.point, request.room_box, point) or not _clear(owners.profiles, request, access, point): continue
+		if _between(access.point, request.room_box, point) or not _clear(owners.profiles, request, access, point) \
+				or (_lateral(owners.profiles, request, access.point, point) \
+					and _beside_the_way(owners.profiles, request, access.point, point)) \
+				or _crosses_taken(owners, request, access.point, point): continue
 		if not _routed_elsewhere(owners.routes, ref, request.access) and _joined(owners, request, ref): return ref
 	return NULL_REF
 
@@ -101,6 +107,78 @@ static func _between(at: Vector3i, room: PackedInt32Array, point: Vector3i) -> b
 		and point.z >= mini(at.z, room[1]) and point.z <= maxi(at.z, room[3])
 
 
+static func _crosses_taken(owners: RefCounted, request: Request, at: Vector3i, point: Vector3i) -> bool:
+	"""Decision 1970: a parking whose straight way to the access passes through a taken parking's body, or whose body
+	stands on a taken parking's way, leaves a builder walled in (ROOM_FOREMAN_CREW_BLOCKED before the first cube): a
+	second parking three cells out behind the first one two cells out on the same line. Bodies are both travel rows'
+	extents; the ways are the straight spans this script publishes (an authored parking's own spans are taken as the
+	straight line to the access). Coordinates are int32 section points, so every cross product below fits int64."""
+	var lateral: bool = _lateral(owners.profiles, request, at, point)
+	for taken: Vector2i in request.taken:
+		if not owners.locations._live_ref(owners.locations._live, taken): continue # No body stands at a dead ref.
+		var other: Vector3i = _point(owners.locations, taken.x)
+		var body: PackedInt32Array = _travel_body(owners.profiles, request,
+			lateral or _lateral(owners.profiles, request, at, other))
+		if _sweep_meets(at, point, body, other) or _sweep_meets(at, other, body, point): return true
+	return false
+
+
+static func _travel_body(profiles: Profiles, request: Request, lateral: bool = true) -> PackedInt32Array:
+	"""The union of the travel rows' extents about the root (a root at the origin): forward, backward and, for a
+	lateral way, the source's canonical ground row (the row a lateral leg walks on)."""
+	var body: PackedInt32Array = _extent(profiles, request.forward, Vector3i.ZERO)
+	var rows: Array[int] = [request.backward]
+	var ground: int = _ground_row(profiles, request.forward, request.content) if lateral else -1
+	if ground >= 0: rows.append(ground)
+	for row: int in rows:
+		var other: PackedInt32Array = _extent(profiles, row, Vector3i.ZERO)
+		for axis: int in 3:
+			body[axis] = mini(body[axis], other[axis])
+			body[axis + 3] = maxi(body[axis + 3], other[axis + 3])
+	return body
+
+
+static func _beside_the_way(profiles: Profiles, request: Request, at: Vector3i, point: Vector3i) -> bool:
+	"""Decision 1970: a parked body reaching into the floor the builders walk to their stations (the box spanned by
+	the access and the room's cell centres, where the stations stand, grown by a walking body) is in a station chain's way: Routes holds the walker
+	(another body in the way) and the builder stalls (ROOM_BUILDER_STALLED). `_between` tests only the root. Asked of
+	lateral parkings only (the ones decision 1970 made reachable), with the ground row's body; a parking in line with
+	the heading keeps decision 1991's rule unchanged."""
+	var body: PackedInt32Array = _travel_body(profiles, request, true)
+	var parked: PackedInt32Array = PackedInt32Array([point.x + body[0], point.z + body[2], point.x + body[3], point.z + body[5]])
+	@warning_ignore("integer_division") var half: int = CELL_U / 2
+	var way: PackedInt32Array = PackedInt32Array([mini(at.x, request.room_box[0] + half) + body[0],
+		mini(at.z, request.room_box[1] + half) + body[2], maxi(at.x, request.room_box[2] - half) + body[3],
+		maxi(at.z, request.room_box[3] - half) + body[5]])
+	return parked[2] > way[0] and way[2] > parked[0] and parked[3] > way[1] and way[3] > parked[1]
+
+
+static func _sweep_meets(a: Vector3i, b: Vector3i, body: PackedInt32Array, still: Vector3i) -> bool:
+	"""Whether the body moving straight from root `a` to root `b` overlaps (positive volume, as `Space.overlaps`) the
+	same body standing at `still`: the segment against the Minkowski box, slab by slab, in exact integer fractions."""
+	var low_n: int = -1
+	var low_d: int = 1
+	var high_n: int = 2
+	var high_d: int = 1
+	for axis: int in 3:
+		var lo: int = still[axis] + body[axis] - body[axis + 3]
+		var hi: int = still[axis] + body[axis + 3] - body[axis]
+		var d: int = b[axis] - a[axis]
+		if d == 0:
+			if a[axis] <= lo or a[axis] >= hi: return false
+			continue
+		var n1: int = (lo - a[axis]) * signi(d)
+		var n2: int = (hi - a[axis]) * signi(d)
+		var den: int = absi(d)
+		if mini(n1, n2) * low_d > low_n * den:
+			low_n = mini(n1, n2)
+			low_d = den
+		if maxi(n1, n2) * high_d < high_n * den:
+			high_n = maxi(n1, n2)
+			high_d = den
+	return low_n * high_d < high_n * low_d and low_n < low_d and high_n > 0
+
+
 static func _clear(profiles: Profiles, request: Request, access: Locations.Record, point: Vector3i) -> bool:
 	"""The travel row's whole body at the point lies in the access's surveyed air and off the room's cells."""
 	var box: PackedInt32Array = _extent(profiles, request.forward, point)
@@ -127,6 +205,8 @@ static func _parking_at(owners: RefCounted, request: Request, access: Locations.
 	"""An endpoint at the point (existing, not WORK and not taken, or newly published), joined to the access."""
 	var found: Vector2i = _existing(owners.locations, access, point)
 	if found != NULL_REF and _routed_elsewhere(owners.routes, found, request.access): return NULL_REF
+	if found != NULL_REF and _lateral(owners.profiles, request, access.point, point) \
+			and not _ground_footed(owners, request, found): return NULL_REF
 	if found == NULL_REF and _occupied(owners.locations, point): return NULL_REF
 	if found == NULL_REF: found = _publish_endpoint(owners, request, access, point)
 	if found == NULL_REF or request.taken.has(found) or request.keep_clear.has(found): return NULL_REF
@@ -135,6 +215,17 @@ static func _parking_at(owners: RefCounted, request: Request, access: Locations.
 	# never published again; the candidate is passed over, so a failed parking adds nothing on later orders.
 	if _span_between(owners.routes, found, request.access): return NULL_REF
 	return found if _publish_spans(owners, request, found, access) else NULL_REF
+
+
+static func _ground_footed(owners: RefCounted, request: Request, found: Vector2i) -> bool:
+	"""Decision 1970: an existing lateral endpoint's stored support covers the lateral footing (with the ground row's
+	stance). One published before decision 1970 carries the READY rows' stance alone; its spans never certify, so it is
+	passed over rather than asked to publish them again on every order."""
+	var stored: Locations.Record = _record()
+	if owners.locations.read_location_into(found, stored) != &"": return false
+	var needed: Locations.Record = _record()
+	needed.point = stored.point
+	return _footing(owners.profiles, request, needed, true) and Space.contains_box(stored.support, needed.support)
 
 
 static func _span_between(routes: Routes, a: Vector2i, b: Vector2i) -> bool:
@@ -192,7 +283,7 @@ static func _publish_endpoint(owners: RefCounted, request: Request, access: Loca
 	row.point = point; row.section = access.section; row.room = access.room; row.level = access.level
 	row.role = Locations.ROLE_TRANSIT
 	for axis: int in 6: row.envelope[axis] = access.envelope[axis]
-	if not _footing(owners.profiles, request, row): return NULL_REF
+	if not _footing(owners.profiles, request, row, _lateral(owners.profiles, request, access.point, point)): return NULL_REF
 	var cold: int = owners.budget.acquire(Budget.COLD_BYTES)
 	if cold == 0: return NULL_REF
 	var started: Locations.Result = owners.locations.begin_prepare(cold)
@@ -204,11 +295,19 @@ static func _publish_endpoint(owners: RefCounted, request: Request, access: Loca
 	return added.location if published else NULL_REF
 
 
-static func _footing(profiles: Profiles, request: Request, row: Locations.Record) -> bool:
-	"""The union of both travel rows' stance boxes below the point; it must hold the root on its top plane."""
+static func _footing(profiles: Profiles, request: Request, row: Locations.Record, lateral: bool = false) -> bool:
+	"""The union of both travel rows' stance boxes below the point; it must hold the root on its top plane. Decision
+	1970: a parking across the travel rows' heading is reached only on the source's canonical ground row (the READY
+	rows walk along their heading), so its stance is included there; without it no lateral span was ever certified
+	(WORLD_ROUTE_NO_FITTING_PROFILE) and only parkings in line with the heading were found, one behind another."""
 	var box: Profiles.Box = Profiles.Box.new()
 	var first: bool = true
-	for profile: int in [request.forward, request.backward]:
+	var rows: Array[int] = [request.forward, request.backward]
+	if lateral:
+		var ground: int = _ground_row(profiles, request.forward, request.content)
+		if ground < 0: return false
+		rows.append(ground)
+	for profile: int in rows:
 		var revision: int = profiles._live.quantities[profile]
 		var count: int = profiles._live.fields[Profiles.F_BOX_COUNT * profiles._profile_capacity + profile]
 		for ordinal: int in count:
@@ -221,6 +320,32 @@ static func _footing(profiles: Profiles, request: Request, row: Locations.Record
 				row.support[axis + 3] = high if first else maxi(row.support[axis + 3], high)
 			first = false
 	return not first and Locations.support_covers_root(row.point, row.support)
+
+
+static func _lateral(profiles: Profiles, request: Request, at: Vector3i, point: Vector3i) -> bool:
+	"""Decision 1970: the point lies off the line of the forward row's exact heading through the access (a +X or -X
+	heading runs along x, a -Z or +Z one along z); an all-yaw forward row has no heading. An exact heading that is not
+	a quarter turn (no content has one) makes every point lateral, the conservative reading."""
+	var stride: int = profiles._profile_capacity
+	if profiles._live.fields[Profiles.F_YAW_KIND * stride + request.forward] != Profiles.YAW_EXACT: return false
+	var yaw: int = profiles._live.fields[Profiles.F_YAW * stride + request.forward]
+	if yaw == 16384 or yaw == 49152: return point.z != at.z
+	if yaw == 0 or yaw == 32768: return point.x != at.x
+	return true
+
+
+static func _ground_row(profiles: Profiles, forward: int, content: int) -> int:
+	"""The source's all-yaw canonical ground WALK row that shares travel with the forward row (the itinerary's own
+	compatibility rule), or -1."""
+	var stride: int = profiles._profile_capacity
+	for row: int in profiles._live.header[1]:
+		if profiles._live.flags[row] != Profiles.CERT_REQUIRED \
+				or profiles._live.fields[Profiles.F_YAW_KIND * stride + row] != Profiles.YAW_ALL \
+				or profiles._live.fields[Profiles.F_MODE * stride + row] != Profiles.MODE_WALK \
+				or Profiles.selection_policy_leaf(profiles, row, profiles._live.quantities[row], content) \
+					!= Profiles.POLICY_CANONICAL_GROUND: continue
+		if Itinerary._compatible(profiles, forward, row): return row
+	return -1
 
 
 static func _joined(owners: RefCounted, request: Request, parking: Vector2i) -> bool:

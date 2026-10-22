@@ -92,7 +92,7 @@ def delta(before: str, after: str) -> dict:
 
 EVIDENCE = Path("docs/validation/evidence/underground-memory-census-2026-10-06")
 REVIEWED = EVIDENCE / "reviewed-deltas.json"
-REVIEWED_SHA = "552e8776aa615fa87b3e310276b1c81a2b277082d0a24a3b11d735185d94dd42"
+REVIEWED_SHA = "00fbe5bc4b34c8ce1bd3858a4cccb9f9da0b9758c7351e900fc69088f35b9f24"
 # ADR1217 step 5: the runtime Frontier is the claw bundle's (same row census as qualified-stone-v5's).
 # ADR1229: the mounted T1-T6 bundle's Frontier (ADR1217 step 5 mounted qualified-claw-v6's).
 # DEC-059 (P3): qualified-stairs-v9, the same rows with T1-T6 fastened in 5,640 mWU.
@@ -272,6 +272,25 @@ def world_routes_compile_memos(memory, index: dict) -> dict:
             "pace_words": 8 * slots * words, "pace_codes": 24 * slots, "pace_inputs": 8 * inputs}
     return {"rows": rows, "bytes": sum(rows.values()),
             "scope": "Runtime only, never saved; allocated once with WorldRoutes' fixed scratch."}
+
+
+def world_routes_search_memo(memory, index: dict) -> dict:
+    """Decision 1970 (F2): the room itinerary's whole-search memo, two fixed packed columns on WorldRoutes retained for
+    the World's life, and the itinerary's one fixed key packet."""
+    source = module(index, CORE + "underground_world_routes.gd").text
+    require(re.findall(r"^\t(_search_memo|_search_chains)\.resize\((.+)\)$", source, re.M)
+            == [("_search_memo", "SEARCH_MEMO_SLOTS * SEARCH_MEMO_STRIDE"),
+                ("_search_chains", "SEARCH_MEMO_SLOTS * 2 * SEARCH_CHAIN_EDGES")], "WorldRoutes search memo packets")
+    itinerary = module(index, CORE + "underground_room_itinerary.gd").text
+    require("static var _search_key: PackedInt64Array = PackedInt64Array()" in itinerary
+            and "\tif out.size() != SEARCH_KEY: out.resize(SEARCH_KEY)" in itinerary, "the itinerary's search key packet")
+    slots = memory.resolve(index, "underground_world_routes", "SEARCH_MEMO_SLOTS")
+    stride = memory.resolve(index, "underground_world_routes", "SEARCH_MEMO_STRIDE")
+    edges = memory.resolve(index, "underground_world_routes", "SEARCH_CHAIN_EDGES")
+    key = memory.resolve(index, "underground_room_itinerary", "SEARCH_KEY")
+    rows = {"slots": 8 * slots * stride, "chains": 4 * slots * 2 * edges, "search_key": 8 * key}
+    return {"rows": rows, "bytes": sum(rows.values()),
+            "scope": "Runtime only, never saved; allocated once with WorldRoutes' fixed scratch (the key once per process)."}
 
 
 def world_routes_cold(memory, index: dict) -> dict:
@@ -730,10 +749,12 @@ def build(index: dict, projected: list, motion: dict) -> dict:
     rooms = room_dig_runtime(memory, index)
     endpoint = world_routes_endpoint_memo(memory, index)
     compile_memos = world_routes_compile_memos(memory, index)
+    search_memo = world_routes_search_memo(memory, index)
     new = {"geometry_journals": journals["bytes"], "locations_carry_and_retirement_controls": locations["bytes"],
            "first_entry_runtime_chain": entry["bytes"], "cold_load_images": images["bytes"],
            "claw_stair_tables": stairs["bytes"], "room_dig_runtime": rooms["bytes"],
-           "world_routes_endpoint_memo": endpoint["bytes"], "world_routes_compile_memos": compile_memos["bytes"]}
+           "world_routes_endpoint_memo": endpoint["bytes"], "world_routes_compile_memos": compile_memos["bytes"],
+           "world_routes_search_memo": search_memo["bytes"]}
     charged = {}
     for relative, row in rows.items():
         for charge in row["charges"]:
@@ -748,6 +769,7 @@ def build(index: dict, projected: list, motion: dict) -> dict:
             "location_air_pool": pool, "room_publication_controls": publication,
             "room_planner_cold": planner, "cold_load_images": images, "claw_stair_tables": stairs,
             "room_dig_runtime": rooms, "world_routes_endpoint_memo": endpoint, "world_routes_compile_memos": compile_memos,
+            "world_routes_search_memo": search_memo,
             "new_retained_bytes": new, "new_contribution_bytes": sum(new.values()),
             "runtime_qualified": False, "native_measured": False}
 

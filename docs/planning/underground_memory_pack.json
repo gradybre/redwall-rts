@@ -4224,9 +4224,9 @@
         "godot/scripts/core/inventory.gd": "7e93fe28fd7e15e5ee0d401af47b06e91939ec4cd86c0195b5dfac8a3ecdff77",
         "godot/data/underground/mole-worker/mole_profile_driver.gd": "db7c2051d5d4d4b642a5c1442be4241de3dd4802780bcace6d91d44e5f643064",
         "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
-        "godot/scripts/core/underground_profiles.gd": "4684fce53085b62f4fea85a26a862bd6a99b881dec10827a4802f8d5d0119bdc",
-        "godot/scripts/core/underground_routes.gd": "b6b570efc04ea821915f7e43be7f1f98f2ffdac21d7dda67867ea4fd8c1d9dbc",
-        "godot/scripts/core/underground_world_routes.gd": "0c004f9fc8beb9403787521208d542782d53b8473510a3b5c9f1a737fce01c04"
+        "godot/scripts/core/underground_profiles.gd": "10f66e2d4df05560a070ce8487f185dcb5d87d96eecb197318269005575f3d40",
+        "godot/scripts/core/underground_routes.gd": "bbb7a34ace5afe375e509d1a71c6467d0325cbe22d0cd04b1ea640641447f169",
+        "godot/scripts/core/underground_world_routes.gd": "4823f50e54c90f8e9a1f822268f2c505eee7df00041fe7fb1631a254dcbacef9"
       }
     },
     "current_profile_control": {
@@ -42941,12 +42941,21 @@
             "bytes": 384,
             "carried_by": "Profiles CONTROL_RESERVE",
             "store": "decision 1952: the itinerary anchor-check memo _anchor_memo, ANCHOR_MEMO_SLOTS x ANCHOR_MEMO_STRIDE int64 (8 x 6 x 8), runtime-only, never saved"
+          },
+          {
+            "bytes": 48,
+            "carried_by": "Profiles CONTROL_RESERVE",
+            "store": "decision 1970 (F4): the claw image digest memo _claw_digest_memo, CLAW_DIGEST_SLOTS x CLAW_DIGEST_STRIDE int64 (2 x 3 x 8); four integer constants; runtime-only, never saved"
           }
         ],
         "delta": {
           "members_added": [
             [
               "_anchor_memo",
+              "PackedInt64Array"
+            ],
+            [
+              "_claw_digest_memo",
               "PackedInt64Array"
             ],
             [
@@ -42968,6 +42977,7 @@
           ],
           "resizes_added": [
             "_anchor_memo.resize(ANCHOR_MEMO_SLOTS * ANCHOR_MEMO_STRIDE)",
+            "_claw_digest_memo.resize(CLAW_DIGEST_SLOTS * CLAW_DIGEST_STRIDE)",
             "last_of.resize(_stage.header[3])",
             "same_key.resize(_stage.header[3])"
           ],
@@ -42979,6 +42989,22 @@
             [
               "ANCHOR_MEMO_STRIDE",
               "6"
+            ],
+            [
+              "CLAW_DIGEST_SLOTS",
+              "2"
+            ],
+            [
+              "CLAW_DIGEST_STRIDE",
+              "3"
+            ],
+            [
+              "CLAW_DIGEST_V1",
+              "0"
+            ],
+            [
+              "CLAW_DIGEST_V2",
+              "1"
             ],
             [
               "CONTACT_ASSEMBLY_PALM",
@@ -43023,7 +43049,7 @@
           ],
           "allocation_sites": {
             "PackedInt32Array(": 2,
-            "PackedInt64Array(": 1
+            "PackedInt64Array(": 2
           }
         }
       },
@@ -43226,10 +43252,47 @@
             "bytes": 0,
             "carried_by": "none",
             "store": "decision 1952: _edge_profile consults WorldRoutes' memo; the live choice moves to _edge_profile_live; no member, packet or resize"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "new retained (world_routes_search_memo)",
+            "store": "decision 1970 (F2): one static key packet _search_key I64[SEARCH_KEY] (19 x 8), sized once (out.resize(SEARCH_KEY)), and five integer layout constants; counted by the census item world_routes_search_memo, never saved"
           }
         ],
         "delta": {
+          "members_added": [
+            [
+              "_search_key",
+              "PackedInt64Array"
+            ]
+          ],
+          "resizes_added": [
+            "out.resize(SEARCH_KEY)"
+          ],
+          "int_constants_added": [
+            [
+              "SEARCH_KEY",
+              "19"
+            ],
+            [
+              "S_COUNT",
+              "20"
+            ],
+            [
+              "S_DESCRIPTOR",
+              "21"
+            ],
+            [
+              "S_SPENT",
+              "19"
+            ],
+            [
+              "S_WRITES",
+              "26"
+            ]
+          ],
           "allocation_sites": {
+            "PackedInt64Array(": 2,
             "range(": 1
           }
         }
@@ -44075,6 +44138,11 @@
             "bytes": 0,
             "carried_by": "none",
             "store": "decision 2044 (P-2044-16, Slice C clearance): the carried stair form and _carry_hull_clean, whose hull is held in the existing _support stance scratch; no retained member, packet or allocation site"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "new retained (world_routes_search_memo)",
+            "store": "decision 1970 (F2): the room itinerary's whole-search memo _search_memo I64[32 x 27] and its chains _search_chains I32[32 x 64], allocated once with WorldRoutes' fixed scratch; three integer constants; counted by the census item world_routes_search_memo, never saved"
           }
         ],
         "delta": {
@@ -44180,6 +44248,14 @@
               "int"
             ],
             [
+              "_search_chains",
+              "PackedInt32Array"
+            ],
+            [
+              "_search_memo",
+              "PackedInt64Array"
+            ],
+            [
               "_since",
               "int"
             ]
@@ -44196,6 +44272,8 @@
             "_pace_codes.resize(PACE_SLOTS)",
             "_pace_inputs.resize(PACE_INPUT_WORDS)",
             "_pace_memo.resize(PACE_SLOTS * PACE_WORDS)",
+            "_search_chains.resize(SEARCH_MEMO_SLOTS * 2 * SEARCH_CHAIN_EDGES)",
+            "_search_memo.resize(SEARCH_MEMO_SLOTS * SEARCH_MEMO_STRIDE)",
             "changes.resize(Journal.STAGED_STRIDE * CHANGE_CAPACITY)",
             "out.resize(CERT_WIRE_BYTES)",
             "record.envelope.resize(6)",
@@ -44277,6 +44355,18 @@
             [
               "PACE_WORDS",
               "6"
+            ],
+            [
+              "SEARCH_CHAIN_EDGES",
+              "32"
+            ],
+            [
+              "SEARCH_MEMO_SLOTS",
+              "32"
+            ],
+            [
+              "SEARCH_MEMO_STRIDE",
+              "27"
             ]
           ],
           "int_constants_removed": [
@@ -44392,8 +44482,8 @@
           "allocation_sites": {
             ".new(": 2,
             "=[": 3,
-            "PackedInt32Array(": 3,
-            "PackedInt64Array(": 10,
+            "PackedInt32Array(": 4,
+            "PackedInt64Array(": 11,
             "range(": 1
           }
         }
@@ -44991,9 +45081,10 @@
       "BINDINGS_AND_GROWTH_BYTES (fully assigned, 524,544)": 256,
       "none (new)": 163,
       "new contribution": 14580,
-      "Profiles CONTROL_RESERVE": 384,
+      "Profiles CONTROL_RESERVE": 432,
       "LOCATION_AND_TOPOLOGY_BYTES unassigned remainder (recounted)": 5376,
       "Room publication CONTROL_BYTES (11,450 of 12,288) inside Budget.COLD_BYTES": 3400,
+      "new retained (world_routes_search_memo)": 0,
       "Budget.COLD_BYTES shared cold lease": 1792,
       "Routes HEADER_RESERVE (fixed numeric controls)": 24,
       "Routes 48 * RESIDENT_CAPACITY occupancy reservation (unchanged)": 0,
@@ -45172,6 +45263,15 @@
       "bytes": 19048,
       "scope": "Runtime only, never saved; allocated once with WorldRoutes' fixed scratch."
     },
+    "world_routes_search_memo": {
+      "rows": {
+        "slots": 6912,
+        "chains": 8192,
+        "search_key": 152
+      },
+      "bytes": 15256,
+      "scope": "Runtime only, never saved; allocated once with WorldRoutes' fixed scratch (the key once per process)."
+    },
     "new_retained_bytes": {
       "geometry_journals": 4322,
       "locations_carry_and_retirement_controls": 10258,
@@ -45180,9 +45280,10 @@
       "claw_stair_tables": 43364,
       "room_dig_runtime": 5646982,
       "world_routes_endpoint_memo": 140872,
-      "world_routes_compile_memos": 19048
+      "world_routes_compile_memos": 19048,
+      "world_routes_search_memo": 15256
     },
-    "new_contribution_bytes": 6097863,
+    "new_contribution_bytes": 6113119,
     "runtime_qualified": false,
     "native_measured": false
   },
@@ -45194,7 +45295,7 @@
     "connector_workpieces": 29928,
     "guarded_haul_transfers": 3072,
     "connector_delivery": 4096,
-    "current_census_new_retained": 6097863,
+    "current_census_new_retained": 6113119,
     "space_banks_and_indexes": 1104160,
     "phase_proof_cache_and_candidate": 17724,
     "shared_geometry_cold_peak": 1048960,
@@ -45209,12 +45310,12 @@
     "LAYOUT_COLD_BYTES": 262144,
     "BINDINGS_AND_GROWTH_BYTES": 524544
   },
-  "new_mutable_and_reserved_bytes": 11125640,
+  "new_mutable_and_reserved_bytes": 11140896,
   "declaration_bytes": 26534,
   "declaration_delta_bytes": 5349,
-  "live_with_reserve_bytes": 106121366,
+  "live_with_reserve_bytes": 106136622,
   "gate_bytes": 150000000,
-  "headroom_bytes": 43878634,
+  "headroom_bytes": 43863378,
   "source_sha256": {
     "godot/scripts/core/construction.gd": "48a6d74a8e1e26e7959ac9af9046ca6dce014f0cfe3ab177de383bc34b980fa4",
     "godot/scripts/core/entity_directory.gd": "1b1eb7ab8b145dfbfce6f2558a7e71b9cef5fc1601dcb4355f73e4dc7580ffbf",
@@ -45255,10 +45356,10 @@
     "godot/scripts/core/underground_motion_catalog.gd": "315633cb8b3c12e1c5ee8f0d22d76cbad4132428c9a509721a565af1f5de7901",
     "godot/scripts/core/underground_motion_clock.gd": "3e0668d8afae1ba6bd1228078b60f9cada97ef94be3870f6db4c87cd0279a776",
     "godot/scripts/core/underground_phase_structure.gd": "8ca9a827a4002f5ceaf73869548ea5cb61bcc39d0cc618deab33773aca4e2a7c",
-    "godot/scripts/core/underground_profiles.gd": "4684fce53085b62f4fea85a26a862bd6a99b881dec10827a4802f8d5d0119bdc",
-    "godot/scripts/core/underground_room_world_bindings.gd": "f2cef760257d586cabf68600479e0fe3772c76c8e234d8530abdbef66e8ba513",
+    "godot/scripts/core/underground_profiles.gd": "10f66e2d4df05560a070ce8487f185dcb5d87d96eecb197318269005575f3d40",
+    "godot/scripts/core/underground_room_world_bindings.gd": "c16d2196d2d588d5c235d400fb3f008249711415b42b4566aed88ae5646b626d",
     "godot/scripts/core/underground_route_composition.gd": "f5c3f915f8266338a754c9f41fe11f2fb3f765270ebf9c21a1ca5516718113ce",
-    "godot/scripts/core/underground_routes.gd": "b6b570efc04ea821915f7e43be7f1f98f2ffdac21d7dda67867ea4fd8c1d9dbc",
+    "godot/scripts/core/underground_routes.gd": "bbb7a34ace5afe375e509d1a71c6467d0325cbe22d0cd04b1ea640641447f169",
     "godot/scripts/core/underground_session.gd": "9d7794b1a78d566d51f7ea99d5832905ebb9e47d470ab0bbbaadf07927bb88bf",
     "godot/scripts/core/underground_space_authority.gd": "d06385b658b460a38ecfcb7c5839d1e4efdead623c0223cca5a1a634857041ee",
     "godot/scripts/core/underground_space_owner.gd": "bfbad4b67a7e5cb9ccecf4f5500c322610abe8f3854f5fe364a1723a5a21aa1a",
@@ -45266,7 +45367,7 @@
     "godot/scripts/core/underground_terrain.gd": "41ef346c2aa3835d24da18b2f3ffaa15a7e523178ecdc2815369c49a65ec93b8",
     "godot/scripts/core/underground_work_face.gd": "1ad3eab1c62df90f0e41c78f0ccf484f4d04b630ca825b50dedcca2a6be4f731",
     "godot/scripts/core/underground_world_retirement.gd": "9ad293e84928ff8cd5c6c3bf4c8c534577b6afea3efc1c4adf202a7c8a80dd0f",
-    "godot/scripts/core/underground_world_routes.gd": "0c004f9fc8beb9403787521208d542782d53b8473510a3b5c9f1a737fce01c04",
+    "godot/scripts/core/underground_world_routes.gd": "4823f50e54c90f8e9a1f822268f2c505eee7df00041fe7fb1631a254dcbacef9",
     "godot/scripts/core/work.gd": "5fa066d25328b0c871d77c949164c5ebaec2f98fd985ddd8cd40570f866c7310"
   },
   "registry_sha256": "e873eddb1957f4cb77d94e0807111a8d0223d8ae880f01ba1a78a90f9341e6fc",

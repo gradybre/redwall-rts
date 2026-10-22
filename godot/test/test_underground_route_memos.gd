@@ -55,10 +55,18 @@ func _search(from: Vector2i, to: Vector2i, anchor: int, checks: int) -> Array:
 
 
 func _memo(on: bool) -> void:
-	"""Turn the memo off (no slots: unusable) or on (empty slots)."""
+	"""Turn the memo off (no slots: unusable) or on (empty slots). Decision 1970: the whole-search memo stays off in
+	these cases, which test the edge memo inside a live search."""
 	var size: int = WorldRoutes.EDGE_MEMO_SLOTS * WorldRoutes.EDGE_MEMO_STRIDE if on else 0
 	_h._binding._edge_memo = PackedInt64Array()
 	_h._binding._edge_memo.resize(size)
+	_search_memo(false)
+
+
+func _search_memo(on: bool) -> void:
+	"""Decision 1970: turn the whole-search memo off (no slots: unusable) or on (empty slots)."""
+	_h._binding._search_memo = PackedInt64Array()
+	_h._binding._search_memo.resize(WorldRoutes.SEARCH_MEMO_SLOTS * WorldRoutes.SEARCH_MEMO_STRIDE if on else 0)
 
 
 func _assert_same_three_ways(from: Vector2i, to: Vector2i, anchor: int, checks: int, label: String) -> Array:

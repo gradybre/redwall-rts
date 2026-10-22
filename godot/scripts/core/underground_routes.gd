@@ -3269,11 +3269,17 @@ func advance_tick(tick: int) -> int:
 	_advancing = true
 	_last_tick = tick
 	var moved: int = 0
+	# Decision 1970 (F1): the idle words are read once (nothing the loop runs writes Profiles), and a free row is
+	# recognised from its two reference columns directly; every row is still visited in order and read live.
+	var idle_source: int = _source_word_for(_profiles, PHASE_IDLE, SourceProgram.READY)
+	var idle_assembly: int = Assembly.word(PHASE_IDLE, Assembly.Clock.READY)
+	var idle_handled: int = Assembly.word(PHASE_IDLE, Assembly.Clock.HANDLED_READY)
 	for row: int in RESIDENT_CAPACITY:
-		if _resident_ref(row) == NULL_REF or _motion.resident[R_PHASE * RESIDENT_CAPACITY + row] == PHASE_IDLE \
-				or _motion.resident[R_PHASE * RESIDENT_CAPACITY + row] == _source_word_for(_profiles, PHASE_IDLE, SourceProgram.READY) \
-				or _motion.resident[R_PHASE * RESIDENT_CAPACITY + row] == Assembly.word(PHASE_IDLE, Assembly.Clock.READY) \
-				or _motion.resident[R_PHASE * RESIDENT_CAPACITY + row] == Assembly.word(PHASE_IDLE, Assembly.Clock.HANDLED_READY):
+		if _motion.resident[R_SLOT * RESIDENT_CAPACITY + row] == NULL_REF.x \
+				and _motion.resident[R_GENERATION * RESIDENT_CAPACITY + row] == NULL_REF.y:
+			continue
+		var phase: int = _motion.resident[R_PHASE * RESIDENT_CAPACITY + row]
+		if phase == PHASE_IDLE or phase == idle_source or phase == idle_assembly or phase == idle_handled:
 			continue
 		var code: StringName = _advance_actor(row)
 		if code == &"":

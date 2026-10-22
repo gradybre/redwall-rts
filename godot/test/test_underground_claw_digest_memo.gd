@@ -38,9 +38,9 @@ func test_the_verdicts_answer_as_the_live_compare() -> void:
 	"""Both programs, read cold, then answered: the live verdict each time, and remembered at the store's token."""
 	var profiles: Profiles = _profiles()
 	if profiles == null: return
-	for round: int in 2:
-		assert_equal(Claw2._digest_matches(profiles), Claw2._digest_live(profiles), "v2, round %d" % round)
-		assert_equal(Claw1._digest_matches(profiles), Claw1._digest_live(profiles), "v1, round %d" % round)
+	for trial: int in 2:
+		assert_equal(Claw2._digest_matches(profiles), Claw2._digest_live(profiles), "v2, read %d" % trial)
+		assert_equal(Claw1._digest_matches(profiles), Claw1._digest_live(profiles), "v1, read %d" % trial)
 	assert_equal(profiles.remembered_digest(Profiles.CLAW_DIGEST_V2), 1 if Claw2._digest_live(profiles) else 0, "v2 kept")
 	assert_equal(profiles.remembered_digest(Profiles.CLAW_DIGEST_V1), 1 if Claw1._digest_live(profiles) else 0, "v1 kept")
 	assert_true(Claw2._digest_live(profiles), "content 12's source 4 is the claw v2 image")

@@ -131,7 +131,7 @@ func _ordered(size: int) -> Foreman:
 	return _runtime.foreman_of(result.room) if result.code == &"" else null
 
 
-func _dig(foreman: Foreman) -> Array[StringName]:
+func _dig() -> Array[StringName]:
 	"""Every fixed tick as the host runs it, to the end; the refusals seen."""
 	var seen: Array[StringName] = []
 	for step: int in TICK_BOUND:
@@ -173,7 +173,7 @@ func test_a_crew_of_three_parks_clear_of_each_other_and_digs_the_kitchen_to_the_
 			request.taken = [builders[other].crew().parking]
 			assert_false(Parking._crosses_taken(_h.owners(), request, access, _point(builders[index].crew().parking)),
 				"parking %d is off parking %d's way and its body off %d's way" % [index, other, other])
-	assert_equal(_dig(foreman), [] as Array[StringName], "no refusal")
+	assert_equal(_dig(), [] as Array[StringName], "no refusal")
 	assert_equal(foreman.done_cubes(), StationTests.KITCHEN_SITES, "every cube dug")
 	for builder: Builder in builders: assert_true(builder.cubes() > 0, "each of the three dug")
 
@@ -188,7 +188,7 @@ func test_a_crew_of_four_digs_with_the_three_the_access_parks_and_leaves_the_fou
 	var fourth: Vector2i = _moles[_moles.size() - 1]
 	for builder: Builder in foreman.builders(): assert_true(builder.crew().worker != fourth, "the fourth is no builder")
 	assert_false(_runtime.reserves_resident(_h._residents.directory().get_typed_row(fourth)), "the fourth left free")
-	assert_equal(_dig(foreman), [] as Array[StringName], "no refusal")
+	assert_equal(_dig(), [] as Array[StringName], "no refusal")
 	assert_equal(foreman.done_cubes(), StationTests.KITCHEN_SITES, "every cube dug")
 
 

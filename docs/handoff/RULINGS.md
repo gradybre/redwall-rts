@@ -273,3 +273,4 @@ Every row was checked against the record named.
 
 Not Brendan's: decision 0492 (the planner on T, Run-until on G, T no longer the Dig alias) was the coordinator's
 resolution of a key clash at batch 5, not a ruling.
+| The room-pace study (2101 P-2101-1–7), 2026-10-21 | **"16 cubes in 30–60 s"** (working time at 1x, materials stocked; a 96-cube Kitchen about 5 min) and **"Approve all"**: a standing 24+24 level-1 stock, the stair runner at ~10x (amends DEC-050 for the runner and P-2091-2/-8), batched room digs at k about 1.5–2, spoil to the foot pile then up on the runner's return after 2b-2, crew 1–4, no runtime change until the cost lane, then a measured level-1 room (gate about 15 s) and a room-pace lane. (Relayed by the coordinator) | [2101](../decisions/2101-room-pace-study.md) |

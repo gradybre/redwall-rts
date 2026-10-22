@@ -18,7 +18,10 @@ extends RefCounted
 ## shelved there as its own item: nuts, mushrooms, herbs or berries, each its own lot that ages as §5.8 says.
 ##
 ## INTERRUPTION loses nothing. Called away on the way or at work (an order, the night, a meal), the seat goes back on the
-## board with its claim, its room and its work done kept, for whoever takes it next. A haul in hand is carried home
+## board with its claim, its room and its work done kept, and its forager keeps it to come back to (`unfinished_of`,
+## `take_back`; decision 1905, as the orchard's 1900): the work board leaves it to that forager meanwhile (decision
+## 0411's promise), and a seat refilled meanwhile is not taken back. A walk it could not finish keeps nothing (the seat
+## is offered to another), nor do the board's Pause and Reassign. A haul in hand is carried home
 ## before the night or a meal takes its forager (`must_finish`); an order that takes it sets the haul down where it
 ## stands, still in the books, for the next to fetch. CANCEL calls off the seats not yet carrying (their claims and room
 ## given back); a haul in hand is always brought home.
@@ -52,6 +55,9 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 const ForestRules := preload("res://demo/forestry/forest_rules.gd")
 const Measures := preload("res://scripts/ui/goods_measures.gd")
+const UnfinishedScript := preload("res://demo/cast/unfinished_job.gd")
+const WorkIds := preload("res://demo/work/work_ids.gd")
+const HeldPlaces := preload("res://demo/work/held_places.gd")
 
 const NONE: int = -1
 const NULL_REF: Vector2i = DriverScript.NULL_REF
@@ -131,6 +137,8 @@ var j_need: PackedInt64Array = PackedInt64Array()
 var j_wait_usec: PackedInt64Array = PackedInt64Array()
 var j_tries: PackedInt32Array = PackedInt32Array()
 var j_failed: PackedInt32Array = PackedInt32Array()
+## Who was let keep the seat when called away (demo/work/held_places.gd; NONE: nobody), cleared when anyone claims it.
+var j_keeper: PackedInt32Array = PackedInt32Array()
 var j_paused: PackedByteArray = PackedByteArray()
 var j_words: PackedStringArray = PackedStringArray()
 
@@ -170,7 +178,8 @@ func _size_rows() -> void:
 	for column: PackedInt64Array in [t_asked, t_got, t_posted]:
 		column.resize(Rules.MAX_TRIPS)
 	t_live.resize(Rules.MAX_TRIPS)
-	for column: PackedInt32Array in [j_serial, j_trip, j_step, j_worker, j_claim_slot, j_claim_gen, j_hold, j_tries, j_failed]:
+	for column: PackedInt32Array in [j_serial, j_trip, j_step, j_worker, j_claim_slot, j_claim_gen, j_hold, j_tries,
+			j_failed, j_keeper]:
 		column.resize(Rules.MAX_JOBS)
 	for column: PackedInt64Array in [j_share, j_claimed, j_load, j_num, j_mwu, j_need, j_wait_usec]:
 		column.resize(Rules.MAX_JOBS)
@@ -265,6 +274,39 @@ func update(usec: int) -> void:
 	for j: int in Rules.MAX_JOBS:
 		if j_live[j] == 1 and j_wait_usec[j] > 0:
 			j_wait_usec[j] = maxi(0, j_wait_usec[j] - usec)
+	_release_held_seats()
+
+
+func _hand_over_keep(j: int) -> void:
+	"""Job `j` claimed: the worker who kept it while away keeps it no longer -- her kept entry goes, as the
+	board's Reassign does (her own take-back has popped it already) -- else her promise would outlive the keeper column
+	and hold the trip; the column is cleared."""
+	HeldPlaces.hand_over(j_keeper[j], self, WorkIds.SOURCE_FORAGE, j_serial[j])
+	j_keeper[j] = NONE
+
+
+func _release_held_seats() -> void:
+	"""TRIP DOESN'T WAIT (decision 1905, demo/work/held_places.gd): a party under way -- another of its seats has its
+	forager -- does not wait, in working hours, for a seat its forager KEPT when called away with nothing in hand. A
+	seat the player queued for someone waits for her; a party of one, or a seat whose haul was set down, keeps it."""
+	for j: int in Rules.MAX_JOBS:
+		if j_keeper[j] != NONE and waiting(j) and j_load[j] == 0 and _party_out(j):
+			_release_kept(j)
+
+
+func _party_out(j: int) -> bool:
+	"""Whether another seat of seat `j`'s trip has its forager (the party is under way)."""
+	for k: int in Rules.MAX_JOBS:
+		if k != j and j_live[k] == 1 and j_trip[k] == j_trip[j] and j_worker[k] != NONE:
+			return true
+	return false
+
+
+func _release_kept(j: int) -> void:
+	"""Seat `j`'s keeper gives it up (held_places.gd: only her kept entry, only in working hours); the board offers it
+	to anyone idle."""
+	if HeldPlaces.try_release(j_keeper[j], calendar, self, WorkIds.SOURCE_FORAGE, j_serial[j]):
+		j_keeper[j] = NONE
 
 
 func _credit_work(usec: int) -> void:
@@ -582,6 +624,7 @@ func _open_seat(t: int, share: int) -> int:
 	j_trip[j] = t
 	j_step[j] = S_TO_SPOT
 	j_worker[j] = NONE
+	j_keeper[j] = NONE
 	j_share[j] = share
 	j_claimed[j] = 0
 	j_claim_slot[j] = NULL_REF.x
@@ -648,6 +691,7 @@ func claim(j: int, who: int) -> bool:
 		j_worker[j] = NONE
 		_tasks[j] = null
 		return false
+	_hand_over_keep(j)
 	revision += 1
 	return true
 
@@ -734,14 +778,34 @@ func drive(j: int, serial: int, brain: BrainScript, delta: float) -> bool:
 	return is_job(j, serial) and j_worker[j] == brain.index
 
 
-func called_away(j: int, serial: int, brain: BrainScript) -> void:
-	"""The brain gave the seat up: a walk it could not finish, or an order, the night, a meal or a release."""
+func called_away(j: int, serial: int, brain: BrainScript) -> bool:
+	"""The brain gave the seat up: a walk it could not finish, or an order, the night, a meal or a release. True when
+	the forager keeps the seat to come back to (see INTERRUPTION): let go here, not for a failed walk."""
 	if not is_job(j, serial) or j_worker[j] != brain.index:
-		return
+		return false
 	if brain.trip_failed() and j_step[j] != S_GATHER:
 		_unreached(j, brain)
-		return
+		return false
 	_let_go(j)
+	j_keeper[j] = brain.index
+	return true
+
+
+func unfinished_of(j: int, serial: int) -> UnfinishedScript:
+	"""Seat `j` as the entry its forager keeps when called away (decision 1905, the orchard's 1900): taken back by
+	`take_back` while it is still the same job, naming the work board's task (its serial) so nobody else claims it
+	meanwhile. Null once the job is over."""
+	if not is_job(j, serial):
+		return null
+	return UnfinishedScript.new(take_back.bind(j, serial), "%s, %s" % [task_words(j), place_words(j)],
+		WorkIds.SOURCE_FORAGE, serial)
+
+
+func take_back(brain: BrainScript, j: int, serial: int) -> bool:
+	"""A resident called away comes back to job `j` (resident_brain.gd RESUMING): claimed again only while it is the
+	same job and waits for someone -- never a seat or a crew place refilled meanwhile, a paused job, or one waiting out
+	a walk nobody finished."""
+	return is_job(j, serial) and claim(j, brain.index)
 
 
 func must_finish(j: int, serial: int) -> bool:

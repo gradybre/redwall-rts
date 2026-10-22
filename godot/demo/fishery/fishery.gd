@@ -21,7 +21,10 @@ extends RefCounted
 ## WHO. Every job is a work-board task (work/fishery_work.gd, decision 0411): the board hands a waiting job to an idle
 ## resident who may do it -- skills and fit, never a species lock (LORE-P12); a boat's helm needs FISH >= 1. A trip
 ## authorised with residents selected is given to them first. A resident doing a job is driven by a thin task
-## (fishery_task.gd), so the night, a meal call or an order takes it off cleanly: the job goes back on the board.
+## (fishery_task.gd), so the night, a meal call or an order takes it off cleanly: the job goes back on the board, and
+## its worker keeps it to come back to (`unfinished_of`, `take_back`; decision 1905, as the orchard's 1900) -- the
+## board leaves it to that resident meanwhile (decision 0411's promise). A walk it could not finish is not kept, nor a
+## job the board's Pause or Reassign took away; a seat refilled meanwhile is not taken back.
 ##
 ## THE JETTY RECHECK (decision 0231's bank recheck, at the jetty). What was true when a boat trip was authorised may
 ## not be when the crew stands at the jetty: a storm come up (REQ-SET-052: "If a boat faces a storm or an unstaffed
@@ -71,6 +74,9 @@ const PlanScript := preload("res://demo/fishery/catch_plan.gd")
 const StewardScript := preload("res://demo/fishery/fishery_stewardship.gd")
 const MealRules := preload("res://demo/kitchen/meal_rules.gd")
 const Measures := preload("res://scripts/ui/goods_measures.gd")
+const UnfinishedScript := preload("res://demo/cast/unfinished_job.gd")
+const WorkIds := preload("res://demo/work/work_ids.gd")
+const HeldPlaces := preload("res://demo/work/held_places.gd")
 
 const NONE: int = -1
 ## A refusal's note that the free food it counts includes the kitchen's beyond its next meal (decisions 1739, 1741).
@@ -331,6 +337,38 @@ func update(usec: int) -> void:
 	_follow_rack()
 	_follow_safety()
 	_count_down(usec)
+	_release_held_seats()
+
+
+func _release_held_seats() -> void:
+	"""TRIP DOESN'T WAIT (decision 1905, demo/work/held_places.gd): a boat trip ready to leave -- one seat's fisher at
+	the jetty (a seat at S_JETTY has its fisher: `_let_go` sends a seat not yet aboard back to its walk), and so still
+	QUEUED, since nobody boards while a seat waits -- whose other seat waits for the fisher who KEPT it when called away
+	gives it up in working hours. A place the player queued for someone waits for her; a one-seat trip and a station
+	job keep theirs (solo work waits for its worker)."""
+	for t: int in Tables.MAX_TRIPS:
+		if not tables.is_trip(t):
+			continue
+		for seat: int in 2:
+			var j: int = tables.t_seat_job[t * 2 + seat]
+			var other: int = tables.t_seat_job[t * 2 + 1 - seat]
+			if j >= 0 and other >= 0 and tables.j_keeper[j] != NONE and waiting(j) and step_of(other) == S_JETTY:
+				_release_kept(j)
+
+
+func _hand_over_keep(j: int) -> void:
+	"""Job `j` claimed: the fisher who kept it while away keeps it no longer -- her kept entry goes, as the
+	board's Reassign does (her own take-back has popped it already) -- else her promise would outlive the keeper column
+	and hold the boat; the column is cleared."""
+	HeldPlaces.hand_over(tables.j_keeper[j], self, WorkIds.SOURCE_FISHERY, tables.j_serial[j])
+	tables.j_keeper[j] = NONE
+
+
+func _release_kept(j: int) -> void:
+	"""Job `j`'s keeper gives it up (held_places.gd: only her kept entry, only in working hours); the board offers it
+	to anyone idle."""
+	if HeldPlaces.try_release(tables.j_keeper[j], calendar, self, WorkIds.SOURCE_FISHERY, tables.j_serial[j]):
+		tables.j_keeper[j] = NONE
 
 
 func _follow_hours() -> void:
@@ -819,6 +857,7 @@ func claim(j: int, who: int) -> bool:
 	False when it may not."""
 	if not waiting(j) or not eligibility(j, who).is_empty():
 		return false
+	_forget_other_seat(j, who)
 	var task := TaskScript.new(self, j, tables.j_serial[j])
 	tables.j_worker[j] = who
 	tables.j_issued[j] = 1
@@ -829,8 +868,21 @@ func claim(j: int, who: int) -> bool:
 	if brain.task != task:
 		tables.j_worker[j] = NONE
 		return false
+	_hand_over_keep(j)
 	revision += 1
 	return true
+
+
+func _forget_other_seat(j: int, who: int) -> void:
+	"""A seat claimed: `who` no longer promises its trip's other seat (decision 1905). A boat waits for both seats, so
+	a crew who still promised the helm it left would hold that helm from everyone while it waits for one."""
+	var t: int = tables.j_trip[j]
+	if t < 0 or tables.j_kind[j] != Tables.KIND_SEAT:
+		return
+	for seat: int in 2:
+		var other: int = tables.t_seat_job[t * 2 + seat]
+		if other >= 0 and other != j:
+			brain_of(who).forget_task(WorkIds.SOURCE_FISHERY, tables.j_serial[other])
 
 
 func _end_job(j: int) -> void:
@@ -960,15 +1012,41 @@ func drive(j: int, serial: int, brain: BrainScript, delta: float) -> bool:
 	return tables.is_job(j, serial) and tables.j_worker[j] == brain.index
 
 
-func called_away(j: int, serial: int, brain: BrainScript) -> void:
-	"""The brain gave the task up: a walk it could not finish (unreached), or an order, the night or a release (the
-	job goes back on the board; see CARGO)."""
+func called_away(j: int, serial: int, brain: BrainScript) -> bool:
+	"""The brain gave the task up: a walk it could not finish (unreached), or an order, a meal, the night or a release
+	(the job goes back on the board; see CARGO). True when the worker keeps the job to come back to (see WHO): let go
+	here, not for a failed walk."""
 	if not tables.is_job(j, serial) or tables.j_worker[j] != brain.index:
-		return
+		return false
 	if brain.trip_failed():
 		_unreached(j, brain)
-		return
+		return false
 	_let_go(j)
+	tables.j_keeper[j] = brain.index
+	return true
+
+
+func unfinished_of(j: int, serial: int) -> UnfinishedScript:
+	"""Job `j` as the entry its worker keeps when called away (decision 1905, the orchard's 1900): taken back by
+	`take_back` while it is still the same job, naming the work board's task (its serial) so nobody else claims it
+	meanwhile. Null once the job is over."""
+	if not tables.is_job(j, serial):
+		return null
+	return UnfinishedScript.new(take_back.bind(j, serial), _order_words(j),
+		WorkIds.SOURCE_FISHERY, serial)
+
+
+func take_back(brain: BrainScript, j: int, serial: int) -> bool:
+	"""A resident called away comes back to job `j` (resident_brain.gd RESUMING): claimed again only while it is the
+	same job and waits for someone -- never a seat or a crew place refilled meanwhile, a paused job, or one waiting out
+	a walk nobody finished."""
+	return tables.is_job(j, serial) and claim(j, brain.index)
+
+
+func _order_words(j: int) -> String:
+	"""Job `j` as a resident's order list says it, as the Work screen does: "Fish, The pond boat trip (perch)"."""
+	var t: int = tables.j_trip[j]
+	return "%s, %s" % [job_words(j), trip_name(t) if t >= 0 else place_words(j)]
 
 
 func must_finish(j: int, serial: int) -> bool:

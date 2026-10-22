@@ -2216,11 +2216,15 @@ class DigBack extends RefCounted:
 
 func remember_unfinished(job: UnfinishedScript) -> void:
 	"""Keep an unfinished job to come back to (see RESUMING), taken next: the latest RESUME_MAX are kept, and one kept
-	again (the same words: the same job) moves to the latest place rather than twice. A player's queued entries are
-	kept apart (see THE ORDER LIST)."""
+	again (the same job: the same work board task, or for one that names none, the same words) moves to the latest
+	place rather than twice -- two different tasks that read alike are both kept (decision 1905). A player's queued
+	entries are kept apart (see THE ORDER LIST)."""
 	if job == null:
 		return
-	_forget_label(job.label())
+	if job.source >= 0:
+		forget_kept(job.source, job.key)
+	else:
+		_forget_label(job.label())
 	_unfinished.append(job)
 	while _returns() > RESUME_MAX:
 		_unfinished.remove_at(_oldest_return())
@@ -2259,10 +2263,25 @@ func forget_task(task_source: int, task_key: int) -> bool:
 	return gone
 
 
-func _forget_label(words: String) -> void:
-	"""Drop every entry with these words (the same job kept again)."""
+func forget_kept(task_source: int, task_key: int) -> bool:
+	"""Drop every entry kept from an interruption that names that work board task -- the same job kept again, or a
+	place its trip gave up (demo/work/held_places.gd) -- while a player's queued one stays (see THE ORDER LIST). Whether
+	one went."""
+	var gone: bool = false
 	for k: int in range(_unfinished.size() - 1, -1, -1):
-		if _unfinished[k].label() == words:
+		if not _unfinished[k].queued and _unfinished[k].names_task(task_source, task_key):
+			_unfinished.remove_at(k)
+			gone = true
+	if gone:
+		queue_revision += 1
+	return gone
+
+
+func _forget_label(words: String) -> void:
+	"""Drop every entry naming no work board task with these words (the same job kept again); one that names a task is
+	told apart by it (`forget_kept`)."""
+	for k: int in range(_unfinished.size() - 1, -1, -1):
+		if _unfinished[k].source < 0 and _unfinished[k].label() == words:
 			_unfinished.remove_at(k)
 
 

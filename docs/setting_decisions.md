@@ -1644,6 +1644,10 @@ questions in chat:
   Brendan answered **"Yes please"**. This adopts a level count and spacing for MOVE-G01/G03, which
   `docs/movement_direction_amendment.md` and the GDD had left open. The demo's 4 m second level is superseded.
 
+**Addendum, 2026-10-12.** Asked which EG2 features missing from the plan to add, Brendan said: **"Add in slice H -
+automatic decoration, move by click hold, automatic pause."** He did not choose decor auras, copy with C, or
+repainting a pending tile to cancel it. The scope is in the study's slice H "H additions".
+
 Not ruled, so the study's proposals stand: the slice order A–H and everything in study §4 (things not copied from
 EG2). These include research-gated rock and gold veins.
 

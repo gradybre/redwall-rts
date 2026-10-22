@@ -128,6 +128,11 @@ class AdmissionAuthority extends Placements.Authority:
 		var actual: RefCounted = host.get_ref() if host != null else null
 		return actual._restoration_refusal(cold) if actual != null else REFUSE_ENTRY_COLD
 
+	func close_finished_scope() -> StringName:
+		"""Decision 2046 (P-2054-1 (a)): the finished entry closes the timber scope its last paid operation pinned."""
+		var actual: RefCounted = host.get_ref() if host != null else null
+		return actual._close_finished_timber() if actual != null else REFUSE_ENTRY_COLD
+
 var _entry_frontier: Frontier = null
 var _entry_placements: Placements = null
 var _entry_authority: AdmissionAuthority = null
@@ -1600,6 +1605,19 @@ func _discard_timber(placement: Vector2i, project: Vector2i, cold: int) -> void:
 	_timber_project = NULL_REF
 	_timber_assembly = -1
 	_timber_token = 0
+
+
+func _close_finished_timber() -> StringName:
+	"""Decision 2046 (P-2054-1 (a), Brendan 2026-10-22; decision 2054 B1): a paid operation's publication clears the
+	Placement's controls but never asks this provider to discard its timber scope (only a discarded operation does), so
+	the last operation's `_timber_token` outlived the entry and the Session stayed WORLD_RETIREMENT_BUSY. Once the entry
+	has finished it is closed here, exactly as `_discard_timber` closes it, and only when no operation still holds it:
+	the Placement is not prepared on that lease and no proof is reading. Idempotent."""
+	if _entry_busy or _reading: return REFUSE_MASK_BUSY
+	if _timber_token == 0: return &""
+	if _entry_placements != null and _entry_placements._cold_token == _timber_token: return REFUSE_ENTRY_COLD
+	_discard_timber(_timber_placement, _timber_project, _timber_token)
+	return &""
 
 
 func _timber_connections(proof: TimberClearance) -> StringName:

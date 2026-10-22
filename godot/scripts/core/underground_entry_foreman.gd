@@ -884,6 +884,19 @@ func is_done() -> bool:
 	return _stage == STAGE_DONE
 
 
+func close_finished_scopes() -> StringName:
+	"""Decision 2046 (P-2054-1 (a), Brendan 2026-10-22): once the last stage has settled, the two scopes the entry's
+	last paid operation left open are closed, Contacts' retained observation and the entry provider's timber scope
+	(the Placement's authority), so the Session is quiescent and a painted room can be ordered (decision 2054 B1).
+	Refused, and nothing closed, before every installation has settled."""
+	if not is_done() or _paid == null or _install_count < installations(): return REFUSE_STATE
+	var code: StringName = _paid.contacts.close_finished_scope() if _paid.contacts != null else &""
+	var authority: RefCounted = _owners.placements._actual_authority() if _owners.placements != null else null
+	if code == &"" and authority != null and authority.has_method("close_finished_scope"):
+		code = authority.close_finished_scope()
+	return code
+
+
 func error() -> StringName:
 	"""The first refusal, or empty while running or after success."""
 	return _error if _stage == STAGE_FAILED else &""

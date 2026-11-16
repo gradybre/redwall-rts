@@ -4786,7 +4786,16 @@
           "review": "ug_furnishing independent source accepted; real Router/Inventory/Work/Tips; actual Contacts remains required",
           "evidence_path": "docs/validation/evidence/underground-spoil-worker-composition-2026-10-03/"
         },
-        "single_branch_progress": "No change since the handoff; spoil-tip siting still waits on UG21."
+        "single_branch_progress": "Spoil-tip work quote now uses explicit IntResult refusal and checked arithmetic; physical Contacts and village haul/siting still wait on UG21.",
+        "explicit_quote_refusal_2026_11_16": {
+          "source_commit": "92cb6ace",
+          "test_followup": "b23912dc",
+          "integration_commits": "7de467b7/aaadb9eb",
+          "review": "Independent review found no implementation issue and accepted the follow-up stale-result test coverage.",
+          "tests": "Integrated focused rerun: 31 tests,1778 assertions,0 failures; mutation check made invalid-operation regression fail. Strict gate blocked by 2 unexpected macOS get_system_ca_certificates ERROR lines; raw summary: diagnostics 1 unexpected error,0 unexpected warnings,0 leaks; log 2 unexpected errors,0 unexpected warnings,0 object/resource leaks.",
+          "analyzer": "python3 tools/gdscript_warnings.py --port 6347 did not complete cleanly: raw editor diagnostic `ERROR: Condition \"ret != noErr\" is true. Returning: \"\"` (macOS get_system_ca_certificates); zero-warning analyzer result not claimed. Raw log: /var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/gdscript_warnings_editor_6347.log.",
+          "scope": "Replaces -1 from total_work_mwu with caller-owned IntResult, checked multiplication/ceil, migrates production callsites and tests every refusal after a same-result nonzero success. UG20 remains queued because actual physical contact and village haul/spoil siting remain unbound."
+        }
       },
       "lease": {
         "state": "released",

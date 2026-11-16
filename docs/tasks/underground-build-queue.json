@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated": "2026-10-06",
+  "updated": "2026-11-16",
   "integration_worktree": "/Users/brendan/Developer/redwall-rts-claude-ug-paid-start",
   "integration_branch": "claude/ug-paid-start",
   "base_commit": "82d60ba86dcecf6e7c6184eeaf77a389e8b2b5c2",
@@ -491,6 +491,13 @@
       "branch": "claude/ug-paid-start",
       "evidence": {
         "in_progress": "Reviewed Funding/Reservations final boundary integrated e40a55a3/d4e7c9e4; real ConnectorWork waits for compile-ready actual Placement. Source-derived first-module work/contact assessment in progress; no playable entry claimed.",
+        "latest_followup_2026_11_16": {
+          "evidence_path": "docs/validation/evidence/underground-room-approach-2026-10-04/UG07-followup-2026-11-16.md",
+          "scope": "No non-overlapping player-facing UG07 implementation was safe: decision 1059 leaves production furniture dimensions and install/use contacts unauthored, while the production host has no RoomLayout/RoomProjects owner. Fail-closed behavior retained; lane remains queued.",
+          "tests": "118 tests,7334 assertions,0 failures; strict gate failed on 2 unexpected macOS get_system_ca_certificates ERROR lines; 0 warnings,0 leaked objects,0 leaked resources; analyzer not run because no GDScript changed.",
+          "commit": "fa016134",
+          "integration_commit": "e7d7b6d6"
+        },
         "identity_prerequisite": {
           "commit": "0bef602b",
           "integration": "a16c16ba",

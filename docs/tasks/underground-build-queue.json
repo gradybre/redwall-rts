@@ -2192,7 +2192,7 @@
               "godot/test/test_underground_connector_contacts.gd",
               "godot/data/underground/mole-worker/work-step-v1/source_program.gd"
             ],
-            "handoff": "Fresh ownbranch→db03b1f7. Only additive real BUILD supported positioning source and binder. Full original actor/actual timber contacts; no paid credits, synthetic paid state, fake CONTACT_PATCH or implied new timing. Existing consumers frozen pending proposed exact seam. Shared1178 extension2026-10-05: root stops and grants exact Profiles/WorldRoutes/Contacts and their tests. Stationary exact paid prism, full immutable actual-triangle/source/identity certificate only; foreign solids/actors stay conservative and supported station remains original. No Locations schema, new quantity/work bank, tuning or reserve change. Root publisher/registry/Session remain separate; Construction receives Routes/Workpieces/ConnectorWork after1179 review stop. Root2026-10-05 grants narrow work-step-v1/source_program.gd parser compatibility: accept30 only with exact appended handling/source certificate and unchanged old0–28 descriptor contract; no >=29 relaxation. Publisher/current-consumer pins require renewed evidence before activation.",
+            "handoff": "Fresh ownbranch\u2192db03b1f7. Only additive real BUILD supported positioning source and binder. Full original actor/actual timber contacts; no paid credits, synthetic paid state, fake CONTACT_PATCH or implied new timing. Existing consumers frozen pending proposed exact seam. Shared1178 extension2026-10-05: root stops and grants exact Profiles/WorldRoutes/Contacts and their tests. Stationary exact paid prism, full immutable actual-triangle/source/identity certificate only; foreign solids/actors stay conservative and supported station remains original. No Locations schema, new quantity/work bank, tuning or reserve change. Root publisher/registry/Session remain separate; Construction receives Routes/Workpieces/ConnectorWork after1179 review stop. Root2026-10-05 grants narrow work-step-v1/source_program.gd parser compatibility: accept30 only with exact appended handling/source certificate and unchanged old0\u201328 descriptor contract; no >=29 relaxation. Publisher/current-consumer pins require renewed evidence before activation.",
             "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-timber-program-binding"
           },
           {
@@ -2209,7 +2209,7 @@
               "godot/demo/cast/underground_actor_program_images_live.gd",
               "godot/demo/cast/underground_actor_program_images_live.gd.uid"
             ],
-            "handoff": "1175authorSTOP+1174reviewSTOP; freshlyfetchedorigin/master→9f9a8829. Root1174integration confirmed. One shared mesh basis and actual immutable palette images, no canonical Motion/Clock/profile grant, no reserve increase. Native source pose and complete presentation peak recount required.",
+            "handoff": "1175authorSTOP+1174reviewSTOP; freshlyfetchedorigin/master\u21929f9a8829. Root1174integration confirmed. One shared mesh basis and actual immutable palette images, no canonical Motion/Clock/profile grant, no reserve increase. Native source pose and complete presentation peak recount required.",
             "worker_stop_ack": "Author f14ba6b69d984338daefc091abd0a993f825d1c1 committed reviewed1181, clean and explicitly STOPPED all source/evidence/processes2026-10-05. Root integration waits for current-consumer publication renewal with1178/1183; original planning mount remains working."
           }
         ],
@@ -3589,7 +3589,7 @@
               "docs/decisions/1182-memory-ui-notice-alias-closure.md",
               "docs/validation/evidence/underground-memory-ui-alias-2026-10-05/"
             ],
-            "handoff": "1174STOP and review accepted. Fresh ownbranch→32c65ecd. Exact only drift is1177UiManager literal-to-UiNotices alias. Preserve predecessor manifest, successor current captured proof of identical literal and byteexact oldbody. Root alone publishes permanent pack. No other source/pin/arithmetic update.",
+            "handoff": "1174STOP and review accepted. Fresh ownbranch\u219232c65ecd. Exact only drift is1177UiManager literal-to-UiNotices alias. Preserve predecessor manifest, successor current captured proof of identical literal and byteexact oldbody. Root alone publishes permanent pack. No other source/pin/arithmetic update.",
             "worker_stop_ack": "Author f13b91b5cba79db22b11e66022eeef94b313b180 clean and explicit STOP2026-10-05; root5e55190b integrated independently accepted candidate2. Permanent pack regenerated and source/registry checks pass."
           }
         ],
@@ -4278,7 +4278,7 @@
               "docs/decisions/1167-session-route-owner-composition.md",
               "docs/validation/evidence/underground-route-owner-composition-2026-10-05/"
             ],
-            "handoff": "Explicit author1163STOP and root sourceSTOP. Fresh origin/master→31e834f0 acknowledgedclean; ownaccepted1166cherry-pickfa9bf173. Reuse original private tuple/state/prefix; compose genuine Movement/Catalog/WorldRoutes/Routes with reviewed groundcontent, no new endpoint/actor/promise of clearance. Partial configure/bindprefix retains exactowners stoppedforreset. Shared consumers, UI/demo/main/registry/memory remain other owners. Actual mount currently refuses expected1161consumerdrift; no bypass, rootrenewalnext.",
+            "handoff": "Explicit author1163STOP and root sourceSTOP. Fresh origin/master\u219231e834f0 acknowledgedclean; ownaccepted1166cherry-pickfa9bf173. Reuse original private tuple/state/prefix; compose genuine Movement/Catalog/WorldRoutes/Routes with reviewed groundcontent, no new endpoint/actor/promise of clearance. Partial configure/bindprefix retains exactowners stoppedforreset. Shared consumers, UI/demo/main/registry/memory remain other owners. Actual mount currently refuses expected1161consumerdrift; no bypass, rootrenewalnext.",
             "worker_stop_ack": "Author9a7b8789 committed accepted exact1167 and explicitly STOPPED all source writes; root integratede234bde0. Construction review7d8edbd4 integrated3c92d1cf. Source/test90/3115all0,analyzer0/8,17censuschecks and8161/8192 retained constructor maximum."
           },
           {
@@ -5103,7 +5103,7 @@
       "analyzer": "0 warnings in0 of1046files",
       "procedure": "assets aside;delete .godot;cleaneditorimport;fullnoargumentrunner;restoreassets",
       "seconds": 1183.9,
-      "fix": "ReservationPurpose explicitoldcount3→4 plus appendedID3 pinned in6dd9e529;focused33tests178assertallzero. Canonicalmembership CI gap fixed29f78a3c; exact11newfields, no gateweakening."
+      "fix": "ReservationPurpose explicitoldcount3\u21924 plus appendedID3 pinned in6dd9e529;focused33tests178assertallzero. Canonicalmembership CI gap fixed29f78a3c; exact11newfields, no gateweakening."
     },
     {
       "commit": "bb557d1b6bc3a97fe8bd566dbc114a8dbf0965fc",
@@ -6037,8 +6037,8 @@
       "review_integration": "22b5e49e",
       "old_measured_suites": 240,
       "new_measured_suites": 397,
-      "observed_old_assignment_suite_seconds": "259.609–817.081",
-      "estimated_new_assignment_suite_seconds": "439.877–439.879",
+      "observed_old_assignment_suite_seconds": "259.609\u2013817.081",
+      "estimated_new_assignment_suite_seconds": "439.877\u2013439.879",
       "tests": "13 Python guard tests pass;5 optional engine fixtures not rerun for data-only change",
       "limits": "Scheduling estimates only; all test/diagnostic/leak/analyzer/gate logic and local no-arg behavior unchanged."
     },
@@ -6080,6 +6080,19 @@
       "focused": "61tests11093assertions/allzero;analyzer0/2",
       "memory": "285tests+190capacitychecks;independent39tests5mutants;99999806Bunchanged",
       "limits": "Integration fixture, not demo dispatch, complete paid entry, Kitchen or runtime qualification."
+    },
+    {
+      "id": "ci-43815492569-stale-derived-artifacts",
+      "status": "failure reproduced and repaired locally; updated full CI pending",
+      "scope": "PR #285 CI on prior head 3591b319 failed checkpoint equivalence/store/save suites and memory-pack check because source-derived checkpoint recipes and memory pack had not been regenerated after upstream base additions and source updates.",
+      "base_sync": "Merged current PR base 7119a2946dfc78bc6927c5f6bcf9c47f3f7d3057 into the owned integration branch (merge commit 100352ef); no conflicts.",
+      "repair": "Regenerated docs/planning/underground_memory_pack.json with tools/underground_memory_budget.py and regenerated the underground_entry and underground_spare checkpoints via tools/regenerate_test_checkpoints.sh. No gate/test tolerances were changed.",
+      "verification": "Clean Godot import completed after deleting own godot/.godot. python3 tools/underground_memory_budget.py --check passed; memory budget suite 285 tests passed and current census suite 15 tests passed. Focused official runner: 17 tests, 182 assertions, 0 failures across checkpoint equivalence/store and both save suites.",
+      "diagnostics": "Focused strict runner: 0 unexpected errors, 0 unexpected warnings, 0 expected, 0 tolerated; leaked at exit: 0 objects, 0 resources. Raw log also 0 errors, 0 warnings, 0 object/resource leaks.",
+      "analyzer": "Prior CI analyzer passed on old head. New CI analyzer for the merged and regenerated head is pending; no local analyzer result claimed here.",
+      "full_suite": "Not rerun locally; new full suite is pending in CI after publication.",
+      "ci_run": "https://github.com/gradybre/redwall-rts/actions/runs/43815492569",
+      "pr": "https://github.com/gradybre/redwall-rts/pull/285"
     }
   ],
   "process": "ADR 1192: one committed branch; lane leases are historical design ownership, not edit locks. Status changes only from named-commit results."

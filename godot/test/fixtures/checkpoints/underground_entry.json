@@ -1,6 +1,6 @@
 {
 	"engine": "4.7.2.stable",
-	"fingerprint": "4d027b1d4fa71f73524e375f1b6d677e969194ecd231635256026fdd5d4d7e71",
+	"fingerprint": "355af6fb25ef740d3448c2d368d17f936fba4440b8f431de096f765b5642f013",
 	"name": "underground_entry",
 	"points": {
 		"first_brace_after_2000": {
@@ -199,8 +199,8 @@
 		"res://scripts/core/settlement_save_world.gd": "7f491f377ec53ab08b6209f21250060c31340e8676d4048c516aa978b6ba2706",
 		"res://scripts/core/sim_clock.gd": "502c526bc93ca50e2553898dc9f82e175200c674b4a646021b4ede5a185d3070",
 		"res://scripts/core/spatial_world.gd": "6b2d56af6f0be763765ae02bdc22a4697c53d690decb5234ab0267c24d37202e",
-		"res://scripts/core/spoil_tips.gd": "3915c888d9a37defe3ddc859d8b99beac91d94075cfe0db4ded78fb0dc1050b8",
-		"res://scripts/core/spoil_work.gd": "1bfa2b36df3c7b41e16609cf27e110e92b86716b99174cf3a38927f19beddcde",
+		"res://scripts/core/spoil_tips.gd": "eb7d996b92d1a4a113d992cde4502beed16e169df533aded5143e0bf1e775783",
+		"res://scripts/core/spoil_work.gd": "8268ef7cf11e51ca7659feca644aff128a7261953a0bb7fbbc4c81bc9101eb12",
 		"res://scripts/core/starter_colony.gd": "56eaf003877415970dcd079623ba3451e088976cfd1f59849a53d1f8bc459215",
 		"res://scripts/core/starter_structures.gd": "f8f7183a4e0d4a34aa31836b694591d34bae58d41a039406acb045d90671bf49",
 		"res://scripts/core/stock_age.gd": "f1c9e1bd0337c22d2076d7370bd2fb3f7c43b06ebee9afdc6a93427e2b8fee3e",

@@ -45336,7 +45336,7 @@
     "godot/scripts/systems/settlement_system.gd": "6494c6cab8899780c0708ad88086b9b293c69244807d8283cf3842ec2057e4f7",
     "godot/data/underground/mole-worker/work-step-v1/source_program.gd": "7134c58f0a48c8eb1184484f1caf41089696cc90083c5cd7038fafeb3fce7879",
     "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
-    "godot/scripts/core/spoil_tips.gd": "3915c888d9a37defe3ddc859d8b99beac91d94075cfe0db4ded78fb0dc1050b8",
+    "godot/scripts/core/spoil_tips.gd": "eb7d996b92d1a4a113d992cde4502beed16e169df533aded5143e0bf1e775783",
     "godot/scripts/core/underground_budget.gd": "7a9b6af130e2b06427fe58ddfb7fba5d7e50057cfc2aae533f5732593fc7e12c",
     "godot/scripts/core/underground_connector_assemblies.gd": "3199049decf5b6ca95da09bb416196d82a96e89af194166b196df29f1cf7b73c",
     "godot/scripts/core/underground_connector_catalog.gd": "6bc1f91d3a79c440891fd3309ca7145f7a393b19b43b526560f21c7da77e3061",

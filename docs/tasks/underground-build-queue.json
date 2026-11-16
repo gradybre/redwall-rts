@@ -5,7 +5,7 @@
   "integration_branch": "claude/ug-paid-start",
   "base_commit": "82d60ba86dcecf6e7c6184eeaf77a389e8b2b5c2",
   "foundation_commit": "09beda25a93f29da15b3b761f3b41bdfc4ea9faa",
-  "completion": "Every lane verified with integrated evidence; no player-facing requirement is complete from a standalone helper alone.",
+  "completion": "Implementation in progress: 10 of 24 lanes verified and 14 queued. No player-facing requirement is complete from a standalone helper alone.",
   "lanes": [
     {
       "id": "UG01",
@@ -3250,6 +3250,19 @@
           "review": "Fresh isolated follow-up confirmed ADR1229's approved claw stair motion and live T1-T6 chain only qualify the first fixed EARTH_TIMBER path; they do not satisfy the full connector/raised/sunken section datum or resident-to-world production profile binding.",
           "required_inputs": "Complete approved connector/section catalog; qualified Resident-to-World geometry/support/contact/route binding with native/composed-memory evidence; full same-live-World phase composition rather than fixtures; strict host without undeclared macOS CA diagnostics.",
           "result": "No edits or commit; wrappers/fixtures would overstate production closure. Lane remains queued."
+        },
+        "phase2_foot_probe_feasibility_2026_11_16": {
+          "trigger": "M5 merged in current master sync at 100352ef; decision 2052 \u00a76 makes Phase 2 probe actionable.",
+          "result": "Blocked before implementation: no live production Foot derivation/publication exists. Existing whole-chain test can reach STEP_DONE and read M5 stops, but UndergroundEntryRuntime exposes step/origin only; StairWayIn.configure requires a caller-built Foot. The five required facts cannot all be observed without guessed/synthetic rows.",
+          "required_owner": "Host/M5 integration must derive Foot from saved owners, actual entry state, live Locations, Inventory, and Profiles at STEP_DONE and expose the resulting WayIn/Foot; requires explicit ownership for settlement_system.gd plus underground_entry_runtime.gd, or a pure derivation service file and integration owner.",
+          "review": "Independent read-only audit after base sync and test-only feasibility probe; no files edited.",
+          "tests": "None; feasibility only."
+        },
+        "phase2_foot_probe_contract_2026_11_16": {
+          "decision": "2052 \u00a76 requires the production STEP_DONE probe first; \u00a72.2/P-2052-2 requires fixed store and pile points beside F\u2032, clear of stair and parking.",
+          "result": "Blocked before edits/tests. Decision 2052 and 2053 do not specify numeric canonical store_point/pile_point offsets; source search found no production constants. Kitchen fixture coordinates are not reusable. The existing WayIn.Foot also lacks the open_box field described in 2052 \u00a72.1.",
+          "needed": "Brendan must settle the numeric canonical offsets and clarify/open ownership for the Foot open_box field; then the owned derivation and host integration can be implemented. No Foot values or level geometry should be guessed.",
+          "audit": "Post-M5-merge independent source audit plus isolated pure-derivation feasibility pass; no edits, tests, or commits."
         }
       },
       "lease": {
@@ -6092,7 +6105,9 @@
       "analyzer": "Prior CI analyzer passed on old head. New CI analyzer for the merged and regenerated head is pending; no local analyzer result claimed here.",
       "full_suite": "Not rerun locally; new full suite is pending in CI after publication.",
       "ci_run": "https://github.com/gradybre/redwall-rts/actions/runs/43815492569",
-      "pr": "https://github.com/gradybre/redwall-rts/pull/285"
+      "pr": "https://github.com/gradybre/redwall-rts/pull/285",
+      "updated_ci_run": "43822194091 passed all PR gates. Exact full-suite verification: \"ok: 579 suite files executed exactly once across 12 shards\"; aggregate counts 13,252 tests, 1,573,048 assertions, 0 failures; diagnostics 0 unexpected errors, 0 unexpected warnings, 292 expected, 456 tolerated, 0 leaked objects/resources. Analyzer: 0 GDScript warning(s) in 0 of 1679 file(s). All 3 underground memory budget shards, all 3 metadata shards, and specification contracts passed.",
+      "updated_ci_run_url": "https://github.com/gradybre/redwall-rts/actions/runs/43822194091"
     }
   ],
   "process": "ADR 1192: one committed branch; lane leases are historical design ownership, not edit locks. Status changes only from named-commit results."

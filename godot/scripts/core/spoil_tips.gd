@@ -185,21 +185,25 @@ func tip_at(tile: int) -> Vector2i:
 	return tip if is_live_tip(tip) else NULL_REF
 
 
-static func total_work_mwu(operation: int, quantity: int) -> int:
-	"""Borrow Work's adopted rational tip prices; quantities are milli-U, never whole units."""
+static func total_work_mwu_into(operation: int, quantity: int, out: IntMath.IntResult) -> bool:
+	"""Borrow adopted Work prices and report invalid contracts explicitly, never in-band."""
+	if out == null:
+		return false
 	if operation == PREPARE or operation == CLOSE:
-		return FIXED_WORK_MWU if quantity == 0 else -1
+		if quantity != 0:
+			return out.refuse("fixed spoil operation requires zero quantity")
+		return out.succeed(FIXED_WORK_MWU)
+	if operation != COMPACT and operation != RECLAIM:
+		return out.refuse("unknown spoil operation")
 	if quantity < 1 or quantity > MAX_QUANTITY_MILLI:
-		return -1
+		return out.refuse("spoil quantity outside adopted tip capacity")
 	var denominator: int = Work.TIP_COMPACT_MWU_DENOMINATOR if operation == COMPACT \
 		else Work.TIP_RECLAIM_MWU_DENOMINATOR
 	var numerator: int = Work.TIP_COMPACT_MWU_NUMERATOR if operation == COMPACT \
 		else Work.TIP_RECLAIM_MWU_NUMERATOR
-	if operation != COMPACT and operation != RECLAIM:
-		return -1
-	@warning_ignore("integer_division")
-	return (quantity * numerator + denominator - 1) / denominator
-
+	if not IntMath.checked_mul_into(quantity, numerator, out):
+		return false
+	return IntMath.ceil_div_into(out.value, denominator, out)
 
 func candidate_prepare_refusal(tile: int) -> StringName:
 	"""Check physical admission before allocating Construction; this grants no publication permission."""
@@ -257,8 +261,10 @@ func order_refusal(tip: Vector2i, project: Vector2i, operation: int, quantity: i
 		code = _project_refusal(tip, project, operation, quantity)
 	if code != &"":
 		return code
-	return _admission_progress_refusal(project, total_work_mwu(operation, quantity),
-		_earned_mwu[tip.x * OP_COUNT + operation])
+	if not total_work_mwu_into(operation, quantity, _math):
+		return REFUSE_QUANTITY
+	var total: int = _math.value
+	return _admission_progress_refusal(project, total, _earned_mwu[tip.x * OP_COUNT + operation])
 
 
 func _admission_progress_refusal(project: Vector2i, total: int, earned: int) -> StringName:
@@ -270,7 +276,7 @@ func _admission_progress_refusal(project: Vector2i, total: int, earned: int) -> 
 
 func _operation_refusal(row: int, operation: int, quantity: int) -> StringName:
 	"""Every permitted operation has an adopted nonnegative price and physically valid source."""
-	if total_work_mwu(operation, quantity) < 0:
+	if not total_work_mwu_into(operation, quantity, _math):
 		return REFUSE_QUANTITY
 	if operation == PREPARE:
 		return &"" if _prepared[row] == 0 else REFUSE_PHASE
@@ -317,11 +323,14 @@ func work_refusal(tip: Vector2i, project: Vector2i) -> StringName:
 	var code: StringName = _active_refusal(tip, project)
 	if code != &"":
 		return code
+	if not total_work_mwu_into(_operation[tip.x], _quantity_milli[tip.x], _math):
+		return REFUSE_PROGRESS
+	var total: int = _math.value
 	if not _construction.remaining_mwu_into(project, _math):
 		return REFUSE_PROGRESS
-	var total: int = total_work_mwu(_operation[tip.x], _quantity_milli[tip.x])
-	var earned: int = total - _math.value
-	return &"" if _math.value >= 0 and earned >= _earned_mwu[tip.x * OP_COUNT + _operation[tip.x]] \
+	var remaining: int = _math.value
+	var earned: int = total - remaining
+	return &"" if remaining >= 0 and earned >= _earned_mwu[tip.x * OP_COUNT + _operation[tip.x]] \
 		and earned <= total else REFUSE_PROGRESS
 
 
@@ -333,9 +342,12 @@ func publish_work(tip: Vector2i, project: Vector2i) -> StringName:
 	code = _publication_refusal(tip, project, _operation[tip.x], _quantity_milli[tip.x], PRODUCTIVE)
 	if code != &"":
 		return code
-	_construction.remaining_mwu_into(project, _math)
-	_earned_mwu[tip.x * OP_COUNT + _operation[tip.x]] = total_work_mwu(
-		_operation[tip.x], _quantity_milli[tip.x]) - _math.value
+	if not _construction.remaining_mwu_into(project, _math):
+		return REFUSE_PROGRESS
+	var remaining: int = _math.value
+	if not total_work_mwu_into(_operation[tip.x], _quantity_milli[tip.x], _math):
+		return REFUSE_PROGRESS
+	_earned_mwu[tip.x * OP_COUNT + _operation[tip.x]] = _math.value - remaining
 	return &""
 
 
@@ -345,8 +357,10 @@ func completion_refusal(tip: Vector2i, project: Vector2i) -> StringName:
 	if code != &"":
 		return code
 	var row: int = tip.x
-	if _math.value != 0 or _earned_mwu[row * OP_COUNT + _operation[row]] != total_work_mwu(
-			_operation[row], _quantity_milli[row]):
+	var remaining: int = _math.value
+	if not total_work_mwu_into(_operation[row], _quantity_milli[row], _math):
+		return REFUSE_PROGRESS
+	if remaining != 0 or _earned_mwu[row * OP_COUNT + _operation[row]] != _math.value:
 		return REFUSE_PROGRESS
 	if _operation[row] == CLOSE:
 		return &"" if _embedded_milli[row] == 0 and _locked_milli[row] == 0 \
@@ -392,8 +406,10 @@ func cancellation_refusal(tip: Vector2i, project: Vector2i) -> StringName:
 	var code: StringName = work_refusal(tip, project)
 	if code != &"":
 		return code
-	var total: int = total_work_mwu(_operation[tip.x], _quantity_milli[tip.x])
-	return &"" if total - _math.value == _earned_mwu[tip.x * OP_COUNT + _operation[tip.x]] \
+	var remaining: int = _math.value
+	if not total_work_mwu_into(_operation[tip.x], _quantity_milli[tip.x], _math):
+		return REFUSE_PROGRESS
+	return &"" if _math.value - remaining == _earned_mwu[tip.x * OP_COUNT + _operation[tip.x]] \
 		else REFUSE_PROGRESS
 
 
@@ -529,7 +545,7 @@ func incoming_milli(tip: Vector2i) -> int:
 
 func retained_work_mwu(tip: Vector2i, operation: int, quantity: int = 0) -> int:
 	"""Read retained work only under the exact requested source and quantity contract."""
-	if not is_live_tip(tip) or total_work_mwu(operation, quantity) < 0:
+	if not is_live_tip(tip) or not total_work_mwu_into(operation, quantity, _math):
 		return -1
 	if operation == COMPACT or operation == RECLAIM:
 		var retained: int = _retained_quantity[_quantity_index(tip.x, operation)]
@@ -695,8 +711,10 @@ func _retained_refusal(row: int) -> StringName:
 			if earned != 0:
 				return &"SPOIL_RETAINED_WORK"
 			continue
-		var total: int = total_work_mwu(operation, quantity)
-		if total < 0 or earned < 0 or earned > total or (variable and _prepared[row] == 0) \
+		if not total_work_mwu_into(operation, quantity, _math):
+			return &"SPOIL_RETAINED_WORK"
+		var total: int = _math.value
+		if earned < 0 or earned > total or (variable and _prepared[row] == 0) \
 				or (operation == PREPARE and _prepared[row] == 1 and earned != 0):
 			return &"SPOIL_RETAINED_WORK"
 	return &""

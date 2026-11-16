@@ -72,7 +72,8 @@ func after_each() -> void:
 
 func _project(tip: Vector2i, operation: int, quantity: int, remaining: int = -1) -> Vector2i:
 	"""Borrow only a bounded <=4250mWU accounting fixture; never reinterpret this as a production tip bill."""
-	var total: int = Tips.total_work_mwu(operation, quantity)
+	assert_true(Tips.total_work_mwu_into(operation, quantity, _math), "fixture price contract")
+	var total: int = _math.value
 	var retained: int = _tips.retained_work_mwu(tip, operation, quantity) if _tips.is_live_tip(tip) else 0
 	_site.remaining = total - retained if remaining < 0 else remaining
 	assert_true(_site.remaining >= 0 and _site.remaining <= 4250, "synthetic fixture work bound")
@@ -160,18 +161,33 @@ func _prepared() -> Vector2i:
 
 func test_exact_adopted_prices_keep_fractional_quantities_and_refuse_invalid_operations() -> void:
 	"""Milli-U never becomes whole units before rational work prices round up."""
-	assert_equal(Tips.total_work_mwu(Tips.PREPARE, 0), 4000, "prepare")
-	assert_equal(Tips.total_work_mwu(Tips.CLOSE, 0), 4000, "close")
-	assert_equal(Tips.total_work_mwu(Tips.COMPACT, 1), 1, "fractional compact")
-	assert_equal(Tips.total_work_mwu(Tips.COMPACT, 5), 2, "compact ceil")
-	assert_equal(Tips.total_work_mwu(Tips.RECLAIM, 3), 2, "reclaim ceil")
-	assert_equal(Tips.total_work_mwu(Tips.COMPACT, 400000), 100000, "full tip compact")
-	assert_equal(Tips.total_work_mwu(Tips.RECLAIM, 400000), 200000, "full tip reclaim")
+	_assert_total_work(Tips.PREPARE, 0, 4000)
+	_assert_total_work(Tips.CLOSE, 0, 4000)
+	_assert_total_work(Tips.COMPACT, 1, 1)
+	_assert_total_work(Tips.COMPACT, 5, 2)
+	_assert_total_work(Tips.RECLAIM, 3, 2)
+	_assert_total_work(Tips.COMPACT, 400000, 100000)
+	_assert_total_work(Tips.RECLAIM, 400000, 200000)
+	var result: IntMath.IntResult = IntMath.IntResult.new()
 	for operation: int in [-1, Tips.OP_COUNT]:
-		assert_equal(Tips.total_work_mwu(operation, 1000), -1, "invalid operation")
+		assert_false(Tips.total_work_mwu_into(operation, 1000, result), "invalid operation refuses")
+		assert_false(result.ok, "refusal is explicit")
+		assert_equal(result.value, 0, "refusal has no in-band number")
+		assert_true(not result.error.is_empty(), "refusal names the contract")
 	for quantity: int in [-1, 0, 400001]:
-		assert_equal(Tips.total_work_mwu(Tips.COMPACT, quantity), -1, "invalid quantity")
-	assert_equal(Tips.total_work_mwu(Tips.PREPARE, 1), -1, "fixed operation forbids q")
+		assert_false(Tips.total_work_mwu_into(Tips.COMPACT, quantity, result), "invalid quantity refuses")
+		assert_false(result.ok, "quantity refusal is explicit")
+		assert_equal(result.value, 0, "quantity refusal has no sentinel")
+	assert_false(Tips.total_work_mwu_into(Tips.PREPARE, 1, result), "fixed operation forbids q")
+	assert_equal(result.value, 0, "fixed quantity refusal has no sentinel")
+
+
+func _assert_total_work(operation: int, quantity: int, expected: int) -> void:
+	"""Assert an adopted price through the same explicit outcome contract used by production."""
+	var result: IntMath.IntResult = IntMath.IntResult.new()
+	assert_true(Tips.total_work_mwu_into(operation, quantity, result), "valid work price")
+	assert_true(result.ok, "price result success flag")
+	assert_equal(result.value, expected, "adopted price")
 
 
 func test_explicit_capacity_and_live_world_are_required_before_any_allocation() -> void:

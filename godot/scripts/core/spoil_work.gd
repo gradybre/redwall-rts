@@ -128,6 +128,7 @@ var _stage_tip: Vector2i = NULL_REF
 var _stage_tile: int = -1
 var _stage_operation: int = -1
 var _stage_action: int = -1
+var _math: IntMath.IntResult = IntMath.IntResult.new()
 
 
 func configure(tips: Tips, router: Router, contacts: Contacts) -> StringName:
@@ -287,7 +288,9 @@ func _fill_quote(tip: Vector2i, operation: int, quantity: int, out: Contract.Quo
 	if out == null:
 		return Contract.REFUSE_QUOTE
 	out.reset()
-	var total: int = Tips.total_work_mwu(operation, quantity)
+	if not Tips.total_work_mwu_into(operation, quantity, _math):
+		return Contract.REFUSE_QUOTE
+	var total: int = _math.value
 	var retained: int = _tips.retained_work_mwu(tip, operation, quantity) if _tips.is_live_tip(tip) else 0
 	if total <= 0 or retained < 0 or retained > total:
 		return Contract.REFUSE_QUOTE

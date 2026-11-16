@@ -1332,7 +1332,7 @@
       ],
       "acceptance": [
         "Full 3D envelopes across all intersected levels and protected landings",
-        "Fixed earth/timber, stone, ramp, spiral, ladder/hatch and short-step variants",
+        "Five fixed structural families (earth/timber, stone, ramp, spiral and ladder/hatch); source-qualified short-step is a locomotion programme consumed through Routes, not a structural connector family",
         "Real worker/load movement profile and occupied traversal safety; no stretching",
         "Publish actual immutable-datum 1m3 changed-solid quanta; no silent rounding of fine paint cells into unpriced void or duplicate yield"
       ],
@@ -1340,6 +1340,11 @@
       "branch": "claude/ug-paid-start",
       "evidence": {
         "in_progress": "Reviewed world-model envelope and held-pick travel packet a16b4621 integratedd10ecd61. Compact actual mole Actor content compiler/loader in progress; actual work contacts and moving tool grip acceptance remain open; zero production-qualified profiles.",
+        "contract_reconciliation_2026_11_16": {
+          "finding": "Queue wording had implied six structural connector families. Decision 1058/1070 define five; decisions 1164/1168 put short-step in source-qualified locomotion/Routes rather than connector geometry. Queue acceptance wording corrected to match the higher-authority contracts.",
+          "review": "Read-only review in isolated UG08 worktree; no source changes and no tests claimed.",
+          "impact": "No sixth connector enum or invented structural parts/landing/support/contact geometry. UG08 remains queued pending full authored geometry, profile, movement and quantum acceptance."
+        },
         "increments": [
           {
             "commit": "efadbab9",

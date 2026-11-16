@@ -29,6 +29,8 @@ const WaterplayScript := preload("res://demo/waterplay/demo_waterplay.gd")
 const DemoWorldScript := preload("res://demo/world/demo_world.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
+const WorkIds := preload("res://demo/work/work_ids.gd")
+const Promises := preload("res://test/work_promises.gd")
 const DemoFarmScript := preload("res://demo/farm/demo_farm.gd")
 const KitchenNode := preload("res://demo/kitchen/demo_kitchen.gd")
 const ForageRules := preload("res://demo/forage/forage_rules.gd")
@@ -167,11 +169,16 @@ func _run(rig: Rig, done: Callable, frames: int = MAX_FRAMES) -> bool:
 
 
 func _board_pass(rig: Rig) -> void:
-	"""The work board's part: each waiting job to the first idle resident who may take it."""
+	"""The work board's part: each waiting job to the first idle resident who may take it -- never one promised to
+	another, who means to come back to it (decision 0411; 1905)."""
 	for j: int in JobsScript.MAX_JOBS:
 		if not rig.jobs.waiting(j):
 			continue
+		var keeper: int = Promises.promised_to(rig.jobs, rig.cast.actor_count(),
+			WorkIds.SOURCE_ORCHARD, rig.jobs.serial[j])
 		for who: int in rig.cast.actor_count():
+			if keeper >= 0 and keeper != who:
+				continue
 			var brain: BrainScript = rig.jobs.brain_of(who)
 			if brain.order == BrainScript.ORDER_NONE and rig.jobs.eligibility(j, who).is_empty() and rig.jobs.claim(j, who):
 				break
@@ -436,7 +443,7 @@ func test_a_cart_is_built_for_its_wood() -> void:
 	"""A cart: refused without 4 U of wood; built at the baskets in 60 WU with the wood taken at the end; one a group."""
 	var rig := _rig(3)
 	_services.stores.wood_milli_u = 3999
-	assert_true(rig.jobs.order(JobsScript.K_CART, 1, -1, PackedInt32Array()).contains("of wood"), "short of wood")
+	assert_true(rig.jobs.order(JobsScript.K_CART, 1, -1, PackedInt32Array()).contains("a cart needs 4 logs (the stores hold 3 logs)"), "short of wood")
 	_services.stores.wood_milli_u = Rules.CART_WOOD_MILLI
 	assert_equal(rig.jobs.cart_refusal(1), "", "exactly enough")
 	_services.stores.wood_milli_u = 10000
@@ -577,7 +584,7 @@ func test_the_cards_say_the_move_and_the_cart() -> void:
 	assert_true(cards.tree_text(3).contains("Moved once already"), cards.tree_text(3))
 	assert_true(cards.stand_text(0).contains("no cart") and cards.stand_text(0).contains("0% wanted"), cards.stand_text(0))
 	card = cards.card_text(&"cart", CardsScript.SEL_STAND, 0, PackedInt32Array(), "")
-	assert_true(card.contains("40.0 U") and card.contains("Wood"), card)
+	assert_true(card.contains("up to 10 kg") and card.contains("2.5 kg") and card.contains("Wood"), card)
 	model.add_cart(0)
 	model.group_fresh_pct[0] = 75
 	assert_true(cards.stand_text(0).contains("a handcart") and cards.stand_text(0).contains("75% wanted"), cards.stand_text(0))

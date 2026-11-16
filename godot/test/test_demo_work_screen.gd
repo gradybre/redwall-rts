@@ -593,6 +593,7 @@ func test_spoil_rows_are_listed_with_their_phase_and_say_how_to_stop_them() -> v
 	work.fill(task, row)
 	assert_equal([task.action, task.worker, task.cancel_refusal], ["Clear", 1, SpoilWork.BY_ORDER], "its record")
 	assert_true(task.target.begins_with("spoil heap %d" % (heap + 1)), task.target)
+	assert_true(task.target.ends_with(" left)") and task.target.contains("basket"), "its earth in baskets: " + task.target)
 	assert_equal(work.cancel(row), SourceScript.UNSUPPORTED, "not cancelled from the board")
 	handoffs.after_each()
 

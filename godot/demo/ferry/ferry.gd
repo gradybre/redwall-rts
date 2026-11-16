@@ -1,4 +1,4 @@
-extends RefCounted
+extends "res://demo/boats/boat_service.gd"
 ## THE FERRY: one fixed two-landing cargo ferry from the ferry stage on the run to the far stage at the stream's mouth,
 ## with a staffed timetable, a departure threshold and weather closure; cargo first -- the far copse's windfall wood --
 ## and a passenger seat the router may choose. Decision 0437 (review ECO-041; water part B lane 3; Brendan's approval of
@@ -31,9 +31,11 @@ extends RefCounted
 ## crew needs a helm. A resident doing a job is driven by a thin task (ferry_task.gd), so the night, a meal call or an
 ## order takes it off cleanly -- except on a stage's deck or afloat (`water_hold`, MOVE-REQ-007).
 ##
-## PASSENGERS (the router's crossing row, water_crossings.gd FERRY_ROW). The ferry is offered to a trip that crosses the
-## water while it is open, staffed and boardable within MAX_WAIT_TICKS: its cost is the deck walks, the row and the
-## wait for the next boarding, as metres at the walker's pace. A passenger walks to the stage's land end, waits, boards
+## PASSENGERS (the router's crossing row: boat row 0, water_crossings.gd FERRY_ROW; decision 1821). The ferry is a boat
+## row's service (boat_service.gd): for each trip over the water it lists, at each stage, its next boardings with the
+## seat free (`fill_boat_row`: the one in sight now, then the timetable's) and its ride (both decks and the row), all in
+## integer ticks, nothing while closed or unstaffed; the router prices the wait from when the walker REACHES the stage,
+## at most MAX_WAIT_TICKS (it was priced from now, before 1821). A passenger walks to the stage's land end, waits, boards
 ## the second seat when the boat loads there, rides, and steps off at the other stage. Any refusal ends the leg where it
 ## stands -- closed, the wait too long, the seat taken, an order given meanwhile -- and it plans again by land.
 
@@ -56,6 +58,11 @@ const CastOrdersScript := preload("res://demo/cast/cast_orders.gd")
 const CastSpaceScript := preload("res://demo/cast/cast_space.gd")
 const Yard := preload("res://demo/forestry/forest_yard.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
+const BoatRows := preload("res://demo/routes/boat_rows.gd")
+const WaterRules := preload("res://demo/water/water_rules.gd")
+const UnfinishedScript := preload("res://demo/cast/unfinished_job.gd")
+const WorkIds := preload("res://demo/work/work_ids.gd")
+const HeldPlaces := preload("res://demo/work/held_places.gd")
 
 const NONE: int = -1
 const MAX_JOBS: int = 12
@@ -66,6 +73,8 @@ const JOBS_FULL_WORDS: String = "the ferry's job list is full — a crossing wai
 ## step after the crew does (with nothing to load, the crew would otherwise push off the step it sat down, leaving the
 ## waiting passenger on the stage -- seen live).
 const BOARD_GRACE_STEPS: int = 30
+## The slowest walk a crew's walk to the stage is reckoned at (mm a second; the old 0.1 m/s floor).
+const MIN_WALK_MM_S: int = 100
 ## The two stages: the ferry stage on the village side (the boat's home) and the far stage.
 const NEAR: int = 0
 const FAR: int = 1
@@ -186,6 +195,8 @@ var j_wait_usec: PackedInt64Array = PackedInt64Array()
 var j_tries: PackedInt32Array = PackedInt32Array()
 ## The last resident who could not reach the job's place: not handed the same job again (another may get there).
 var j_failed: PackedInt32Array = PackedInt32Array()
+## Who was let keep the job when called away (demo/work/held_places.gd; NONE: nobody), cleared when anyone claims it.
+var j_keeper: PackedInt32Array = PackedInt32Array()
 var j_sub: PackedInt32Array = PackedInt32Array()
 var j_paused: PackedByteArray = PackedByteArray()
 var j_words: PackedStringArray = PackedStringArray()
@@ -208,6 +219,9 @@ var _stack_at: PackedVector2Array = PackedVector2Array()
 var _wait_at: PackedVector2Array = PackedVector2Array()
 var _log_drop: Vector2 = Vector2.ZERO
 var _closed_said: int = Rules.OPEN
+## The row's and the ride's calendar ticks, worked out on first use (-1: not yet; the route and stages are fixed).
+var _row_t: int = -1
+var _ride_t: int = -1
 
 
 func configure(p_cast: DemoCastScript, p_fleet: FleetScript, p_skills: SkillsScript, p_ice: IceScript,
@@ -232,7 +246,7 @@ func configure(p_cast: DemoCastScript, p_fleet: FleetScript, p_skills: SkillsScr
 
 func _size_rows(residents: int) -> void:
 	"""Every column sized once."""
-	for column: PackedInt32Array in [j_serial, j_kind, j_step, j_worker, j_pile, j_tries, j_sub, j_failed]:
+	for column: PackedInt32Array in [j_serial, j_kind, j_step, j_worker, j_pile, j_tries, j_sub, j_failed, j_keeper]:
 		column.resize(MAX_JOBS)
 	for column: PackedInt64Array in [j_load, j_num, j_mwu, j_need, j_wait_usec]:
 		column.resize(MAX_JOBS)
@@ -411,6 +425,26 @@ func update(usec: int) -> void:
 		if j_live[j] == 1 and j_wait_usec[j] > 0:
 			j_wait_usec[j] = maxi(0, j_wait_usec[j] - usec)
 	_say_closure()
+	_release_held_crew()
+
+
+func _hand_over_keep(j: int) -> void:
+	"""Job `j` claimed: the worker who kept it while away keeps it no longer -- her kept entry goes, as the
+	board's Reassign does (her own take-back has popped it already) -- else her promise would outlive the keeper column
+	and hold the trip; the column is cleared."""
+	HeldPlaces.hand_over(j_keeper[j], self, WorkIds.SOURCE_FERRY, j_serial[j])
+	j_keeper[j] = NONE
+
+
+func _release_held_crew() -> void:
+	"""TRIP DOESN'T WAIT (decision 1905, demo/work/held_places.gd): a crossing ready to leave -- posted, the ferry open,
+	the boat waiting only for its crew (a crew aboard is never called away: `must_finish`) -- does not wait, in working
+	hours, for a crew place its helm KEPT when called away. A place the player queued for someone waits for her; a
+	gather or haul keeps its own; a closed ferry waits anyway, and keeps it."""
+	if x_serial == 0 or x_job == NONE or j_keeper[x_job] == NONE or not is_open() or not waiting(x_job):
+		return
+	if HeldPlaces.try_release(j_keeper[x_job], calendar, self, WorkIds.SOURCE_FERRY, j_serial[x_job]):
+		j_keeper[x_job] = NONE
 
 
 func _follow_hours() -> void:
@@ -431,7 +465,7 @@ func _windfall(day: int) -> void:
 		var spot: int = posmod(day + k, count)
 		if copse_milli[spot] == 0:
 			_fall(spot, Rules.pile_milli(day))
-			_note("Windfall is down in %s: %s" % [Rules.COPSE_NAME, Rules.units_text(copse_milli[spot])], false)
+			_note("Windfall is down in %s: %s" % [Rules.COPSE_NAME, StoresScript.Measures.amount(&"wood", copse_milli[spot])], false)
 			return
 
 
@@ -443,7 +477,7 @@ func _follow_timetable() -> void:
 			_post_crossing("the %s departure" % hour_words(next_departure))
 		next_departure = Rules.departure_tick_at_or_after(now + 1)
 	if x_serial == 0 and far_stack_milli >= Rules.THRESHOLD_MILLI and is_open() and _day_now() and staffed():
-		_post_crossing("the far stage's stack reached %s" % Rules.units_text(Rules.THRESHOLD_MILLI))
+		_post_crossing("the far stage's stack reached %s" % StoresScript.Measures.exact(&"wood", Rules.THRESHOLD_MILLI))
 	if x_state == X_HELD and x_job == NONE and is_open():
 		var j: int = _open_job(KIND_CREW)
 		if j == NONE:
@@ -657,6 +691,7 @@ func _open_job(kind: int) -> int:
 	_next_serial += 1
 	j_kind[j] = kind
 	j_worker[j] = NONE
+	j_keeper[j] = NONE
 	j_pile[j] = NONE
 	j_load[j] = 0
 	j_load_at[j] = Vector2.INF
@@ -716,6 +751,7 @@ func claim(j: int, who: int) -> bool:
 	if brain.task != task:
 		j_worker[j] = NONE
 		return false
+	_hand_over_keep(j)
 	revision += 1
 	return true
 
@@ -789,14 +825,35 @@ func drive(j: int, serial: int, brain: BrainScript, delta: float) -> bool:
 	return is_job(j, serial) and j_worker[j] == brain.index
 
 
-func called_away(j: int, serial: int, brain: BrainScript) -> void:
-	"""The brain gave the task up: a walk it could not finish, or an order, the night or a release."""
+func called_away(j: int, serial: int, brain: BrainScript) -> bool:
+	"""The brain gave the task up: a walk it could not finish, or an order, a meal, the night or a release. True when
+	the worker keeps the job to come back to (decision 1905, as the orchard's 1900; the board leaves it to that
+	resident meanwhile, decision 0411): let go here, not for a failed walk."""
 	if not is_job(j, serial) or j_worker[j] != brain.index:
-		return
+		return false
 	if brain.trip_failed() and WALK_STEPS.has(j_step[j]):
 		_unreached(j, brain)
-		return
+		return false
 	_let_go(j)
+	j_keeper[j] = brain.index
+	return true
+
+
+func unfinished_of(j: int, serial: int) -> UnfinishedScript:
+	"""Job `j` as the entry its worker keeps when called away (decision 1905, the orchard's 1900): taken back by
+	`take_back` while it is still the same job, naming the work board's task (its serial) so nobody else claims it
+	meanwhile. Null once the job is over."""
+	if not is_job(j, serial):
+		return null
+	return UnfinishedScript.new(take_back.bind(j, serial), "%s, %s" % [KIND_WORDS[j_kind[j]], place_words(j)],
+		WorkIds.SOURCE_FERRY, serial)
+
+
+func take_back(brain: BrainScript, j: int, serial: int) -> bool:
+	"""A resident called away comes back to job `j` (resident_brain.gd RESUMING): claimed again only while it is the
+	same job and waits for someone -- never a seat or a crew place refilled meanwhile, a paused job, or one waiting out
+	a walk nobody finished."""
+	return is_job(j, serial) and claim(j, brain.index)
 
 
 func must_finish(j: int, serial: int) -> bool:
@@ -982,7 +1039,7 @@ func _gathered(j: int) -> void:
 func _consign(j: int, brain: BrainScript) -> void:
 	"""The wood put down on the far stage's stack (in hand -> far stack): the job is done."""
 	far_stack_milli += j_load[j]
-	_note("%s brought %s of windfall to %s" % [name_of(brain.index), Rules.units_text(j_load[j]), Routes.FAR_STAGE_NAME], false)
+	_note("%s brought windfall to %s: %s" % [name_of(brain.index), Routes.FAR_STAGE_NAME, StoresScript.Measures.amount(&"wood", j_load[j])], false)
 	j_load[j] = 0
 	_end_job(j)
 
@@ -1005,8 +1062,8 @@ func _store(j: int, brain: BrainScript) -> void:
 	stores.add_wood(milli)
 	stored_milli += milli
 	j_load[j] = 0
-	_note("%s stacked %s of ferried wood: the stores hold %s" % [name_of(brain.index), Rules.units_text(milli),
-		Rules.units_text(stores.wood_milli_u)], false)
+	_note("%s stacked the ferried wood, %s: the stores hold %s" % [name_of(brain.index), StoresScript.Measures.amount(&"wood", milli),
+		StoresScript.Measures.amount(&"wood", stores.wood_milli_u)], false)
 	_end_job(j)
 
 
@@ -1167,7 +1224,7 @@ func _unloaded() -> void:
 	near_stack_milli += aboard_milli
 	ferried_milli += aboard_milli
 	if aboard_milli > 0:
-		_note("The ferry landed %s of wood at %s" % [Rules.units_text(aboard_milli), Routes.FERRY_STAGE_NAME], false)
+		_note("The ferry landed %s at %s" % [StoresScript.Measures.amount(&"wood", aboard_milli), Routes.FERRY_STAGE_NAME], false)
 	aboard_milli = 0
 	revision += 1
 
@@ -1259,26 +1316,101 @@ func seat_free() -> bool:
 
 func wait_ticks(from: int) -> int:
 	"""Calendar ticks a passenger at stage `from` waits to board (NONE: no boarding in sight -- closed, unstaffed, or the
-	boat held): a crossing posted and waiting for its crew, the crew's walk to the ferry stage (plus the row out, for the
-	far stage); at once where this crossing's boat is (or is rowing to: its row); else its next call there -- the next
-	scheduled departure from home, plus its row out for the far stage."""
-	if not is_open() or not staffed() or x_state == X_HELD:
+	boat held): the crossing under way where it will still load there (`_underway_board`), else the first scheduled
+	departure it can take once home again (`_first_departure`), plus the row out for the far stage."""
+	if not boardable():
 		return NONE
-	if x_serial != 0 and x_state == X_WAITING:
-		return _crew_walk_ticks() + (_row_ticks() if from == FAR else 0)
-	if x_serial != 0 and x_stage == from:
-		return _row_ticks() if x_state == X_ROWING else 0
-	var depart: int = maxi(next_departure - now_tick(), 0)
-	if x_serial != 0:
-		depart = maxi(depart, _row_ticks())
-	if from == FAR:
-		depart += _row_ticks()
-	return depart
+	var under: int = _underway_board(from)
+	if under != NONE:
+		return under
+	var now: int = now_tick()
+	return _first_departure(now) - now + (_row_ticks() if from == FAR else 0)
+
+
+func boardable() -> bool:
+	"""Whether anyone may be offered a boarding: open, staffed and not held at the far stage."""
+	return is_open() and staffed() and x_state != X_HELD
+
+
+func _underway_board(stage: int) -> int:
+	"""When the crossing under way loads at `stage`, in ticks from now (NONE: none under way, or it will not load there
+	again). Posted for its crew: the crew's walk to the ferry stage (and the row out to the far stage). Loading at home:
+	now (the far stage: a row on). Rowing out: the far stage when it gets there. At the far stage: now, there. Homeward
+	-- rowing home, unloading or stepping off at home -- it loads nowhere: at home a crossing loads only setting out.
+	(No crossing under way is X_NONE: `_end_crossing` clears the serial and the state together.)"""
+	var row_out: int = _row_ticks() if stage == FAR else 0
+	match x_state:
+		X_WAITING:
+			return _crew_walk_ticks() + row_out
+		X_LOADING, X_UNLOADING:
+			if x_stage == NEAR:
+				return row_out if x_state == X_LOADING else NONE
+			return 0 if stage == FAR else NONE
+		X_ROWING:
+			return _row_left_ticks() if x_stage == FAR and stage == FAR else NONE
+	return NONE
+
+
+func _home_again(now: int) -> int:
+	"""A tick the crossing under way is surely home again by, to take a scheduled departure (none under way: `now`): the
+	rest of its round trip -- the crew's walk and boarding, the rows still to row, and a whole STOP at each stage still to
+	call at (`_stop_ticks`). A departure due while it is out is not posted (`_follow_timetable`), so this errs late: a
+	departure it hides is only a later boat priced, never a boat that does not come. The crew's walk to the stage is
+	reckoned at twice its straight line (`_crew_walk_ticks`, a straight line). Until the crew is on the deck it can be
+	early still: a crew detouring further, called away (the night, a meal, an order) and the job claimed again, standing
+	down while a rescue has the boat, or no crew claiming it yet. A passenger then waits for the next departure, or goes
+	by land from the stage (`passenger_refusal`). Decision 1821 P5."""
+	var row: int = _row_ticks()
+	var stop: int = _stop_ticks()
+	match x_state:
+		X_WAITING:
+			return now + 2 * _crew_walk_ticks() + _deck_ticks() + 2 * row + 2 * stop
+		X_LOADING:
+			return now + (2 * row + 2 * stop if x_stage == NEAR else row + 2 * stop)
+		X_UNLOADING:
+			return now + (stop if x_stage == NEAR else row + 2 * stop)
+		X_ROWING:
+			return now + _row_left_ticks() + (row + 2 * stop if x_stage == FAR else stop)
+		X_HOMING:
+			return now + _deck_ticks()
+	return now
+
+
+func _stop_ticks() -> int:
+	"""An upper bound on a call at a stage, in ticks: riders stepping off and on (two deck walks) and a full boat's cargo
+	handled at the slowest work rate (level 0: fishery_rules.gd MWU_PER_TICK)."""
+	var handle: int = Rules.handle_mwu(Rules.BOAT_CARGO_MILLI)
+	@warning_ignore("integer_division") var handle_ticks: int = (handle + FisheryRules.MWU_PER_TICK - 1) / FisheryRules.MWU_PER_TICK
+	return 2 * _deck_ticks() + handle_ticks
+
+
+func _deck_ticks() -> int:
+	"""Ticks to walk the ferry stage's deck (Rules.DECK_WALK_MM_S), rounded up."""
+	var deck_u: int = Routes.leg_length_u(Routes.JETTY_LANDS_U[STAGE_JETTY[NEAR]], Routes.JETTY_ENDS_U[STAGE_JETTY[NEAR]])
+	@warning_ignore("integer_division") var deck_mm: int = deck_u * BoatRows.MM_PER_M / WaterRules.UNITS_PER_M
+	return BoatRows.ticks_to_cover(deck_mm, Rules.DECK_WALK_MM_S)
+
+
+func _first_departure(now: int) -> int:
+	"""The first scheduled departure from home the ferry can take: the timetable's next, and none before the crossing under
+	way is home again."""
+	var home: int = _home_again(now)
+	return next_departure if home <= now else maxi(next_departure, Rules.departure_tick_at_or_after(home))
+
+
+func _row_left_ticks() -> int:
+	"""Calendar ticks left of the ferry boat's row under way (out: to the far stage; back: to its berth)."""
+	var boat: int = Routes.FERRY_BOAT
+	var left: int = fleet.progress_u[boat] if fleet.phase[boat] == FleetScript.PHASE_BACK \
+		else fleet.course_len_u[boat] - fleet.progress_u[boat]
+	return BoatRows.ticks_to_cover(left, FleetScript.ROW_SPEED_U_S)
 
 
 func _row_ticks() -> int:
-	"""Calendar ticks the ferry's row takes, one way."""
-	return _ticks_of(Rules.row_seconds(Routes.route_length_u(Routes.FERRY_BOAT)))
+	"""Calendar ticks the ferry's row takes, one way (rounded up; its route is fixed, so worked out once)."""
+	if _row_t < 0:
+		_row_t = BoatRows.ticks_to_cover(Routes.route_length_u(Routes.FERRY_BOAT), FleetScript.ROW_SPEED_U_S)
+	return _row_t
 
 
 func _crew_walk_ticks() -> int:
@@ -1288,28 +1420,53 @@ func _crew_walk_ticks() -> int:
 	if who == NONE:
 		return maxi(next_departure - now_tick(), 0)
 	var brain: BrainScript = brain_of(who)
-	return _ticks_of(brain.position.distance_to(stage_land(NEAR)) / maxf(brain.walk_speed, 0.1))
+	var mm: int = roundi(brain.position.distance_to(stage_land(NEAR)) * float(BoatRows.MM_PER_M))
+	return BoatRows.ticks_to_cover(mm, maxi(roundi(brain.walk_speed * float(BoatRows.MM_PER_M)), MIN_WALK_MM_S))
 
 
-static func _ticks_of(seconds: float) -> int:
-	"""Calendar ticks `seconds` demo seconds take at 1x."""
-	return int(seconds * float(SimClock.TICKS_PER_HOUR) * 1000000.0 / float(CalendarScript.HOUR_USEC))
+func ride_ticks() -> int:
+	"""A passenger's ride, stage to stage, in calendar ticks: down one stage's deck and up the other's at
+	Rules.DECK_WALK_MM_S, and the row between them (each rounded up; worked out once)."""
+	if _ride_t >= 0:
+		return _ride_t
+	var decks_u: int = 0
+	for stage: int in 2:
+		var jetty: int = STAGE_JETTY[stage]
+		decks_u += Routes.leg_length_u(Routes.JETTY_LANDS_U[jetty], Routes.JETTY_ENDS_U[jetty])
+	@warning_ignore("integer_division") var decks_mm: int = decks_u * BoatRows.MM_PER_M / WaterRules.UNITS_PER_M
+	_ride_t = BoatRows.ticks_to_cover(decks_mm, Rules.DECK_WALK_MM_S) + _row_ticks()
+	return _ride_t
 
 
-func offer_cost_m(walker: int, from: Vector2, loaded: bool) -> float:
-	"""What the ferry costs `walker` setting out from `from` (carrying, when `loaded`), as metres at its pace (INF: not
-	offered): both decks walked, the row, and the wait for its next boarding at the stage nearer `from`."""
-	if walker < 0 or walker >= p_state.size() or fleet == null:
-		return INF
-	var stage: int = NEAR if from.distance_to(stage_land(NEAR)) <= from.distance_to(stage_land(FAR)) else FAR
-	var wait: int = wait_ticks(stage)
-	if wait == NONE or wait > Rules.MAX_WAIT_TICKS or _booked(stage, walker):
-		return INF
-	var deck_m: float = 2.0 * Routes.jetty_land_m(STAGE_JETTY[NEAR]).distance_to(Routes.jetty_end_m(STAGE_JETTY[NEAR]))
-	var seconds: float = deck_m / Rules.DECK_WALK_M_S + Rules.row_seconds(Routes.route_length_u(Routes.FERRY_BOAT)) \
-		+ Rules.ticks_seconds(wait)
-	var brain: BrainScript = brain_of(walker)
-	return seconds * brain.walk_speed * (BrainScript.CARRY_WALK_FRACTION if loaded else 1.0)
+func fill_boat_row(rows: BoatRows, r: int, walker: int, _from: Vector2, _carrying: bool) -> void:
+	"""The ferry's boat row for `walker` (see PASSENGERS): open between the two stages with its ride and its longest
+	wait, and at each stage its boardings with the seat free -- none while closed, unstaffed or held."""
+	if walker < 0 or walker >= p_state.size() or fleet == null or not boardable():
+		return
+	rows.open_row(r, stage_land(NEAR), stage_land(FAR), ride_ticks(), Rules.MAX_WAIT_TICKS)
+	for stage: int in 2:
+		_list_boardings(rows, r, stage, walker)
+
+
+func _list_boardings(rows: BoatRows, r: int, stage: int, walker: int) -> void:
+	"""Stage `stage`'s boardings, in ticks from now (see boat_rows.gd A ROW), MAX_BOARDINGS at most: the crossing under
+	way, if it will load there (ready by its boarding: it comes whatever), then each scheduled departure from the first it
+	can take (`_first_departure`; the far stage a row later), ready by the departure -- one is posted only for a passenger
+	already waiting when it leaves home. The next boarding is skipped when another passenger has booked its seat."""
+	var now: int = now_tick()
+	var skip: bool = _booked(stage, walker)
+	var under: int = _underway_board(stage)
+	if under != NONE:
+		if not skip:
+			rows.add_boarding(r, stage, under, under)
+		skip = false
+	var offset: int = _row_ticks() if stage == FAR else 0
+	var depart: int = _first_departure(now)
+	for k: int in BoatRows.MAX_BOARDINGS:
+		if not skip:
+			rows.add_boarding(r, stage, maxi(depart - now, 0), maxi(depart + offset - now, 0))
+		skip = false
+		depart = Rules.departure_tick_at_or_after(depart + 1)
 
 
 func _booked(stage: int, walker: int) -> bool:
@@ -1514,7 +1671,7 @@ func doing_text(j: int, serial: int) -> String:
 		S_GATHER:
 			return "gathering windfall in %s" % Rules.COPSE_NAME
 		S_TO_FAR_STACK, S_TO_LOG_STACK:
-			return "carrying %s of wood to %s" % [Rules.units_text(j_load[j]), place_words(j)]
+			return "carrying %s to %s" % [StoresScript.Measures.amount(&"wood", j_load[j]), place_words(j)]
 		S_PICK:
 			return "taking up ferried wood"
 		S_BOARD:

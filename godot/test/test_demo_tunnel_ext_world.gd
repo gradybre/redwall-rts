@@ -859,7 +859,7 @@ func test_orders_are_refused_with_their_reasons() -> void:
 	space.tunnels.reopen(0)
 	works.stores.wood_milli_u = 499
 	assert_false(actions.order(JobsScript.JOB_LANTERNS, PackedInt32Array()), "short")
-	assert_equal(works.log_lines[-1], "Can't: the demo stores are short (need wood 0.5 U, stone 0.0 U)", "said")
+	assert_equal(works.log_lines[-1], "Can't: the demo stores are short (need 2 quarter logs)", "said")
 
 
 func test_a_job_goes_to_the_selected_resident_else_the_nearest_free_one() -> void:
@@ -993,14 +993,14 @@ func test_a_dig_s_cost_is_told_through_its_ground() -> void:
 	0207), laid as a piece: an entrance ramp of RAMP_RUN_U (4096 u: its shaft and 4 quanta), a 0.45 m bore
 	(1) and an exit ramp of RAMP_RUN_U (4 and its shaft) -- 11 quanta, as the uniform rule's shaft + 9 +
 	shaft: two of loam, five of clay (147 ticks) and four of rock -- 1413 ticks, 47 s -- and
-	2 x 2000 + 5 x 2400 + 4 x 1200 = 20.8 U of spoil. (Fails while underground_graph.gd rounds the exit
+	2 x 2000 + 5 x 2400 + 4 x 1200 = 20.8 U of spoil, 10 baskets of earth (2 U each, rounded down). (Fails while underground_graph.gd rounds the exit
 	ramp's foot so the ramp is stored 4097 u long and cuts a fifth bore quantum: 12 m³, 23 U, 52 s.)"""
 	var tool := _tool(PackedInt32Array([0]))
 	tool.begin_plan()
 	assert_true(tool.lay_ground(Vector2(3.0, 2.8)), "entrance")
 	assert_true(tool.lay_ground(Vector2(9.6, -2.48)), "exit")
 	assert_true(tool.confirm(), "dug")
-	assert_equal(_notices[-1], "Digging a 8.5 m tunnel: 11 m³ to cut, 20 U of spoil, about 47 s", "told")
+	assert_equal(_notices[-1], "Digging a 8.5 m tunnel: 11 m³ to cut, 10 baskets of earth to heap, about 47 s", "told")
 
 
 func test_the_panel_shows_the_selected_tunnel_and_its_repair() -> void:
@@ -1062,14 +1062,17 @@ func _key_event(code: Key, shift: bool = false) -> InputEventKey:
 
 
 func test_the_room_tool_lays_a_home_with_its_passage() -> void:
-	"""In the Dig tool, H opens the home tool; R turns the ghost; north of a tunnel's bore (z 5 m) the ghost
+	"""In the Dig tool, the build panel's Burrow home card opens the home tool (`begin_room`; H no longer does,
+	decision 1871); R turns the ghost; north of a tunnel's bore (z 5 m) the ghost
 	offers its passage to its south socket; a click lays the room and the passage -- the room first in the
 	mole's job list -- and the mole goes to dig; Esc goes back to laying tunnels (decision 0209)."""
 	var tool := _tool(PackedInt32Array([0]))
 	var chain := _open_tunnel(_space_of(tool), [Vector2i(0, 5120), Vector2i(12288, 5120)])
 	tool.ext.works.step(1)
 	assert_true(tool.begin_plan(), "the Dig tool")
-	assert_true(tool.handle_input(_key_event(KEY_H)), "H")
+	assert_false(tool.handle_input(_key_event(KEY_H)), "H is not the tool's now")
+	assert_false(tool.room.active, "so no home tool")
+	assert_true(tool.begin_room(RoomsScript.TEMPLATE_HOME), "the Burrow home card")
 	assert_true(tool.room.active and tool.room.plan.kind == RoomsScript.TEMPLATE_HOME, "the home tool")
 	tool.room.move_to(Vector2(6.0, 10.0))
 	for k in 2:
@@ -1265,9 +1268,10 @@ func test_the_room_tool_says_why_a_room_may_not_go() -> void:
 	var list := PackedInt32Array()
 	tool.network.job_list_into(list)
 	assert_equal(list.size(), 1, "no passage")
-	assert_true(tool.handle_input(_key_event(KEY_C)), "C")
+	assert_false(tool.handle_input(_key_event(KEY_C)), "C is not the tool's now")
+	assert_true(tool.begin_room(RoomsScript.TEMPLATE_CELLAR), "the Root cellar card")
 	assert_equal(tool.room.plan.kind, RoomsScript.TEMPLATE_CELLAR, "the cellar tool")
-	assert_true(tool.handle_input(_key_event(KEY_C)), "C again")
+	assert_false(tool.begin_room(RoomsScript.TEMPLATE_CELLAR), "the same card again")
 	assert_false(tool.room.active, "back to tunnels")
 
 
@@ -1894,7 +1898,7 @@ func test_a_cellar_s_racks_are_not_taken_out_below_its_food_from_the_panel() -> 
 	ext.select_room(ref[0])
 	ext.set_stored(func(_room_row: int) -> int: return 12)
 	assert_equal(ext.fit_action(&"fit:take:5", PackedInt32Array()), 7, "refused")
-	assert_equal(ext.works.log_lines[-1], "Can't: Root cellar %d holds 12 U of food: its racks cannot drop below that" % (ref[0] + 1),
+	assert_equal(ext.works.log_lines[-1], "Can't: Root cellar %d holds 2 baskets of food: its racks cannot drop below that" % (ref[0] + 1),
 		"said")
 
 

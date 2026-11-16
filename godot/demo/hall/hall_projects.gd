@@ -19,6 +19,7 @@ extends RefCounted
 
 const Rules := preload("res://demo/hall/hall_rules.gd")
 const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 const PHASE_NONE: int = 0
 const PHASE_DELIVERING: int = 1
@@ -306,7 +307,7 @@ func cancel(project: int) -> String:
 		_put_back(mat, transit[cell(project, mat)])
 		if refund > 0:
 			_put_back(mat, refund)
-			back.append("%s %s" % [StoresScript.units_text(refund), Rules.MAT_NAMES[mat]])
+			back.append(Measures.amount(StringName(Rules.MAT_NAMES[mat]), refund))
 	last_refund = ", ".join(back) if not back.is_empty() else "nothing"
 	phase[project] = PHASE_NONE
 	generation[project] += 1

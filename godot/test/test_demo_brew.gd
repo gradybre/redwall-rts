@@ -31,6 +31,8 @@ const WaterplayScript := preload("res://demo/waterplay/demo_waterplay.gd")
 const DemoWorldScript := preload("res://demo/world/demo_world.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
+const WorkIds := preload("res://demo/work/work_ids.gd")
+const Promises := preload("res://test/work_promises.gd")
 const DemoFarmScript := preload("res://demo/farm/demo_farm.gd")
 const FieldGuideScript := preload("res://demo/guide/field_guide.gd")
 const PropsScript := preload("res://demo/props/demo_props.gd")
@@ -123,12 +125,17 @@ func _run(rig: Rig, done: Callable, frames: int = MAX_FRAMES) -> bool:
 
 
 func _board_pass(rig: Rig) -> void:
-	"""Each waiting job to the first idle resident who may take it."""
+	"""Each waiting job to the first idle resident who may take it -- never one promised to
+	another, who means to come back to it (decision 0411; 1905)."""
 	var f: FisheryScript = rig.fishery
 	for j: int in Tables.MAX_JOBS:
 		if not f.waiting(j):
 			continue
+		var keeper: int = Promises.promised_to(rig.fishery, rig.cast.actor_count(),
+			WorkIds.SOURCE_FISHERY, f.tables.j_serial[j])
 		for who: int in rig.cast.actor_count():
+			if keeper >= 0 and keeper != who:
+				continue
 			var brain: BrainScript = f.brain_of(who)
 			if brain.order == BrainScript.ORDER_NONE and not brain.in_water and f.eligibility(j, who).is_empty() and f.claim(j, who):
 				break
@@ -247,10 +254,12 @@ func test_brewing_says_what_is_missing() -> void:
 	"""No honey: refused with the apiary as its fix; berries short for the cordial: berries named."""
 	var rig := _rig()
 	var f: FisheryScript = rig.fishery
-	assert_true(f.batch_refusal(Recipes.R_MEAD).contains("of honey nobody has set aside"), f.batch_refusal(Recipes.R_MEAD))
+	assert_true(f.batch_refusal(Recipes.R_MEAD).begins_with("the stores have no honey free; a batch takes 3 jars of honey"),
+		f.batch_refusal(Recipes.R_MEAD))
 	assert_equal([f.refused_code, f.refused_fix], ["NO_HONEY", Recipes.IN_FIX[5]], "the apiary")
 	rig.pantry.add_into(Catalog.ITEM_HONEY, 1000, 0, _read)
-	assert_true(f.batch_refusal(Recipes.R_CORDIAL).contains("of berries"), "the cordial's berries")
+	assert_true(f.batch_refusal(Recipes.R_CORDIAL).begins_with("the stores have no berries free; a batch takes 2 bowls of berries"),
+		"the cordial's berries")
 	assert_equal(f.refused_code, "NO_BERRIES", "its code")
 
 
@@ -276,8 +285,8 @@ func test_the_feast_pours_the_drinks_it_holds() -> void:
 	assert_true(pantry.add_into(Catalog.ITEM_MEAD, 5000, 0, _read), "mead in store")
 	var menu := _menu_over(pantry)
 	assert_equal(MenuScript.drink_need_milli(9), 3000, "ceil(9/4) = 3 U")
-	assert_true(menu.drinks_words(9).contains("mead 3.0 U (free 5.0 U)"), menu.drinks_words(9))
-	assert_true(menu.drinks_words(9).contains("cordial 3.0 U (free 0.0 U) — not poured"), "the cordial short")
+	assert_true(menu.drinks_words(9).contains("mead 3 jugs (free 5 jugs)"), menu.drinks_words(9))
+	assert_true(menu.drinks_words(9).contains("cordial 3 jugs (free none) — not poured"), "the cordial short")
 	menu.reserve(menu.kitchen.takes.new_take(), 9, 0)
 	assert_equal(Array(menu.drinks_planned), [3000, 0, 0, 0], "mead set aside, no cordial, ale or cider")
 	assert_equal(menu.free_drink(0), 2000, "3 U of mead reserved")
@@ -305,7 +314,7 @@ func test_the_guide_has_the_drinks() -> void:
 		assert_equal(entry.summary, PreserveText.summary(item), Catalog.ITEM_KEYS[item])
 	var fields: PackedStringArray = PreserveText.guide_fields(Catalog.ITEM_MEAD, 0)
 	assert_true(fields[0].contains("No one is made drunk"), fields[0])
-	assert_true(fields[1].contains("honey 3.0 U, water 3.0 U make 4.0 U, 20 WU and 72 hours at the brewery"), fields[1])
+	assert_true(fields[1].contains("3 jars of honey, 3 jugs of water make 4 jugs of mead, 20 WU and 72 hours at the brewery"), fields[1])
 	assert_equal(fields[2], PreserveText.DRINK_ALTERNATIVE, "the infusion")
 
 

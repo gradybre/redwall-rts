@@ -1,12 +1,14 @@
 extends RefCounted
 ## The soil plans' words (decision 0451, ECO-005): each plan as lines a column of the planner shows, every figure from
-## farm_soil_plans.gd and said the bed panel's way (decision 0251: percentages, points, one `units_text`).
+## farm_soil_plans.gd and said the bed panel's way (decision 0251: percentages, points; amounts in their natural measures
+## through goods_measures.gd, decision 1801: "a basket of compost", "about 5 bunches of carrots").
 
 const Plans := preload("res://demo/farm/farm_soil_plans.gd")
 const RecordText := preload("res://demo/farm/farm_record_text.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const Text := preload("res://demo/farm/farm_text.gd")
 const CardScript := preload("res://demo/ui/action_card.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 const NONE: String = "—"
 
@@ -20,7 +22,7 @@ static func steps_line(plan: Plans.Plan) -> String:
 	"""What the plan does, in order."""
 	match plan.kind:
 		Plans.PLAN_COMPOST:
-			return "Compost on %s (%s), then %s" % [day_text(plan.start_day), Text.units_text(
+			return "Compost on %s (%s), then %s" % [day_text(plan.start_day), Measures.exact(&"compost",
 				Plans.FarmingScript.COMPOST_MILLI_PER_TILE), _sow_words(plan)]
 		Plans.PLAN_LEGUME:
 			var sow: String = _sow_words(plan)
@@ -39,13 +41,13 @@ static func _sow_words(plan: Plans.Plan) -> String:
 
 
 static func harvest_line(plan: Plans.Plan) -> String:
-	"""'This season: carrot, about 5.4 U, ≈ Spring 8' or 'This season: no harvest'."""
+	"""'This season: about 5 bunches of carrots, ≈ Spring 8' or 'This season: no harvest'."""
 	if plan.harvest_day == Plans.NO_DAY:
 		return "This season: no harvest"
 	var when: String = day_text(plan.harvest_day)
 	var late: String = " (after this season)" if plan.harvest_day > plan.end_day else ""
-	return "This season: %s, about %s, ≈ %s%s" % [Catalog.ITEM_LABELS[plan.crop].to_lower(),
-		Text.units_text(plan.harvest_milli), when, late]
+	return "This season: about %s, ≈ %s%s" % [Measures.amount(Catalog.ITEM_KEYS[plan.crop], plan.harvest_milli), when,
+		late]
 
 
 static func soil_line(plan: Plans.Plan, fertility_now: int) -> String:
@@ -55,14 +57,16 @@ static func soil_line(plan: Plans.Plan, fertility_now: int) -> String:
 
 
 static func next_line(plan: Plans.Plan) -> String:
-	"""What the next crop would then yield: 'Then carrot: about 5.7 U' (the compost plan's harvest is its next crop)."""
+	"""What the next crop would then yield, in its measure beside its name: 'Then carrot, sown after it: about 5 bunches'
+	(the compost plan's harvest is its next crop)."""
 	if not Catalog.is_item(plan.next_crop):
 		return "Then: no crop suits this soil"
 	var name: String = Catalog.ITEM_LABELS[plan.next_crop].to_lower()
+	var amount: String = Measures.amount_cell(Catalog.ITEM_KEYS[plan.next_crop], plan.next_milli)
 	if plan.kind == Plans.PLAN_COMPOST:
-		return "Next %s: about %s (this season's harvest)" % [name, Text.units_text(plan.next_milli)] \
+		return "Next %s: about %s (this season's harvest)" % [name, amount] \
 			if plan.harvest_day != Plans.NO_DAY else "Next %s: not this season" % name
-	return "Then %s, sown after it: about %s" % [name, Text.units_text(plan.next_milli)]
+	return "Then %s, sown after it: about %s" % [name, amount]
 
 
 static func staff_line(plan: Plans.Plan) -> String:

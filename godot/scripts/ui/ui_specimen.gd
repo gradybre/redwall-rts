@@ -34,7 +34,7 @@ const CELL_WIDTH: float = 150.0
 const CELL_GAP: float = 12.0
 const LABEL_WIDTH: float = 130.0
 const METER_VALUE: float = 62.0
-const SYNTHETIC_COUNTER: String = "1,234 U"
+const SYNTHETIC_COUNTER: String = "1,234 logs"
 
 
 func _ready() -> void:

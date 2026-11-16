@@ -23,6 +23,7 @@ const ProjectsScript := preload("res://demo/hall/hall_projects.gd")
 const CrewScript := preload("res://demo/hall/hall_crew.gd")
 const TapestryScript := preload("res://demo/hall/tapestry.gd")
 const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 const LAYER: int = 1
 const MAX_W: float = 560.0
@@ -30,10 +31,13 @@ const MAX_H: float = 640.0
 const GAP: float = 10.0
 const SECTION_PX: int = 16
 const REFRESH_S: float = 0.25
-const UPGRADE_COST: String = "Stone 40 · wood 20 · cloth 8 · 1200 WU. Warmer: a hearth here burns fuel ×0.75 and the " \
+## The costs' lines, worded from hall_rules.gd's package by goods_measures.gd (decision 1801): "40 blocks of stone · 20
+## logs · a bolt of cloth · 1200 WU. ...", "Each: a log · 12 WU — ...".
+const UPGRADE_COST: String = "%s · %s · %s · %d WU. Warmer: a hearth here burns fuel ×0.75 and the " \
 	+ "comfort target rises 1000. No new floor or beds; it is the hall's one upgrade (GDD §5.9)."
-const BANNER_COST: String = "Each: wood 1 · 12 WU — a decoration, +250 comfort, at most +1000 (four banners)."
-const CANCEL_BEFORE: String = "Cancel: every unit delivered so far comes back to the stores (no work begun)"
+const BANNER_COST: String = "Each: %s · %d WU — a decoration, +250 comfort, at most +1000 (four banners)."
+const CANCEL_BEFORE: String = "Cancel: all the materials delivered so far come back to the stores (no work " \
+	+ "begun)"
 const CANCEL_AFTER: String = "Cancel: 80% of what was delivered comes back, rounded down — work has begun (REQ-SET-126)"
 
 var _projects: ProjectsScript = null
@@ -141,11 +145,11 @@ func _build_body(body: VBoxContainer) -> void:
 	body.add_child(FarmUi.label("What the hall gives", SECTION_PX, Palette.UMBER, true))
 	_gives = _line(body, Palette.INK)
 	body.add_child(FarmUi.label("Stage 2: the great hall", SECTION_PX, Palette.UMBER, true))
-	body.add_child(FarmUi.label(UPGRADE_COST, FarmUi.SMALL_PX, Palette.UMBER))
+	body.add_child(FarmUi.label(upgrade_cost_text(), FarmUi.SMALL_PX, Palette.UMBER))
 	_upgrade = _line(body, Palette.INK)
 	_add_row(body, [_button(&"plan_upgrade", "Plan the upgrade", ""), _button(&"cancel_upgrade", "Cancel it", "")])
 	body.add_child(FarmUi.label("Banners", SECTION_PX, Palette.UMBER, true))
-	body.add_child(FarmUi.label(BANNER_COST, FarmUi.SMALL_PX, Palette.UMBER))
+	body.add_child(FarmUi.label(banner_cost_text(), FarmUi.SMALL_PX, Palette.UMBER))
 	_banners = _line(body, Palette.INK)
 	_add_row(body, [_button(&"plan_banner", "Hang a banner", ""), _button(&"cancel_banner", "Cancel a banner", "")])
 	_stock = _line(body, Palette.UMBER)
@@ -337,14 +341,36 @@ static func upgrade_text(projects: ProjectsScript, crew: CrewScript) -> String:
 	return "Ready to plan. Residents selected when you plan it go at once; otherwise the work board sends builders."
 
 
+static func upgrade_cost_text() -> String:
+	"""The upgrade's package (REQ-SET-136) in its measures: "40 blocks of stone · 20 logs · a bolt of cloth · 1200 WU.
+	…"."""
+	return UPGRADE_COST % [Measures.exact(&"stone", Rules.UPGRADE_MILLI[Rules.MAT_STONE]),
+		Measures.exact(&"wood", Rules.UPGRADE_MILLI[Rules.MAT_WOOD]),
+		Measures.exact(&"cloth", Rules.UPGRADE_MILLI[Rules.MAT_CLOTH]), Rules.UPGRADE_WU]
+
+
+static func package_words() -> String:
+	"""The upgrade's package in a sentence, for the news and the tapestry: "40 blocks of stone, 20 logs and a bolt of
+	cloth"."""
+	return "%s, %s and %s" % [Measures.exact(&"stone", Rules.UPGRADE_MILLI[Rules.MAT_STONE]),
+		Measures.exact(&"wood", Rules.UPGRADE_MILLI[Rules.MAT_WOOD]),
+		Measures.exact(&"cloth", Rules.UPGRADE_MILLI[Rules.MAT_CLOTH])]
+
+
+static func banner_cost_text() -> String:
+	"""A banner's cost: "Each: a log · 12 WU — …"."""
+	return BANNER_COST % [Measures.exact(&"wood", Rules.BANNER_MILLI[Rules.MAT_WOOD]), Rules.BANNER_WU]
+
+
 static func delivery_text(projects: ProjectsScript, project: int) -> String:
-	"""What of each material is at the hall: "wood 12.0 / 20.0 U · stone 4.8 / 40.0 U"."""
+	"""What of each material is at the hall, against its need: "wood 12 of 20 logs · stone 4 of 40 blocks"
+	(goods_measures.gd have_need; decision 1801)."""
 	var parts := PackedStringArray()
 	for mat: int in Rules.MAT_COUNT:
 		var need: int = Rules.need_milli(project, mat)
 		if need > 0:
-			parts.append("%s %s / %s" % [Rules.MAT_NAMES[mat], StoresScript.units_text(projects.delivered[
-				projects.cell(project, mat)]).trim_suffix(" U"), StoresScript.units_text(need)])
+			parts.append("%s %s" % [Rules.MAT_NAMES[mat], Measures.have_need(StringName(Rules.MAT_NAMES[mat]),
+				projects.delivered[projects.cell(project, mat)], need)])
 	return " · ".join(parts)
 
 
@@ -367,11 +393,12 @@ static func banner_text(projects: ProjectsScript, crew: CrewScript) -> String:
 
 
 static func stock_text(projects: ProjectsScript, stores: StoresScript) -> String:
-	"""What the projects draw on: the stores' wood and stone, and the village's cloth."""
+	"""What the projects draw on: the stores' wood and stone, and the village's cloth: "Stores by the stockpile: 6 logs ·
+	3 blocks of stone · 3 bolts of cloth"."""
 	var wood: int = stores.wood_milli_u if stores != null else 0
 	var stone: int = stores.stone_milli_u if stores != null else 0
-	return "Stores by the stockpile: wood %s · stone %s · cloth %s" % [StoresScript.units_text(wood),
-		StoresScript.units_text(stone), StoresScript.units_text(projects.cloth_milli)]
+	return "Stores by the stockpile: %s · %s · %s" % [Measures.amount(&"wood", wood), Measures.amount(&"stone", stone),
+		Measures.amount(&"cloth", projects.cloth_milli)]
 
 
 static func cancel_terms(projects: ProjectsScript, project: int) -> String:

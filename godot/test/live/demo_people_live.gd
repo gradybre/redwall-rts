@@ -13,6 +13,7 @@ extends SceneTree
 ## `LIVE <name>: PASS|FAIL <detail>` per check and `LIVE-SUMMARY <checks> <failures>`; exits 1 on any failure.
 
 const PeopleBook := preload("res://demo/people/people_book.gd")
+const SheetLive := preload("res://test/live/party_sheet_live.gd")
 const CardScript := preload("res://demo/people/people_card.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
 
@@ -136,7 +137,10 @@ func _fraction(control: Control) -> float:
 
 
 func _reveal(control: Control) -> void:
-	"""Scroll `control`'s scroll to it (the way focus does), and wait for it to move."""
+	"""Scroll `control`'s scroll to it (the way focus does) -- in the party sheet, opened first where it is folded
+	(decision 1891) -- and wait for it to move."""
+	if SheetLive.open_for(control, _command().call(&"panel")):
+		await _frames(SETTLE_FRAMES)
 	var at: Node = control.get_parent()
 	while at != null and not at is ScrollContainer:
 		at = at.get_parent()
@@ -239,6 +243,8 @@ func _the_inspector() -> void:
 	var name: String = String(_cast().call(&"actor", who).get("display_name"))
 	_check("the summary names the resident", String(panel.call(&"summary")).begins_with(name), panel.call(&"summary"))
 	var section: Control = _section()
+	if SheetLive.open_for(section, _command().call(&"panel")):
+		await _frames(SETTLE_FRAMES)
 	_check("the person section shows", section.is_visible_in_tree())
 	_check("its skills as meters", String(section.call(&"skill_line", 0)).begins_with("Felling · Level"),
 		section.call(&"skill_line", 0))
@@ -290,6 +296,7 @@ func _a_notable_moment() -> void:
 func _the_spotlight() -> void:
 	"""The spotlight card is shown, in the window, clear of the party panel; Spotlight ★ clicked marks the rescuer
 	notable and the roster stars it."""
+	_command().call(&"panel").call(&"fold_sheet")
 	var card: CanvasLayer = _village.call(&"people_card")
 	var guide: Node = _village.call(&"guide")
 	if bool(guide.get(&"card").call(&"is_shown")):

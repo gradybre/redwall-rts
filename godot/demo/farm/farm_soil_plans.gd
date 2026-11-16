@@ -35,6 +35,7 @@ const CalendarScript := preload("res://demo/demo_calendar.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 const PLAN_COMPOST: int = 0
 const PLAN_LEGUME: int = 1
@@ -144,8 +145,8 @@ static func compost_plan(sim: SimScript, bed: int, start: Start, next: int) -> P
 		plan.refusal = "Composted this season already: once a season per bed (REQ-SET-076)"
 		return plan
 	if sim.compost_milli < FarmingScript.COMPOST_MILLI_PER_TILE:
-		plan.needs = "%s of compost; the store holds %s (clear a withered crop, or compost spoiled food in the Pantry)" % [
-			Text.units_text(FarmingScript.COMPOST_MILLI_PER_TILE), Text.units_text(sim.compost_milli)]
+		plan.needs = "%s; the store holds %s (clear a withered crop, or compost spoiled food in the Pantry)" % [
+			Measures.need(&"compost", FarmingScript.COMPOST_MILLI_PER_TILE), Measures.amount_cell(&"compost", sim.compost_milli)]
 	var fertility: int = mini(start.fertility + FarmingScript.COMPOST_FERTILITY_GAIN, FarmingScript.FERTILITY_MAX)
 	_grow(plan, bed, next, fertility, start)
 	plan.next_milli = plan.harvest_milli

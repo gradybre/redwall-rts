@@ -22,6 +22,7 @@ const CareRules := preload("res://demo/infirmary/care_rules.gd")
 const NightRoutine := preload("res://demo/burrow/night_routine.gd")
 const Driver := preload("res://demo/water/fishing_driver.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 const PantryScript := preload("res://demo/farm/farm_pantry.gd")
 const StorageScript := preload("res://demo/farm/farm_storage.gd")
 const TakesScript := preload("res://demo/kitchen/ingredient_takes.gd")
@@ -35,6 +36,8 @@ const WaterplayScript := preload("res://demo/waterplay/demo_waterplay.gd")
 const DemoWorldScript := preload("res://demo/world/demo_world.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
+const WorkIds := preload("res://demo/work/work_ids.gd")
+const Promises := preload("res://test/work_promises.gd")
 const BoatRescueScript := preload("res://demo/boats/boat_rescue.gd")
 const DemoFarmScript := preload("res://demo/farm/demo_farm.gd")
 
@@ -160,12 +163,17 @@ func _run(rig: Rig, done: Callable, frames: int = MAX_FRAMES) -> bool:
 
 
 func _board_pass(rig: Rig) -> void:
-	"""The work board's part: each waiting job to the first idle resident who may take it."""
+	"""The work board's part: each waiting job to the first idle resident who may take it -- never one promised to
+	another, who means to come back to it (decision 0411; 1905)."""
 	var f: FisheryScript = rig.fishery
 	for j: int in Tables.MAX_JOBS:
 		if not f.waiting(j):
 			continue
+		var keeper: int = Promises.promised_to(rig.fishery, rig.cast.actor_count(),
+			WorkIds.SOURCE_FISHERY, f.tables.j_serial[j])
 		for who: int in rig.cast.actor_count():
+			if keeper >= 0 and keeper != who:
+				continue
 			var brain: BrainScript = f.brain_of(who)
 			if brain.order == BrainScript.ORDER_NONE and not brain.in_water and f.eligibility(j, who).is_empty() \
 					and f.claim(j, who):
@@ -438,13 +446,14 @@ func test_record_line_and_intensive_card_show_the_figures() -> void:
 	var driver: Driver = _new_driver()
 	var steward := StewardScript.new()
 	steward.follow(driver)
-	var line: String = steward.record_line(driver, StewardScript.WATER_STREAM, func(m: int) -> String: return str(m))
-	assert_true(line.begins_with("The stream: landed 0 in 12 days"), line)
+	var line: String = steward.record_line(driver, StewardScript.WATER_STREAM, Callable(Measures, &"amount"))
+	assert_true(line.begins_with("The stream: landed no fish in 12 days · stock 1,680 fish (no change today)"), line)
 	assert_true(line.contains("0 of 4 places in use") and line.contains("intensive off"), line)
 	var caught: Driver.CatchResult = driver.resolve_cycle(Driver.SITE_RUN, 1, Fishing.GEAR_HAND_NET, 0)
 	assert_true(caught.ok and caught.quantity_milli > 0, "a cycle taken from the stream")
-	line = steward.record_line(driver, StewardScript.WATER_STREAM, func(m: int) -> String: return str(m))
-	assert_true(line.contains("(−%d today)" % caught.quantity_milli), "the stock's fall today: " + line)
+	line = steward.record_line(driver, StewardScript.WATER_STREAM,
+		func(good: StringName, m: int) -> String: return "%d %s" % [m, good])
+	assert_true(line.contains("(−%d fish today)" % caught.quantity_milli), "the stock's fall today, as fish: " + line)
 	assert_equal(StewardScript.days_words(-1), "not within two years", "the sentinel in words")
 	assert_equal(StewardScript.days_words(5), "in about 5 days", "a prediction")
 	var card: PackedStringArray = steward.intensive_lines(driver, Driver.SITE_POND)

@@ -104,6 +104,10 @@ func test_the_fit_outlet_job() -> void:
 	assert_equal(JobsScript.refusal_for(sim, JobsScript.KIND_FIT_OUTLET, BED_LOAM, 0), &"", "ordered with one")
 	assert_true(FarmCard.result_text(sim, JobsScript.KIND_FIT_OUTLET, BED_LOAM, null).begins_with("Fit outlet"),
 		"its card's result")
+	assert_equal(FarmCard.result_text(sim, JobsScript.KIND_CLEAR, BED_LOAM, null),
+		"Clear: the bed is empty again (+2 spadefuls of compost to the store)", "0.5 U of compost: 2 spadefuls (1801)")
+	assert_equal([FarmCard.dose_text(true), FarmCard.dose_text(false)], ["a basket of compost", "a basket of earth"],
+		"the doses, 2 U each, in baskets")
 
 
 func test_the_outlet_box_says_what_runs_under_and_what_each_setting_does() -> void:

@@ -49,6 +49,7 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 const GoodsScript := preload("res://demo/farm/farm_goods.gd")
 const DemoScroll := preload("res://demo/ui/demo_scroll.gd")
 const MealRules := preload("res://demo/kitchen/meal_rules.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 signal compost_requested
 signal close_requested
@@ -177,6 +178,7 @@ func _header() -> HBoxContainer:
 	row.add_child(title)
 	_total = FarmUi.label("", FarmUi.BODY_PX, Palette.INK)
 	_total.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_total.mouse_filter = Control.MOUSE_FILTER_PASS
 	row.add_child(_total)
 	_close = FarmUi.button("×")
 	_close.tooltip_text = "Close the pantry (K or Esc)"
@@ -391,10 +393,15 @@ func select_item(item: int) -> void:
 
 
 func refresh() -> void:
-	"""Rewrite the total and the current tab, in place."""
+	"""Rewrite the total and the current tab, in place. The total is mixed food, "6½ baskets of food in store", with its
+	weight in the tooltip (decision 1011 §3, 1801)."""
 	if _pantry == null or not visible:
 		return
-	_total.text = "%s of food in store · %s" % [Text.units_text(_pantry.total_milli()), Text.clock_line(_sim)]
+	var total: int = _pantry.total_milli()
+	_total.text = "%s in store · %s" % [Measures.amount(&"food", total), Text.clock_line(_sim)]
+	var weight: String = "In store: %s" % Measures.tooltip(&"food", total)
+	if _total.tooltip_text != weight:
+		_total.tooltip_text = weight
 	if _kitchen != null:
 		_total.text += " · %s" % _kitchen.call(&"days_text")
 	if tab == TAB_STOCKS:
@@ -423,7 +430,7 @@ func _fill_stocks() -> void:
 	if empty:
 		_fill_empty()
 	_fill_stores()
-	_spoiled.text = "Spoiled food: %s" % Text.units_text(_pantry.spoiled_milli)
+	_spoiled.text = "Spoiled food: %s" % Measures.amount_cell(&"spoiled_food", _pantry.spoiled_milli)
 	FarmUi.set_enabled(_compost, _pantry.spoiled_milli >= 2, "nothing has spoiled")
 
 
@@ -492,7 +499,7 @@ func _fill_recipes() -> void:
 		var held: int = _pantry.milli_of(item)
 		_item_buttons[item].set_pressed_no_signal(item == selected_item)
 		_item_buttons[item].text = "%s · %s" % [Catalog.ITEM_LABELS[item],
-			"%s in store" % Text.units_text(held) if held > 0 else "none in store"]
+			"%s in store" % Measures.amount_cell(Catalog.ITEM_KEYS[item], held) if held > 0 else "none in store"]
 	var label: String = Catalog.ITEM_LABELS[selected_item]
 	if _kitchen != null:
 		_cookable.text = String(_kitchen.call(&"cookable_text", selected_item))
@@ -641,6 +648,11 @@ func dish_title() -> String:
 func total_text() -> String:
 	"""The header's total line (tests)."""
 	return _total.text
+
+
+func total_tooltip() -> String:
+	"""The header's total with its weight, its tooltip (tests)."""
+	return _total.tooltip_text
 
 
 func item_button(item: int) -> Button:

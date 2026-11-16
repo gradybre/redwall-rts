@@ -19,7 +19,8 @@ extends Node3D
 ## INPUT. Only the actions `project.godot` already defines are read; none is invented:
 ##   camera_pan_left/right/forward/back   WASD and arrows  -- held, relative to the view
 ##   camera_rotate_left/right             Q / E            -- held; right turns the view right
-##   camera_zoom_in/out                   wheel, PgUp/PgDn -- one step per notch or repeat
+##   camera_zoom_in/out                   wheel, = / - (keypad + / -) -- one step per notch or repeat; PgUp/PgDn
+##                                        are the level bar's (level_up/level_down, decision 1871)
 ##   camera_pitch_up/down                 Alt+PgUp/PgDn    -- one step per press or repeat
 ##   camera_home                          Home             -- back to the configured view
 ## and one mouse gesture no action names (the playtest of 2026-09-29, decision 0205):

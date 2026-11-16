@@ -26,6 +26,8 @@ const REFUSE_GEOMETRY: StringName = &"ROOM_APPROACH_PHYSICAL_EDIT"
 const REFUSE_BUSY: StringName = &"ROOM_APPROACH_REENTRY"
 ## DEC-054/ADR1220: the painted height exceeds the highest cube band a floor station's published WORK rows reach.
 const REFUSE_HEIGHT: StringName = &"ROOM_APPROACH_HEIGHT_UNREACHABLE"
+## Decision 1971: a crew that strikes a side face in the floor band digs every quantum of a column (no stroke limit).
+const UNLIMITED_HEIGHT_U: int = Space.I32_MAX
 ## Identity of the digging actor: a WORK row counts only when it shares every one of these with the request's row.
 const IDENTITY_FIELDS: Array[int] = [Profiles.F_SOURCE, Profiles.F_SPECIES, Profiles.F_STAGE, Profiles.F_RIG,
 	Profiles.F_POSTURE, Profiles.F_TOOL, Profiles.F_TOOL_VARIANT, Profiles.F_CARGO, Profiles.F_CARGO_VARIANT]
@@ -665,19 +667,31 @@ static func input_refusal(provider: WorldRoutes, request: Request, plan: Orders.
 
 
 static func reachable_height_u(profiles: Profiles, identity_row: int) -> int:
-	"""DEC-054: the excavated height a floor station can dig, derived only from published boxes. It is the top of the
-	highest whole-cube band holding, strictly inside, the anchor of a certified BUILD anchor-and-patch WORK row with
-	identity_row's actor/tool/cargo identity (any identity when identity_row is -1, for a plan drawn before its worker
-	is chosen); 0 when none. It follows whatever dig rows are published (claw rows)."""
+	"""The excavated height a floor station can dig, derived only from published boxes; 0 when none.
+
+	DEC-054 as amended on 2026-10-15 (decision 1971, P-1971-3 "Painted height"): once the crew has a certified BUILD
+	anchor-and-patch WORK row whose patch lies flat on a side face and whose anchor lies strictly inside the floor
+	band, every quantum of a cell's column is dug from that floor station, so the stroke sets no limit:
+	`UNLIMITED_HEIGHT_U`. Callers clamp with the level's clear height (`modular_runtime.gd dug_height_u`), and
+	`_level_refusal` keeps a Room inside its level. Identity -1 means any published dig row."""
 	if profiles == null or identity_row < -1 or identity_row >= profiles._live.header[1]: return 0
-	var height: int = 0
 	for row: int in profiles._live.header[1]:
-		if not _dig_row(profiles, identity_row, row): continue
-		var anchor: int = _anchor_height(profiles, row)
-		if anchor > 0 and anchor % Space.QUANTUM_U != 0:
-			@warning_ignore("integer_division") var band: int = anchor / Space.QUANTUM_U
-			height = maxi(height, (band + 1) * Space.QUANTUM_U)
-	return height
+		if _dig_row(profiles, identity_row, row) and _side_patch(profiles, row):
+			var anchor: int = _anchor_height(profiles, row)
+			if anchor > 0 and anchor < Space.QUANTUM_U: return UNLIMITED_HEIGHT_U
+	return 0
+
+
+static func _side_patch(profiles: Profiles, row: int) -> bool:
+	"""The row's single CONTACT_PATCH is flat in x or in z: it lies on a side face, the face a floor station strikes."""
+	var stride: int = profiles._profile_capacity
+	var capacity: int = profiles._box_capacity
+	for index: int in profiles._live.fields[Profiles.F_BOX_COUNT * stride + row]:
+		var box: int = profiles._live.fields[Profiles.F_FIRST_BOX * stride + row] + index
+		if profiles._live.boxes[6 * capacity + box] != Profiles.CONTACT_PATCH: continue
+		return profiles._live.boxes[box] == profiles._live.boxes[3 * capacity + box] \
+			or profiles._live.boxes[2 * capacity + box] == profiles._live.boxes[5 * capacity + box]
+	return false
 
 
 static func _dig_row(profiles: Profiles, identity_row: int, row: int) -> bool:

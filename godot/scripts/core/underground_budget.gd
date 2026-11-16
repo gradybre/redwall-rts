@@ -19,7 +19,7 @@ const LOCATION_AND_TOPOLOGY_BYTES: int = 1048576
 const INVENTORY_EXTENSION_BYTES: int = 131072
 ## ADR1217 step 5: +16,384 so content 9's paired profile bank (+11,496 B over content 6) keeps the Motion/Profile/
 ## Level joint, the Session slice (1,536) and the retirement slice (8,192) inside one assigned reserve.
-const PROFILE_BYTES: int = 278528
+const PROFILE_BYTES: int = 282624
 const TERRAIN_BYTES: int = 131072
 const LAYOUT_COLD_BYTES: int = 262144
 ## ADR1212: +256 so the enlarged Contacts control (ADR1215 Record air) stays inside a fully assigned reserve.

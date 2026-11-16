@@ -7,6 +7,7 @@ extends "res://test/framework/test_case.gd"
 const Rules := preload("res://demo/infirmary/care_rules.gd")
 const StateScript := preload("res://demo/infirmary/care_state.gd")
 const Text := preload("res://demo/infirmary/care_text.gd")
+const Tasks := preload("res://demo/infirmary/care_tasks.gd")
 const PaceScript := preload("res://demo/work/work_pace.gd")
 const Injury := preload("res://scripts/core/injury.gd")
 const Needs := preload("res://scripts/core/needs.gd")
@@ -349,11 +350,32 @@ func test_the_card_and_news_words() -> void:
 		"recovering")
 	assert_equal(Text.short_word(true, Injury.KIND_CUT, 80), "hurt (cut)", "group: hurt")
 	assert_equal(Text.short_word(false, 0, 100), "", "group: well")
-	assert_equal(Text.units(11500), "11.5", "units")
 	assert_true(Text.hurt_notice("Corra", Injury.KIND_BITE, 1, 20, "in the water").begins_with(
 		"Corra is hurt in the water: a bite (minor) and lost 20 health."), "notice")
 	assert_equal(Text.treated_notice("Linnet", "Corra", Injury.KIND_BITE, 90),
-		"Linnet treated Corra's bite (herb 1 U, cloth 0.5 U): health 90", "treated")
+		"Linnet treated Corra's bite (a bunch of herbs and a length of cloth): health 90", "treated")
+	assert_true(Text.hurt_notice("Corra", Injury.KIND_CUT, 1, 0, "").ends_with(
+		"Needs treatment — a bunch of herbs and a length of cloth, an hour's care at a bed"), "the treatment's price")
+	assert_equal(Text.supplies_line(11500, 23500),
+		"Herbs on the hall's shelf: 11 bunches · cloth in the village stores: 2½ bolts", "the supplies")
+	assert_equal(Text.supplies_line(0, 500), "Herbs on the hall's shelf: none · cloth in the village stores: 1 length",
+		"none, and below a bolt")
+	assert_equal(Text.patch_line(128000, 32000), "Herb patch by the south road: 128 bunches (gathered down to 32 bunches)",
+		"the patch")
+
+
+func test_the_herbalist_s_task_words() -> void:
+	"""The gatherer's line in bunches of herbs (decision 1801): picking, a have against the trip; carrying, the load."""
+	var g := Tasks.Gather.new(0, Vector2.ZERO, Vector2.ONE, 4000, Callable(), Callable())
+	assert_equal(g.label(), "Going to gather herbs", "going")
+	g.stage = Tasks.Gather.STAGE_PICKING
+	g.load_milli = 1500
+	assert_equal(g.label(), "Gathering herbs — 1 of 4 bunches", "picking")
+	g.load_milli = 0
+	assert_equal(g.label(), "Gathering herbs — 0 of 4 bunches", "nothing yet")
+	g.stage = Tasks.Gather.STAGE_CARRYING
+	g.load_milli = 4000
+	assert_equal(g.label(), "Carrying 4 bunches of herbs to the hall's shelf", "carrying")
 
 
 # --- boundaries (mutation testing) -----------------------------------------------------------------------------------

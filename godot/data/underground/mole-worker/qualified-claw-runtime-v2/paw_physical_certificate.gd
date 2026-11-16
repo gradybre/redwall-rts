@@ -328,8 +328,11 @@ static func tap_certified(profiles: Profiles, profile: int, revision: int, assem
 		bearer: PackedInt32Array) -> bool:
 	"""Tap 57 at the L0/T0 roots (paw-seat-v1 candidate a cleared both whole bearer prisms); the tread fitting tap 64 at
 	a tread station (tread-fit-v1 candidate b: the bearer hard for every triangle, tread and sill)."""
-	if revision != 1 or Claw.profile_refusal(profiles, profile, 1, Source.CONTENT) != &"": return false
+	# Decision 1972: the loaded content, 10 or its successor 12, whose rows 0-66 are content 10's.
+	var content: int = profiles._live.header[0] if profiles != null and profiles._live != null else 0
+	if revision != 1 or not Claw.serves(content) or Claw.profile_refusal(profiles, profile, 1, content) != &"":
+		return false
 	if profile == TAP:
-		return not Tread.is_tread(assembly) and Endpoint._source_row_refusal(profiles, profile, Source.CONTENT) == &"" \
+		return not Tread.is_tread(assembly) and Endpoint._source_row_refusal(profiles, profile, content) == &"" \
 			and Pick.bearer_refusal(assembly, root, bearer) == &""
 	return profile == TREAD_TAP and Tread.is_tread(assembly) and bearer_refusal(assembly, root, bearer) == &""

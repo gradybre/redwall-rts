@@ -198,7 +198,8 @@ func test_the_next_day_s_most_is_shown_before_anything_is_spent() -> void:
 	assert_equal(tending.tomorrow_wu(FIELD), 6, "three waterings")
 	assert_equal(tending.tomorrow_water_milli(FIELD), 750, "0.25 U each")
 	assert_equal(tending.tomorrow_text(FIELD),
-		"In the next day: at most 6 WU of work and 0.7 U of well water (budget 16 WU a day; 0 WU used today)", "said")
+		"In the next day: at most 6 WU of work and 3 cups of water from the well (budget 16 WU a day; 0 WU used today)",
+		"said: 0.75 U of water is 3 cups (0.25 U each)")
 	tending.set_policy(FIELD, TendingScript.POLICY_FROST, true)
 	_spring_crops(sim)
 	sim.advance_usec((SPRING_10_NOON_H - 24 * 7) * HOUR_USEC)

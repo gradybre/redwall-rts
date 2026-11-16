@@ -419,7 +419,9 @@ func _setup(connected: bool = true, obstruction: int = 0, admission: bool = fals
 	_request.room_type = Buildings.ROOM_TYPE_KITCHEN
 	_request.level = 1
 	_request.origin_u = Vector3i(X + 2048, FLOOR, Z)
-	_request.height_u = Approach.reachable_height_u(_actual._profiles, 1) # DEC-054: the synthetic 512u anchor digs 1 m.
+	# DEC-054 addendum (decision 1971): the synthetic 512u side anchor sets no stroke limit, so the level pack's
+	# 4,096u clear height is dug, as the modular runtime plans it.
+	_request.height_u = mini(4096, Approach.reachable_height_u(_actual._profiles, 1))
 	_request.cell_size_u = 1024
 	_request.cells = PackedInt32Array([0, 0, 1, 0, 0, 1, 1, 1])
 	_request.access = _actual._first

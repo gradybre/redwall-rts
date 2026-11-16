@@ -1,29 +1,29 @@
 extends RefCounted
 ## Source-qualified mole geometry only. Actual support, paid targets, Job/Gear and presentation remain separate.
-## Ten borrowed cached Scripts, bounded hashing scratch, existing streamed two-bank Profiles; no third image.
+## Ten borrowed cached Scripts, bounded hashing scratch, existing streamed two-bank Profiles; no third bank.
 
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Content := preload("res://demo/cast/underground_actor_content.gd")
 const Actor := preload("res://demo/cast/underground_actor.gd")
 const Space := preload("res://scripts/core/room_space.gd")
-## ADR1229 increment 6: the runtime loads content 10 (`qualified-claw-stairs-v11`): content 9's rows 0-50 keep their
-## words (the pick rows 0-29 stay published and dormant, DEC-052); 51-55 are the stair and short-step rows, 56-63 the
-## claw dig and tap rows, 64 the tread fitting tap, 65/66 the paw handling rows; sources 4/5 are the v2 claw and paw
-## images (ADR 1217 step 5 loaded content 9, `qualified-claw-approach-v10`).
-const Pins := preload("./qualified-claw-stairs-v11/catalog_source.gd")
-const PROFILE_COUNT: int = 67
-const BOX_COUNT: int = 547
-const CONTENT_REVISION: int = 10
+## Decision 1972: the runtime loads content 12 (`qualified-stair-carry-v13`): content 10's rows 0-66 and sources 0-5
+## byte for byte (ADR1229: 51-55 the stair and short-step rows, 56-63 the claw dig and tap rows, 64 the tread fitting
+## tap, 65/66 the paw handling rows), content 11's claw wall rows 67-70 (decision 1971), and decision 1981's rooted
+## rows 71-84 on the stair-carry images, sources 6/7. Content 11 is never loaded; ADR1229 loaded content 10.
+const Pins := preload("./qualified-stair-carry-v13/catalog_source.gd")
+const PROFILE_COUNT: int = 85
+const BOX_COUNT: int = 637
+const CONTENT_REVISION: int = 12
 const PROFILE_REVISION: int = 1
-const WIRE_BYTES: int = 22114
-const PAIRED_BANK_BYTES: int = 44212
+const WIRE_BYTES: int = 26462
+const PAIRED_BANK_BYTES: int = 52908
 const SOURCE_CHARS: int = 262144
 const HASH_CHARS: int = 1024
 const CONTROL_RESERVE: int = 32768 # Existing Profiles reserve, never an additional arena.
-const WIRE_PATH: String = "res://data/underground/mole-worker/qualified-claw-stairs-v11/mole-worker.ugprof"
+const WIRE_PATH: String = "res://data/underground/mole-worker/qualified-stair-carry-v13/mole-worker.ugprof"
 ## ADR1200/1206/1217/1229: actor, assembly-handling (row 29), wood haul v10 (30-36), stone haul v10 (37-41), claw v2
-## (42-64), paw v2 (65-66).
-const SOURCE_COUNT: int = 6
+## (42-64, 67-70), paw v2 (65-66); decision 1972: wood and stone stair carry (71-78, 79-84).
+const SOURCE_COUNT: int = 8
 
 
 static func load_into(profiles: Profiles, content: Content, domain: Space.Domain) -> StringName:
@@ -173,7 +173,8 @@ static func catalog_refusal(profiles: Profiles) -> StringName:
 static func _hash_sources(profiles: Profiles, hashing: HashingContext) -> StringName:
 	"""Every source digest is exactly its pinned image, in wire order; no source past the last one exists."""
 	var digests: PackedStringArray = PackedStringArray([Pins.ACTOR_SHA, Pins.HANDLING_SOURCE_SHA,
-		Pins.HAUL_SOURCE_SHA, Pins.STONE_SOURCE_SHA, Pins.CLAW_SOURCE_SHA, Pins.PAW_SOURCE_SHA])
+		Pins.HAUL_SOURCE_SHA, Pins.STONE_SOURCE_SHA, Pins.CLAW_SOURCE_SHA, Pins.PAW_SOURCE_SHA,
+		Pins.STAIR_CARRY_WOOD_SOURCE_SHA, Pins.STAIR_CARRY_STONE_SOURCE_SHA])
 	var digest: PackedByteArray = PackedByteArray()
 	digest.resize(32)
 	for source: int in SOURCE_COUNT:

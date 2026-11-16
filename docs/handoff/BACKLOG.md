@@ -38,6 +38,7 @@ Feature numbers (#9, #18 …) are Brendan's feature-list numbers of 2026-10-01; 
 | [DEMO-D8](#demo-d8) | Movement invalidation on demolition | settlement | 1161–1170 |
 | [DEMO-D9](#demo-d9) | Independent QA and a visible run of demolition | settlement | 1171–1180 |
 | [MEAS-2](#meas-2) | Measures phase 2 and the Underground rename | demo + settlement UI | 1181–1190 |
+| [MEAS-FOLLOWUPS](#meas-followups) | MEAS-2's follow-ups: settlement short cells, the story's load, the Cellar tooltip, the renders | settlement UI + demo + art | from 1831 |
 | [BLD-PANEL](#bld-panel) | The shared Buildings panel, thumbnails, one herb patch | demo | 1191–1200 |
 | [FLAX](#flax) | Flax, and the flax → rope / linen chain | demo | 1201–1210 |
 | [GOALS-2](#goals-2) | Goals "First crossing" and "Regatta day" | demo | 1211–1220 |
@@ -73,8 +74,14 @@ Feature numbers (#9, #18 …) are Brendan's feature-list numbers of 2026-10-01; 
 | [MEASURE-BAL](#measure-bal) | Rerun the balance year matrix | tools | 1511–1520 |
 | [MEASURE-SOAK](#measure-soak) | A windowed soak and a 25-resident soak | tools | 1521–1530 |
 | [FOLLOW-UPS](#follow-ups) | Follow-up fixes not finished by `fix/follow-ups` | demo + tools | 1531–1540 |
+| [PARTY-COMPACT](#party-compact) | **Done (decision 1891, 2026-10-12)**: a compact Demo party panel with an "open" overlay (1871 P-B8) | demo | 1891–1894 |
+| [TEST-SPEED](#test-speed) | **Done** ([1895](../decisions/1895-faster-full-suite-parity-parts-crew-loss-checkpoints-parallel-gate.md)): split the slowest suites and run local shards in parallel | tools + tests | 1895–1899 |
+| [MEAL-CALLAWAY](#meal-callaway) | **Done (decision 1905).** Fishery, forage and ferry workers called away keep their jobs (1900's follow-up) | demo | 1905 |
 | [FINAL-PASS](#final-pass) | The full review and playtest pass | all | 1541–1550 |
 | [WIN-PERF](#win-perf) | The Windows performance test (GTX 1660 tiers) | all | 1551–1560 |
+| [MOUND-POC](#mound-poc) | Mound homes in the demo: a proof of concept (decision 2001; approved, P-2001-11 (a)) | demo | 2002–2009 |
+| [MOUND-TERRAIN](#mound-terrain) | Finer ground heights, slopes for walkers and haulers, and the data (decision 2001; P-2001-1 (b) and P-2001-15 (a), 128 u, ruled) | settlement docs + data + movement | 2010–2014 |
+| [MOUND-REAL](#mound-real) | Mound homes in the game (decision 2001; after MOUND-TERRAIN, C3, D, E, G) | settlement | 2015–2019 |
 
 Four in-flight branches are not packets here, because they are built and only need landing (STATUS.md §2): batch 8
 (#222), the review fixes (#221), route planning with the kitchen fix 1005 (`perf/route-planning`), and hauling H0–H2
@@ -412,6 +419,33 @@ next" (Brendan, 2026-10-02; 0537), and the R-H rulings above.
     Do not "fix" it here (open question Q-D6).
   - Flax, wax and mead rows exist in the table (§1, P9) though the demo has none of these goods yet; FLAX and HIVES
     use them.
+- **Status (2026-10-09): built** on `feat/measures-phase-2`, decision **1801** (range 1801–1819, replacing 1181–1190).
+  Its follow-ups are the next packet.
+
+<a id="meas-followups"></a>
+## MEAS-FOLLOWUPS — what MEAS-2 left for other lanes
+
+- **Approval:** Brendan's rulings on 1801, 2026-10-09 (relayed by the coordinator; RULINGS.md 2026-10-09): P-M4 (b)
+  and P-M6 (b) "as recommended", as follow-ups, not on the MEAS-2 branch. The other two items are defects found by
+  MEAS-2 and the UI art owner's re-render that 1011 §4a assigns.
+- **The items:**
+  1. **P-M4 (b), the settlement HUD's short cell values** (a settlement UI lane). UI-SET-004/005's readout ("180 logs
+     available; none reserved") is wider than the 104–144 px cell, so the settlement HUD's Wood and Stone cells draw
+     "See ledger". Let a counter carry a short cell value ("180 logs", or the Wood level) beside its full ledger
+     readout: a change to `scripts/ui/hud.gd`'s one-string contract and to `scripts/systems/ui_manager.gd`.
+     `ui_manager.gd` is a pinned reviewed witness of the underground memory pack, so the lane also adds its reviewed
+     projection row the ADR 1212 way (as 1801 did) and regenerates the pack.
+  2. **P-M6 (b), the crossing story's load** (`godot/demo/guide/practice_stories.gd`): each carrier takes 6 logs (30
+     kg) a trip, against a mouse's 12 kg carry. Make it 2 logs (10 kg) a trip and recompute the story's rounds (a
+     story fixture, not a balance figure); `test_demo_guide_pages.gd` pins the story's fixtures.
+  3. **The Cellar bar's Build tooltip is never seen** (`godot/demo/stores/cellar_bar.gd`): `configure()` sets it and
+     `refresh()` clears it at once (`FarmUi.set_enabled(_build, true, "")`). Re-apply it when the button is enabled
+     (or give the button a card). A test that fails without the fix.
+  4. **The UI reference renders still say "180 U" / "100 U"** (`docs/design/ui_refinement/render_targets.py`,
+     `woodland_art_prompt.txt`): the UI art owner re-renders them under the art process (1011 §4a); they are hashed
+     reference visuals and are not hand-edited.
+- **Depends on:** MEAS-2 merged.
+- **Decisions:** the lane's own range (from 1831 up, checked with `decision_numbers.py`).
 
 ---
 
@@ -1260,12 +1294,111 @@ decision records on batch 8; "built" means a record says so.
     at 256;
   - a layout check ("party 9: every member row reachable") failed once under doubled load (0902 "What the gates
     found");
+  - **Done (decision 1900).** `test_demo_orchard_live.gd` "the apple is tended in game time" failed intermittently
+    (the tend job lost its worker): breakfast's call took the tender off the job, and the orchard, unlike the farm,
+    the woods, the hall and the tunnel jobs, kept nothing to come back to. Orchard workers now resume (0205), and the
+    harness waits in game time. The fishery's, the ferry's and the forage's tasks had the same gap: packet
+    MEAL-CALLAWAY (Brendan, 2026-10-12: "Fix all three next"), done in decision 1905;
   - the art notes in 0941 and 0951: the baked-fish icon has lemon slices; the raspberry's leaf mask is weak; the
     staged `residence` and `hall` keep 4096 px maps where GAP-04 says 2048; some bare-oak root flares catch snow.
 - **Depends on:** nothing.
 - **Files:** various; small and local. Conflicts: whichever packet owns the file.
 - **Decisions:** 1531–1540 (1041–1049 belong to `fix/follow-ups`).
 - **Acceptance:** each fix with a test that fails without it; the gates.
+
+<a id="party-compact"></a>
+## PARTY-COMPACT — A compact Demo party panel with an "open" overlay
+
+- **Status: done** on `feat/party-compact` (decision 1891, 2026-10-12): the compact form and the party sheet, with the
+  three relaxed checks restored. Its PROPOSALS (P-PC1 to P-PC5) wait for Brendan's ruling.
+- **Approval:** Brendan, 2026-10-12, in chat via AskUserQuestion: P-B8 **"Compact panel, next"** -- a compact party
+  panel with an "open" overlay, as the follow-up right after slice B merges (decision 1871, "Brendan's rulings";
+  RULINGS.md 2026-10-12).
+- **Scope:** slice B's level bar stands above the minimap, so the "Demo party" column ends above it: at 1280×720 the
+  column shrank from about 284 to 156 logical px, and at 125 % its inspector is shorter than one member row (1871
+  E12). Give the party panel a compact form for a short column: its header, summary and actions only, with an "open"
+  control that lays the inspector over the world beside the column while it is used, and folds it again on Esc or a
+  click away. The level bar keeps its place.
+- **Read first:** decision 1871 E12 and P-B8; 0391 (the undocked state); 0801 (Release and Follow always in view);
+  `docs/ui_ux_controls.md` UI-BUILD-013 (the level bar's place).
+- **Depends on:** slice B (`feat/build-panel-slice-b`) merged.
+- **Files:** `godot/demo/control/demo_party_panel.gd`, `demo_command.gd` (the column's layout), the live harnesses
+  `test/live/demo_layout_live.gd` and `demo_input_live.gd`, `test/test_demo_command.gd`. Conflicts: any packet laying
+  out the left column.
+- **Decisions:** 1891–1894 (the coordinator's; 1891 used).
+- **Acceptance:** restore the checks slice B relaxed (1871 E12): `demo_layout_live.gd`'s "at 100 % the actions are
+  always in view" at 720 rows too, and its scroll-reveal checks with no `LIVE-SKIP` at 125 %; `test_demo_command.gd`'s
+  room check back to 250 px at 720 rows. Every member row reachable; UX-BUILD-T01 (no overlap with the level bar);
+  frames at 1280×720 (100 % and 125 %) and 1920×1080.
+- **Art:** none.
+- **Pitfalls:** the overlay is a new modal-like surface: register it with the input gate so world keys wait behind it,
+  and keep F7/Tab order.
+
+<a id="test-speed"></a>
+## TEST-SPEED — Split the slowest suites and run local shards in parallel
+
+- **Status: done** on `perf/test-speed`, decision
+  [1895](../decisions/1895-faster-full-suite-parity-parts-crew-loss-checkpoints-parallel-gate.md): the parity suite
+  is six fingerprint parts, the crew-loss suite starts from the `underground_spare` checkpoint, and
+  `./tools/run_tests_parallel.sh` is the local full-suite gate. Its PROPOSALS await Brendan.
+- **Approval:** Brendan, 2026-10-12: **parallel local shards** for the test turnaround (relayed by the coordinator;
+  RULINGS.md 2026-10-12). Decision 1240's checkpoint starts were his decision of 2026-10-08.
+- **Scope:**
+  - Split `godot/test/test_settlement_save_parity.gd` (575 s in 1240's table, 617 s in the coordinator's slice B run;
+    it is the shard floor) into suites of under about 150 s each, sharing one fixture file the way decision 1243 split
+    the underground host suite.
+  - Give the four suites on the underground host fixture (`test_underground_host.gd`, `_crew_loss.gd`,
+    `_whole_chain.gd` and `test_entry_worker_view.gd`) checkpoint starts (decision 1240 §2). Keep
+    `test_checkpoint_equivalence.gd` as the proof that a checkpoint start equals the replay.
+  - Make the coordinator's parallel local runner (in its scratchpad: `run_shards_parallel.sh`, `run_one_shard.sh`) a
+    repository tool, `tools/run_tests_parallel.sh`, with each shard's summary and the merged one.
+- **Read first:** decisions 1240 and 1243; `tools/run_tests.sh` (the `--shard` and `--fast` options); `docs/ENVIRONMENT.md`.
+- **Depends on:** nothing.
+- **Files:** `godot/test/test_settlement_save_parity.gd` and its new parts; the four host-fixture suites and
+  `underground_host_case.gd`; `tools/run_tests.sh`, a new `tools/run_tests_parallel.sh`; the CI shard plan.
+- **Decisions:** unnumbered; take the next free number from the range book when the lane starts.
+- **Acceptance:** the same tests and assertions before and after (counts quoted); the checkpoint equivalence suite
+  passes; the shard floor quoted before and after; a full parallel local run's merged summary.
+- **Art:** none.
+- **Pitfalls:** live suites are timing-sensitive under load (see FOLLOW-UPS' orchard note); give each shard its own
+  HOME so Godot's user data does not collide.
+
+<a id="meal-callaway"></a>
+## MEAL-CALLAWAY — Fishery, forage and ferry workers called away keep their jobs
+
+- **Done (decision 1905, 2026-10-12, `fix/meal-callaway`).** Each owner has the orchard's three functions and its task
+  an `unfinished()`; each suite proves the promise through the REAL work board (crews bound, with a control), a lost
+  walk / Pause / Reassign keeping nothing, a stale entry, and a place refilled by Reassign not taken back. Brendan's
+  later rulings are built too: **"Trip doesn't wait"** (a boat, party or crossing ready to leave releases a place KEPT
+  for a worker who is away; solo work keeps its promise), **"Player's order holds"** (a place the player queued waits)
+  and **"Only in working hours"** (06:00-20:00, the night routine's day). 68 of 68 mutants killed.
+- **Approval:** Brendan, 2026-10-12, in chat via AskUserQuestion: **"Fix all three next"** -- a small follow-up lane
+  right after the orchard fix (`fix/orchard-tend-flake`, decision 1900) merges, the same three functions per job type,
+  each with a test (decision 1900, "Brendan's rulings"; RULINGS.md 2026-10-12).
+- **Scope:** a resident called away from a fishery, forage or ferry job -- by a meal's call, the night or another
+  order -- loses the job to the board today: their tasks (`fishery_task.gd`, source 7; `ferry_task.gd`, source 8;
+  `forage_task.gd`, source 12) do not override `unfinished()`, so nothing is kept to come back to (decision 0205's
+  RESUMING) and the work board's promise (0411) never holds it. Give each owner what decision 1900 gave the orchard:
+  `called_away` returns whether the worker keeps the job (not for a walk it could not finish, nor when the owner's own
+  Pause or Reassign took it); `unfinished_of(job, serial)` makes the entry naming its source and the job's serial;
+  `take_back(brain, job, serial)` claims it again only while it is the same job and waits; the task's `unfinished()`
+  answers the job before a call-away (so the action card says "goes back to it after") and after one only when kept.
+  A load in hand keeps each owner's existing delivery rules.
+- **Read first:** decision 1900 (the orchard's fix and its tests); 0205 (RESUMING); 0411 (the order list and the
+  promise); `demo/orchard/orchard_task.gd`, `orchard_jobs.gd` (CALLED AWAY); the three owners' headers (0431 the
+  fishery, 0437 the ferry, 0681 the forage).
+- **Depends on:** `fix/orchard-tend-flake` (decision 1900) merged.
+- **Files:** `godot/demo/fishery/fishery_task.gd` and `fishery.gd`; `godot/demo/forage/forage_task.gd` and
+  `forage_trips.gd`; `godot/demo/ferry/ferry_task.gd` and `ferry.gd`; their text files for the order-list words;
+  `godot/test/test_demo_fishery.gd`, `test_demo_forage.gd`, `test_demo_ferry.gd`. Conflicts: FISHING, WATER, TRADE.
+- **Decisions:** 1905 (the lane was given 1905–1909; it uses 1905 only).
+- **Acceptance:** per job type, a deterministic test like 1900's: called away mid-job, the job is kept on the
+  worker's list naming its task, given to no other idle resident by the REAL work board (`promises`, `consider`), and
+  taken back with its progress carried over; a lost walk and the owner's Pause and Reassign keep nothing; a cancelled
+  job's entry is stale. Each test fails without its fix; mutation-test the new functions; the gates.
+- **Art:** none.
+- **Pitfalls:** a seat on a shared trip (a fishing boat, a crossing's crew, a foraging party) may be refilled by the
+  owner while its worker eats: `take_back` must refuse a seat no longer waiting rather than displace anyone.
 
 ---
 
@@ -1322,6 +1455,187 @@ decision records on batch 8; "built" means a record says so.
 
 ---
 
+# Part 9 — Mound homes (decision 2001)
+
+Brendan approved the mound mockup on 2026-10-15: **"This looks good, let's build this into the plan"** (relayed by the
+coordinator; [decision 2001](../decisions/2001-mound-homes.md) quotes his fourteen messages, W1–W14). A **Mound** is a
+construction style for rooms painted on the Surface. A hill is heaped to fit the painted rooms, the rooms are dug into
+it, framed and topped with turf (heap → dig → frame → top). The player places doors and windows on the rooms' outer
+edges. The rules are [SET-BUILD-001 §12](../building_model_amendment.md#12-mound-homes-decision-2001)
+(BUILD-MOUND-001–031), and the slice is **M** in the
+[Evil Genius 2 study §5](../design/underground-planning/evil-genius-2-building-study.md#5-the-plan-proposal).
+
+"Into the plan" approves the design. Brendan then ruled P-2001-1 to P-2001-14 the same day: **"Finer heights"**
+(P-2001-1 (b)), **"Wall's top metre"** (P-2001-6 (a)), **"Our own, oak default"** (P-2001-8 (a)), and **"Approve
+all"** for the rest (decision 2001, "Brendan's rulings"; RULINGS.md). MOUND-POC is approved to build. The
+ground-height step was then ruled **"1/8 m"** (P-2001-15 (a), 128 u). Read first, for every packet in this part:
+
+- decision 2001 (the rulings, what is open, the mockups' illustrative values and where they break adopted rules);
+- SET-BUILD-001 §12, and §3, §7.2, §9 and §10;
+- the mockups `docs/design/underground-planning/mockups/mound-home-3d.html` and `burrow-walls-3d.html`. Their scripts
+  are the reference geometry; open them in a browser.
+
+<a id="mound-poc"></a>
+## MOUND-POC — Mound homes in the demo: a proof of concept
+
+- **Approval:** the design, 2026-10-15 ("This looks good, let's build this into the plan", decision 2001), and
+  **P-2001-11 (a), "Approve all"**: a proof of concept first, free and unsaved, as decision 1912's was.
+- **Scope:** decision 2001's proof of concept, in `godot/demo/` and `godot/scripts/ui/`, touching no core owner.
+  - **Paint.** On the Surface, the Rooms tab offers the Mound style with any room type. The Surface stays locked
+    for built rooms (slice G).
+  - **Judge every cell.** Cells are judged in words before Confirm all: the 2 × 2 rule, ground clear for the heap,
+    and "! No way in: place a door on an outer edge".
+  - **Doors and windows.** Doors (2 neighbouring outer edges facing the same way) and windows (1 outer edge) are
+    placed on the rooms' outer edges, with the mockup's slot markers.
+  - **Build.** Confirm all, and a resident heaps the earth, digs the rooms, then frames and tops them. The stages
+    are drawn as in the mockup.
+  - **Grow.** A later Mound room grows the hill only where it does not already cover it.
+  - **Go down.** A hatch with ladder placed on a Mound room's floor leads to level 1, as the proof of concept's Way
+    down does.
+  - **Draw.** Windows lie flush on the slope and light their room. Each door has its yard and built front. The
+    chimney, garden, shrubs and tree are drawn, and a door colour can be chosen.
+
+  The hill is **drawn over the unchanged ground** (GDD §5.1 is not amended yet). Residents walk round it and in
+  through its doors.
+- **Read first:** decisions 1912 (the proof of concept's rulings and what it knowingly bypasses), 1913 (the earth
+  view), 1914 (rounded walls: the field over cells, E1; never hide a cell), 1921 (doors and partitions as edge
+  items, E3), 1971 (the claw stroke; the proof of concept does not use it).
+- **Depends on:** nothing to merge: the painted-room proof of concept is on master. Build the ruled values:
+  - the name "Mound";
+  - a 1 m cover;
+  - a 3-cell berm whose first cell stands to the wall's top;
+  - a 6-cell yard;
+  - windows at the wall's top metre;
+  - our own door design with an oak default.
+
+  The hill is drawn over the unchanged ground; the 128 u step (P-2001-15) applies only to MOUND-TERRAIN's real ground.
+- **Files:**
+  - `godot/scripts/ui/`: `build_catalog.gd` (the style, the Surface unlocked for Mound only), `build_panel.gd`,
+    `build_cell_validity.gd` (the Mound rules and words), `build_furniture.gd` (the window as a 1-edge item, doors on
+    outer edges), `build_batch.gd`, `build_ledger.gd`.
+  - `godot/demo/build_panel/`: `demo_build.gd`, `demo_build_works.gd`, `demo_build_orders.gd`, `demo_build_ways.gd`,
+    and new `demo_build_mound*.gd` files (the heap field over cells, the hill mesh, yard, windows, dressing).
+  - Tests: `godot/test/test_build_*.gd`, `test_demo_build_*.gd`, and a new live harness beside
+    `test/live/demo_build_dig_live.gd`. The demo README gets a section.
+  - Conflicts: any lane on the build panel (slices C2.2/C2.3, C3, D, E).
+- **Decisions:** 2002–2009 (decision 2001's range).
+- **Acceptance:**
+  - every BUILD-MOUND rule the proof of concept covers, with a test that fails without it: the heap computed from
+    the rooms only, growth, every room at the edge, outer edges, door and window placement and refusal words, a
+    window never changing the heap, dressing clear of windows, the hatch to level 1;
+  - the live harness at 1280×720 and 1920×1080;
+  - frames of each build stage, the yard, the windows outside and inside, and growth, in
+    `scratchpad/mound_check/` (every one looked at);
+  - the gates (README §3.4–3.7).
+- **Art:** none bought. Procedural meshes and the staged earth textures (decision 1913). New paid art is asked for
+  first (README §3.8). The Bag End reference images are not in the repository and must not be used for generation
+  until their provenance is recorded (decision 2001 §4, DEC-036).
+- **Pitfalls:**
+  - The mockup's room is 3 m deep, two of its links are one cell wide, and its heap smooth-mins whole room boxes.
+    Use the adopted height, the 2 × 2 rule and a field over cells (decision 1914 E1).
+  - The window goes at the wall's top metre (P-2001-6 (a)), on the slope just past the first cell, which stands to
+    the wall's top. Do not copy the mockup's 2.2 m.
+  - Do not invent costs: the ledger shows the bill as information only, as in 1912.
+  - **The outside door's walk cells.** Decision 1921 E3 asks for dug floor on both sides of a door. A Mound's
+    outside door has its yard on one side. Count the yard's ground cells as walk cells (P-2001-13 item 11), and do
+    not loosen the rule for underground doors.
+  - The mockup's window lies 0.95 m from its wall, not 0.5 m (decision 2001 §5).
+- **Open:** none.
+
+<a id="mound-terrain"></a>
+## MOUND-TERRAIN — Finer ground heights, slopes for walkers and haulers, and the data
+
+- **Approval:** P-2001-1 (b), **"Finer heights"** (Brendan, 2026-10-15; decision 2001, "Brendan's rulings";
+  DEC-061's addendum). Ground heights finer than a metre, real slopes, and walkers and haulers must handle them.
+  **The step is ruled: "1/8 m"**, 128 u (P-2001-15 (a), Brendan, 2026-10-15). Today's 512, −128 and 0 convert exactly.
+- **Scope:** the main prerequisite for every real Mound and for the estuary preset's authored hills (P-2001-9 (b)).
+  - **The amendment.** Amend GDD §5.1's three fixed surface heights (land 512 u, ford −128 u, water 0) so that land
+    has an integer height per 1 m cell, in 128 u steps (P-2001-15 (a)). Water and the ford keep theirs. Restate
+    REQ-SET-122's slope (≤ 8°) and height-spread (≤ 0.5 m) rules on real heights, and BUILD-REQ-009, which restates
+    them.
+  - **Part-filled quanta.** With sub-metre ground, a column of earth can end part-way through a 1 m³ cut quantum.
+    State how such a quantum is braced, cut, priced and counted under ECON-002–005, and how the Mound's 1 m cover and
+    3-cell berm (P-2001-4, ruled in intent) map onto the step.
+  - **Movement on slopes.** Walkers and haulers must handle real slopes. This opens work against SET-MOVE-001's gates
+    (`docs/movement_direction_amendment.md`, which notes it):
+    - **MOVE-G01:** traversal profiles on slopes (limits by species, load and mode);
+    - **MOVE-G02:** the height table's bytes over 256 × 256 surface cells, and route costs on slopes;
+    - **MOVE-G03:** picking and ghosts on sloped ground;
+    - **MOVE-G04:** walking and carrying clips on slopes;
+    - **MOVE-G05:** slope fixtures and evidence.
+
+    No slope limit is invented: each is proposed with its source, for Brendan.
+  - **The data.** Its owner and saved form, with `world_init.gd elevation_y_units_of` and the estuary base matter
+    (`underground_terrain.gd`, decision 1082) reading it. The smooth drawing is presentation only.
+  - **Hills.** A few hills authored into the estuary preset (P-2001-9 (b)), after the amendment.
+- **Read first:** GDD §5.1 and REQ-SET-122; `docs/movement_direction_amendment.md` (MOVE-G01–G05, the readiness
+  register); `docs/underground_economy_hazard_amendment.md` (ECON-002–005: solid, cut and embedded earth);
+  `godot/data/underground/initial_level_pack.json` (datum and domain: quantum −32 for 48 quanta);
+  `docs/systems_architecture.md` §2–3; decision 1082; ADR 1209 (the qualified 128 u tread rise).
+- **Depends on:** nothing left to rule (P-2001-1 (b) and P-2001-15 (a) are ruled). Docs and data first; code after its own approval. The movement
+  half needs the traversal-profile work MOVE-G01 already lists as open, and it may be split into its own lane.
+- **Files:** `docs/game_gdd.md` §5.1 (or a terrain amendment beside SET-BUILD-001), `docs/movement_direction_amendment.md`,
+  `docs/underground_economy_hazard_amendment.md` (part-filled quanta), `docs/systems_architecture.md`,
+  `docs/validation/ready07_arithmetic.py` and the registry (the new bytes); then `godot/scripts/core/world_init.gd`,
+  `underground_terrain.gd`, the movement owners, and their tests. Conflicts: any packet on `world_init.gd`, the
+  movement owners or the memory ledger.
+- **Decisions:** 2010–2014.
+- **Acceptance:**
+  - the amendment adopted, with every requirement that reads ground listed and restated;
+  - the part-filled-quantum rule stated, with its arithmetic;
+  - each MOVE-G slope input listed with its owner and status;
+  - the memory row in the ledger, and `ready07_arithmetic.py` and `merge_gate.py` passing;
+  - if code is approved: the flat estuary gives the same heights as today (a test), a raised cell reads its height
+    everywhere ground is read, and walkers and haulers cross a test slope within its profile;
+  - the gates.
+- **Art:** none for the data. Walking and carrying on slopes may need clip work (MOVE-G04).
+- **Pitfalls:**
+  - Heights are integers in the ruled step; float is presentation only.
+  - The drawn smoothing must never decide a placement or a route.
+  - The excavation domain reaches 16 quanta above the datum (`underground_terrain.gd` `TOP_U`). Nothing may be
+    heaped above it.
+  - The ford's −128 u must stay expressible in the step.
+- **Open:** none; the slope limits are proposed in the lane, for Brendan.
+
+<a id="mound-real"></a>
+## MOUND-REAL — Mound homes in the game
+
+- **Approval:** the design, 2026-10-15 (decision 2001; DEC-061's 2026-10-15 addendum), with P-2001-2 to P-2001-14
+  ruled the same day. The exact berm profile, in the ruled 128 u step (P-2001-15 (a)), comes from MOUND-TERRAIN.
+- **Scope:** BUILD-MOUND-001–031 in the settlement game.
+  - **The heap.** A heap earthwork job: earth hauled and tamped into the ground data, with ECON-002/004's
+    compaction and tip rows as the precedent, and each heaped quantum recorded so that cutting it returns its earth
+    (P-2001-3 proposes BACKFILLED).
+  - **Dig and frame.** The rooms are dug by the room foreman and the one claw stroke, from the door's yard. The
+    brace is drawn as the frame (or, under P-2001-14 (b), a roof frame is built).
+  - **Top.** The cover is topped up and turfed.
+  - **Items.** The door with its yard, the window as a new edge item (bill and catalog entry authored), and a Way
+    down to level 1.
+  - **Cost and validity.** The price (BUILD-MOUND-024), the removal rule (P-2001-12), the validity words, and the
+    save and memory rows for whatever it adds.
+- **Read first:** everything in this part, and slices C3, D, E and G's records when they land.
+- **Depends on:** MOUND-TERRAIN; slices C3 (real digging), D (the way down and doors as items), E (edge items and
+  access) and G (Surface rooms, the catalog fingerprint); H for the polish. MOUND-POC first, if Brendan rules
+  P-2001-11 (a).
+- **Files:** the slice owners of C3, D, E and G (the room foreman, connectors, `build_furniture.gd`,
+  `room_catalog.gd`), `spoil_tips.gd` and `spoil_work.gd` (the heap's earth), MOUND-TERRAIN's ground data, the
+  memory ledger and registry. Conflicts: every building-slice lane.
+- **Decisions:** 2015–2019. Ask the coordinator for more.
+- **Acceptance:**
+  - every BUILD-MOUND requirement with a test;
+  - earth is conserved: heaped, cut and backfilled earth balances in the ledger;
+  - a Mound dug by the real owners in the game, with frames;
+  - the full suite;
+  - the memory and registry gates.
+- **Art:** the window and door-front pieces, if Brendan wants bought models (asked first, itemised; README §3.8).
+- **Pitfalls:**
+  - **"No way in" for the first cell.** The room foreman's dig order refuses a room with no open space beside it
+    (`ROOM_DIG_ORDER_NO_WAY_IN`, decision 1933, on `feat/room-foreman-slice-c2` until it merges). For a Mound, the
+    door's yard is that open space: with the berm in place, it is the only wall face open at floor level, so the
+    mole digs from there.
+  - **The cover is the rooms' roof.** Nothing may dig it.
+- **Open:** none beyond MOUND-TERRAIN's own work.
+
 # Deferred: do not build without asking
 
 Brendan put these on the backlog. Building any of them needs his go-ahead first.
@@ -1346,7 +1660,7 @@ generate nothing until he approves it and a cap. Add each new art need here as i
 
 | Item | Key(s) | Why | Style and cost | Source |
 |---|---|---|---|---|
-| The feasts' four new courses | `dish_feast_fish`, `dish_berry_tart`, `dish_nut_roast`, `dish_orchard_crumble` | They show the fallback swatch in the Pantry and the guide (no dish art) | The 3D-render item-icon style (ART-LOCK-001 as amended, 0971); one `nano-banana-2` image-to-image 3×3 sheet conditioned on pass 1's `sheet_foods_a`, as 0972's was: **about 6 credits** (0972's sheet cost 6; suggested cap 12). Five spare cells for other waiting dishes | Decision 1701 P8 (b), approved by Brendan 2026-10-07 |
+| **Done (decision 1831, 2026-10-09).** The eleven dishes without an icon: the feasts' four new courses and seven older breakfasts and suppers | `dish_feast_fish`, `dish_berry_tart`, `dish_nut_roast`, `dish_orchard_crumble`, `dish_porridge`, `dish_barleymeal`, `dish_soup`, `dish_beetroot_soup`, `dish_vole_stew`, `dish_fish_stew`, `dish_poached_dace` | The Pantry's kitchen rows and the Kitchen tab drew no icon for them (the field guide draws no icons for any entry) | Two `nano-banana-2` 3×3 sheets conditioned on `sheet_foods_a`, **12 credits** of a 20 cap; staged by `make_art_pass3.py --icons` and `stage_art_passes.py`. Visual acceptance is still Brendan's (`tools/art_gate.py`) | Brendan approved "Two sheets", 2026-10-09; first listed by decision 1701 P8 (b) |
 
 # Not chosen: do not build
 

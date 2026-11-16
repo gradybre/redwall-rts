@@ -352,7 +352,7 @@ func test_policy_version_unknown_and_same_policy_ambiguity_refuse_atomically() -
 	var image: PackedByteArray = _policy_image([0, 1], 2)
 	image.encode_u32(8, 1)
 	assert_equal(_load(image, 2), &"PROFILE_CERTIFICATE_REQUIRED", "historical wire cannot acquire new meaning")
-	assert_equal(_load(_policy_image([0, Profiles.POLICY_STAIR_TURN + 1], 2), 2), &"PROFILE_CERTIFICATE_REQUIRED",
+	assert_equal(_load(_policy_image([0, Profiles.POLICY_ROOTED_TURN + 1], 2), 2), &"PROFILE_CERTIFICATE_REQUIRED",
 		"unknown policy refuses")
 	assert_equal(_load(_policy_image([0, 1, 1], 2), 2), &"PROFILE_AMBIGUOUS_KEY", "same-policy overlap remains ambiguous")
 	image = _policy_image([0, 1], 2)

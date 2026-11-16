@@ -178,7 +178,9 @@ def test_the_pass_has_its_56_assets_and_eight_rebuilt() -> None:
 	lantern, bed, jars, shelf and four tools), the burrow home's hearth (decision 0210: its L0's maps are
 	2,048 px) and the underground pass's seven (decisions 0204, 0371) -- and 12 plants; icons for the items,
 	finds and relics."""
-	check("60 props", len(props.PROPS) == 60)
+	check("62 props", len(props.PROPS) == 62)
+	check("the build panel's two (decision 1913)", props.BUILD_PROPS == {"burrow_mouth": "furniture",
+		"dig_stairs": "furniture"} and all(props.PROPS[k] == f for k, f in props.BUILD_PROPS.items()))
 	check("the underground pass's seven", set(props.UNDERGROUND_PROPS) == {"burrow_door", "tunnel_arch", "hand_lantern",
 		"hanging_stores", "root_bin", "chimney_pot", "rag_rug"} and all(props.PROPS[k] == f for k, f in props.UNDERGROUND_PROPS.items()))
 	check("the root bin, door and arch at the furniture budget (0204)",

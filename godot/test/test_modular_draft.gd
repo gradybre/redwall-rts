@@ -177,3 +177,46 @@ func test_bad_grid_bounds_tool_and_capacity_fail_closed() -> void:
 	assert_equal(draft.extend_stroke(Vector2i(15, 15)), Footprint.REFUSE_CAPACITY, "oversize refused")
 	assert_equal(draft.finish_stroke(), Footprint.REFUSE_CAPACITY, "no partial paint")
 	assert_true(draft.visible_cells().is_empty(), "draft stays empty")
+
+
+func test_the_block_brush_stamps_two_by_two_blocks_along_the_drag() -> void:
+	"""Decision 1912: BLOCK grows each cell of the drag's one-cell route to its 2 × 2 block (east and south)."""
+	var draft: Draft = Draft.new()
+	assert_equal(draft.configure(2, 1, 1024, 4096, Rect2i(0, 0, 32, 32), false), &"", "configured")
+	assert_equal(draft.begin_stroke(Draft.BLOCK, Vector2i(3, 3), 0, false), &"", "begun")
+	assert_equal(draft.visible_cells(), PackedInt32Array([3, 3, 4, 3, 3, 4, 4, 4]), "one block")
+	draft.extend_stroke(Vector2i(3, 5))
+	assert_equal(draft.visible_cells().size(), 16, "a 2 × 4 run: 8 cells")
+	assert_equal(draft.finish_stroke(), &"", "kept")
+	assert_equal(draft.begin_stroke(Draft.BLOCK, Vector2i(3, 3), 0, true), &"", "an erasing block")
+	assert_equal(draft.finish_stroke(), &"", "taken out")
+	assert_equal(draft.visible_cells(), PackedInt32Array([3, 5, 4, 5, 3, 6, 4, 6]), "the last block left")
+	assert_equal(Draft.TOOL_COUNT, 6, "six tools")
+
+
+func test_apply_cells_is_one_edit_checked_as_a_release() -> void:
+	"""apply_cells adds or erases given cells as one undoable edit; outside the area or during a drag it is refused;
+	an edit that changes nothing keeps no history."""
+	var draft: Draft = Draft.new()
+	draft.configure(2, 1, 1024, 8, Rect2i(0, 0, 8, 8), false)
+	assert_equal(draft.apply_cells(PackedInt32Array([0, 0, 1, 0]), false), &"", "added")
+	assert_equal(draft.visible_cells(), PackedInt32Array([0, 0, 1, 0]), "two cells")
+	var revision: int = draft.revision
+	assert_equal(draft.apply_cells(PackedInt32Array([0, 0]), false), &"", "nothing new")
+	assert_equal(draft.revision, revision, "no edit")
+	assert_equal(draft.apply_cells(PackedInt32Array([9, 9]), false), &"ROOM_OUTSIDE_PLANNING_BOUNDS", "outside")
+	assert_equal(draft.apply_cells(_many(9), false), &"FOOTPRINT_CAPACITY", "past capacity")
+	assert_equal(draft.apply_cells(PackedInt32Array([0, 0]), true), &"", "erased")
+	assert_true(draft.undo(), "one undo")
+	assert_equal(draft.visible_cells(), PackedInt32Array([0, 0, 1, 0]), "back")
+	draft.begin_stroke(Draft.RECTANGLE, Vector2i(3, 3), 0, false)
+	assert_equal(draft.apply_cells(PackedInt32Array([5, 5]), false), &"DRAWING_SESSION_NOT_READY", "not mid-drag")
+	assert_equal(Draft.new().apply_cells(PackedInt32Array([0, 0]), false), &"DRAWING_SESSION_NOT_READY", "unconfigured")
+
+
+static func _many(count: int) -> PackedInt32Array:
+	"""`count` cells along row 0."""
+	var out: PackedInt32Array = PackedInt32Array()
+	for x: int in count:
+		out.append_array(PackedInt32Array([x, 0]))
+	return out

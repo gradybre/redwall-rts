@@ -6,8 +6,10 @@ const Prefix := preload("res://test/test_underground_first_prefix.gd")
 const Foreman := preload("res://scripts/core/underground_entry_foreman.gd")
 const WorkAreaSource := preload("res://scripts/core/underground_entry_work_area.gd")
 ## ADR1217 step 5: the production work area is the claw bundle's (stations at +/-1430, H's claw air). ADR1229: the
-## mounted bundle is the T1-T6 one (content 10), which keeps the claw bundle's L0/T0 rows on content 10's row ids.
-const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-v9/catalog_source.gd")
+## mounted bundle is the T1-T6 one, which keeps the claw bundle's L0/T0 rows on content 10's row ids; decision 1972
+## mounts its successor v10 on content 12 (the same rows 0-66). Decision 2044 (P-2044-15): the M2 interim bundle is
+## mounted (v10's rows first), and the contact-retirement scope replays its table census.
+const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-m2-v1/catalog_source.gd")
 const MoleCatalog := preload("res://data/underground/mole-worker/mole_profile_catalog.gd")
 const ClawPins := preload("res://data/underground/mole-worker/qualified-claw-stairs-v11/catalog_source.gd")
 const WA_PROFILE_SHA: String = Bundle.PROFILE_SHA
@@ -159,10 +161,12 @@ func test_actual_material_aliases_do_not_create_extra_locations() -> void:
 	immutable selectors describe this source; the descent stations' paths wait until they are worked."""
 	_probe = Probe.new()
 	_probe.before_each()
-	assert_equal(_probe._world._locations._live.count, 19, "original nine, two haul stands, eight descent stations")
-	assert_equal(_probe._world._routes._live.edge_count, 36, "original 28 directed paths plus eight haul edges")
-	assert_equal(_probe._source.row_count(4, Bundle.FRONTIER_REVISION), 44,
-		"explicit extra travel selectors, the installed arrival selectors and the stair stops")
+	# Decision 2044 (M2): a pair of cut stations a row for the flight's twelve rows (29 endpoints); stage 1's pair joins
+	# with its first cut, so H and stage 0's four stations reach both storages (20 paths) beside the eight haul edges.
+	assert_equal(_probe._world._locations._live.count, 29, "original nine, two haul stands, eighteen descent stations")
+	assert_equal(_probe._world._routes._live.edge_count, 28, "stage 0's 20 directed paths plus eight haul edges")
+	assert_equal(_probe._source.row_count(4, Bundle.FRONTIER_REVISION), 97,
+		"explicit extra travel selectors, the installed arrival selectors, the stair, landing and deep stops (M2)")
 
 
 func test_entry_foreman_drives_all_twelve_l0_phases_from_the_frontier() -> void:
@@ -272,11 +276,14 @@ static func _edge_admits(binding: RefCounted, first: Vector2i, last: Vector2i, p
 
 
 func test_entry_confirmation_carries_every_work_area_path() -> void:
-	"""ADR1205: the Room's only geometry change is floor metadata, so all 36 paths carry and the proof stays small."""
+	"""ADR1205: the Room's only geometry change is floor metadata, so all 36 paths carry and the proof stays small.
+	Decision 1972: content 12's 85 rows (18 more than content 10's) bring it to 525,592 checks, so the margin is
+	three fifths of the bound, not half; the mounted chain's own peak (95.4 %) is decision 1972's M-2."""
 	_probe = Probe.new()
 	_probe.before_each()
 	var room: Vector2i = _probe._confirm_prefix()
 	if room == Vector2i(-1, 0): return
 	var binding: RefCounted = _probe._world._binding
-	assert_equal(binding._carried_edges, 36, "every published path carried")
-	assert_true(binding._proof_checks * 2 < Prefix.Space.MAX_CHECKS, "entry confirmation well inside the check budget: %d" % binding._proof_checks)
+	assert_equal(binding._carried_edges, 28, "every published path carried (decision 2044: stage 0's)")
+	assert_true(binding._proof_checks * 5 < Prefix.Space.MAX_CHECKS * 3,
+		"entry confirmation well inside the check budget: %d" % binding._proof_checks)

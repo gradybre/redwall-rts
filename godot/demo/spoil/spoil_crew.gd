@@ -39,6 +39,7 @@ const FarmJobs := preload("res://demo/farm/farm_jobs.gd")
 const PropsScript := preload("res://demo/props/demo_props.gd")
 const UnfinishedScript := preload("res://demo/cast/unfinished_job.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 ## A basketful: the farm's own load of earth off a heap (farm_jobs.gd EARTH_PER_JOB_MILLI).
 const LOAD_MILLI: int = FarmJobs.EARTH_PER_JOB_MILLI
@@ -184,7 +185,7 @@ func order(h: int, members: PackedInt32Array) -> String:
 			sent.append((_cast.actor(who) as DemoActorScript).display_name)
 	if sent.is_empty():
 		return "Can't clear the spoil: nobody selected can carry it"
-	return "Clearing the spoil heap (%.1f U): %s" % [spoil_left(h) / 1000.0, ", ".join(sent)]
+	return "Clearing the spoil heap (%s): %s" % [Measures.amount(&"earth", spoil_left(h)), ", ".join(sent)]
 
 
 func _take(h: int, who: int) -> bool:

@@ -8,6 +8,7 @@ const BookScript := preload("res://demo/orders/standing_orders.gd")
 const WorkIds := preload("res://demo/work/work_ids.gd")
 const BoardScript := preload("res://demo/work/work_board.gd")
 const TaskScript := preload("res://demo/work/work_task.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 const BUILT_IN: String = " (built in: the winter keeps it while wood is short of the twelve-day projection)"
 const NO_WORK: String = "No work queued by it now."
@@ -16,26 +17,28 @@ const NOBODY: String = "waiting for a free resident"
 
 
 static func title_line(book: BookScript, o: int) -> String:
-	"""'Keep 20.0 U of planks · priority Normal · On' (a built-in order says so)."""
+	"""'Keep 20 planks · priority Normal · On' (a built-in order says so)."""
 	var words: String = "%s · priority %s · %s" % [book.title_of(o), WorkIds.PRIORITY_NAMES[book.priority[o]],
 		"On" if book.enabled[o] == 1 else "Off"]
 	return words + (BUILT_IN if book.built_in[o] == 1 else "")
 
 
 static func have_text(book: BookScript, o: int) -> String:
-	"""The good now and what its jobs will still bring: '12.0 U in store, 2.0 U coming', '2.4 days of meals ready'."""
+	"""The good now and what its jobs will still bring: '12 planks in store, 2 planks coming', '2.4 days of meals
+	ready'."""
 	var k: int = book.kind[o]
-	var now: String = Kinds.amount_text(k, int(book.value[o]))
+	var item: int = book.item[o]
+	var now: String = Kinds.amount_text(k, int(book.value[o]), item)
 	now += " of meals ready" if Kinds.UNITS[k] == Kinds.UNIT_MILLI_DAYS else " in store"
 	if k == Kinds.KIND_FIREWOOD:
-		now += " (the projection: %s)" % Kinds.amount_text(k, book.target_of(o))
+		now += " (the projection: %s)" % Measures.need(Kinds.good_key(k, item), book.target_of(o))
 	if book.committed[o] > 0:
-		now += ", %s coming" % Kinds.amount_text(k, int(book.committed[o]))
+		now += ", %s coming" % Kinds.amount_text(k, int(book.committed[o]), item)
 	return now
 
 
 static func state_line(book: BookScript, o: int) -> String:
-	"""'Working: 12.0 U in store, 2.0 U coming — by sawing at the sawhorse (Woods)'; 'Blocked: <why>'; 'Satisfied: ...';
+	"""'Working: 12 planks in store, 2 planks coming — by sawing at the sawhorse (Woods)'; 'Blocked: <why>'; 'Satisfied: ...';
 	'Off: nothing is queued for it'."""
 	match book.state[o]:
 		BookScript.STATE_OFF:

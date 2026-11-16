@@ -34,8 +34,22 @@ const OUTSIDE_TREE_DIAGNOSTICS: Array[String] = [
 	"Camera is not inside scene.\t(scene/3d/camera_3d.cpp",
 ]
 
+## Decision 1952: every suite runs with the runtime-cache checks on, so a bank edited in place without moving its token
+## is reported (RUNTIME_CACHE_STALE) by the suite that edits it instead of being read stale. The dig benchmark and the
+## memo suite, which time or test the answered path, turn it off for themselves. The switch is a dependency-free script,
+## loaded rather than preloaded, so a throwaway project holding only the framework, or a clone whose game scripts are
+## broken on purpose, still parses (tools/test_run_tests_diagnostics.py, tools/test_buildings_metadata_preflights.py).
+const RUNTIME_CACHE_CHECKS: String = "res://scripts/core/runtime_cache_checks.gd"
+
 var failures: PackedStringArray = PackedStringArray()
 var assertions: int = 0
+
+
+static func _static_init() -> void:
+	"""Turn the runtime-cache checks on for the whole test process (decision 1952), when the project has the owner."""
+	if not ResourceLoader.exists(RUNTIME_CACHE_CHECKS): return
+	var checks: Script = load(RUNTIME_CACHE_CHECKS) as Script
+	checks.set("enabled", true)
 
 
 func before_each() -> void:

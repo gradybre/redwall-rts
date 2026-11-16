@@ -1,0 +1,589 @@
+{
+  "schema": 1,
+  "decision": [
+    "2042",
+    "1981",
+    "1229"
+  ],
+  "content_revision": 13,
+  "wire_sha256": "830d3f495aedc4064f6c93ce632b8bcfbaa7c316731a6a52cc64c7b22c80a4ce",
+  "wire_bytes": 48856,
+  "programs": [
+    {
+      "row": 71,
+      "name": "empty.empty_walk_off",
+      "source": 6,
+      "keys": 91,
+      "decks": [
+        [
+          -1024,
+          -128,
+          -1193,
+          1024,
+          0,
+          5975
+        ]
+      ],
+      "end_u": [
+        0,
+        0,
+        -343
+      ],
+      "yaw": [
+        0,
+        0
+      ],
+      "clip": 7
+    },
+    {
+      "row": 72,
+      "name": "empty.empty_back_up",
+      "source": 6,
+      "keys": 91,
+      "decks": [
+        [
+          -1024,
+          -128,
+          -850,
+          1024,
+          0,
+          6318
+        ]
+      ],
+      "end_u": [
+        0,
+        0,
+        343
+      ],
+      "yaw": [
+        0,
+        0
+      ],
+      "clip": 8
+    },
+    {
+      "row": 73,
+      "name": "wood.approach",
+      "source": 6,
+      "keys": 91,
+      "decks": [
+        [
+          -1024,
+          -64,
+          -512,
+          1024,
+          0,
+          1536
+        ]
+      ],
+      "end_u": [
+        0,
+        0,
+        -343
+      ],
+      "yaw": [
+        0,
+        0
+      ],
+      "clip": 1
+    },
+    {
+      "row": 74,
+      "name": "wood.descent",
+      "source": 6,
+      "keys": 91,
+      "decks": [
+        [
+          -1024,
+          -64,
+          -169,
+          1024,
+          0,
+          343
+        ],
+        [
+          -1024,
+          -192,
+          -681,
+          1024,
+          -128,
+          -169
+        ]
+      ],
+      "end_u": [
+        0,
+        -128,
+        -512
+      ],
+      "yaw": [
+        0,
+        0
+      ],
+      "clip": 2
+    },
+    {
+      "row": 75,
+      "name": "wood.ascent",
+      "source": 6,
+      "keys": 91,
+      "decks": [
+        [
+          -1024,
+          -64,
+          -343,
+          1024,
+          0,
+          169
+        ],
+        [
+          -1024,
+          64,
+          169,
+          1024,
+          128,
+          681
+        ]
+      ],
+      "end_u": [
+        0,
+        128,
+        512
+      ],
+      "yaw": [
+        32768,
+        32768
+      ],
+      "clip": 3
+    },
+    {
+      "row": 76,
+      "name": "wood.turn",
+      "source": 6,
+      "keys": 271,
+      "decks": [
+        [
+          -1024,
+          -64,
+          -169,
+          1024,
+          0,
+          343
+        ]
+      ],
+      "end_u": [
+        0,
+        0,
+        174
+      ],
+      "yaw": [
+        0,
+        32768
+      ],
+      "clip": 4
+    },
+    {
+      "row": 77,
+      "name": "wood.retreat",
+      "source": 6,
+      "keys": 91,
+      "decks": [
+        [
+          -1024,
+          -64,
+          -343,
+          1024,
+          0,
+          1705
+        ]
+      ],
+      "end_u": [
+        0,
+        0,
+        169
+      ],
+      "yaw": [
+        32768,
+        32768
+      ],
+      "clip": 5
+    },
+    {
+      "row": 78,
+      "name": "wood.back_up",
+      "source": 6,
+      "keys": 91,
+      "decks": [
+        [
+          -1024,
+          -128,
+          -850,
+          1024,
+          0,
+          6318
+        ]
+      ],
+      "end_u": [
+        0,
+        0,
+        343
+      ],
+      "yaw": [
+        0,
+        0
+      ],
+      "clip": 6
+    },
+    {
+      "row": 79,
+      "name": "stone.approach",
+      "source": 7,
+      "keys": 91,
+      "decks": [
+        [
+          -1024,
+          -64,
+          -512,
+          1024,
+          0,
+          1536
+        ]
+      ],
+      "end_u": [
+        0,
+        0,
+        -343
+      ],
+      "yaw": [
+        0,
+        0
+      ],
+      "clip": 1
+    },
+    {
+      "row": 80,
+      "name": "stone.descent",
+      "source": 7,
+      "keys": 91,
+      "decks": [
+        [
+          -1024,
+          -64,
+          -169,
+          1024,
+          0,
+          343
+        ],
+        [
+          -1024,
+          -192,
+          -681,
+          1024,
+          -128,
+          -169
+        ]
+      ],
+      "end_u": [
+        0,
+        -128,
+        -512
+      ],
+      "yaw": [
+        0,
+        0
+      ],
+      "clip": 2
+    },
+    {
+      "row": 81,
+      "name": "stone.ascent",
+      "source": 7,
+      "keys": 91,
+      "decks": [
+        [
+          -1024,
+          -64,
+          -343,
+          1024,
+          0,
+          169
+        ],
+        [
+          -1024,
+          64,
+          169,
+          1024,
+          128,
+          681
+        ]
+      ],
+      "end_u": [
+        0,
+        128,
+        512
+      ],
+      "yaw": [
+        32768,
+        32768
+      ],
+      "clip": 3
+    },
+    {
+      "row": 82,
+      "name": "stone.turn",
+      "source": 7,
+      "keys": 271,
+      "decks": [
+        [
+          -1024,
+          -64,
+          -169,
+          1024,
+          0,
+          343
+        ]
+      ],
+      "end_u": [
+        0,
+        0,
+        174
+      ],
+      "yaw": [
+        0,
+        32768
+      ],
+      "clip": 4
+    },
+    {
+      "row": 83,
+      "name": "stone.retreat",
+      "source": 7,
+      "keys": 91,
+      "decks": [
+        [
+          -1024,
+          -64,
+          -343,
+          1024,
+          0,
+          1705
+        ]
+      ],
+      "end_u": [
+        0,
+        0,
+        169
+      ],
+      "yaw": [
+        32768,
+        32768
+      ],
+      "clip": 5
+    },
+    {
+      "row": 84,
+      "name": "stone.back_up",
+      "source": 7,
+      "keys": 91,
+      "decks": [
+        [
+          -1024,
+          -128,
+          -850,
+          1024,
+          0,
+          6318
+        ]
+      ],
+      "end_u": [
+        0,
+        0,
+        343
+      ],
+      "yaw": [
+        0,
+        0
+      ],
+      "clip": 6
+    },
+    {
+      "row": 90,
+      "name": "earth.approach",
+      "source": 9,
+      "keys": 91,
+      "decks": [
+        [
+          -1024,
+          -64,
+          -512,
+          1024,
+          0,
+          1536
+        ]
+      ],
+      "end_u": [
+        0,
+        0,
+        -343
+      ],
+      "yaw": [
+        0,
+        0
+      ],
+      "clip": 1
+    },
+    {
+      "row": 91,
+      "name": "earth.descent",
+      "source": 9,
+      "keys": 91,
+      "decks": [
+        [
+          -1024,
+          -64,
+          -169,
+          1024,
+          0,
+          343
+        ],
+        [
+          -1024,
+          -192,
+          -681,
+          1024,
+          -128,
+          -169
+        ]
+      ],
+      "end_u": [
+        0,
+        -128,
+        -512
+      ],
+      "yaw": [
+        0,
+        0
+      ],
+      "clip": 2
+    },
+    {
+      "row": 92,
+      "name": "earth.ascent",
+      "source": 9,
+      "keys": 91,
+      "decks": [
+        [
+          -1024,
+          -64,
+          -343,
+          1024,
+          0,
+          169
+        ],
+        [
+          -1024,
+          64,
+          169,
+          1024,
+          128,
+          681
+        ]
+      ],
+      "end_u": [
+        0,
+        128,
+        512
+      ],
+      "yaw": [
+        32768,
+        32768
+      ],
+      "clip": 3
+    },
+    {
+      "row": 93,
+      "name": "earth.turn",
+      "source": 9,
+      "keys": 271,
+      "decks": [
+        [
+          -1024,
+          -64,
+          -169,
+          1024,
+          0,
+          343
+        ]
+      ],
+      "end_u": [
+        0,
+        0,
+        174
+      ],
+      "yaw": [
+        0,
+        32768
+      ],
+      "clip": 4
+    },
+    {
+      "row": 94,
+      "name": "earth.retreat",
+      "source": 9,
+      "keys": 91,
+      "decks": [
+        [
+          -1024,
+          -64,
+          -343,
+          1024,
+          0,
+          1705
+        ]
+      ],
+      "end_u": [
+        0,
+        0,
+        169
+      ],
+      "yaw": [
+        32768,
+        32768
+      ],
+      "clip": 5
+    },
+    {
+      "row": 95,
+      "name": "earth.back_up",
+      "source": 9,
+      "keys": 91,
+      "decks": [
+        [
+          -1024,
+          -128,
+          -850,
+          1024,
+          0,
+          6318
+        ]
+      ],
+      "end_u": [
+        0,
+        0,
+        343
+      ],
+      "yaw": [
+        0,
+        0
+      ],
+      "clip": 6
+    }
+  ],
+  "inputs": {
+    "godot/data/underground/mole-worker/stair-carry-v1/evidence/tables-v1.json": "ded6dba0bddb9e162b45f575358bb536ffee6e69d6acaf0d77631a5a48bcdd46",
+    "godot/data/underground/mole-worker/qualified-stair-carry-v13/mole-worker.ugprof": "fa96acbeac96ca3860f2368c88c9287a51a5eadba29cd9530ea14c6c5e95e202",
+    "godot/data/underground/mole-worker/publish_stair_carry_motion.py": "4b3613d5b1491cb50fbe9a278cbccf93c5cda97da600df91ca095d3eb08d9387",
+    "godot/data/underground/mole-worker/qualified-earth-carry-v14/mole-worker.ugprof": "fdfcf8751338185b00f12d9561535042111c406ac126ef6c9e40e36d207ab450",
+    "godot/data/underground/mole-worker/publish_earth_carry_motion.py": "bcb7cbd449e7953cc35105a202513bba426ae08d35d1290b4bb5bc481deddf64"
+  },
+  "runtime_admitted": false
+}

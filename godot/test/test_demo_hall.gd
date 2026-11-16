@@ -263,7 +263,7 @@ func test_a_cancel_after_work_gives_eighty_percent_back() -> void:
 	projects.cancel(UPGRADE)
 	assert_equal(Vector3i(stores.wood_milli_u, stores.stone_milli_u, projects.cloth_milli), Vector3i(16000, 32000,
 		16000 + 6400), "wood 16, stone 32, cloth 6.4 back")
-	assert_true(projects.last_refund.contains("32.0 U stone"), "said: %s" % projects.last_refund)
+	assert_equal(projects.last_refund, "16 logs, 32 blocks of stone, half a bolt of cloth", "said in measures")
 	assert_equal(projects.cancel(-1), ProjectsScript.REFUSE_NOTHING, "no project")
 
 
@@ -688,8 +688,14 @@ func test_the_panel_says_what_the_hall_gives_and_where_the_upgrade_stands() -> v
 	assert_true(PanelScript.upgrade_text(projects, null).begins_with("Ready to plan"), "ready")
 	projects.plan_upgrade()
 	projects.deliver(UPGRADE, STONE, projects.lift(UPGRADE, STONE, projects.reserve(UPGRADE, STONE, 4800)))
-	assert_true(PanelScript.upgrade_text(projects, null).contains("stone 4.8 / 40.0 U"), PanelScript.upgrade_text(
+	assert_true(PanelScript.upgrade_text(projects, null).contains("stone 4 of 40 blocks"), PanelScript.upgrade_text(
 		projects, null))
+	assert_equal(PanelScript.delivery_text(projects, UPGRADE), "wood 0 of 20 logs · stone 4 of 40 blocks · cloth 0 of 1 bolt",
+		"each material against its need, in its measure")
+	assert_true(PanelScript.upgrade_cost_text().begins_with("40 blocks of stone · 20 logs · a bolt of cloth · 1200 WU."),
+		PanelScript.upgrade_cost_text())
+	assert_true(PanelScript.banner_cost_text().begins_with("Each: a log · 12 WU"), PanelScript.banner_cost_text())
+	assert_equal(PanelScript.package_words(), "40 blocks of stone, 20 logs and a bolt of cloth", "the news's words")
 	assert_equal(PanelScript.cancel_terms(projects, UPGRADE), PanelScript.CANCEL_BEFORE, "before work")
 	_deliver_all(projects, UPGRADE)
 	projects.add_work(UPGRADE, 340 * Rules.USEC_PER_WU, 0)
@@ -760,7 +766,7 @@ func test_the_banner_and_stock_lines() -> void:
 	projects.add_work(p, Rules.BANNER_WU * Rules.USEC_PER_WU, 0)
 	assert_true(PanelScript.banner_text(projects, null).begins_with("1 of 4 hung (comfort +250)"), "hung")
 	assert_equal(PanelScript.stock_text(projects, stores),
-		"Stores by the stockpile: wood 6.0 U · stone 3.0 U · cloth 24.0 U", "the stores")
+		"Stores by the stockpile: 6 logs · 3 blocks of stone · 3 bolts of cloth", "the stores")
 
 
 func test_the_view_shows_each_stage() -> void:

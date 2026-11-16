@@ -63,7 +63,7 @@ const CastOrdersScript := preload("res://demo/cast/cast_orders.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
-const ForestRules := preload("res://demo/forestry/forest_rules.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 const MenuScript := preload("res://demo/regatta/regatta_menu.gd")
 
 const NONE: int = -1
@@ -347,6 +347,11 @@ static func main_greens_words() -> String:
 	return MealRules.IN_WORDS[MealRules.INPUT_FIRST[MealRules.DISH_BEAN_HOTPOT] + 1]
 
 
+static func main_greens_good() -> StringName:
+	"""The good the second input's amounts are worded as (decision 1801)."""
+	return MealRules.input_good(MealRules.DISH_BEAN_HOTPOT, 1)
+
+
 func free_beans() -> int:
 	"""Beans in the pantry nobody has set aside, milli-U (with the planned supper's own: `count_supper`)."""
 	return _free_with_supper(main_beans())
@@ -443,12 +448,14 @@ func _feast_refusal(with_override: bool, day: int = NONE) -> String:
 	var need: int = main_food_milli(e)
 	if free_beans() < need:
 		return _refuse("NO_BEANS", "the main course (bean hotpot x%d) needs %s of beans; the pantry has %s free" % [
-			Rules.main_batches(e), _units(need), _units(free_beans())], "plant peas or broad beans")
+			Rules.main_batches(e), Measures.need_cell(&"beans", need), Measures.amount_cell(&"beans", free_beans())],
+			"plant peas or broad beans")
 	if free_greens() < need:
-		return _refuse("NO_GREENS", "the main course needs %s of %s; the pantry has %s free" % [_units(need), main_greens_words(),
-			_units(free_greens())], "plant cabbage, lettuce, spinach, leek or celery, or any root")
+		return _refuse("NO_GREENS", "the main course needs %s of %s; the pantry has %s free" % [
+			Measures.need_cell(main_greens_good(), need), main_greens_words(),
+			Measures.amount_cell(main_greens_good(), free_greens())], "plant cabbage, lettuce, spinach, leek or celery, or any root")
 	if stores.wood_milli_u < Rules.service_wood_milli(e):
-		return _refuse("NO_WOOD", "the feast's service needs %s of wood" % _units(Rules.service_wood_milli(e)), "Woods ▸")
+		return _refuse("NO_WOOD", "the feast's service needs %s" % Measures.need(&"wood", Rules.service_wood_milli(e)), "Woods ▸")
 	if kitchen != null and kitchen.places.seats.size() < Rules.seats_needed(e):
 		return _refuse("NO_SEATS", "the hall seats %d; the feast needs %d" % [kitchen.places.seats.size(),
 			Rules.seats_needed(e)], "")
@@ -457,11 +464,6 @@ func _feast_refusal(with_override: bool, day: int = NONE) -> String:
 		return _refuse("RESERVES", "it would leave %s days of ready food and %s days of fuel (%d of each asked)" % [
 			_days(food_days_milli()), _days(fuel_days_milli(e)), Rules.RESERVE_DAYS], "Override reserves, or wait for a harvest")
 	return ""
-
-
-static func _units(milli: int) -> String:
-	"""'6.0 U' (the woods' own words)."""
-	return ForestRules.units_text(milli)
 
 
 static func _days(milli: int) -> String:
@@ -477,18 +479,27 @@ func preview_lines(day: int, host: int) -> PackedStringArray:
 	var lines := PackedStringArray()
 	lines.append("%s: the %s feast for %d (every resident), at the day's supper; hosted by %s" % [day_text(day),
 		Rules.THEME_NAME, e, name_of(host)])
-	lines.append("Main: bean hotpot x%d (%d portions): beans %s (free %s), %s %s (free %s), water %s" % [
-		Rules.main_batches(e), Rules.main_batches(e) * MealRules.PORTIONS_PER_BATCH[MealRules.DISH_BEAN_HOTPOT],
-		_units(main_food_milli(e)), _units(free_beans()), main_greens_words(), _units(main_food_milli(e)), _units(free_greens()),
-		_units(Rules.main_batches(e) * MealRules.WATER_MILLI[MealRules.DISH_BEAN_HOTPOT])])
+	lines.append(main_line(e))
 	lines.append_array(menu.preview_lines(e))
 	lines.append("Seats %d of %d needed · service wood %s set aside now · staffing: %s" % [
-		kitchen.places.seats.size() if kitchen != null else 0, Rules.seats_needed(e), _units(Rules.service_wood_milli(e)),
+		kitchen.places.seats.size() if kitchen != null else 0, Rules.seats_needed(e),
+		Measures.need_cell(&"wood", Rules.service_wood_milli(e)),
 		staffing_words(host)])
 	lines.append("After it: ready food %s days, wood %s days (REQ-SET-101 asks 3)" % [_days(food_days_milli()),
 		_days(fuel_days_milli(e))])
 	lines.append(race_words(crews_for(host)))
 	return lines
+
+
+func main_line(e: int) -> String:
+	"""The preview's main course: its batches and portions, each input needed beside what is free, and its water --
+	"beans 3 scoops (free 12 scoops), greens or roots 3 bowls (free 4 bowls), water 3 jugs" (goods_measures.gd)."""
+	var need: int = main_food_milli(e)
+	return "Main: bean hotpot x%d (%d portions): beans %s (free %s), %s %s (free %s), water %s" % [
+		Rules.main_batches(e), Rules.main_batches(e) * MealRules.PORTIONS_PER_BATCH[MealRules.DISH_BEAN_HOTPOT],
+		Measures.need_cell(&"beans", need), Measures.amount_cell(&"beans", free_beans()), main_greens_words(),
+		Measures.need_cell(main_greens_good(), need), Measures.amount_cell(main_greens_good(), free_greens()),
+		Measures.need_cell(&"water", Rules.main_batches(e) * MealRules.WATER_MILLI[MealRules.DISH_BEAN_HOTPOT])]
 
 
 func staffing_words(host: int) -> String:

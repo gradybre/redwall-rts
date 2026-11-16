@@ -25,6 +25,7 @@ extends Node
 ## production passes nothing and gets the singleton.
 
 const HudScript := preload("res://scripts/ui/hud.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 const GameManagerScript := preload("res://scripts/systems/game_manager.gd")
 const UiCommandBridge := preload("res://scripts/ui/ui_command_bridge.gd")
 const UiWorldSession := preload("res://scripts/ui/ui_world_session.gd")
@@ -730,9 +731,30 @@ func _refresh_counters() -> void:
 	_hud.set_counter_text(&"Food-days", EconomySystem.food_days_text())
 	_hud.set_counter_text(&"Fuel-days", EconomySystem.fuel_days_text())
 	_hud.set_counter(&"Ready NP", EconomySystem.ready_nutrition_points(), "NP")
-	_hud.set_counter(&"Wood", EconomySystem.stock_units(&"wood"), "U")
-	_hud.set_counter(&"Stone", EconomySystem.stock_units(&"stone"), "U")
+	_hud.set_counter_text(&"Wood", amount_readout(&"wood", _wood_level(EconomySystem.available_milli(&"wood"))))
+	_hud.set_counter_text(&"Stone", amount_readout(&"stone", -1))
 	_refresh_population()
+
+
+static func amount_readout(good: StringName, level: int) -> String:
+	"""UI-SET-004/005's readout in the good's natural measure (DEC-049; decisions 1011 §4a, 1801): "180 logs
+	available; 4 logs reserved", after Wood's level when there is one ("none — none available; 4 logs reserved").
+	Available is what §5.8 counts (unreserved); reserved is the rest of the stock."""
+	var available: int = EconomySystem.available_milli(good)
+	var reserved: int = maxi(0, EconomySystem.stock_milli(good) - available)
+	var text: String = "%s available; %s reserved" % [Measures.amount_cell(good, available),
+		Measures.amount_cell(good, reserved)]
+	return text if level < 0 else "%s — %s" % [Measures.level_words(level), text]
+
+
+static func _wood_level(available_milli: int) -> int:
+	"""UI-SET-004's level (decision 1011 §4b) as far as GDD §5.8's owner can judge it: "none" with no available wood.
+	Otherwise no level (-1): very low, running low, enough and plenty all read fuel-days or REQ-SET-114's projection,
+	and the economy has no heating-demand input for either yet (EconomySystem.fuel_days_missing_input). Saying
+	"enough" without that input would be a reading nobody derived (decision 1801, PROPOSAL P-M2)."""
+	if available_milli <= 0:
+		return Measures.LEVEL_NONE
+	return -1
 
 
 func _refresh_population() -> void:

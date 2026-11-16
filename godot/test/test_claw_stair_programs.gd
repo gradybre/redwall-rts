@@ -73,13 +73,17 @@ func test_stair_tables_end_where_the_approved_motions_end() -> void:
 
 
 func test_dec_050_paces_land_on_whole_keys() -> void:
-	"""30 ticks a tread (528 u at 528 u/s), 45 a half-turn (174 u at 116 u/s), two movement ticks a step."""
-	assert_equal(Stair.ticks_for(528, 528), 30, "a tread")
-	assert_equal(Stair.ticks_for(174, 116), 45, "a half-turn")
-	assert_equal(Stair.ticks_for(141, 3277), 2, "a short step")
+	"""Decision 1972: a stair timing is in milli-u/s. 30 ticks a tread (528 u at 528,000), 45 a half-turn (174 u at
+	116,000), two movement ticks a step (a u/s cap reported x 1,000), and the 169 u retreat in exactly 90 ticks."""
+	assert_equal(Stair.ticks_for(528, 528000), 30, "a tread")
+	assert_equal(Stair.ticks_for(174, 116000), 45, "a half-turn")
+	assert_equal(Stair.ticks_for(141, 3277000), 2, "a short step")
+	assert_equal(Stair.ticks_for(343, 114334), 90, "a 343 u handoff")
+	assert_equal([Stair.ticks_for(169, 56334), Stair.ticks_for(169, 56333), Stair.ticks_for(169, 56967)],
+		[90, 91, 89], "the 169 u retreat takes exactly 90 ticks only at its derived milli rate")
 	assert_equal([Stair.key_step(90, 30), Stair.key_step(270, 45), Stair.key_step(Stair.STEP_CLIP_INTERVALS, 2)],
 		[3, 6, 2], "keys per tick")
-	assert_equal([Stair.key_step(90, 31), Stair.key_step(90, 0), Stair.ticks_for(0, 528)], [-1, -1, -1], "refused")
+	assert_equal([Stair.key_step(90, 31), Stair.key_step(90, 0), Stair.ticks_for(0, 528000)], [-1, -1, -1], "refused")
 
 
 func test_stair_clock_admits_only_ready_and_whole_crossing_keys() -> void:

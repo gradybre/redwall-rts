@@ -113,7 +113,8 @@ func _location_scope() -> void:
 	_cold = _local._cold.acquire(Budget.COLD_BYTES)
 	assert_true(_cold > 0, "complete original cold admission")
 	_context = Locations.FrontierContext.new(); _context.count = 2
-	_context.refs.resize(6); _context.edges.resize(12); _records.resize(3)
+	_context.refs.resize(2 * Locations.FRONTIER_MAX_STATIONS); _context.edges.resize(4 * Locations.FRONTIER_MAX_STATIONS)
+	_records.resize(Locations.FRONTIER_MAX_STATIONS)
 	_heap_patch.resize(Locations.FRONTIER_HEAP_WORDS)
 	_context.locations = _local._locations; _context.owner = _local._owner; _context.budget = _local._cold
 	_context.live = _local._locations._live; _context.candidate = _local._locations._stage
@@ -174,6 +175,121 @@ func test_unbound_publication_and_direct_tail_preserve_output() -> void:
 	assert_equal(Publication.publish_into(null, Frontier.Candidate.new(), Publication.Request.new(), 1, 1000, out), Frontier.REFUSE_BINDING, "unbound coordinator refuses")
 	assert_equal(out.work, Vector2i(71, 9), "unchanged refused output")
 	assert_false(WorldRoutes.commit_frontier_preflighted(null, Locations.FrontierContext.new()), "no detached static publication")
+
+
+func test_five_stations_is_the_frontier_bound() -> void:
+	"""Decision 1943: a held frontier holds up to FRONTIER_MAX_STATIONS (5) stations; a sixth is refused by the hold,
+	the private preparation and every later scope check."""
+	_location_scope()
+	_context.count = Locations.FRONTIER_MAX_STATIONS + 1
+	assert_equal(_local._locations.hold_frontier(_context), &"LOCATION_FRONTIER_CONTEXT", "six stations cannot be held")
+	_context.count = Locations.FRONTIER_MAX_STATIONS
+	assert_equal(_local._locations.hold_frontier(_context), &"", "five stations are held")
+	_context.count = Locations.FRONTIER_MAX_STATIONS + 1
+	assert_equal(_local._locations.begin_frontier_prepare(_context).error, &"LOCATION_FRONTIER_CONTEXT", "six cannot prepare")
+	_context.count = Locations.FRONTIER_MAX_STATIONS
+	var begun: Locations.Result = _local._locations.begin_frontier_prepare(_context)
+	assert_equal(begun.error, &"", "five stations prepare")
+	assert_equal(Locations.frontier_scope_refusal(_local._locations, _context, false), &"", "five stations in scope")
+	_context.count = Locations.FRONTIER_MAX_STATIONS + 1
+	assert_equal(Locations.frontier_scope_refusal(_local._locations, _context, false), &"LOCATION_FRONTIER_CONTEXT", "six out of scope")
+	_context.count = Locations.FRONTIER_MAX_STATIONS
+	assert_true(_local._locations.abort(begun.token), "discard the candidate")
+
+
+func test_a_five_station_chain_publishes_and_a_sixth_is_refused() -> void:
+	"""Decision 1943: the actual coupled publication adds five stations along the Corridor (the lateral chain's last
+	leg split in four); a sixth station is refused before any allocation, the caller's output untouched."""
+	var room: Vector2i = _paid_first_cube(true)
+	if room == NULL_REF: return
+	(_h as LateralFixture).park_after_settlement()
+	if not _h.failures.is_empty(): return
+	_cold = _h._budget.acquire(Budget.COLD_BYTES)
+	var request: Publication.Request = _lateral_request()
+	request.count = Publication.MAX_STATIONS + 1
+	var result: Publication.Result = _publication_output()
+	assert_equal(Publication.publish_into(_h.provider, _lateral_candidate(room), request, _cold, Space.MAX_CHECKS, result),
+		Publication.REFUSE_SCOPE, "six stations are refused")
+	_assert_refused_output(result)
+	request.count = Publication.MAX_STATIONS
+	for index: int in range(1, Publication.MAX_STATIONS):
+		request.sections[index * 2] = _h._floor.x; request.sections[index * 2 + 1] = _h._floor.y
+		request.points[index * 3] = Phase.X - 1024 + index * 576
+		request.points[index * 3 + 1] = Phase.FLOOR; request.points[index * 3 + 2] = Phase.Z + 1536
+		request.profiles[index * 4] = 5; request.profiles[index * 4 + 1] = 1
+		request.profiles[index * 4 + 2] = 9; request.profiles[index * 4 + 3] = 1
+	var before: int = _h.endpoints._live.count
+	var edges: int = _h._routes._live.edge_count
+	var code: StringName = Publication.publish_into(_h.provider, _lateral_candidate(room), request, _cold, Space.MAX_CHECKS, result)
+	assert_equal(code, &"", "five stations publish")
+	if code != &"": return
+	assert_equal(_h.endpoints._live.count, before + 5, "five new endpoints")
+	assert_equal(_h._routes._live.edge_count, edges + 10, "ten directed spans")
+	for index: int in Publication.MAX_STATIONS:
+		assert_true(_h.endpoints.is_live_location(Vector2i(result.locations[index * 2], result.locations[index * 2 + 1])),
+			"station %d live" % index)
+	assert_equal(result.work, Vector2i(result.locations[8], result.locations[9]), "the fifth is the WORK station")
+
+
+func test_final_leaf_prepays_every_stations_heap_replay() -> void:
+	"""Decision 1943: the prepaid heap replay covers both banks' removals for every station count, and is ADR 1161's
+	figure through three stations."""
+	for count: int in range(1, Publication.MAX_STATIONS + 1):
+		var removals: int = count + 2 * count # Locations' one row and Routes' two edges a station.
+		assert_true(Publication.heap_precharge(count) >= removals * 14 * 84 * 4, "%d stations prepaid" % count)
+		if count <= 3: assert_equal(Publication.heap_precharge(count), 2 * 6 * 14 * 84 * 4, "unchanged at %d" % count)
+
+
+func _edge_query() -> Publication.Query:
+	"""A hand-made two-station Query: the gateway and the first station in section A (the outer section and the first
+	station's own, both A's box at different levels), the second station below A's low z edge in section B."""
+	var q: Publication.Query = Publication.Query.new()
+	Publication._allocate(q)
+	q.request.count = 2; q.request.gateway = Vector2i(40, 1)
+	for index: int in 4: q.refs[index] = 41 + index
+	var a: PackedInt32Array = PackedInt32Array([-1024, 0, 0, 1024, 1, 2048])
+	q.outer_section.box = a.duplicate(); q.outer_section.level = 1
+	q.sections[0].box = a.duplicate(); q.sections[0].level = 2
+	q.sections[1].box = PackedInt32Array([-1024, 0, -2048, 1024, 1, 0]); q.sections[1].level = 3
+	q.gateway.point = Vector3i(0, 0, 1024); q.gateway.section = Vector2i(10, 1); q.gateway.room = Vector2i(20, 1)
+	q.records[0].point = Vector3i(0, 0, 0); q.records[0].section = Vector2i(11, 1); q.records[0].room = Vector2i(21, 1)
+	q.records[1].point = Vector3i(0, 0, -512); q.records[1].section = Vector2i(12, 1); q.records[1].room = Vector2i(22, 1)
+	return q
+
+
+func _edge_facts(q: Publication.Query) -> Array:
+	"""The span's section, room, level and from/to."""
+	return [q.edge.section, q.edge.room, q.edge.level, q.edge.from_location, q.edge.to_location]
+
+
+func test_a_leg_lies_in_its_departure_section_first() -> void:
+	"""Decision 1943: a leg inside the section it leaves keeps master's choice (that section, the departure's room),
+	even where the arrival's section would also hold it."""
+	var q: Publication.Query = _edge_query()
+	assert_equal(Publication._edge_into(q, 0), &"", "the gateway leg")
+	assert_equal(_edge_facts(q), [Vector2i(10, 1), Vector2i(20, 1), 1, Vector2i(40, 1), Vector2i(41, 42)], "departure's")
+	assert_equal(Publication._edge_into(q, 2), &"", "its reverse")
+	assert_equal(_edge_facts(q), [Vector2i(10, 1), Vector2i(20, 1), 1, Vector2i(41, 42), Vector2i(40, 1)], "the same section")
+
+
+func test_a_leg_down_across_a_low_edge_lies_in_the_arrival_section() -> void:
+	"""Decision 1943: a run leaving a section across its low edge is published in the section it arrives in, with the
+	arrival's room and that section's level, both ways."""
+	var q: Publication.Query = _edge_query()
+	assert_equal(Publication._edge_into(q, 1), &"", "the leg below A")
+	assert_equal(_edge_facts(q), [Vector2i(12, 1), Vector2i(22, 1), 3, Vector2i(41, 42), Vector2i(43, 44)], "arrival's")
+	assert_equal(Publication._edge_into(q, 3), &"", "its reverse")
+	assert_equal(_edge_facts(q), [Vector2i(12, 1), Vector2i(22, 1), 3, Vector2i(43, 44), Vector2i(41, 42)], "the same section")
+
+
+func test_a_leg_in_neither_section_is_refused() -> void:
+	"""A leg neither the departure's nor the arrival's section holds is refused as before."""
+	var q: Publication.Query = _edge_query()
+	q.sections[1].box = PackedInt32Array([2048, 0, -2048, 4096, 1, 0])
+	assert_equal(Publication._edge_into(q, 1), Publication.REFUSE_SECTION, "outside both")
+	q = _edge_query()
+	q.records[1].point = Vector3i(512, 0, -512)
+	assert_equal(Publication._edge_into(q, 1), Publication.REFUSE_SECTION, "not axis-aligned")
 
 
 func test_held_scope_blocks_generic_preparation_before_first_candidate() -> void:
@@ -246,10 +362,12 @@ func _paid_first_cube(lateral: bool = false) -> Vector2i:
 func _next_request(room: Vector2i) -> Publication.Request:
 	"""The exact current first opening has no silently widened section or authored air grant."""
 	var request: Publication.Request = Publication.Request.new()
-	request.gateway = _h._last; request.count = 2; request.sections.resize(6)
-	request.points = PackedInt32Array([Phase.X + 2048, Phase.FLOOR, Phase.Z + 512,
-		Phase.X + 2304, Phase.FLOOR, Phase.Z + 512, 0, 0, 0])
-	request.profiles = PackedInt64Array([5, 1, 9, 1, 5, 1, 9, 1, 0, 0, 0, 0])
+	request.gateway = _h._last; request.count = 2; request.sections.resize(2 * Publication.MAX_STATIONS)
+	request.points.resize(3 * Publication.MAX_STATIONS); request.profiles.resize(4 * Publication.MAX_STATIONS)
+	var points: PackedInt32Array = PackedInt32Array([Phase.X + 2048, Phase.FLOOR, Phase.Z + 512,
+		Phase.X + 2304, Phase.FLOOR, Phase.Z + 512])
+	for index: int in points.size(): request.points[index] = points[index]
+	for index: int in 8: request.profiles[index] = [5, 1, 9, 1][index % 4]
 	request.work_profile = 24; request.work_revision = 1; request.face = 0; request.yaw = 49152
 	var section: Vector2i = NULL_REF
 	for row: int in _h._owner._region_capacity:
@@ -265,7 +383,8 @@ func _next_request(room: Vector2i) -> Publication.Request:
 func _publication_output() -> Publication.Result:
 	"""The fixed caller output is admitted with all other packets under the test's original lease."""
 	var out: Publication.Result = Publication.Result.new()
-	out.locations.resize(6); out.edges.resize(12); out.locations.fill(77); out.edges.fill(88)
+	out.locations.resize(2 * Publication.MAX_STATIONS); out.edges.resize(4 * Publication.MAX_STATIONS)
+	out.locations.fill(77); out.edges.fill(88)
 	out.work = Vector2i(71, 9)
 	return out
 
@@ -274,8 +393,10 @@ func _assert_refused_output(out: Publication.Result) -> void:
 	"""The whole fixed output stays unchanged, not only its primary WORK handle."""
 	assert_equal(out.work, Vector2i(71, 9), "refused full handle unchanged")
 	assert_equal(out.count, 0, "refused count unchanged")
-	assert_equal(out.locations, PackedInt32Array([77, 77, 77, 77, 77, 77]), "refused Location array unchanged")
-	assert_equal(out.edges, PackedInt32Array([88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88]), "refused edge array unchanged")
+	var locations: PackedInt32Array = PackedInt32Array(); locations.resize(2 * Publication.MAX_STATIONS); locations.fill(77)
+	var edges: PackedInt32Array = PackedInt32Array(); edges.resize(4 * Publication.MAX_STATIONS); edges.fill(88)
+	assert_equal(out.locations, locations, "refused Location array unchanged")
+	assert_equal(out.edges, edges, "refused edge array unchanged")
 
 
 func _paid_live_image() -> Array[PackedByteArray]:
@@ -327,6 +448,14 @@ func _lateral_request() -> Publication.Request:
 		Phase.X + 1280, Phase.FLOOR, Phase.Z + 1536, 0, 0, 0])
 	request.profiles = PackedInt64Array([1, 1, 1, 1, 5, 1, 9, 1, 0, 0, 0, 0])
 	request.work_profile = 24; request.work_revision = 1; request.face = 0; request.yaw = 49152
+	return full_shape(request)
+
+
+static func full_shape(request: Publication.Request) -> Publication.Request:
+	"""Pad a two- or three-station packet written out by hand to the publication's fixed shape (decision 1943's five
+	stations); the tail is unused, only the count prefix is read."""
+	request.sections.resize(2 * Publication.MAX_STATIONS); request.points.resize(3 * Publication.MAX_STATIONS)
+	request.profiles.resize(4 * Publication.MAX_STATIONS)
 	return request
 
 
@@ -496,12 +625,17 @@ func _heap_replay_case(capacity: int, graph: bool) -> void:
 	bank.free_rows.resize(capacity); bank.free_count = capacity
 	for index: int in capacity: bank.free_rows[index] = index
 	var before: PackedInt32Array = bank.free_rows.duplicate()
-	var refs: PackedInt32Array = PackedInt32Array(); refs.resize(12)
+	var bound: int = 2 * Locations.FRONTIER_MAX_STATIONS # Decision 1943: two removals a station.
+	var refs: PackedInt32Array = PackedInt32Array(); refs.resize(2 * bound + 2)
 	var patch: PackedInt32Array = PackedInt32Array(); patch.resize(Locations.FRONTIER_HEAP_WORDS)
-	var removals: int = mini(6, capacity)
+	var removals: int = mini(bound, capacity)
 	for index: int in removals:
 		refs[2 * index] = Routes._pop_free(bank.free_rows, capacity - index) if graph else locations._pop_free(bank)
 	assert_equal(Locations.frontier_heap_refusal(before, bank.free_rows, capacity, refs, removals, patch, graph), &"", "exact actual allocator parity")
+	if capacity > bound: # A genuine eleventh removal, replayable in the patch at this depth, is still past the bound.
+		refs[2 * bound] = Routes._pop_free(bank.free_rows, capacity - bound) if graph else locations._pop_free(bank)
+		assert_equal(Locations.frontier_heap_refusal(before, bank.free_rows, capacity, refs, bound + 1, patch, graph),
+			&"FRONTIER_ALLOCATION_CHANGED", "one removal past five stations' is refused")
 	var changed: PackedInt32Array = bank.free_rows.duplicate()
 	changed[capacity - 1] ^= 1
 	assert_equal(Locations.frontier_heap_refusal(before, changed, capacity, refs, removals, patch, graph), &"FRONTIER_ALLOCATION_CHANGED", "entire unused tail remains exact")
@@ -509,8 +643,9 @@ func _heap_replay_case(capacity: int, graph: bool) -> void:
 
 
 func test_sparse_heap_replay_covers_existing_allocator_extremes_without_a_second_bank() -> void:
-	"""Technical-capacity test only: the producer uses its fixed672-byte patch at the actual maximum heap depth."""
-	for capacity: int in [1, 3, Routes.MAX_EDGES, Locations.MAX_LOCATIONS]:
+	"""Technical-capacity test only: the producer uses its fixed patch (1,120 bytes since decision 1943) at the actual
+	maximum heap depth; a shallow heap (16) would fit an eleventh removal, so only the bound refuses it."""
+	for capacity: int in [1, 3, 16, Routes.MAX_EDGES, Locations.MAX_LOCATIONS]:
 		_heap_replay_case(capacity, false)
 		_heap_replay_case(capacity, true)
 
@@ -595,8 +730,8 @@ func test_late_original_output_resize_refuses_before_every_bank_swap() -> void:
 		assert_equal(observed.calls, variant + 1, "actual successful Room output observer")
 		assert_equal(_pending_output.work, Vector2i(71, 9), "no coordinator handle write")
 		assert_equal(_pending_output.count, 0, "no coordinator count write")
-		assert_equal(_pending_output.locations.size(), 1 if variant == 0 else 6, "only observer Location resize")
-		assert_equal(_pending_output.edges.size(), 1 if variant == 1 else 12, "only observer edge resize")
+		assert_equal(_pending_output.locations.size(), 1 if variant == 0 else 2 * Publication.MAX_STATIONS, "only observer Location resize")
+		assert_equal(_pending_output.edges.size(), 1 if variant == 1 else 4 * Publication.MAX_STATIONS, "only observer edge resize")
 		for item: int in _pending_output.locations: assert_equal(item, 77, "no partial Location output")
 		for item: int in _pending_output.edges: assert_equal(item, 88, "no partial graph output")
 		assert_true(_paid_live_image() == before, "all coupled banks and paid owners unchanged")

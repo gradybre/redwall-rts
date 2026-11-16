@@ -124,12 +124,6 @@ static func mwu_numerator(usec: int, weather_event: int) -> int:
 	return slowed
 
 
-static func units_text(milli: int) -> String:
-	"""'4.0 U' (the woods' words)."""
-	return ForestRules.units_text(milli)
-
-
-
 static func ask_with_kit(party: int, kit: bool) -> int:
 	"""What a trip of `party` foragers asks for: a basket each, the kit's carrier two (decision 1721)."""
 	return ask_milli(party) + (KIT_BASKET_MILLI - BASKET_MILLI if kit else 0)

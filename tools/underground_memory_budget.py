@@ -517,7 +517,8 @@ def connector_delivery_reservation(index: dict) -> dict:
     numbers = dict.fromkeys(("_decision_tick", "_action", "_quantity", "_grams", "_expiry",
                             "_geometry_revision", "_frontier_revision", "_location_receipt",
                             "_route_receipt", "_job_remaining", "_job_state", "_claim_row", "_checks"), "int")
-    numbers.update(dict.fromkeys(("_configured", "_busy", "_poisoned", "_work_tick", "_excavation"), "bool"))
+    numbers.update(dict.fromkeys(("_configured", "_busy", "_poisoned", "_work_tick", "_excavation", "_room_haul"),
+                                 "bool"))
     numbers.update(dict.fromkeys(("_job", "_worker", "_project", "_placement", "_source_lot",
                                  "_source_container", "_destination", "_source_location",
                                  "_destination_location"), "Vector2i"))
@@ -541,7 +542,7 @@ def connector_delivery_reservation(index: dict) -> dict:
     }
     assert packet_bytes == {"order": 96, "selection": 168, "location": 196, "box": 32, "number": 9}
     fixed = numeric_fields(source, "") + 4 * sum(arrays.values()) + sum(packet_bytes.values())
-    assert fixed == 834 # ADR1212: +1 ADR1197 _excavation bool; +80 ADR1215 Record air.
+    assert fixed == 835 # ADR1212: +1 ADR1197 _excavation bool; +80 ADR1215 Record air; +1 decision 1934 _room_haul.
     work_source = index["work"].text
     planner_source = index["haul_planner"].text
     for owner in ("work", "haul_planner"):
@@ -568,7 +569,7 @@ def connector_delivery_reservation(index: dict) -> dict:
     native = int(native_values[0])
     reserved = resolve(index, module, "RESERVED_BYTES")
     assert (helper, native, reserved) == (1024, 2048, 4096)
-    assert fixed + 1 + helper + native == 3907 and fixed + 1 + helper + native <= reserved
+    assert fixed + 1 + helper + native == 3908 and fixed + 1 + helper + native <= reserved
     return {"retained_members": expected, "packed_cells": arrays, "packet_bytes": packet_bytes,
             "fixed_numeric_and_packed_bytes": fixed, "work_new_numeric_bytes": 1,
             "work_bindings": work_bindings, "logical_helper_allowance_bytes": helper,
@@ -625,9 +626,13 @@ def entry_bindings_reservation(index: dict) -> dict:
     expected = {"_entry_frontier": "Frontier", "_entry_placements": "Placements", "_entry_authority": "AdmissionAuthority",
         "_entry_request": "EntryPlan.Request", "_entry_pin": "EntryPlan.Request", "_placement_request": "Placements.Request",
         "_entry_candidate": "Directory.CreateCandidate", "_entry_anchor": "Locations.Record", "_entry_contact": "Locations.Record",
-        "_entry_transform": "Connectors.Placement", "_entry_row": "PackedInt32Array", "_entry_bearing": "PackedInt32Array"}
+        "_entry_transform": "Connectors.Placement", "_entry_row": "PackedInt32Array", "_entry_bearing": "PackedInt32Array",
+        "_entry_cube_keys": "PackedInt64Array", "_entry_cube_masks": "PackedInt32Array"}
     assert {k: v for k, v in fields.items() if v not in {"int", "bool", "Vector2i", "Vector3i"}} == expected, \
         "unreconciled EntryBindings retained member"
+    # Decision 2044 (P-2044-10 (a)): the confirmation's cube index grows by append only, one key and mask a whole
+    # episode cube; the current census charges it from the mounted Frontier (first_entry_runtime_chain).
+    assert not re.search(r"_entry_cube_(?:keys|masks)\.resize\(", source), "cube index is appended, never resized"
     record = class_body(index["underground_locations"].text, "Record")
     boxes = RECORD_BOXES
     packets = sum(anchor_packet_bytes(record, boxes, name, source) for name in ("_entry_anchor", "_entry_contact"))

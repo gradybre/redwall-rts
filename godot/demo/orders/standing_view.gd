@@ -72,7 +72,7 @@ func _build() -> void:
 
 
 func _build_add_row() -> HFlowContainer:
-	"""'Add an order: ◀ planks ▶ − 20.0 U + Add order'."""
+	"""'Add an order: ◀ planks ▶ − 20 planks + Add order'."""
 	var row := HFlowContainer.new()
 	row.add_theme_constant_override(&"h_separation", 6)
 	var head: Label = FarmUi.label("Add an order: keep", NOTE_PX, Palette.INK, true)
@@ -146,7 +146,7 @@ func _paint_add_row() -> void:
 	"""The offered good and amount, and the buttons' limits."""
 	var kind: int = _good_kinds[_good]
 	_good_label.text = Kinds.good_name(kind, _good_items[_good])
-	_amount_label.text = Kinds.amount_text(kind, _amount)
+	_amount_label.text = Kinds.target_text(kind, _amount, _good_items[_good])
 	FarmUi.set_enabled(_less, _amount > Kinds.STEP[kind], "it is at its least")
 	FarmUi.set_enabled(_more, _amount < Kinds.MAX_AMOUNT[kind], "it is at its most")
 	var why: String = "" if _book.find(kind, _good_items[_good]) < 0 else BookScript.REFUSE_SAME % _good_label.text

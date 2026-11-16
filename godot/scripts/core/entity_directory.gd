@@ -63,6 +63,8 @@ const KIND_ANY: int = -1
 
 ## Largest int32. Bounds generation, persistent ID, and every packed column.
 const MAX_INT32: int = 2147483647
+## Decision 1951: the saturation bound of `_mutation_revision` (the int64 maximum).
+const REVISION_MAX: int = 9223372036854775807
 
 ## The first persistent identity a new world issues (REG-R01, §1 `_next_persistent_id`).
 const PERSISTENT_ID_MIN: int = 1
@@ -278,6 +280,10 @@ var _last_refusal: StringName = REFUSAL_NONE
 ## persisted, and excluded from `state_bytes()` so a refusal cannot alter the image proving it
 ## changed nothing.
 var _last_column_refusal: StringName = REFUSAL_NONE
+## Decision 1951: a runtime token that changes whenever any identity column (`_active`, `_generation`, `_kind`,
+## `_typed_row`, `_typed_owner_slot`, `_persistent_id`) may have changed. Never saved, and excluded from
+## `state_bytes()`; zero (saturated) permanently poisons a reader's cache.
+var _mutation_revision: int = 1
 
 
 func _init() -> void:
@@ -526,8 +532,20 @@ func _push_frontier(frontier: PackedInt32Array, count: int, value: int,
 	frontier[index] = value
 
 
+func mutation_revision() -> int:
+	"""Decision 1951: changes on every write of an identity column; zero poisons caches."""
+	return _mutation_revision if _mutation_revision < REVISION_MAX else 0
+
+
+func _mark_mutated() -> void:
+	"""Saturate on exhaustion so a cache keyed on the token can never see a recycled value."""
+	if _mutation_revision < REVISION_MAX:
+		_mutation_revision += 1
+
+
 func _publish_row(slot: int, kind: int, row: int) -> Vector2i:
 	"""Initialize every column of a reserved slot, then publish `active=1` (ARCH-ID-002)."""
+	_mark_mutated()
 	# Initial generation is 1 and it increments on reuse, never on destroy. A
 	# retired slot never re-enters the free heap, so this cannot wrap.
 	assert(_generation[slot] < MAX_INT32, "a max-generation slot must be retired, not reused")
@@ -551,6 +569,7 @@ func destroy(ref: Vector2i) -> bool:
 	var kind: int = _kind[slot]
 	var base: int = _kind_base[kind]
 	var row: int = _typed_row[slot]
+	_mark_mutated()
 	_typed_owner_slot[base + row] = NULL_SLOT
 	_push_free(_heap_index, base, _kind_free_count[kind], row)
 	_kind_free_count[kind] += 1
@@ -893,6 +912,7 @@ func clear() -> void:
 	this and then restoring columns would publish a world whose identities restart at 1 over ids
 	the save already spent.
 	"""
+	_mark_mutated()
 	_persistent_id.fill(0)
 	_kind.fill(KIND_ANY)
 	_active.fill(0)
@@ -907,6 +927,7 @@ func clear() -> void:
 
 func _allocate_columns() -> void:
 	"""The only place that sizes a packed array (ARCH-MEM-005: allocate once)."""
+	_mark_mutated()
 	_persistent_id.resize(DIRECTORY_CAPACITY)
 	_generation.resize(DIRECTORY_CAPACITY)
 	_kind.resize(DIRECTORY_CAPACITY)
@@ -1112,6 +1133,7 @@ func _fill_owner_map(active: PackedByteArray, kind: PackedInt32Array,
 	entry collide here, which is the same instant ARCH-ID-003's reverse map would have been made
 	ambiguous. Callers must have range-checked `kind` and `typed_row` first.
 	"""
+	_mark_mutated()
 	_typed_owner_slot.fill(NULL_SLOT)
 	_kind_live_count.fill(0)
 	var slot: int = active.find(1, 0)
@@ -1132,6 +1154,7 @@ func _install_columns(active: PackedByteArray, generation: PackedInt32Array,
 		retired: PackedByteArray, persistent_id: PackedInt32Array, kind: PackedInt32Array,
 		typed_row: PackedInt32Array) -> void:
 	"""Take a private copy of each validated column. `duplicate()` so the caller cannot alias one."""
+	_mark_mutated()
 	_active = active.duplicate()
 	_generation = generation.duplicate()
 	_retired = retired.duplicate()

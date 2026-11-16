@@ -21,6 +21,7 @@ const TunnelRules := preload("res://demo/tunnel/tunnel_rules.gd")
 const DemoPick := preload("res://demo/control/demo_pick.gd")
 const PropsScript := preload("res://demo/props/demo_props.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 ## Earth kept between it and a bore or a room below (a tunnel's pillar, tunnel_rules.gd PILLAR_U).
 const REACH_U: int = TunnelRules.PILLAR_U
@@ -36,7 +37,7 @@ const REFUSE_DOOR: String = "its door or its building site would be blocked"
 ## The room a resident needs at the door and the site (m).
 const POINT_M: float = 0.5
 const PROMPT: String = "Place the cellar: click where it should stand · Esc or right-click to stop"
-const PLACED: String = "Cellar %d planned: wood %s and stone %s to fetch, then %d WU of building"
+const PLACED: String = "Cellar %d planned: %s and %s to fetch, then %d WU of building"
 const REFUSED: String = "Can't place the cellar here: %s"
 const GHOST_ALPHA: float = 0.45
 
@@ -181,8 +182,8 @@ func place() -> bool:
 		_answer(REFUSED % ProjectsScript.REFUSE_FULL)
 		return false
 	disarm()
-	_answer(PLACED % [c + 1, ProjectsScript.units_text(Rules.cost_milli(Rules.MAT_WOOD)),
-		ProjectsScript.units_text(Rules.cost_milli(Rules.MAT_STONE)), Rules.work_wu()])
+	_answer(PLACED % [c + 1, Measures.need(&"wood", Rules.cost_milli(Rules.MAT_WOOD)),
+		Measures.need(&"stone", Rules.cost_milli(Rules.MAT_STONE)), Rules.work_wu()])
 	return true
 
 

@@ -274,7 +274,7 @@ func test_each_theme_says_what_it_needs() -> void:
 	v.kitchen.takes.reserve_into(v.pantry, take, Catalog.CAT_MEAD, mead, 0, _read)
 	var short: PackedStringArray = v.feast.menu.shortfalls(Rules.HARVEST, RESIDENTS)
 	assert_equal(short.size(), 1, "only the mead")
-	assert_true(short[0].begins_with("needs mead: 2.0 U (0.0 U free)") and short[0].contains("brewery"), short[0])
+	assert_true(short[0].begins_with("needs mead: 0 of 2 jugs free —") and short[0].contains("brewery"), short[0])
 	assert_equal(v.feast.refusal(Rules.HARVEST, DAY, 1, true), short[0], "the plan refused with it")
 	assert_equal(v.feast.refused_code, "NEEDS", "its code")
 	v.kitchen.takes.release(take)
@@ -286,14 +286,14 @@ func test_each_theme_says_what_it_needs() -> void:
 	var berries: int = v.feast.menu.free_of(Catalog.CAT_BERRIES)
 	var tart: int = v.kitchen.takes.new_take()
 	v.kitchen.takes.reserve_into(v.pantry, tart, Catalog.CAT_BERRIES, berries - 3999, 0, _read)
-	assert_true(v.feast.menu.shortfalls(Rules.HARVEST, RESIDENTS)[0].begins_with("needs berries: 4.0 U (3.99 U free)"),
+	assert_true(v.feast.menu.shortfalls(Rules.HARVEST, RESIDENTS)[0].begins_with("needs berries: 3 of 4 bowls free —"),
 		"a course's input a part short")
 	v.kitchen.takes.release(tart)
 	_stock_theme(v, Rules.HEARTH)
 	v.stores.take_water(v.stores.water_milli_u - 1999)
 	var dry: PackedStringArray = v.feast.menu.shortfalls(Rules.HEARTH, RESIDENTS)
 	assert_equal(dry.size(), 1, "the infusion's water alone short")
-	assert_true(dry[0].begins_with("needs water in the butt: 2.0 U (1.99 U there)"), dry[0])
+	assert_true(dry[0].begins_with("needs water in the butt: 1 of 2 jugs there —"), dry[0])
 
 
 func test_the_plan_is_refused_in_order() -> void:
@@ -650,11 +650,11 @@ func test_a_feast_counts_the_food_its_own_supper_already_holds() -> void:
 	assert_equal(v.feast.menu.shortfalls(Rules.HEARTH, RESIDENTS, key), PackedStringArray(), "its own supper's food counted")
 	v.feast.choice_day = DAY
 	assert_true(Words.theme_ready_words(v.feast, Rules.HEARTH).contains("every course can be made"), "the themes say so")
-	assert_true("\n".join(Words.preview_lines(v.feast, Rules.HEARTH, DAY, 1)).contains("beans 4.0 U (free 4.0 U)"),
+	assert_true("\n".join(Words.preview_lines(v.feast, Rules.HEARTH, DAY, 1)).contains("free in the pantry: beans 4 scoops — enough"),
 		"the plan counts them")
-	assert_true("\n".join(Words.preview_lines(v.feast, Rules.HEARTH, DAY + 1, 1)).contains("beans 4.0 U (free 0.0 U)"),
+	assert_true("\n".join(Words.preview_lines(v.feast, Rules.HEARTH, DAY + 1, 1)).contains("free in the pantry: beans 0 of 4 scoops"),
 		"a plan for another supper does not")
-	assert_equal(v.feast.refusal(Rules.HEARTH, DAY + 1, 1, true), "needs beans: 4.0 U (0.0 U free) — the fields (Farm ▸ the planner) (and 1 more: see The themes)",
+	assert_equal(v.feast.refusal(Rules.HEARTH, DAY + 1, 1, true), "needs beans: 0 of 4 scoops free — the fields (Farm ▸ the planner) (and 1 more: see The themes)",
 		"tomorrow's feast may not count today's supper")
 	assert_equal(v.feast.hold(Rules.HEARTH, DAY, 1, true), "", "held")
 	assert_true(v.kitchen.occasion_adopted(), "the supper is the feast's now")
@@ -914,7 +914,7 @@ func test_the_plan_reads_as_req_set_100_asks() -> void:
 	_stock_theme(v, Rules.ORCHARD)
 	var text: String = "\n".join(Words.preview_lines(v.feast, Rules.ORCHARD, DAY, 1))
 	for words: String in ["Orchard feast (M3 in the full game) for 6", "17:00 supper", "nut roast x2 (8 portions)",
-			"orchard crumble x2", "Mead: 2.0 U", "Also poured, if there: cider 2.0 U", "2 seatings", "keeps it", "After it: ready food", "Rooted Community if 5 of 6"]:
+			"orchard crumble x2", "Mead, free in the pantry: 2 jugs — enough", "Also poured, if there: cider 0 of 2 jugs free — not poured", "2 seatings", "keeps it", "After it: ready food", "Rooted Community if 5 of 6"]:
 		assert_true(text.contains(words), "says %s: %s" % [words, text])
 	assert_true(Words.status_line(v.feast).begins_with("No feast is called."), "the status")
 	assert_true(Words.choice_line(v.feast).contains("Theme: Hearth"), "the choice")

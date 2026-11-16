@@ -36,6 +36,8 @@ const SwimStateScript := preload("res://demo/waterplay/swim_state.gd")
 const SwimRules := preload("res://demo/waterplay/swim_rules.gd")
 const CareStateScript := preload("res://demo/infirmary/care_state.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
+const InfirmaryRules := preload("res://demo/infirmary/infirmary_rules.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 @warning_ignore_start("integer_division")
 
@@ -55,7 +57,8 @@ const SECTION_REFRESH_S: float = 0.25
 const BUILD: String = "Build the infirmary…"
 const CANCEL: String = "Cancel the infirmary"
 const BUILT: String = "The infirmary is built"
-const BUILD_TIP: String = ("Place it, then residents fetch wood 40, stone 30 and cloth 12 and build it (1000 WU):"
+## The Build button's tip: the infirmary's price in its measures (`build_tip`; goods_measures.gd, decision 1801).
+const BUILD_TIP: String = ("Place it, then residents fetch %s, %s and %s and build it (%d WU):"
 	+ " the hurt rest and heal there at +4 health an hour (REQ-SET-017)")
 const BUILT_TIP: String = ("The hurt rest and heal here; before it, or when its 8 beds are full, they rest in their own"
 	+ " beds or by the hall")
@@ -207,7 +210,15 @@ func refresh_section() -> void:
 	elif project.is_active():
 		section.show_lines(desk.infirmary_lines(), CANCEL, true, "Cancel it: " + project.refund_text())
 	else:
-		section.show_lines(desk.infirmary_lines(), BUILD, true, BUILD_TIP)
+		section.show_lines(desk.infirmary_lines(), BUILD, true, build_tip())
+
+
+static func build_tip() -> String:
+	"""The Build button's tip: "Place it, then residents fetch 40 logs, 30 blocks of stone and 1½ bolts of cloth and build
+	it (1000 WU): …"."""
+	return BUILD_TIP % [Measures.need(&"wood", InfirmaryRules.cost_milli(InfirmaryRules.MAT_WOOD)),
+		Measures.need(&"stone", InfirmaryRules.cost_milli(InfirmaryRules.MAT_STONE)),
+		Measures.need(&"cloth", InfirmaryRules.cost_milli(InfirmaryRules.MAT_CLOTH)), InfirmaryRules.work_wu()]
 
 
 func _on_section_pressed() -> void:

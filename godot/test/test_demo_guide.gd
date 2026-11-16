@@ -155,7 +155,7 @@ func test_a_harvest_counts_only_once_it_is_shelved() -> void:
 	facts.observe(world)
 	assert_true(StepsScript.is_done(StepsScript.STEP_HARVEST, facts), "done once shelved")
 	assert_equal(facts.harvested_milli, cut, "the amount shelved")
-	assert_true(StatusScript.confirm_text(StepsScript.STEP_HARVEST, world, facts).contains("of carrot came into store"),
+	assert_true(StatusScript.confirm_text(StepsScript.STEP_HARVEST, world, facts).contains("of carrots came into store"),
 		"the confirmation names the crop")
 
 
@@ -479,9 +479,9 @@ func test_the_season_card_names_the_frost_and_all_three_ways() -> void:
 	for line: String in status.choices:
 		assert_true(line.length() > 20, line)
 	assert_equal(status.target_kind, NoticesScript.TARGET_BED, "the marker on a bed to ready")
-	world.bridge_refusal = func(_kind: int) -> String: return "Can't build: it needs 4.7 U planks"
+	world.bridge_refusal = func(_kind: int) -> String: return "Can't build: it needs 5 planks"
 	StatusScript.resolve_into(StepsScript.STEP_SEASON, world, FactsScript.new(), status)
-	assert_true(status.choices[0].contains("it needs 4.7 U planks"), "the bridge's own refusal: " + status.choices[0])
+	assert_true(status.choices[0].contains("it needs 5 planks"), "the bridge's own refusal: " + status.choices[0])
 
 
 # --- progress: one at a time, already done, skip and reopen, pause, completion ------------------------

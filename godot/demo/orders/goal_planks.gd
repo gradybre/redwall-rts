@@ -3,6 +3,8 @@ extends "res://demo/orders/woods_goal.gd"
 ## sawhorse's right-click with nobody selected queues one (forest_crew.gd `refusal_for`: a batch takes SAW_BATCH_MILLI
 ## of the stores' wood). Two saw batches at most at once (standing_kinds.gd MAX_JOBS).
 
+const Measures := preload("res://scripts/ui/goods_measures.gd")
+
 const NO_WOOD: String = "not enough wood to saw: a batch takes %s and the stores hold %s — keep wood stocked"
 
 
@@ -20,7 +22,7 @@ func measure(_item: int) -> int:
 func raise_into(_item: int, _tracked: Callable, out: IntMath.IntResult) -> String:
 	"""A Saw planks job: refused for want of wood, or a full board."""
 	if not _crew.refusal_for(JobsScript.KIND_SAW, JobsScript.NO_TARGET, 0).is_empty():
-		return NO_WOOD % [Rules.units_text(Rules.SAW_BATCH_MILLI), Rules.units_text(_stores.wood_milli_u)]
+		return NO_WOOD % [Measures.need(&"wood", Rules.SAW_BATCH_MILLI), Measures.amount(&"wood", _stores.wood_milli_u)]
 	if board_full():
 		return full_words()
 	if not _crew.jobs.open_into(JobsScript.KIND_SAW, JobsScript.NO_TARGET, 0, JobsScript.ORIGIN_PLAYER, out):

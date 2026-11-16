@@ -90,11 +90,20 @@ class RoomMemoryWitnessTests(unittest.TestCase):
                 self.refuses_current_change(name, changed, "current reviewed source changed")
 
     def test_current_transitive_body_changes_are_not_hidden_by_frame_counts(self):
-        name = "underground_work_face"
+        # Decision 1971 made underground_work_face a projected input (ADR 1212): its injected body is replaced by the
+        # reviewed manifest-3 bytes, as for every projected input. An unprojected transitive input still refuses.
+        name = "underground_terrain"
         old = self.index[name]
         changed = old._replace(text=old.text + "\nfunc same_size_callback() -> void:\n\tpass\n")
         with self.assertRaisesRegex(ValueError, "current reviewed source changed"):
             room.build(dict(self.index, **{name: changed}))
+        face = self.index["underground_work_face"]
+        archived = set()
+        _, _, replayed = room.verified_inputs(dict(self.index, underground_work_face=face._replace(
+            text=face.text + "\nfunc same_size_callback() -> void:\n\tpass\n")), archived)
+        self.assertIn(face.relative_path, archived)
+        self.assertEqual(hashlib.sha256(replayed["underground_work_face"].text.encode()).hexdigest(),
+                         self.manifest["sources"]["underground_work_face"]["sha256"])
 
     def test_actual_movement_reader_cannot_add_uncounted_scratch(self):
         old = self.index["movement"]
@@ -194,7 +203,7 @@ class RoomMemoryWitnessTests(unittest.TestCase):
         source = self.index["underground_route_composition"]
         # ADR1212: route composition is projected, so its constants and allocation sites are recounted by the
         # current census. A pure comparison edit (header[7] != N) is not storage and is not refused there.
-        for before, after in (("GROUND_PACE_COUNT: int = 29", "GROUND_PACE_COUNT: int = 16"),
+        for before, after in (("GROUND_PACE_COUNT: int = 43", "GROUND_PACE_COUNT: int = 29"),
                               ("var o: Retirement.Owners", "var scratch: Array = [1, 2]\n\tvar o: Retirement.Owners")):
             self.assertIn(before, source.text)
             changed = source._replace(text=source.text.replace(before, after, 1))
@@ -351,14 +360,19 @@ class RoomMemoryWitnessTests(unittest.TestCase):
         self.assertEqual(result["current_publication_metadata"]["joint"], 248632)
 
     def test_injected_ui_alias_text_cannot_use_the_current_disk_or_cached_hash(self):
+        # ADR1212 (decision 1801, Brendan's B1 (a)): ui_manager is projected. Injected text is replaced by its
+        # reviewed manifest-3 bytes before anything executes; a storage change is refused by the current census, and
+        # a method with no storage is admitted there, as for every projected input.
         _, _, current = room.verified_inputs(self.index)
         source = current["ui_manager"]
-        for suffix in ("\nvar extra: Array = [1, 2]\n", "\nfunc hidden_callback():\n\tpass\n"):
-            changed = source._replace(text=source.text + suffix)
-            with self.subTest(suffix=suffix), mock.patch.object(room, "producer") as execute:
-                with self.assertRaisesRegex(ValueError, "current reviewed source changed: ui_manager"):
-                    room.build(dict(self.index, ui_manager=changed))
-                execute.assert_not_called()
+        self.refuses_current_change("ui_manager", source._replace(text=source.text + "\nvar extra: Array = [1, 2]\n"),
+                                    "current reviewed source changed: ui_manager")
+        changed = source._replace(text=source.text + "\nfunc hidden_callback():\n\tpass\n")
+        archived = set()
+        _, _, replayed = room.verified_inputs(dict(self.index, ui_manager=changed), archived)
+        self.assertIn(changed.relative_path, archived)
+        self.assertEqual(hashlib.sha256(replayed["ui_manager"].text.encode()).hexdigest(),
+                         self.manifest["sources"]["ui_manager"]["sha256"])
 
     def test_notice_dependency_value_or_body_changes_refuse_before_import(self):
         path = room.ROOT / self.manifest["ui_alias"]["dependency"]["path"]

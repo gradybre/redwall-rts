@@ -16,7 +16,6 @@ const RosterScript := preload("res://demo/ui/demo_roster.gd")
 const MinimapScript := preload("res://demo/ui/demo_minimap.gd")
 const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
 const PantryScript := preload("res://demo/farm/farm_pantry.gd")
-const FarmHudScript := preload("res://demo/farm/farm_hud.gd")
 const StorageScript := preload("res://demo/farm/farm_storage.gd")
 const ForestText := preload("res://demo/forestry/forest_text.gd")
 const ServicesScript := preload("res://demo/demo_services.gd")
@@ -95,18 +94,18 @@ func test_the_top_bar_reads_the_village_stores_pantry_cast_and_homes() -> void:
 	var stores := StoresScript.new()
 	var counters := _counters(shell, stores, [12000], 9, 3)
 	assert_true(counters.sync(), "painted")
-	assert_equal(_value(shell, UiShell.ID_FOOD), "12.0 U", "the pantry's total")
+	assert_equal(_value(shell, UiShell.ID_FOOD), "2 baskets", "the pantry's total: 12 U is 2 baskets of food (5 U each)")
 	assert_equal(_value(shell, UiShell.ID_FUEL), "2.5 days", "the winter's fuel-days")
 	assert_equal(shell.counter_caption_label(UiShell.ID_FUEL).text, "Heating fuel", "UI-SET-003's caption")
-	assert_equal(_value(shell, UiShell.ID_WOOD), "40.0 U", "the stores' wood")
-	assert_equal(_value(shell, UiShell.ID_STONE), "20.0 U", "the stores' stone")
+	assert_equal(_value(shell, UiShell.ID_WOOD), "40 logs", "the stores' wood: no winter bound, so the count")
+	assert_equal(_value(shell, UiShell.ID_STONE), "20 blocks", "the stores' stone, in blocks (P1)")
 	assert_equal(_value(shell, UiShell.ID_POPULATION), "9", "the cast")
 	assert_equal(_value(shell, UiShell.ID_BEDS), "3", "the homes' beds")
 	assert_equal(shell.counter_caption_label(UiShell.ID_BEDS).text, "Beds", "no longer 'Sim beds'")
 	assert_false((shell.control_for(UiShell.ID_BEDS) as Button).disabled, "Beds opens the ledger like the others")
 	assert_false((shell.control_for(UiShell.ID_FUEL) as Button).disabled, "and so does Heating fuel")
 	assert_equal(shell.control_for(UiShell.ID_WOOD).tooltip_text,
-		"Wood: 40.0 U in the village stores (planks: 0.0 U). Click for the ledger.", "says where the figure is")
+		"Wood: 40 logs (200 kg) in the village stores (and no planks). Click for the ledger.", "says where the figure is")
 	assert_equal(shell.control_for(UiShell.ID_WOOD).accessibility_description,
 		shell.control_for(UiShell.ID_WOOD).tooltip_text, "and says it to a screen reader")
 	assert_false(counters.sync(), "nothing changed: nothing painted")
@@ -130,18 +129,23 @@ func test_the_top_bar_equals_the_stores_after_spending_and_hauling() -> void:
 		func() -> bool:
 		stores.refund(500, 250, 100)
 		return true]
+	## The planks after each step, worded by hand from decision 1011's table: whole planks, floored; under one plank
+	## its weight (5 kg a plank, P2): 0, 0, 1.5, 0.6, 0.5, 0.6 U.
+	var plank_words: Array[String] = ["no planks", "no planks", "a plank", "3 kg of planks", "2.5 kg of planks",
+		"3 kg of planks"]
 	for k: int in steps.size():
 		assert_true(bool(steps[k].call()), "step %d happened" % k)
 		counters.sync()
-		for pair: Array in [[UiShell.ID_WOOD, stores.wood_milli_u], [UiShell.ID_STONE, stores.stone_milli_u]]:
-			assert_equal(_value(shell, pair[0]), StoresScript.units_text(pair[1]), "step %d: cell %d" % [k, pair[0]])
-		assert_true(stores.stock_line().contains("wood " + _value(shell, UiShell.ID_WOOD)), "step %d: the Tunnels line" % k)
-		assert_true(stores.stock_line().contains("stone " + _value(shell, UiShell.ID_STONE)), "step %d: stone" % k)
-		var planks: String = StoresScript.units_text(stores.plank_milli_u)
-		assert_true(woods.stores_line().contains("planks " + planks), "step %d: the Woods line" % k)
-		assert_true(counters.ledger_label().text.contains("· planks %s in store" % planks), "step %d: the ledger" % k)
-	assert_equal(_value(shell, UiShell.ID_WOOD), "38.5 U", "40 - 3.7 + 4.25 - 2.0, floored to a tenth")
-	assert_true(counters.ledger_label().text.contains("· planks 0.6 U in store"), "1.5 sawn - 0.9 for the bridge")
+		@warning_ignore("integer_division") var logs: String = "%d logs" % (stores.wood_milli_u / 1000)
+		@warning_ignore("integer_division") var blocks: String = "%d blocks" % (stores.stone_milli_u / 1000)
+		assert_equal(_value(shell, UiShell.ID_WOOD), logs, "step %d: whole logs, floored" % k)
+		assert_equal(_value(shell, UiShell.ID_STONE), blocks, "step %d: whole blocks, floored" % k)
+		assert_true(stores.stock_line().contains(logs + " · "), "step %d: the Tunnels line's wood" % k)
+		assert_true(stores.stock_line().contains(blocks + " of stone"), "step %d: its stone" % k)
+		assert_equal(woods.stores_line(), "Village stores: %s · %s" % [logs, plank_words[k]], "step %d: the Woods line" % k)
+	assert_equal(_value(shell, UiShell.ID_WOOD), "38 logs", "40 - 3.7 + 4.25 - 2.0 = 38.55, floored to whole logs")
+	assert_true(counters.ledger_label().text.contains("Wood: 38 logs · 3 kg of planks in store"),
+		"1.5 sawn - 0.9 for the bridge: 0.6 of a plank is its weight, 3 kg")
 
 
 func test_the_food_cell_follows_the_pantry_total() -> void:
@@ -153,11 +157,10 @@ func test_the_food_cell_follows_the_pantry_total() -> void:
 	counters.model.food = pantry.total_milli
 	counters.bind(shell)
 	counters.sync()
-	assert_equal(_value(shell, UiShell.ID_FOOD), "0 U", "an empty pantry is a real zero")
+	assert_equal(_value(shell, UiShell.ID_FOOD), "none", "an empty pantry is a real zero")
 	assert_true(pantry.add_into(CARROT, 5400, 0, _read), "a harvest stored")
 	assert_true(counters.sync(), "repainted")
-	assert_equal(_value(shell, UiShell.ID_FOOD), FarmHudScript.food_text(pantry.total_milli()), "the pantry's figure")
-	assert_equal(_value(shell, UiShell.ID_FOOD), "5.4 U", "5.4 U of carrot counts as the Pantry counts it")
+	assert_equal(_value(shell, UiShell.ID_FOOD), "1 basket", "5.4 U of carrot is a basket of food, floored")
 
 
 func test_unavailable_never_masquerades_as_zero() -> void:
@@ -174,7 +177,7 @@ func test_unavailable_never_masquerades_as_zero() -> void:
 	assert_false(counters.model.known(ModelScript.CELL_FOOD), "unknown")
 	counters.model.food = func() -> int: return 0
 	assert_true(counters.model.known(ModelScript.CELL_FOOD), "a pantry: known")
-	assert_equal(counters.model.value_text(ModelScript.CELL_FOOD, 0), "0 U", "and its zero is a real one")
+	assert_equal(counters.model.value_text(ModelScript.CELL_FOOD, 0), "none", "and its zero is a real one")
 
 
 func test_the_counters_paint_back_over_the_settlement_figures() -> void:
@@ -183,21 +186,21 @@ func test_the_counters_paint_back_over_the_settlement_figures() -> void:
 	var shell := _shell()
 	var counters := _counters(shell, StoresScript.new(), [7000], 9, 3)
 	counters.sync()
-	shell.set_counter_display(UiShell.ID_WOOD, "180 U")
+	shell.set_counter_display(UiShell.ID_WOOD, "180 logs available; none reserved")
 	assert_true(counters.sync(), "noticed")
-	assert_equal(_value(shell, UiShell.ID_WOOD), "40.0 U", "ours again")
+	assert_equal(_value(shell, UiShell.ID_WOOD), "40 logs", "ours again")
 	shell.counter_caption_label(UiShell.ID_BEDS).text = "Beds"
 	shell.counter_value_label(UiShell.ID_BEDS).text = "Unavailable"
 	assert_true(counters.sync(), "a relayout noticed")
 	assert_equal(_value(shell, UiShell.ID_BEDS), "3", "the homes' beds again")
-	shell.set_ledger_display("Food-days --   Wood 180 U")
+	shell.set_ledger_display("Food-days --   Wood 180 logs available; none reserved")
 	assert_true(counters.sync(), "the ledger noticed")
 	assert_true(counters.ledger_label().text.begins_with(ModelScript.LEDGER_TITLE), "the village's ledger again")
 	assert_false(counters.sync(), "and then quiet")
-	shell.control_for(UiShell.ID_WOOD).accessibility_description = "Wood 40.0 U"
+	shell.control_for(UiShell.ID_WOOD).accessibility_description = "Wood 40 logs"
 	assert_true(counters.sync(), "a relayout's accessible description noticed")
 	assert_equal(shell.control_for(UiShell.ID_WOOD).accessibility_description,
-		"Wood: 40.0 U in the village stores (planks: 0.0 U). Click for the ledger.", "ours again")
+		"Wood: 40 logs (200 kg) in the village stores (and no planks). Click for the ledger.", "ours again")
 
 
 func test_the_ledger_says_the_same_figures_and_whose_they_are() -> void:
@@ -207,8 +210,8 @@ func test_the_ledger_says_the_same_figures_and_whose_they_are() -> void:
 	stores.add_planks(2500)
 	var counters := _counters(shell, stores, [12000], 9, 3)
 	counters.sync()
-	assert_equal(counters.ledger_label().text, "Village stores and residents\nReady food: 12.0 U in the Pantry (K)\n"
-		+ "Heating fuel: 2.5 days\nWood: 40.0 U · planks 2.5 U in store\nStone: 20.0 U in the village stores\n"
+	assert_equal(counters.ledger_label().text, "Village stores and residents\nReady food: 2 baskets in the Pantry (K)\n"
+		+ "Heating fuel: 2.5 days\nWood: 40 logs · 2 planks in store\nStone: 20 blocks in the village stores\n"
 		+ "Residents: 9 living in the village\nBeds: 3 in 1 burrow home", "the ledger")
 	counters.model.homes = func() -> int: return 2
 	assert_equal(counters.model.ledger_line(ModelScript.CELL_BEDS, 3), "Beds: 3 in 2 burrow homes", "plural")
@@ -222,9 +225,9 @@ func test_a_value_that_does_not_fit_discloses_the_ledger() -> void:
 	var counters := _counters(shell, StoresScript.new(), [0], 9, 3)
 	var font: Font = counters.role_font(UiShell.VALUE_VARIATION)
 	var px: int = counters.role_px(UiShell.VALUE_VARIATION)
-	var width: float = font.get_string_size("40.0 U", HORIZONTAL_ALIGNMENT_LEFT, -1.0, px).x
-	assert_true(CountersScript.fits(font, px, "40.0 U", width + 8.0), "exactly fits")
-	assert_false(CountersScript.fits(font, px, "40.0 U", width + 7.0), "a pixel short")
+	var width: float = font.get_string_size("40 logs", HORIZONTAL_ALIGNMENT_LEFT, -1.0, px).x
+	assert_true(CountersScript.fits(font, px, "40 logs", width + 8.0), "exactly fits")
+	assert_false(CountersScript.fits(font, px, "40 logs", width + 7.0), "a pixel short")
 	assert_true(CountersScript.fits(font, px, "anything", 0.0), "not laid out yet: no judgement")
 	assert_true(CountersScript.fits(null, px, "anything", 10.0), "no face: no judgement")
 	counters.model.beds = func() -> int: return 123456789012345
@@ -259,6 +262,64 @@ func test_the_heating_fuel_cell_warns_under_two_days_and_says_no_demand() -> voi
 
 
 # --- F14: the Residents roster --------------------------------------------------------------------------
+
+func _bind_wood_level(counters: CountersScript, readings: Array) -> void:
+	"""The Wood cell's three winter readings from `readings`: [urgent, wanted, projection milli-U]."""
+	counters.model.wood_urgent = func() -> bool: return bool(readings[0])
+	counters.model.wood_wanted = func() -> bool: return bool(readings[1])
+	counters.model.wood_projection = func() -> int: return int(readings[2])
+
+
+func test_the_wood_cell_says_its_level_in_words() -> void:
+	"""Decision 1011 §3 (DEC-049, P6): with the winter bound, Wood is none / very low / running low / enough /
+	plenty, judged in that order from the Firewood order's own readings; the tooltip keeps the figures and the
+	weight, and the ledger the counts."""
+	var shell := _shell()
+	var stores := StoresScript.new()
+	stores.add_planks(3000)
+	var counters := _counters(shell, stores, [0], 9, 3)
+	var readings: Array = [false, false, 60000]
+	_bind_wood_level(counters, readings)
+	counters.sync()
+	assert_equal(_value(shell, UiShell.ID_WOOD), "enough", "40 logs, below the 60-log projection, nothing wanted")
+	assert_equal(shell.control_for(UiShell.ID_WOOD).tooltip_text, "Wood: enough — 40 logs (200 kg) in the village "
+		+ "stores; winter needs 60 logs (and 3 planks). Click for the ledger.", "the figures stay in the tooltip")
+	assert_true(counters.ledger_label().text.contains("Wood: 40 logs · 3 planks in store"), "and the ledger")
+	readings[1] = true
+	counters.sync()
+	assert_equal(_value(shell, UiShell.ID_WOOD), "running low", "the Firewood order stands")
+	readings[0] = true
+	counters.sync()
+	assert_equal(_value(shell, UiShell.ID_WOOD), "very low", "under 2 fuel-days")
+	readings[0] = false
+	readings[1] = false
+	readings[2] = 40000
+	counters.sync()
+	assert_equal(_value(shell, UiShell.ID_WOOD), "plenty", "at the projection")
+	stores.wood_milli_u = 0
+	counters.sync()
+	assert_equal(_value(shell, UiShell.ID_WOOD), "none", "no wood")
+
+
+func test_running_low_fits_the_narrowest_wood_cell() -> void:
+	"""1011 §4: "running low" in the 104 px cell at 1280x720. A level is words, drawn in the 16 px disclosure role as
+	Heating fuel's "No demand" is (it is 106 px in the 18 px value face, past the cell's 101), never See ledger."""
+	var shell := _shell()
+	var counters := _counters(shell, StoresScript.new(), [0], 9, 3)
+	_bind_wood_level(counters, [false, true, 60000])
+	counters.sync()
+	var label: Label = shell.counter_value_label(UiShell.ID_WOOD)
+	assert_equal(label.text, "running low", "drawn, not See ledger")
+	assert_equal(label.get_theme_font_size(&"font_size"), counters.role_px(UiShell.DISCLOSURE_VARIATION),
+		"in the disclosure role")
+	var width: float = (shell.control_for(UiShell.ID_WOOD) as Control).size.x
+	assert_true(CountersScript.fits(counters.role_font(UiShell.DISCLOSURE_VARIATION),
+		counters.role_px(UiShell.DISCLOSURE_VARIATION), "running low", width), "it measures inside the cell")
+	assert_true(counters.model.is_state(ModelScript.CELL_WOOD, 40000), "a level is a state in words")
+	_bind_wood_level(counters, [false, false, 0])
+	counters.model.wood_urgent = Callable()
+	assert_false(counters.model.is_state(ModelScript.CELL_WOOD, 40000), "no winter: a figure again")
+
 
 func _village() -> Array:
 	"""A command layer over the placeholder cast, a camera rig and a shell: [command, cast, rig, shell]."""
@@ -491,18 +552,18 @@ func test_one_expected_harvest_with_its_breakdown_on_demand() -> void:
 	"""The panel's one figure; the Details view's multiplication equals it while growing, and names the daily loss
 	that brings a ripe crop down to it past its grace."""
 	var sim := SimScript.new()
-	assert_equal(Text.yield_line(sim, BED_CARROTS, _read), "Expected harvest: 5.1 U of carrot", "one figure")
+	assert_equal(Text.yield_line(sim, BED_CARROTS, _read), "Expected harvest: 5 bunches of carrots", "one figure")
 	assert_equal(Text.harvest_breakdown(sim, BED_CARROTS, _read),
-		"Base 6.0 U × fertility 0.85 × health 1.00 × rotation 1.00 = 5.1 U", "its multiplication")
+		"Base 6 bunches × fertility 0.85 × health 1.00 × rotation 1.00 = 5 bunches", "its multiplication")
 	assert_equal(Text.harvest_breakdown(sim, BED_LOAM, _read), "", "nothing standing: no breakdown")
 	assert_equal(Text.yield_line(sim, BED_LOAM, _read), "", "nor a figure")
 	sim.advance_usec(24 * HOUR_USEC)
-	assert_equal(Text.yield_line(sim, BED_CARROTS, _read), "Harvest now: 5.1 U of carrot", "ripe, in its grace")
+	assert_equal(Text.yield_line(sim, BED_CARROTS, _read), "Harvest now: 5 bunches of carrots", "ripe, in its grace")
 	sim.advance_usec(76 * HOUR_USEC)
 	assert_true(sim.expected_yield_into(BED_CARROTS, _read), "a harvest")
 	assert_equal(_read.value, 4590, "one day past the grace: 10% of 5.1 U lost")
-	assert_equal(Text.harvest_breakdown(sim, BED_CARROTS, _read), "Base 6.0 U × fertility 0.85 × health 1.00 × rotation "
-		+ "1.00 = 5.1 U; ripe 76 h: −10% a day after the first 2 days, so 4.5 U", "and why")
+	assert_equal(Text.harvest_breakdown(sim, BED_CARROTS, _read), "Base 6 bunches × fertility 0.85 × health 1.00 × "
+		+ "rotation 1.00 = 5 bunches; ripe 76 h: −10% a day after the first 2 days, so 4 bunches", "and why")
 	assert_true(Text.raw_line(sim, BED_CARROTS).begins_with("Readings (of 10000): moisture "), "raw readings stay in Details")
 
 
@@ -523,7 +584,10 @@ func test_treatments_say_their_effect_in_points() -> void:
 	assert_true(sim.harvest(BED_CARROTS).ok, "the carrots harvested")
 	var again: int = Text.sown_estimate_milli(sim, BED_CARROTS, CARROT)
 	assert_equal(again, Text.estimate_milli(6000, sim.fertility_factor_of(BED_CARROTS), 850), "roots again: the 850 rotation")
-	assert_true(Text.pick_row(sim, BED_CARROTS, CARROT).contains("this bed: about %s" % Text.units_text(again)), "in the picker")
+	assert_true(again >= 1000 and again < 10000, "under two baskets: carrots in bunches of 1 U")
+	@warning_ignore("integer_division") var bunches: int = again / 1000
+	assert_true(Text.pick_row(sim, BED_CARROTS, CARROT).contains("this bed: about %d bunch%s (base 6 bunches)" % [bunches,
+		"" if bunches == 1 else "es"]), "in the picker")
 
 
 func test_the_moisture_meter_bands_and_positions() -> void:
@@ -655,9 +719,9 @@ func test_the_meter_redraws_on_any_change_and_the_panel_shows_it_with_a_bed() ->
 	assert_equal(panel.meter().margin, FarmingScript.MOISTURE_NEAR_MARGIN, "and the farm's band margin")
 	assert_equal(panel.details_text(), "", "Details closed")
 	panel.toggle_details()
-	assert_true(panel.details_text().begins_with("Base 6.0 U × fertility 0.85"), "opened: the breakdown")
+	assert_true(panel.details_text().begins_with("Base 6 bunches × fertility 0.85"), "opened: the breakdown")
 	assert_true(panel.details_text().contains("\nReadings (of 10000): moisture "), "and the raw readings")
-	assert_equal(panel.line_text(8), "Expected harvest: 5.1 U of carrot", "one expected harvest")
+	assert_equal(panel.line_text(8), "Expected harvest: 5 bunches of carrots", "one expected harvest")
 	assert_equal(panel._fallow.tooltip_text, Text.rest_tip(), "Rest says its effect in points")
 	assert_true(panel.verb_button(JobsScript.KIND_COMPOST).tooltip_text.contains("Compost: +15 fertility points"),
 		"an enabled verb says its effect (on its action card, decision 0332)")
@@ -694,4 +758,4 @@ func test_the_model_reads_the_village_owners_it_is_bound_to() -> void:
 	model.read_into(figures)
 	assert_equal(figures, PackedInt64Array([3000, 0, 40000, 20000, cast.actor_count(), 0]), "every figure its owner's")
 	assert_false(model.known(ModelScript.CELL_FUEL), "no winter bound: Heating fuel unknown, never the planks")
-	assert_true(model.ledger_text(figures).contains("Wood: 40.0 U · planks 1.2 U in store"), "the planks in the ledger")
+	assert_true(model.ledger_text(figures).contains("Wood: 40 logs · a plank in store"), "the planks in the ledger")

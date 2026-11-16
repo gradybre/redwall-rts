@@ -11,7 +11,8 @@ const SaveHeader := preload("res://scripts/core/save_header.gd")
 const Digest := preload("res://scripts/core/canonical_state_hash.gd")
 const REGISTRY_PATH: String = "res://../docs/planning/canonical_state_registry.json"
 
-## Section 6 owner indexes after ADR 1228 added the underground mount and wire owners (schema 10, 25 owners).
+## Section 6 owner indexes after ADR 1228 added the underground mount and wire owners (schema 10, 25 owners); decision
+## 1936 adds underground_room_progress after underground_mount (schema 11, 26 owners), so these are unchanged.
 const CROP_WEATHER: int = 4
 const ECOLOGY: int = 7
 const EXCAVATION_INVENTORY: int = 8
@@ -20,6 +21,7 @@ const INVENTORY: int = 11
 const ROOM_LAYOUT: int = 13
 const SPOIL_TIPS: int = 15
 const ENTRY_PROGRESS: int = 20
+const ROOM_PROGRESS: int = 23
 
 
 class Recorder:
@@ -114,7 +116,7 @@ func test_generated_table_matches_the_registry_json() -> void:
 			assert_equal(Schema.field_type_of(owner, ordinal), int(field["type_code"]), "type")
 			assert_equal(int(field["ordinal"]), ordinal, "ordinal")
 		owner += 1
-	assert_equal(owner, Schema.OWNER_COUNT, "twenty-five section-6 owners")
+	assert_equal(owner, Schema.OWNER_COUNT, "twenty-six section-6 owners")
 	assert_equal(Schema.SECTION_SCHEMA_VERSION, int((registry["section_schema_versions"] as Array)[5]),
 		"section schema")
 
@@ -122,8 +124,8 @@ func test_generated_table_matches_the_registry_json() -> void:
 func test_table_rules_and_pinned_lengths() -> void:
 	"""The compiled table is coherent and its rules are the proved ones; unproved stays zero-only."""
 	assert_true(Schema.table_refusal().is_ok(), "table_refusal accepts the compiled table")
-	assert_equal(Schema.EMPTY_SECTION_BYTES, 12446410, "the empty section length")
-	assert_equal(Schema.MAX_SECTION_BYTES, 24994176, "the maximum section length (ADR1229 6b: +1,948; DEC-059: +84)")
+	assert_equal(Schema.EMPTY_SECTION_BYTES, 12446779, "the empty section length (decisions 1936/1937: +329; decision 1991: +40)")
+	assert_equal(Schema.MAX_SECTION_BYTES, 26450054, "the maximum section length (ADR1229 6b: +1,948; DEC-059: +84; decisions 1936/1937: +1,291,998; decision 1991: +33,832; decision 2044: +130,048, the room-dig record at MAX_LEGS 24)")
 	assert_equal(Schema.rule_kind_of(0, 0), Schema.RULE_FIXED, "buildings._r_spatial_kind FIXED")
 	assert_equal(Schema.rule_value_of(0, 0), 16384, "at ROOM_CAPACITY")
 	assert_equal(Schema.rule_kind_of(ECOLOGY, 0), Schema.RULE_SCALAR, "ecology._last_day")
@@ -131,6 +133,13 @@ func test_table_rules_and_pinned_lengths() -> void:
 	assert_equal(Schema.rule_kind_of(ROOM_LAYOUT, 3), Schema.RULE_BOUNDED, "_room_slots bounded")
 	assert_equal(Schema.rule_value_of(EXCAVATION_SITES, 27), 369545, "_earned_mwu bound")
 	assert_equal(Schema.rule_value_of(ENTRY_PROGRESS, 1), 4591, "progress_record max_count (ADR1229 increment 6b)")
+	assert_equal(Schema.OWNER_KEYS[ROOM_PROGRESS], "underground_room_progress", "decision 1936's owner")
+	assert_equal(Schema.rule_kind_of(ROOM_PROGRESS, 1), Schema.RULE_BOUNDED, "the room-dig record is bounded")
+	assert_equal(Schema.rule_value_of(ROOM_PROGRESS, 1), 1345480, "at the codec's MAX_WIRE_BYTES (decision 1991: 66-byte slots; decision 2044: MAX_LEGS 24)")
+	assert_equal(Schema.field_count_of(ROOM_PROGRESS), 32, "the record and fifteen declared columns, each with its length")
+	assert_equal(Schema.field_key_of(ROOM_PROGRESS, 27), "_room_row", "the record pool's rows, before decision 1991's columns")
+	assert_equal(Schema.field_key_of(ROOM_PROGRESS, 29), "_crew", "decision 1991: the crew column")
+	assert_equal(Schema.field_key_of(ROOM_PROGRESS, 31), "_release_out", "decision 1991: the release flag, declared last")
 	assert_equal(Schema.rule_kind_of(INVENTORY, 3), Schema.RULE_BOUNDED, "ADR 1228: the spatial arena is bounded")
 	assert_equal(Schema.rule_value_of(INVENTORY, 3), 1024, "at SPATIAL_ENDPOINT_CAPACITY")
 	assert_equal(Schema.UNPROVED_FIELDS.size(), 14, "the 14 spoil_tips fields")
@@ -143,7 +152,7 @@ func test_empty_state_round_trips_to_identical_bytes() -> void:
 	"""State.new() encodes to EMPTY_SECTION_BYTES and decodes back to the same bytes."""
 	var bytes: PackedByteArray = _encode(Section.State.new())
 	assert_equal(bytes.size(), Schema.EMPTY_SECTION_BYTES, "empty section length")
-	assert_equal(bytes.decode_u32(0), 25, "store_count")
+	assert_equal(bytes.decode_u32(0), 26, "store_count")
 	var decoded: Section.State = _marked_state()
 	var refusal: SaveHeader.Refusal = Section.decode_section(bytes, 0, bytes.size(), decoded)
 	assert_true(refusal.is_ok(), "decode: %s %s" % [refusal.code, refusal.detail])

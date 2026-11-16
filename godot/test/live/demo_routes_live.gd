@@ -183,7 +183,7 @@ func _bridge_lifecycle() -> void:
 	water.call(&"refresh_panel")
 	await _frames(SETTLE_FRAMES)
 	var project: String = panel.call(&"line", &"project")
-	_check("bridge: planned, materials paid and where", project.begins_with("Materials: a 6.0 U log") and project.contains("nothing missing"), project)
+	_check("bridge: planned, materials paid and where", project.begins_with("Materials: a trunk of 6 logs") and project.contains("nothing missing"), project)
 	var source: Button = panel.call(&"button", WaterPanel.ACTION_SOURCE)
 	_check("bridge: its task on the Work screen", source.is_visible_in_tree() and source.text.begins_with("Bridge task"), source.text)
 	_reveal(panel, source)

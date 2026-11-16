@@ -25,6 +25,10 @@ const Jobs := preload("res://scripts/core/jobs.gd")
 const Needs := preload("res://scripts/core/needs.gd")
 const Schedule := preload("res://scripts/core/schedule.gd")
 const Contract := preload("res://scripts/core/excavation_contract.gd")
+const AutoloadClockReset := preload("res://test/fixtures/autoload_clock_reset.gd")
+const Chain := preload("res://test/fixtures/underground_entry_chain.gd")
+const Recipes := preload("res://test/fixtures/checkpoint_recipes.gd")
+const Store := preload("res://test/fixtures/checkpoint_store.gd")
 ## ADR1227 (G14): with Contacts' Region scans charged one check per slot plus the row's own checks per present row,
 ## T0's paid FUND fits its operation budget and the live chain runs the whole first-entry prefix: L0 installed, T0's
 ## six cuts settled, T0 installed. The foreman is then done; nothing past the prefix is planned (ADR1197 G9: the
@@ -33,25 +37,37 @@ const Contract := preload("res://scripts/core/excavation_contract.gd")
 ## and the restored chain. ADR1217 step 5: 4630 -> 4670 on the claw and paw rows (new motion timings: the claw walk's
 ## 44-key loop, the walk-on past the blocked fade keys, the 32-tick dig and tap loops); every Work amount, bill and
 ## hauled unit is unchanged (DEC-052). ADR1229 increment 6b: the chain then carries on down the descent; these
-## suites stop at the prefix (task PREFIX_TASKS), and one suite runs the whole descent to the sill.
+## suites stop at the prefix (PREFIX_INSTALLS), and one suite runs the whole flight to its last sill.
 ## DEC-059: 4670 -> 4382 with brace/cut/finish x 0.47 (P3) -> 3462 with one claw entry and recovery a cube (P2).
-const DONE_TICK: int = 3462
+## Decision 2044 (M2): 3463, the tick T0's installation settles (the stage hand-over below).
+const DONE_TICK: int = 3463
 ## [task index, cut Work mWU, hauled whole units, installation Work mWU, groups INSTALLED] at the end of the prefix:
-## L0's twelve phases, T0's six cuts, both installations' fastening (32,000 + 12,000 mWU).
-const DONE_LEDGER: Array = [20, 25380, 9, 44000, 2] # DEC-059: six cubes x 4,230
-## ADR1229: the prefix is the foreman's first twenty tasks; task 20 is the descent's first cut.
-const PREFIX_TASKS: int = 20
+## L0's twelve phases, T0's six cuts, both installations' fastening (32,000 + 12,000 mWU). Decision 2044: the index
+## is the next stage's first task (0).
+const DONE_LEDGER: Array = [0, 25380, 9, 44000, 2] # DEC-059: six cubes x 4,230
+## ADR1229: the prefix is L0 and T0 installed. Decision 2044 (P-2044-7 (a)): the foreman plans one stage at a time
+## (L0's, then T0's, then the next ones), so the prefix ends on the tick T0's installation settles and the runtime
+## plans the next stage, not at a fixed task index.
+const PREFIX_INSTALLS: int = 2
 ## ADR1229 increment 6b: the whole descent on the flexible schedule (every hour ANYTHING, GDD 5.3), from the same
 ## start: the eight descent cubes (33,840 mWU since DEC-059), T1-T6 down the stair (6 x 5,640 mWU, one hauled unit each).
-## DEC-059: on the DEFAULT schedule since P2 (P3 12,474 and P1 10,484 were on the flexible one).
-const DESCENT_DONE_TICK: int = 8348
-## The default schedule's first work block ends at 18:00 (tick 9000); GDD 5.2 seek thresholds.
-const WORK_BLOCK_END: int = 9000
-const SEEK_HUNGER: int = 3500
-const SEEK_REST: int = 2500
-## DEC-059 (P1): task 44 installs T1; every later tread is chained down from the one before.
-const FIRST_TREAD_TASK: int = 44
-const DESCENT_LEDGER: Array = [50, 59220, 19, 77840, 8] # DEC-059: 14 cubes x 4,230; 32,000 + 12,000 + 6 x 5,640
+## DEC-059: on the DEFAULT schedule since P2 (P3 12,474 and P1 10,484 were on the flexible one), 8348.
+## Decision 2044 (the M2 interim, P-2044-15): the whole flight is two modules, fifteen groups and 34 cubes, and takes
+## past the first work block and the cohort's means. The generated cohort has two adult moles and no kitchen (G9):
+## near tick 12,000 both reach their GDD 5.2 seek thresholds, DEC-059's shift change finds no rested idle mole, and
+## the crew waits at rest. So the whole-flight suites keep every resident's hunger and rest full and R's staged stock
+## topped up (`_sustain`), stand-ins for the kitchen and stores the settlement does not have yet.
+const DESCENT_DONE_TICK: int = 20229
+const FLIGHT_TICK_LIMIT: int = 40000
+## The stand-ins: every 20 ticks the needs are refilled; every 50 ticks a staged input below 3,000 milli gets 3,000.
+const SUSTAIN_NEEDS_EVERY: int = 20
+const SUSTAIN_STOCK_EVERY: int = 50
+const SUSTAIN_STOCK_MILLI: int = 3000
+## [task index, cut Work, hauled units, installation Work, groups INSTALLED] at the finish: the last stage's 37 tasks,
+## 34 cubes x 4,230, 36 hauled units, 32,000 + 12,000 + 6 x 5,640 for module 0 and 45,840 for module 1's seven groups.
+const DESCENT_LEDGER: Array = [37, 143820, 36, 123680, 15]
+## The groups the prefix and module 0 install (L0, T0..T6).
+const MODULE_ZERO_INSTALLS: int = 8
 ## ADR1221: the live chain's route owners are cold-restored this often (ticks; prime).
 const ROUTE_RESTORE_EVERY: int = 23
 ## ADR1218 runtime wire: header, step, code, origin, section, endpoint count and the work area's endpoints (nineteen
@@ -141,6 +157,7 @@ var _nested_reset: bool = true
 var _saved_gear: Gear = null
 var _surface_script: Script = null
 var _surface_source_text: String = ""
+var _checkpoint_loaded: bool = false
 
 
 func before_each() -> void:
@@ -168,6 +185,9 @@ func after_each() -> void:
 	_host = null
 	_content = null
 	_saved_gear = null
+	if _checkpoint_loaded:
+		_checkpoint_loaded = false
+		assert_true(AutoloadClockReset.release(), "the autoload is handed back at tick 0")
 
 
 func _generate_and_mount() -> Session:
@@ -185,8 +205,15 @@ func _snapshot() -> Array[PackedByteArray]:
 
 
 func _prefix_done(entry: Settlement.UndergroundEntryRuntime) -> bool:
-	"""ADR1229: the foreman has finished the prefix (T0 installed) and moved on to the descent's first cut."""
-	return entry._foreman != null and entry._foreman._index >= PREFIX_TASKS
+	"""ADR1229: the foreman has finished the prefix (T0 installed) and moved on to the next stage."""
+	return entry._foreman != null and _installed_groups(entry) >= PREFIX_INSTALLS \
+		and entry._foreman.planned_installations() > PREFIX_INSTALLS
+
+
+func _installed_groups(entry: Settlement.UndergroundEntryRuntime) -> int:
+	"""Groups the entry's Placement has INSTALLED (DONE_LEDGER's last field)."""
+	var placements: RefCounted = entry._foreman._owners.placements
+	return placements._get32(placements._live, placements.INSTALLED, 0)
 
 
 func _assert_prefix_done(o: Session.Retirement.Owners, entry: Settlement.UndergroundEntryRuntime, worker: Vector2i) -> void:
@@ -212,6 +239,29 @@ func _done_ledger(o: Session.Retirement.Owners, foreman: RefCounted) -> Array:
 		o.placements._get32(o.placements._live, o.placements.INSTALLED, 0)]
 
 
+func _sustain(o: Session.Retirement.Owners, entry: Settlement.UndergroundEntryRuntime, tick: int) -> void:
+	"""Decision 2044: the whole-flight stand-ins (see DESCENT_DONE_TICK), run before each tick's run_tick."""
+	if tick % SUSTAIN_NEEDS_EVERY == 0:
+		var needs: RefCounted = o.residents.needs()
+		for at: int in range(0, needs._need_value.size(), Needs.NEED_COUNT):
+			needs._need_value[at + Needs.NEED_HUNGER] = Needs.NEED_MAX
+			needs._need_value[at + Needs.NEED_REST] = Needs.NEED_MAX
+	if tick % SUSTAIN_STOCK_EVERY != 1: return
+	for key: StringName in [&"wood", &"stone"]:
+		if _staged_milli(o, entry._output, o.items.compiled_id(key)) < SUSTAIN_STOCK_MILLI:
+			_stage(o, entry._output, key, SUSTAIN_STOCK_MILLI)
+
+
+func _staged_milli(o: Session.Retirement.Owners, container: Vector2i, item: int) -> int:
+	"""Unreserved milli of `item` in `container`."""
+	var total: int = 0
+	var lot: Vector2i = o.inventory.container_first_lot(container)
+	while lot != Vector2i(-1, 0):
+		if o.inventory.lot_item_id(lot) == item: total += o.inventory.lot_available_milli(lot)
+		lot = o.inventory.container_next_lot(lot)
+	return total
+
+
 func _stage(o: Session.Retirement.Owners, container: Vector2i, key: StringName, milli: int) -> Vector2i:
 	"""Surface stock staged at R's real ground-staging container (ADR1197 G4, ADR1203 shared with spoil)."""
 	var lot: RefCounted = o.inventory.create_lot(container, o.items.compiled_id(key), milli, 1, 0, -1, 0, 0)
@@ -221,14 +271,7 @@ func _stage(o: Session.Retirement.Owners, container: Vector2i, key: StringName, 
 
 func _eligible_moles(o: Session.Retirement.Owners) -> Array[Vector2i]:
 	"""Every living adult mole holding no Job and no tool, by resident slot: the runtime's crew order (DEC-052)."""
-	var residents: RefCounted = o.residents
-	var found: Array[Vector2i] = []
-	for slot: int in residents._present.size():
-		if not residents.is_alive(slot) or residents.life_stage_code_of(slot) != Residents.LIFE_STAGE_ADULT \
-				or residents.species_key(residents.species_of(slot).value) != &"mole" or residents.has_equipped_tool(slot) \
-				or o.jobs.job_of(slot) != Jobs.NULL_REF: continue
-		found.append(residents.ref_of(slot))
-	return found
+	return Chain.eligible_moles(o)
 
 
 func _first_mole(o: Session.Retirement.Owners) -> Vector2i:
@@ -296,6 +339,21 @@ func _live_with_spare() -> Array:
 	return [o, entry, entry.crew().worker, others[0]]
 
 
+func _spare_from_checkpoint(point: String) -> Array:
+	"""[owners, runtime, crew, spare, next tick to run] of `_live_with_spare()`'s chain at `point` of the committed
+	`underground_spare` checkpoint (decision 1895; test_checkpoint_equivalence.gd proves it equals the replay from
+	tick 1), or [] when it did not load."""
+	_checkpoint_loaded = true
+	var refusal: String = Store.load_into(_host, GameManager, Recipes.SPARE, point, _content)
+	assert_equal(refusal, "", "the underground_spare %s checkpoint loads" % point)
+	if refusal != "": return []
+	var entry: Settlement.UndergroundEntryRuntime = _host.underground_entry()
+	var spare: Vector2i = Chain.spare_of(_host)
+	assert_true(spare != Vector2i(-1, 0), "exactly one spare mole besides the crew")
+	return [_host.underground_session()._retirement_owners, entry, entry.crew().worker, spare,
+		GameManager.clock().completed_tick() + 1]
+
+
 func _replace_entry_with_its_record(session: Session, tick: int) -> bool:
 	"""Capture the host's entry runtime and swap in a fresh runtime restored from that record."""
 	var bytes: PackedByteArray = PackedByteArray()
@@ -307,3 +365,43 @@ func _replace_entry_with_its_record(session: Session, tick: int) -> bool:
 		return false
 	_host._underground_entry = fresh
 	return true
+
+
+func _first_trip_done(entry: Settlement.UndergroundEntryRuntime) -> bool:
+	"""The foreman's haul has delivered its first whole unit."""
+	return entry._foreman._hauler != null and entry._foreman._hauler.trips() == 1
+
+
+func _finished_entry() -> Array:
+	"""[owners, runtime, crew worker, its resident row, next tick] of the live entry run to its finishing tick."""
+	var live: Array = _begin_live_entry()
+	var o: Session.Retirement.Owners = live[0]
+	var entry: Settlement.UndergroundEntryRuntime = live[1]
+	var tick: int = 1
+	while entry.is_running() and tick < FLIGHT_TICK_LIMIT:
+		_sustain(o, entry, tick) # Decision 2044: the M2 flight outlasts the cohort's means (see DESCENT_DONE_TICK).
+		assert_true(_host.run_tick(tick), "the settlement tick itself never fails: %s" % _host.last_refusal())
+		tick += 1
+	assert_equal(tick - 1, DESCENT_DONE_TICK, "the entry finished on its own tick")
+	return [o, entry, live[2], o.residents.directory().get_typed_row(live[2]), tick]
+
+
+func _pose(o: Session.Retirement.Owners, worker: Vector2i) -> Transforms.Pose:
+	"""The resident's current Transform."""
+	var pose: Transforms.Pose = Transforms.Pose.new()
+	assert_true(o.transforms.read_into(worker, pose), "the crew has a Transform")
+	return pose
+
+
+func _cold_restore_routes(o: Session.Retirement.Owners, tick: int) -> bool:
+	"""ADR1221: the Session's Routes, WorldRoutes, Contacts, Delivery, arena and the host Planner captured, blanked
+	as a fresh Session's and cold-restored."""
+	var code: StringName = RouteFixture.cold_restore_route_owners(o.routes, o.world_routes, o.space, o.budget)
+	assert_equal(code, &"", "route owners cold-restore before tick %d" % tick)
+	if code == &"":
+		code = o.connector.save_quiescence_refusal()
+		assert_equal(code, &"", "ConnectorWork quiescent before tick %d" % tick)
+	if code == &"":
+		code = RouteFixture.cold_restore_entry_owners(o.contacts, o.delivery, o.budget)
+		assert_equal(code, &"", "Contacts, Delivery, arena and Planner cold-restore before tick %d" % tick)
+	return code == &""

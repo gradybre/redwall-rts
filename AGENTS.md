@@ -15,7 +15,7 @@ The active ruleset is **`settlement_rules_v2`**.
 1. `docs/setting_decisions.md` — Brendan's policy decisions (`DEC-nnn`).
 2. `docs/game_gdd.md` (rev 1.1) — Settlement GDD. **Authoritative**, as amended by
    `docs/setting_rules_amendment.md` (`SET-AMEND-001`), which supersedes the
-   earlier admission and food rules. [SET-MOVE-001](docs/movement_direction_amendment.md) additionally owns DEC-035 connected movement; its direction is adopted and MOVE-G01–05 remain engineering closure gates. Hunting is **not** active in rules v2.
+   earlier admission and food rules. [SET-MOVE-001](docs/movement_direction_amendment.md) additionally owns DEC-035 connected movement; its direction is adopted and MOVE-G01–05 remain engineering closure gates. [SET-BUILD-001](docs/building_model_amendment.md) owns DEC-061's painted-room building model (one 1 m grid, surface buildings as rooms, five levels at 5 m). Hunting is **not** active in rules v2.
 3. `docs/ui_ux_controls.md` (rev 1.1) — UI, UX, controls.
 4. `docs/gameplay_balance.md` and `docs/systems_architecture.md` — derived from
    the above.

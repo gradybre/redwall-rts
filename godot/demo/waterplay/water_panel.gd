@@ -133,8 +133,8 @@ const BUTTON_TIPS: Dictionary = {
 	&"fish_next_trip": "Choose the next trip out (Cancel trip acts on it)",
 	&"regatta_prev_day": "An earlier day for the regatta, this season", &"regatta_next_day": "A later day for the regatta, this season",
 	&"regatta_host": "The next resident to host the regatta",
-	&"reserve_fewer": "Keep one batch (3 U) fewer rations in reserve (UI-SET-099)",
-	&"reserve_more": "Keep one batch (3 U) more rations in reserve: one batch's food is held back until they are packed",
+	&"reserve_fewer": "Keep one batch (3 rations) fewer in reserve (UI-SET-099)",
+	&"reserve_more": "Keep one batch (3 rations) more in reserve: one batch's food is held back until they are packed",
 }
 ## The Fishing, Boats and rack-and-mill sections' button rows (decision 0431).
 const CHOICE_ACTIONS: Array[StringName] = [&"fish_site", &"fish_method", &"fish_species"]

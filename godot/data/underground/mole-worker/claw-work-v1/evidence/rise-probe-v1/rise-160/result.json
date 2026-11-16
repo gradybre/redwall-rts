@@ -1,0 +1,143 @@
+{
+ "schema": 1,
+ "decision": "2041 P-DF-1 (b)",
+ "probe_only": true,
+ "production_qualified": false,
+ "rise_u": 160,
+ "run_u": 512,
+ "descent_drop_u": 128,
+ "arm_swing_degrees": {
+  "right": 3,
+  "left": 0
+ },
+ "widened_whitelists": [
+  "accepted_ascent_author.tracks",
+  "claw_stair_descent.tracks",
+  "claw_stair_terrain.fixture_boxes",
+  "claw_stair_terrain.validate_recipe",
+  "accepted_stair_terrain.fixture_boxes",
+  "accepted_stair_terrain.validate_recipe"
+ ],
+ "authoring_refusals": {},
+ "proofs": {
+  "descent": {
+   "terrain": {
+    "clear": false,
+    "unresolved": 32,
+    "pairs": 350,
+    "first": [
+     {
+      "kind": "SOLID",
+      "part": 0,
+      "interval": 45,
+      "triangle": 4395,
+      "section": 0
+     },
+     {
+      "kind": "SOLID",
+      "part": 0,
+      "interval": 45,
+      "triangle": 4567,
+      "section": 0
+     },
+     {
+      "kind": "SOLID",
+      "part": 0,
+      "interval": 45,
+      "triangle": 4568,
+      "section": 0
+     },
+     {
+      "kind": "SOLID",
+      "part": 0,
+      "interval": 45,
+      "triangle": 4670,
+      "section": 0
+     }
+    ]
+   },
+   "self": {
+    "right_arm_vs_rest": true,
+    "left_arm_vs_rest": true,
+    "right_arm_vs_left_arm": true
+   }
+  },
+  "ascent": {
+   "terrain": {
+    "clear": false,
+    "unresolved": 32,
+    "pairs": 399,
+    "first": [
+     {
+      "kind": "SOLID",
+      "part": 0,
+      "interval": 25,
+      "triangle": 1704,
+      "section": 1
+     },
+     {
+      "kind": "SOLID",
+      "part": 0,
+      "interval": 25,
+      "triangle": 1705,
+      "section": 1
+     },
+     {
+      "kind": "SOLID",
+      "part": 0,
+      "interval": 25,
+      "triangle": 1707,
+      "section": 1
+     },
+     {
+      "kind": "SOLID",
+      "part": 0,
+      "interval": 25,
+      "triangle": 1708,
+      "section": 1
+     }
+    ]
+   },
+   "self": {
+    "right_arm_vs_rest": false,
+    "left_arm_vs_rest": true,
+    "right_arm_vs_left_arm": true
+   }
+  }
+ },
+ "clear": false,
+ "accepted_sources_unchanged": {
+  "godot/data/underground/first-entry-prefix-v1/compile_entry_frontier.py": "737936b97171652a7307627ae1e099a890aa5cde93c15fbb44af407867762b9d",
+  "godot/data/underground/first-entry-prefix-v1/compile_entry_prefix.py": "a6823b052aea5dffb95e5c3df07bce7ddcdc188d69667e5f4b1b15b13fb05933",
+  "godot/data/underground/mole-worker/claw-work-v1/author_claw_pair.py": "6a1c3f508e89631dd990b603896c4546d0b0051a9e5f1a1ad40eb5508f34f075",
+  "godot/data/underground/mole-worker/claw-work-v1/author_claw_stairs.py": "8aeb75f3449cad8259dc1f5e9555d7b4777746f06806d30b4a2b38bf4e151351",
+  "godot/data/underground/mole-worker/claw-work-v1/author_claw_stroke.py": "3edc742c993acd7a1731160633396b62a4fdf5e0014453432decab5e5974dda6",
+  "godot/data/underground/mole-worker/claw-work-v1/author_paw_seat.py": "2d8146588f9ea5dc15ee698b4442ea8acda8075c8ad672a6624d845247c6b778",
+  "godot/data/underground/mole-worker/claw-work-v1/claw_source.py": "e0311359eaa5d485b34c1e14f41a1cf982fabd48b9d0fe396e2f57d119a22718",
+  "godot/data/underground/mole-worker/claw-work-v1/prove_claw_pair.py": "e3af3b7dc564d27ef09c95ac2f9ea313088b7b421940f8f2222ab9675a43bc02",
+  "godot/data/underground/mole-worker/claw-work-v1/prove_claw_stroke.py": "e74d660078198b552c5854c07a1f1f59c71fdf0822183b963f761eaae7fa9af2",
+  "godot/data/underground/mole-worker/compile_profiles.py": "6cdc28bb58aac17876587d01ca367ed264c91edb0e33c4e1a218f7c2c7160000",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/assess_stair_rig.py": "d29e76248a4b607b163dd8e0132ebf6a071cff63d277dd0ee837f54c047e7494",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/author_compact_program.py": "a8767bd00946cf3883c09336102ab6aeff7bffff981fa568ba4c0d743c6dcec4",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/author_high_wall.py": "81b06e106ac76cbf1462b48c2a0438a404c34cb25394b21c86d4379a0a4e9728",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/author_planted_front.py": "6bf5bb4cdc71548675c9984db2290f7e6e111149bda48b21c5f4238c0e54b603",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_descent.py": "6a1a5608c87261222c7eab4cb5568467c1770b669d7e825ce3918bd46d6e5bdc",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_motion.py": "e843ebc713118ef165cc3e114d84b860d8a2513a1144adff94ebdf0256f24c6e",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/compile_state_program.py": "3e223cdecfd3db819a67f9236ffdf70f257ba2663178bd644bec571be05900b7",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/prove_descent_flight.py": "14f938705dc38aacfcad1b0662212736451d5af988e4e1ca1f3f498fe0a53e2e",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/prove_high_wall.py": "4b33e7cdc9f168800f01e12e2260c33f8d039b4c9a86fd8e3070a52e0e169186",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py": "5a5a73c281d3a602036b84046f01d757fa5bc3c38549fe15f71e56da518763b6",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/prove_stair_sequence.py": "60f1867515e7e7576a1beb9cf607ab7d91c6866afd626f2f8495d1611d7da1ff",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/prove_stair_terrain.py": "a29f0e5a163307ec9ac9d0908e4da6c9a62f399885b198e8955f2fd5e7402390",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/prove_state_handoffs.py": "9e5dd13b00c93743599b674551d86eb439273e419b6700858549f293453beb32",
+  "godot/data/underground/mole-worker/haul-handling-v1/author_empty_walk.py": "45e0d026be10eb51b9776f3892207ef040dbd26ce3d39e64bb869324467696ef",
+  "godot/data/underground/mole-worker/haul-handling-v1/author_handling.py": "bf96731c5cba21f300f46b7db307c78e465f1c9f2dbfc8c7e41c97a2786eca26",
+  "godot/data/underground/mole-worker/haul-handling-v1/author_loaded_gait.py": "8f4c96d84f3b66c7f965d95ccbe8ad03617165a4faf31e71e31a5847e469ee35",
+  "godot/data/underground/mole-worker/haul-handling-v1/author_program.py": "7dbcb921cba0ce0c2707a72b246b28509aa9f37b97a30f9ac4177f2ccdec7b0b",
+  "godot/data/underground/mole-worker/haul-handling-v1/inspect_source.py": "cde1ca83928aa18ddc22d5f6555a83c6e92634aaf7b836a5b0f4bb0966d519b4",
+  "godot/data/underground/mole-worker/stand-walk-v2/author_stand_walk_v2.py": "54ca3f9421f0a85696b7803386cb8e7f69dc56d622c31bc839b38f5de3333bfb",
+  "tools/compile_underground_actor_content.py": "c175f2fe8464e69c98bab261c7848624b0bb2ae066dd5258c78998d0e6ef75be",
+  "tools/export_underground_envelopes.py": "c8f037ed814ed7ad40b7a1222106d8d4bb12687139b749391688c3591aa54972"
+ },
+ "probe_source_sha256": "955f910985b1981555f303ee196247e3d900c128df091b3f3d767f38e8159ad0"
+}

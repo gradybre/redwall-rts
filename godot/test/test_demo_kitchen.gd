@@ -603,7 +603,7 @@ func test_no_water_says_so_exactly_and_supper_is_missed() -> void:
 	_open(v)
 	var d: KitchenScript.Decision = v.kitchen.decide_meal()
 	assert_equal(d.code, KitchenScript.NO_WATER, "refused: no water")
-	assert_equal(Words.cant(d.reason, d.fix), "Can't now: the water butt holds 0.0 U; togget's vegetable soup needs 1.0 U a batch (2.0 U for the meal)\nTo fix: Pantry (K) ▸ Kitchen ▸ Draw water",
+	assert_equal(Words.cant(d.reason, d.fix), "Can't now: the water butt holds 0 of 2 jugs for the meal (togget's vegetable soup takes 1 jug a batch)\nTo fix: Pantry (K) ▸ Kitchen ▸ Draw water",
 		"the exact refusal and fix")
 	var serial: int = v.incidents.serial_of(KitchenScript.INCIDENT_KEY)
 	assert_true(serial >= 0 and v.incidents.is_unresolved(serial), "the incident is open")
@@ -620,7 +620,7 @@ func test_no_water_says_so_exactly_and_supper_is_missed() -> void:
 	_with_night(v)
 	_run(v, 1, func() -> bool: return v.calendar.hour_index() % 24 == 7)
 	_run(v, 14 * FRAMES_PER_HOUR, func() -> bool: return v.calendar.hour_index() % 24 == 7)
-	assert_true(v.kitchen.order_draw(PackedInt32Array([1])).begins_with("Draw 12.0 U of water"), "Draw water: a mouse's carry")
+	assert_true(v.kitchen.order_draw(PackedInt32Array([1])).begins_with("Draw 12 jugs of water"), "Draw water: a mouse's carry")
 	_run(v, 6 * FRAMES_PER_HOUR, func() -> bool: return v.stores.water_milli_u > 0)
 	assert_equal([v.stores.water_milli_u, v.kitchen.poured_water_milli], [12000, 12000], "poured once")
 	var next: int = Rules.meal_key(2, Rules.MEAL_BREAKFAST)

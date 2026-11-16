@@ -28,6 +28,7 @@ const Weather := preload("res://demo/farm/farm_weather.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 
 ## "Harvest soon": ripe, or ripening within a game day at this hour's rate (a demo presentation value: ten minutes at
@@ -125,9 +126,9 @@ static func harvest_text(sim: SimScript, bed: int, read: IntMath.IntResult) -> S
 
 
 static func _ripe_text(sim: SimScript, bed: int, read: IntMath.IntResult) -> String:
-	"""'Ripe now: 5.1 U · full yield until Spring 9, 14:00' (or past its grace: losing, and when it withers)."""
+	"""'Ripe now: 5 bunches · full yield until Spring 9, 14:00' (or past its grace: losing, and when it withers)."""
 	var ripe_tick: int = ripe_tick_of(sim, bed)
-	var amount: String = units(read.value) if sim.expected_yield_into(bed, read) else NONE
+	var amount: String = harvest_cell(sim.item_of(bed), read.value) if sim.expected_yield_into(bed, read) else NONE
 	if not sim.ripe_hours_into(bed, read) or ripe_tick < 0:
 		return "Ripe now: %s" % amount
 	var grace_end: int = ripe_tick + FarmingScript.RIPE_GRACE_HOURS * SimClock.TICKS_PER_HOUR
@@ -138,8 +139,8 @@ static func _ripe_text(sim: SimScript, bed: int, read: IntMath.IntResult) -> Str
 
 
 static func _growing_text(sim: SimScript, bed: int, read: IntMath.IntResult) -> String:
-	"""'≈ Spring 9, 14:00 · about 5.1 U' at this hour's rate, or 'Stalled (too cold) · about 5.1 U'."""
-	var amount: String = units(read.value) if sim.expected_yield_into(bed, read) else NONE
+	"""'≈ Spring 9, 14:00 · about 5 bunches' at this hour's rate, or 'Stalled (too cold) · about 5 bunches'."""
+	var amount: String = harvest_cell(sim.item_of(bed), read.value) if sim.expected_yield_into(bed, read) else NONE
 	if not ripe_estimate_tick_into(sim, bed, read):
 		return "Stalled (%s) · about %s" % [_stall_word(sim, bed), amount]
 	return "≈ %s · about %s" % [date_text(sim, read.value), amount]
@@ -156,16 +157,19 @@ static func _sow_now_text(sim: SimScript, bed: int, read: IntMath.IntResult) -> 
 	var item: int = sim.chosen_of(bed)
 	if not Catalog.is_item(item) or sim.sow_refusal(bed, item) != SimScript.REFUSE_NONE:
 		return NONE
-	var amount: String = units(Text.sown_estimate_milli(sim, bed, item))
+	var amount: String = harvest_cell(item, Text.sown_estimate_milli(sim, bed, item))
 	if not sown_hours_into(sim, bed, item, read):
 		return "If sown now: stalled today · about %s" % amount
 	var tick: int = CalendarScript.next_hour_crossing(sim.calendar.tick) + (read.value - 1) * SimClock.TICKS_PER_HOUR
 	return "If sown now: ≈ %s · about %s" % [date_text(sim, tick), amount]
 
 
-static func units(milli: int) -> String:
-	"""farm_text.gd's one quantity form (decision 0222) with its number and unit kept on one line: '5.1 U' (a no-break space)."""
-	return Text.units_text(milli).replace(" U", "\u00a0U")
+static func harvest_cell(item: int, milli: int) -> String:
+	"""A bed's harvest in its crop's measure, for a row whose CROP cell names the crop (goods_measures.gd's cell form,
+	rounded down; decision 1801), its number and measure kept on one line with a no-break space: '5\u00a0bunches',
+	'1½\u00a0sacks'. Mixed food's measure for a bed with no crop."""
+	var good: StringName = Catalog.ITEM_KEYS[item] if Catalog.is_pantry_item(item) else &"food"
+	return Measures.amount_cell(good, milli).replace(" ", "\u00a0")
 
 
 static func ripe_tick_of(sim: SimScript, bed: int) -> int:
@@ -302,8 +306,8 @@ static func count_matching(sim: SimScript, crew: CrewScript, filter: int, read: 
 # --- compare (UX-008) -------------------------------------------------------------------------------------------------
 
 static func compare_line(sim: SimScript, bed: int, read: IntMath.IntResult) -> String:
-	"""A bed's compared figures on one line: 'Ripe · 5.1 U · Good · 66% · fertility 63%' ('Ripe in about 30 h', 'Stalled',
-	'Nothing growing')."""
+	"""A bed's compared figures on one line: 'Ripe · 5 bunches of carrots · Good · 66% · fertility 63%' ('Ripe in about
+	30 h', 'Stalled', 'Nothing growing')."""
 	var ready: String = "Nothing growing"
 	if sim.stage_of(bed) == SimScript.STAGE_RIPE:
 		ready = "Ripe"
@@ -311,7 +315,8 @@ static func compare_line(sim: SimScript, bed: int, read: IntMath.IntResult) -> S
 		ready = "Ripe in about %s" % Text.span_text(read.value)
 	elif is_growing_stage(sim.stage_of(bed)):
 		ready = "Stalled"
-	var harvest: String = Text.units_text(read.value) if standing_yield_into(sim, bed, read) else "no harvest"
+	var harvest: String = Measures.amount(Catalog.ITEM_KEYS[sim.item_of(bed)], read.value) \
+		if standing_yield_into(sim, bed, read) else "no harvest"
 	return "%s · %s · %s · fertility %s" % [ready, harvest, moisture_text(sim, bed), Text.percent_text(sim.fertility_of(bed))]
 
 

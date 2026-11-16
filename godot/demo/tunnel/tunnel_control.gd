@@ -5,10 +5,10 @@ extends Node3D
 ##
 ## CONTROLS (demo_command.gd hands every event here first; Enter, and a drag's motion and release, are read
 ## in its `_input`, before the HUD, so they can never press or be lost to a HUD control):
-##   B (or "Dig tunnel" in the Demo party panel)         the Dig tool: the view goes underground (the
-##                                         cutaway, tunnel_view.gd) and back to what it was when the tool
-##                                         closes; again: close it. B was the HUD's Build key, locked in the
-##                                         demo (its command strip says so); U stays the view's own switch.
+##   the build panel's Passage card (B opens the panel: demo/build_panel/demo_build.gd, decision 1871)
+##                                         the Dig tool: the view goes underground (the cutaway,
+##                                         tunnel_view.gd) and back to what it was when the tool closes; B in
+##                                         the tool closes it. U stays the view's own switch.
 ##   in the tool:  drag (left)          lay a piece: press where it starts, release where it ends -- the
 ##                                      piece is dug at once if it may be; Shift while dragging drops a bend
 ##                                      at the pointer
@@ -19,7 +19,7 @@ extends Node3D
 ##                    the segment it is digging   nothing changes: it keeps digging (and says so)
 ##                    a paused or waiting one     it goes to dig that -- pausing what it was digging, with
 ##                                                all its progress kept
-##   U                                  underground view (tunnel_view.gd: a layer cutaway, decision 0206);
+##   U                                  Underground (tunnel_view.gd: a layer cutaway, decision 0206);
 ##                                      U again puts back the notice the view replaced. In it, every click
 ##                                      lands on the level's floor (the plane the cutaway shows)
 ## The tool stays open after a piece is dug, for the next: pieces queue behind a digger's current dig as
@@ -52,24 +52,24 @@ extends Node3D
 ## WHO FITS. At setup each resident's body is recorded -- the height the cast draws it at and its body
 ## radius, in integer u -- and its fit is judged per segment from it (underground_graph.set_body).
 ##
-## ROOMS (decision 0209). In the tool, H or C (or the party panel's "Burrow home (H)" / "Root cellar (C)")
-## opens the ROOM TOOL for a burrow home or a root cellar (demo/burrow/room_tool.gd): a ghost room follows the
-## pointer, R turns it, a click lays it with a passage to the network proposed (Shift+click: standalone), and
+## ROOMS (decision 0209). The build panel's "Burrow home" and "Root cellar" cards (decision 1871: H and C no longer
+## open them) open the ROOM TOOL for a burrow home or a root cellar (demo/burrow/room_tool.gd): a ghost room follows
+## the pointer, R turns it, a click lays it with a passage to the network proposed (Shift+click: standalone), and
 ## Esc goes back to laying tunnels. A room is dug by the same diggers, crews and job list as a tunnel. A tunnel
 ## laid to a room's socket joins it there (tunnel_plan.gd ROOMS).
 ##
 ## THE EXTENSIONS (tunnel_ext.gd: weather, hauling, upgrades, hazards, finds, ground, crews, threats) are
 ## built here and handed what this tool does not take.
 ##
-## THE SECOND LEVEL (decision 0212). In the U view, PgUp and PgDn show level 1 and level 2 (tunnel_view.gd THE
-## LEVELS) -- read before the HUD and the camera (`takes_before_gui`), so in the U view they never zoom; on the
-## surface they stay the camera's zoom keys (the wheel zooms everywhere), and U stays the view's switch. The Dig
+## THE SECOND LEVEL (decision 0212). The U view shows level 1 or level 2 (tunnel_view.gd THE LEVELS; `show_level`).
+## PgUp/PgDn are the level bar's (decision 1871, demo/build_panel/demo_build.gd): it reads them, never behind a modal,
+## and maps them onto `show_level`; this tool takes none of them. U stays the view's switch. The Dig
 ## tool lays pieces and rooms on the level shown: a piece on level 2 starts on its network (a stair's or ramp's
 ## foot, a junction, a bore) and may end blind. L in the tool lays a LINK down between the levels instead -- L once
 ## a RAMP, again STAIRS, again back to tunnels: click (or press) its head on level 1's network and release (or
 ## click) its foot, which snaps onto level 2's network or ends blind there; the ghost's words give its run and
 ## slope, quanta, hours, spoil, grade and ground, or the refusal in words (tunnel_plan.gd LEVELS AND LINKS). Both
-## points are picked on the shown level's floor; each snaps onto its own level. With the U view off the tool lays on
+## points are picked on the shown level's floor; each snaps onto its own level. With Underground off the tool lays on
 ## level 1 (`laying_level`): switching the view with U while laying re-lays on the level it now shows.
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
@@ -109,7 +109,7 @@ const PLAN_MORE: String = "Dig: %s, %s -- click: add · Enter / right-click: dig
 const PLAN_CANCELLED: String = "Dig tool closed"
 const PLAN_DROPPED: String = "Piece dropped -- lay another, or Esc to close the tool"
 ## What a dig costs through its own ground (at one F1000 worker; a crew is quicker).
-const DIG_STARTED: String = "Digging a %s tunnel: %d m³ to cut, %d U of spoil, about %d s"
+const DIG_STARTED: String = "Digging a %s tunnel: %d m³ to cut, %s to heap, about %d s"
 const DIG_QUEUED: String = "Queued a %s tunnel: %s digs it after its present dig"
 ## A link's (see THE SECOND LEVEL): its kind for "tunnel", e.g. "Digging a 5.0 m stairs down".
 const LINK_WORD: Array[String] = ["tunnel", "ramp down", "stairs down"]
@@ -129,8 +129,8 @@ const TOOL_FREE: String = "the village's most skilled free digger"
 const TOOL_BUSY: String = "the most skilled digger: it digs this after its present dig"
 ## The card's code when no piece at all could fit (`begin_plan`'s capacity gate, decision 0361's F08).
 const TOOL_FULL_CODE: String = "NETWORK_FULL"
-const VIEW_ON: String = "Underground view (U to return)"
-const LEVEL_SHOWN: String = "Underground view: level %d of 2 -- PgUp / PgDn to switch, U to return"
+const VIEW_ON: String = "Underground (U to return to the surface)"
+const LEVEL_SHOWN: String = "Underground: level %d -- PageUp / PageDown or the level bar to switch, U to return"
 const LINK_FIRST: String = "Dig %s down: press on the first level's network where it starts and release where its foot lands on the second -- L: %s · Esc: back to tunnels"
 const LINK_OPEN: Array[String] = ["", "Ramp down open: a walk down to the second level at 1:2.5", "Stairs down open: 16 timber risers down to the second level -- steep, and slower to climb"]
 const ROOM_OPEN: Array[String] = ["", "Burrow home dug: everybeast fits and stands upright in it -- in at its round door or a tunnel",
@@ -173,7 +173,7 @@ var _snap: PackedInt32Array = PackedInt32Array([0, -1, 0, 0])
 var _route: PackedVector2Array = PackedVector2Array()
 var _last_notice: String = ""
 var _before_view: String = ""
-## Whether the U view was on when the tool opened (it goes back to that on closing).
+## Whether Underground was on when the tool opened (it goes back to that on closing).
 var _view_before_tool: bool = false
 var _pressing: bool = false
 var _dragging: bool = false
@@ -218,7 +218,7 @@ func configure(cast: DemoCastScript, camera: Camera3D, selection: Callable, mark
 
 func _build_parts(cast: DemoCastScript, camera: Camera3D, selection: Callable, mark: Callable,
 		services: ServicesScript) -> void:
-	"""The overlay, the extensions and the underground view over their ground and water; everything the view
+	"""The overlay, the extensions and Underground over their ground and water; everything the view
 	draws registers for its prewarm (decision 0206)."""
 	overlay = OverlayScript.new()
 	add_child(overlay)
@@ -243,7 +243,7 @@ func _build_parts(cast: DemoCastScript, camera: Camera3D, selection: Callable, m
 
 func set_world(world: DemoWorldScript) -> void:
 	"""The world whose buildings no tunnel may pass under (their footings and its trees' roots drawn on the
-	underground view's cap) and whose grass a new tunnel clears."""
+	Underground's cap) and whose grass a new tunnel clears."""
 	_world = world
 	view.set_world(world, world.building_obstacles(), world.trees())
 	overlay.bores.set_trees(world.trees())
@@ -270,7 +270,7 @@ func _brain(actor_index: int) -> BrainScript:
 
 
 func _say(text: String) -> void:
-	"""Show a line in the party panel, and remember it (the underground view puts it back)."""
+	"""Show a line in the party panel, and remember it (Underground puts it back)."""
 	_last_notice = text
 	_notice.call(text)
 
@@ -299,9 +299,8 @@ func notice() -> String:
 # --- input ----------------------------------------------------------------------------------
 
 func handle_input(event: InputEvent) -> bool:
-	"""Apply one event; true when it was a tunnel input (and so consumed)."""
-	if _level_key(event):
-		return true
+	"""Apply one event; true when it was a tunnel input (and so consumed). PgUp/PgDn are not the tool's: the level bar
+	owns the levels and maps them onto `show_level` (decision 1871, review M1)."""
 	if planning:
 		return _plan_input(event)
 	if event is InputEventKey and event.is_pressed() and not event.is_echo():
@@ -327,8 +326,6 @@ static func is_confirm_key(event: InputEvent) -> bool:
 func takes_before_gui(event: InputEvent) -> bool:
 	"""Whether the tool must see `event` before any HUD control: Enter while laying, and a drag's motion and
 	release (so a drag ending over the HUD still ends here)."""
-	if view.on and is_level_key(event):
-		return true
 	if not planning:
 		return false
 	if is_confirm_key(event):
@@ -339,37 +336,8 @@ func takes_before_gui(event: InputEvent) -> bool:
 	return _pressing and event is InputEventMouseMotion
 
 
-static func level_step(event: InputEvent) -> int:
-	"""The level step an unmodified PgDn (+1) or PgUp (-1) press asks for (0: neither; see THE SECOND LEVEL)."""
-	var key := event as InputEventKey
-	if key == null or not key.is_pressed() or key.is_echo() or _modified(key):
-		return 0
-	if key_of(key) == KEY_PAGEDOWN:
-		return 1
-	return -1 if key_of(key) == KEY_PAGEUP else 0
-
-
-static func is_level_key(event: InputEvent) -> bool:
-	"""Whether `event` presses PgUp or PgDn, unmodified, its key's repeats too (Alt+PgUp/PgDn stay the camera's
-	pitch): in the U view every one is the tool's, so a held key never reaches the camera's zoom."""
-	var key := event as InputEventKey
-	return key != null and key.is_pressed() and not _modified(key) \
-			and (key_of(key) == KEY_PAGEDOWN or key_of(key) == KEY_PAGEUP)
-
-
-func _level_key(event: InputEvent) -> bool:
-	"""In the U view, a PgUp or PgDn press: show the level up or down (see THE SECOND LEVEL); its repeats are taken
-	and do nothing. True when taken."""
-	if not view.on or not is_level_key(event):
-		return false
-	var step := level_step(event)
-	if step != 0:
-		show_level(view.level + step)
-	return true
-
-
 func show_level(level: int) -> void:
-	"""Show `level` in the U view; the tool, open, lays on it now (a piece half laid on the other is dropped)."""
+	"""Show `level` in Underground; the tool, open, lays on it now (a piece half laid on the other is dropped)."""
 	if room.pending and level != room.plan.level:
 		_say(RoomToolScript.KEEP_DRAFT)
 		return
@@ -380,7 +348,7 @@ func show_level(level: int) -> void:
 
 
 func reveal_tunnel(slot: int) -> void:
-	"""Show the level segment `slot` is seen on, when the U view is on and shows a level it is not on (the news's "Go
+	"""Show the level segment `slot` is seen on, when Underground is on and shows a level it is not on (the news's "Go
 	to" on a level-2 tunnel, decision 0331 with 0212). A link is seen from both levels, so it never switches."""
 	if not view.on or slot < 0 or slot >= network.seg_level.size() or ext.actions.on_level(slot, view.level):
 		return
@@ -388,7 +356,7 @@ func reveal_tunnel(slot: int) -> void:
 
 
 func laying_level() -> int:
-	"""The level the tool lays on: the U view's, or with the view off level 1 (see THE SECOND LEVEL)."""
+	"""The level the tool lays on: Underground's, or with the view off level 1 (see THE SECOND LEVEL)."""
 	return view.level if view.on else Rules.TOP_LEVEL
 
 
@@ -435,12 +403,10 @@ static func _modified(event: InputEventKey) -> bool:
 
 
 func _on_key(event: InputEventKey) -> bool:
-	"""B opens the Dig tool; U switches the underground view (T is the seasonal planner's, decision 0492)."""
+	"""U switches Underground on and off (T is the seasonal planner's, decision 0492). B is the build panel's now
+	(decision 1871): its Passage card opens this tool."""
 	if _modified(event):
 		return false
-	if key_of(event) == KEY_B:
-		begin_plan()
-		return true
 	if key_of(event) == KEY_U:
 		toggle_view()
 		return true
@@ -473,8 +439,9 @@ func _plan_input(event: InputEvent) -> bool:
 
 func _plan_key(event: InputEventKey) -> bool:
 	"""Enter digs, Backspace takes a point back, Esc drops the piece (or closes the tool), B closes it,
-	U switches the view, Shift while dragging drops a bend. A key held with Ctrl, Cmd or Alt -- or a letter with Shift --
-	is not the tool's."""
+	U switches the view, L cycles a link, Shift while dragging drops a bend. A key held with Ctrl, Cmd or Alt -- or a
+	letter with Shift -- is not the tool's. H and C no longer open the room tools (decision 1871: the build panel's
+	cards do)."""
 	if _modified(event) and not (key_of(event) == KEY_SHIFT or _shift_only_non_letter(event)):
 		return false
 	match key_of(event):
@@ -488,10 +455,6 @@ func _plan_key(event: InputEventKey) -> bool:
 			cancel_plan()
 		KEY_U:
 			toggle_view()
-		KEY_H:
-			begin_room(RoomsScript.TEMPLATE_HOME)
-		KEY_C:
-			begin_room(RoomsScript.TEMPLATE_CELLAR)
 		KEY_L:
 			cycle_link()
 		KEY_SHIFT:
@@ -502,8 +465,8 @@ func _plan_key(event: InputEventKey) -> bool:
 
 
 func _room_key(event: InputEvent) -> bool:
-	"""With a room tool open: B closes the Dig tool, U switches the view, H or C switches the room tool
-	(the same one again: back to tunnels)."""
+	"""With a room tool open: B closes the Dig tool, U switches the view (H and C no longer switch the room tool:
+	decision 1871)."""
 	var key := event as InputEventKey
 	if key == null or not key.is_pressed() or key.is_echo() or _modified(key):
 		return false
@@ -512,10 +475,6 @@ func _room_key(event: InputEvent) -> bool:
 			cancel_plan()
 		KEY_U:
 			toggle_view()
-		KEY_H:
-			begin_room(RoomsScript.TEMPLATE_HOME)
-		KEY_C:
-			begin_room(RoomsScript.TEMPLATE_CELLAR)
 		_:
 			return false
 	return true
@@ -631,7 +590,7 @@ func _bend_here() -> bool:
 
 
 func _ground_at(screen: Vector2) -> bool:
-	"""The point under a screen point on the view's plane (the ground, or the level's floor in the U view),
+	"""The point under a screen point on the view's plane (the ground, or the level's floor in Underground),
 	into _ground. False when the ray misses it."""
 	var at: Vector2 = view.ground_at(screen)
 	if at == Vector2.INF:
@@ -650,7 +609,7 @@ func _hover(screen: Vector2) -> void:
 
 
 func toggle_view() -> void:
-	"""Switch the underground view (one cull-mask write, tunnel_view.gd); switched back, the notice it
+	"""Switch Underground (one cull-mask write, tunnel_view.gd); switched back, the notice it
 	replaced returns. The tool, open, lays on the level now shown (`laying_level`)."""
 	var next_level := Rules.TOP_LEVEL if view.on else view.level
 	if room.pending and room.plan.level != next_level:
@@ -660,7 +619,7 @@ func toggle_view() -> void:
 	if view.toggle():
 		_before_view = _last_notice
 		_say(VIEW_ON)
-	elif _last_notice == VIEW_ON or _last_notice.begins_with(LEVEL_SHOWN.left(20)):
+	elif _last_notice == VIEW_ON or _last_notice.begins_with(LEVEL_SHOWN.get_slice("%", 0)):
 		_say(_before_view)
 	if laying_level() != was:
 		_relay()
@@ -669,8 +628,7 @@ func toggle_view() -> void:
 # --- the tool -------------------------------------------------------------------------------
 
 func toggle_plan() -> bool:
-	"""The panel's "Dig tunnel" button: open the Dig tool -- or, open, close it, as B does. Returns whether it
-	is open now."""
+	"""Open the Dig tool -- or, open, close it, as B does in it. Returns whether it is open now."""
 	if planning:
 		cancel_plan()
 	else:
@@ -963,7 +921,8 @@ func _send(digger: int, now: bool) -> void:
 	_mark.call(_start3(first), true)
 	var ticks := PackedInt32Array([0, 0])
 	network.piece_ticks_into(_ref[2], ticks)
-	@warning_ignore("integer_division") _say(_link_worded(DIG_STARTED % [length, _piece_quanta(_ref[2]), _finished_spoil_u(_ref[2]), ticks[1] / Rules.TICKS_PER_SECOND]))
+	@warning_ignore("integer_division") _say(_link_worded(DIG_STARTED % [length, _piece_quanta(_ref[2]),
+		ReadoutScript.spoil_text(_finished_spoil_milli(_ref[2])), ticks[1] / Rules.TICKS_PER_SECOND]))
 
 
 func _link_worded(words: String) -> String:
@@ -993,8 +952,8 @@ func _piece_quanta(p: int) -> int:
 	return total
 
 
-func _finished_spoil_u(p: int) -> int:
-	"""The whole units of spoil a piece will heap, through its ground (tunnel_ground.gd)."""
+func _finished_spoil_milli(p: int) -> int:
+	"""The spoil (milli-U) a piece will heap, through its ground (tunnel_ground.gd)."""
 	var chain := PackedInt32Array()
 	network.piece_segments_into(p, chain)
 	var spoil := PackedInt64Array()
@@ -1003,7 +962,7 @@ func _finished_spoil_u(p: int) -> int:
 	for slot in chain:
 		network.progress_into(slot, network.total_ticks(slot), 1, spoil)
 		total += spoil[GraphScript.P_SPOIL]
-	@warning_ignore("integer_division") return total / 1000
+	return total
 
 
 func accept_piece(p: int) -> void:

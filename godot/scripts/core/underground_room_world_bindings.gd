@@ -232,6 +232,12 @@ func qualification_revision() -> int:
 	return _ordinary_revision_for(_ordinary_config.locations._last_published_token, _ordinary_config.routes._last_published_token)
 
 
+func _ordinary_bound_revision() -> int:
+	"""Decision 1970 (F3): `qualification_revision()` for a caller whose own `_ordinary_binding_leaf()` has just passed
+	with nothing between that the leaf reads, so its second read of the binding is not repeated."""
+	return _ordinary_revision_for(_ordinary_config.locations._last_published_token, _ordinary_config.routes._last_published_token)
+
+
 func _ordinary_revision_for(location_token: int, route_token: int) -> int:
 	"""Every included source is monotone on these exact owners; restore clears the required Location receipt."""
 	if location_token <= 0 or route_token < 0: return 0
@@ -280,7 +286,7 @@ func _ordinary_pin(site: Vector2i, operation: int, stage: int, room: Vector2i) -
 	_ordinary_worker = _ordinary_assigned_worker()
 	_entry_operation = operation
 	_entry_stage = stage
-	_entry_revision = qualification_revision()
+	_entry_revision = _ordinary_bound_revision() # Decision 1970 (F3): the binding passed above; nothing read since.
 	_entry_cold_token = _phase_token
 	_entry_origin = sites.origin_of(site)
 	_entry_remaining = _domain._checks
@@ -294,7 +300,7 @@ func _ordinary_pin(site: Vector2i, operation: int, stage: int, room: Vector2i) -
 func _ordinary_scope_leaf() -> StringName:
 	"""Scope and source checks use original full refs and the original lease, never a copied success flag."""
 	if not _ordinary_mode or _entry_poisoned or _ordinary_binding_leaf() != &"" \
-			or _entry_revision < 1 or _entry_revision != qualification_revision(): return ROOM_REFUSE_SOURCE
+			or _entry_revision < 1 or _entry_revision != _ordinary_bound_revision(): return ROOM_REFUSE_SOURCE
 	var sites: Sites = _ordinary_config.sources._construction._excavation_authority.get_ref() as Sites
 	if not _entry_site_leaf(sites) or Vector2i(sites._room_slot[_entry_site.x], sites._room_generation[_entry_site.x]) != _entry_room \
 			or Vector2i(sites._project_slot[_entry_site.x], sites._project_generation[_entry_site.x]) != _entry_project:
@@ -348,11 +354,16 @@ func _ordinary_contact_face(profile: int, location: Vector2i) -> int:
 		var role: int = _ordinary_box(profile, ordinal, location)
 		if role < 0: return -1
 		if role != EntryProfiles.CONTACT_POINT: continue
+		# Decision 1971: an upper quantum's claws strike its column's floor-band cube (P-1971-3 "Painted height").
+		var origin: Vector3i = RoomFace.struck_origin(_entry_origin, _ordinary_location(location, RoomLocations.Y), _entry_box[1])
 		for axis: int in 3:
-			if _entry_box[axis] < _entry_origin[axis] or _entry_box[axis] > int(_entry_origin[axis]) + 1024: return -1
-			if _entry_box[axis] == _entry_origin[axis] or _entry_box[axis] == int(_entry_origin[axis]) + 1024:
+			if _entry_box[axis] < origin[axis] or _entry_box[axis] > int(origin[axis]) + 1024: return -1
+			if _entry_box[axis] == origin[axis] or _entry_box[axis] == int(origin[axis]) + 1024:
 				if result >= 0: return -1
-				result = axis * 2 + int(_entry_box[axis] != _entry_origin[axis])
+				result = axis * 2 + int(_entry_box[axis] != origin[axis])
+				# Decision 1971: as WorkFace's contact rule, the station stands outside the face it strikes.
+				var station: int = _ordinary_location(location, RoomLocations.X + axis)
+				if (station >= _entry_box[axis]) if result % 2 == 0 else (station < _entry_box[axis]): return -1
 	return result
 
 
@@ -751,22 +762,39 @@ func _ordinary_job_leaf(worker: Vector2i, job: Vector2i, resident: int) -> Strin
 			or jobs._kind[row] != Jobs.JOB_KIND_BUILD or jobs._is_coordinator[row] != 0 or jobs._coordinator_slot[row] != -1 \
 			or jobs._worker_slot[row] != worker.x or jobs._worker_generation[row] != worker.y \
 			or jobs._requester_slot[row] != _entry_project.x or jobs._requester_generation[row] != _entry_project.y \
-			or jobs._tool_gate[row] != Jobs.GATE_SATISFIED or jobs._agent_present[resident] != 1 \
+			or not _ordinary_gate(jobs._tool_gate[row]) or jobs._agent_present[resident] != 1 \
 			or jobs._agent_persistent_id[resident] != graph._ids._persistent_id[worker.x] \
 			or jobs._agent_job_slot[resident] != job.x or jobs._agent_job_generation[resident] != job.y \
 			or sites._job_slot[_entry_site.x] != job.x or sites._job_generation[_entry_site.x] != job.y \
 			or sites._job_site[row] != _entry_site.x: return ROOM_REFUSE_WORKER
 	var project: int = _ordinary_project_row()
 	if project < 0 or jobs._remaining_mwu[row] != sites._construction._remaining_mwu[project]: return ROOM_REFUSE_WORKER
-	if _ordinary_needs_worker() and (sites._worker_site[resident] != _entry_site.x or sites._worker_generation[resident] != worker.y):
+	if _ordinary_needs_worker() and (sites._worker_site[resident] != _entry_site.x or sites._worker_generation[resident] != worker.y) \
+			and not _ordinary_vacant(sites, resident):
 		return ROOM_REFUSE_WORKER
 	return &""
 
 
+func _ordinary_vacant(sites: Sites, resident: int) -> bool:
+	"""P-1933-2 (a), decision 1938: a started phase whose worker was released (its dig stopped) admits the Job's newly
+	assigned worker to bind to it. That worker is registered to no Site and nobody else is registered to this one.
+	Productive work still needs the registration, which Sites checks before it asks here."""
+	return sites._worker_site[resident] == Sites.NO_ROW and sites._registered_worker_row(_entry_site.x) == Sites.NO_ROW
+
+
+func _ordinary_gate(gate: int) -> bool:
+	"""A tooled Job's gate is satisfied; decision 1939 (DEC-052): a tool-free Job (the claws') needs no tool."""
+	return gate == Jobs.GATE_SATISFIED or gate == Jobs.GATE_NOT_REQUIRED
+
+
 func _ordinary_tool_leaf(worker: Vector2i, job: Vector2i, tool: Vector2i, resident: int) -> StringName:
-	"""Physical equipped geometry is not a productive claim; actual Work/Gear assignment and durability also hold."""
+	"""Physical equipped geometry is not a productive claim; actual Work/Gear assignment and durability also hold.
+	A tool-free Job (decision 1939, DEC-052: the claws) holds no tool and no claim, as Sites' own rule."""
 	var profiles: EntryProfiles = _ordinary_config.profiles
 	var work: RefCounted = profiles._work
+	var row_of_job: int = RoomFace.FinishCheck._typed_row(_ordinary_config.routes._ids, job, Directory.KIND_JOB)
+	if row_of_job >= 0 and _ordinary_config.routes._jobs._tool_gate[row_of_job] == Jobs.GATE_NOT_REQUIRED:
+		return &"" if tool == NULL_REF and work.tool_lot_of(resident) == NULL_REF else ROOM_REFUSE_WORKER
 	var gear: RoomGear = profiles._gear
 	if tool.x < 0 or tool.x >= RoomGear.LOT_CAPACITY or tool.y <= 0 \
 			or work._tool_lot_slot[resident] != tool.x or work._tool_lot_generation[resident] != tool.y \
@@ -920,21 +948,36 @@ func _ordinary_local_leaf(purpose: int) -> StringName:
 
 
 func _ordinary_occupants_leaf(except_worker: Vector2i) -> StringName:
-	"""Every living actual resident needs a current full physical selection, including released terminal workers."""
+	"""Every living actual resident needs a current full physical selection, including released terminal workers.
+	Decision 1991 (C3, a C2 defect; ADR1219's rule, as `Routes._assembly_occupants_leaf`): a living resident who is not
+	a route actor (a surface resident, a crew member not yet arrived) occupies its reach cube around its Transform
+	instead, tested against the working actor's body at its WORK location; the working actor itself must be one."""
 	var graph: RoomRoutes = _ordinary_config.routes
 	var residents: RoomResidents = graph._residents
 	for row: int in RoomRoutes.RESIDENT_CAPACITY:
 		if not _entry_spend(8): return ROOM_REFUSE_CAPACITY
 		if residents._present[row] != 1 or residents._needs._present[row] != 1 or residents._needs._health[row] <= 0: continue
 		var worker: Vector2i = Vector2i(residents._ref_slot[row], residents._ref_generation[row])
-		if RoomFace.FinishCheck._typed_row(graph._ids, worker, Directory.KIND_RESIDENT) != row \
-			or graph._resident_ref(row) != worker: return ROOM_REFUSE_WORKER
+		if RoomFace.FinishCheck._typed_row(graph._ids, worker, Directory.KIND_RESIDENT) != row: return ROOM_REFUSE_WORKER
+		if graph._resident_ref(row) == NULL_REF and worker != except_worker:
+			if not _entry_spend(16): return ROOM_REFUSE_CAPACITY # ADR1219's reach test, 16 checks per row.
+			var missing: StringName = RoomRoutes.unregistered_body_refusal(graph, row, _ordinary_work_point())
+			if missing != &"": return missing
+			continue
+		if graph._resident_ref(row) != worker: return ROOM_REFUSE_WORKER
 		if worker == except_worker: continue
 		if not _entry_spend(256): return ROOM_REFUSE_CAPACITY
 		var code: StringName = RoomRoutes.physical_selection_into(graph, row, graph._occupant_selection)
 		if code == &"": code = _ordinary_occupant_boxes(graph._occupant_selection)
 		if code != &"": return code
 	return &""
+
+
+func _ordinary_work_point() -> Vector3i:
+	"""The working actor's root: its WORK location, which `_ordinary_worker_leaf` proved its selection stands on."""
+	var location: Vector2i = _ordinary_query.location
+	return Vector3i(_ordinary_location(location, RoomLocations.X), _ordinary_location(location, RoomLocations.Y),
+		_ordinary_location(location, RoomLocations.Z))
 
 
 func _ordinary_occupant_boxes(actor: EntryProfiles.Selection) -> StringName:
@@ -1059,7 +1102,7 @@ func worker_refusal(origin: Vector3i, operation: int, room: Vector2i, job: Vecto
 	if not _entry_enter(): return ENTRY_REFUSE_BUSY
 	if _ordinary_binding_leaf() != &"": return _entry_leave(ROOM_REFUSE_BINDING)
 	var code: StringName = ROOM_REFUSE_SOURCE
-	if geometry_revision == _ordinary_config.owner._header[17] and source_revision == qualification_revision():
+	if geometry_revision == _ordinary_config.owner._header[17] and source_revision == _ordinary_bound_revision():
 		code = _ordinary_live_contact(origin, operation, room, _ordinary_worker_stage(origin))
 	if code == &"" and (worker != _ordinary_worker or job != _ordinary_job): code = ROOM_REFUSE_WORKER
 	if code == &"": code = _ordinary_worker_leaf(_entry_cold_token == 0)

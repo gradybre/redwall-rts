@@ -64,8 +64,10 @@ const COVER_COLOUR: Color = Color(0.12, 0.1, 0.08)
 ## THE LEVEL INDICATOR (see THE LEVELS): its words (`level_words`); its canvas layer, under the HUD's (hud.tscn's
 ## CanvasLayer, layer 1) and the prewarm's cover; the HUD elements it stands below in the top-centre column (ui_shell.gd
 ## stacks them ROW_GAP apart under the alerts: the pause label, then the error panel); and its look.
-const LEVEL_FORMAT: String = "Underground · Level %d of %d (floor %s m down) · %s"
-const LEVEL_KEYS: Array[String] = ["", "PgDn: level 2", "PgUp: level 1"]
+## Trimmed by decision 1871: the level bar (scripts/ui/level_bar.gd, UI-BUILD-013) now names the levels and their keys
+## (Surface, Level 1-4, Overview; PageUp/PageDown), so the indicator no longer says "of 2" or names the keys -- it
+## would contradict the bar's four levels.
+const LEVEL_FORMAT: String = "Underground · Level %d (floor %s m down)"
 const INDICATOR_LAYER: int = 0
 const ABOVE_INDICATOR: Array[int] = [UiShell.ID_PAUSE_LABEL, UiShell.ID_ERROR_PANEL]
 const INDICATOR_FONT_PX: int = 17
@@ -73,6 +75,8 @@ const INDICATOR_TEXT: Color = Color(0.96, 0.91, 0.78)
 const INDICATOR_BACK: Color = Color(0.1, 0.075, 0.055, 0.82)
 
 var on: bool = false
+## Whether the U view draws other layers than its level (`set_override_mask`; `set_unreached`: nothing in 3D).
+var unreached: bool = false
 ## The level the U view shows (see THE LEVELS).
 var level: int = Rules.TOP_LEVEL
 ## Every material and mesh the U view draws (underground_prewarm.gd): owners register as they build.
@@ -155,11 +159,29 @@ func set_on(value: bool) -> void:
 	"""Underground view on or off: the camera's cull mask and environment, and the level indicator shown, and
 	nothing else (see the header)."""
 	on = value
+	unreached = false
 	if _indicator != null:
 		_indicator.visible = on
 	if _camera != null:
 		_camera.cull_mask = Layers.view_mask(on, level)
 		_camera.environment = environment if on else null
+
+
+func set_unreached(value: bool) -> void:
+	"""Show a level the demo has no way into (the level bar's Level 3 or 4; decision 1871): the U view on with nothing
+	drawn in 3D -- nothing is dug there -- until the view or its level changes. False puts the shown level back."""
+	set_override_mask(0 if value else -1)
+
+
+func set_override_mask(mask: int) -> void:
+	"""Draw other layers than the legacy level's while the U view is on (decision 1912: the build panel shows the
+	actual World's level there; 0 draws nothing in 3D, decision 1871's unreached level), until the view or its level
+	changes; -1 puts the shown level back. The level indicator (it names a legacy floor) hides meanwhile."""
+	unreached = mask >= 0
+	if _indicator != null:
+		_indicator.visible = on and not unreached
+	if _camera != null and on:
+		_camera.cull_mask = mask if unreached else Layers.level_mask(level)
 
 
 func set_level(value: int) -> bool:
@@ -168,7 +190,10 @@ func set_level(value: int) -> bool:
 	var to := clampi(value, Rules.TOP_LEVEL, Rules.DEEPEST_LEVEL)
 	var changed := to != level
 	level = to
+	unreached = false
 	Layers.active_level = to
+	if _indicator != null:
+		_indicator.visible = on
 	if _indicator_label != null:
 		_indicator_label.text = level_words(to)
 		_centre_indicator()
@@ -210,8 +235,8 @@ func _make_indicator() -> CanvasLayer:
 
 
 static func level_words(at: int) -> String:
-	"""The indicator's words for level `at`: which of how many, its floor's depth and the key to the other."""
-	return LEVEL_FORMAT % [at, Rules.DEEPEST_LEVEL, String.num(-Rules.level_floor_m(at), 2), LEVEL_KEYS[at]]
+	"""The indicator's words for level `at`: which level, and its floor's depth."""
+	return LEVEL_FORMAT % [at, String.num(-Rules.level_floor_m(at), 2)]
 
 
 func _place_indicator() -> void:

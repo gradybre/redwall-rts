@@ -48,6 +48,7 @@ extends RefCounted
 
 const ForestRules := preload("res://demo/forestry/forest_rules.gd")
 const WaterRules := preload("res://demo/water/water_rules.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 # --- cited ---------------------------------------------------------------------------------------
 
@@ -312,6 +313,7 @@ static func work_usec(wu: int, level: int) -> int:
 	@warning_ignore("integer_division") return wu * USEC_PER_WU * PERMILLE / ForestRules.skill_factor_permille(level)
 
 
-static func units_text(milli: int) -> String:
-	"""Milli-U as the panels show it ("4.7 U")."""
-	return ForestRules.units_text(milli)
+static func log_words() -> String:
+	"""A log bridge's one log, in a sentence: "a trunk of 6 logs" (LOG_WOOD_MILLI of wood, worded exactly by
+	goods_measures.gd; decision 1801)."""
+	return "a trunk of %s" % Measures.exact(&"wood", LOG_WOOD_MILLI)

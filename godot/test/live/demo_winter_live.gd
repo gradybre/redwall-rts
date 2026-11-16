@@ -464,7 +464,7 @@ func _the_great_hall_burns_three_quarters() -> void:
 	_check("its room at 20 °C", int(_winter().fuel.temperature_of(HALL)) == 200, str(_winter().fuel.temperature_of(HALL)))
 	_click(_centre(_fuel_cell()))
 	var shown: String = String(_panel().get("_lines").get("text"))
-	_check("the breakdown names the hall at 3.0 U", shown.contains("the hall at 3.0 U"), shown)
+	_check("the breakdown names the hall at 3 logs", shown.contains("the hall at 3 logs"), shown)
 	_capture("breakdown_great_hall")
 
 

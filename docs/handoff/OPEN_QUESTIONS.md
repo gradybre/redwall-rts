@@ -242,6 +242,19 @@ Recommendation: (a).
 
 Recommendation: (a).
 
+**Q-D22. When a kept trip place is released in the morning (decision 1905, "Figure this out later").** A boat seat, a
+forage party's seat or a ferry crew place kept overnight for a worker who was called away (ruling "Only in working
+hours") is released at 06:00, on the first frame of the day, while she is still getting out of bed. The third review
+found that the ferry is hit hardest: a helm loses her crossing every morning before she can reach it. A forage seat goes
+to the first co-forager who is up. The fishery is mostly unaffected, because a boat is only ready to leave once a fisher
+stands at the jetty. Asked on 2026-10-12, Brendan answered "Figure this out later"; 06:00 stays as built.
+[MEAL-CALLAWAY follow-up]
+- (a) Release once she's up: wait until the keeper herself is awake (out of her bed, the night routine done with her)
+  before her place may be released.
+- (b) Keep the 06:00 release.
+
+Recommendation: (a).
+
 
 ## Added at the end of the lead session (2026-10-02)
 

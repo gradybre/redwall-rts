@@ -30,8 +30,8 @@ const REFUSE_NO_REPLACEMENT: StringName = &"ENTRY_CREW_NO_REPLACEMENT"
 ## ADR1229 (DEC-054): the descent is built to the sill; the next room is the Kitchen, dug to reachable height, whose
 ## plan is not built yet (ADR1227's ENTRY_DESCENT_UNBUILT is retired with G9's move).
 const REFUSE_KITCHEN_UNBUILT: StringName = &"ENTRY_KITCHEN_UNBUILT"
-## ADR1229: L0, the T0 cuts and T0 (ADR1202), the descent's cuts and T1, then T2-T6 down the stair.
-const INSTALLATIONS: int = 8
+## Decision 1940: Routes refusals of an unregistration that a later tick retries (a transaction still open).
+const TRANSIENT_ROUTE_REFUSALS: Array[StringName] = [&"ROUTE_TRANSACTION_BUSY", &"ROUTE_SPACE_TRANSACTION"]
 const STEP_NONE: int = 0
 const STEP_SITE: int = 1
 const STEP_PUBLISHED: int = 2
@@ -75,7 +75,7 @@ var _jobs: RefCounted = null
 var _worker_row: int = -1
 var _transforms: Transforms = null
 var _anchor: Vector3i = Vector3i.ZERO
-var _walk_left: int = 0 # ADR1219: fixed ticks of the crew's surface walk still to run before arrival at H.
+var _walk_left: int = 0 # ADR1219: fixed ticks of the crew's walk to H still to run (decision 1940: in or out).
 var _arrival_yaw: int = -1 # H's authored arrival heading, or -1 to keep the resident's own.
 var _scratch: IntMath.IntResult = IntMath.IntResult.new() # ADR1223 dispatch reads; never state.
 
@@ -98,6 +98,13 @@ func error() -> StringName:
 func is_running() -> bool:
 	"""True while the planned foreman still has work and has not refused."""
 	return _step == STEP_RUNNING and _foreman.error() == &""
+
+
+func is_leaving() -> bool:
+	"""Decision 1940: the finished entry's crew is still a route actor, or on its timed walk out to H; the host keeps
+	ticking the runtime until it has left (a leave that refused stops for good, holding its own code)."""
+	if _step != STEP_DONE or _error != REFUSE_KITCHEN_UNBUILT or _crew == null or _crew.worker == NULL_REF: return false
+	return _walk_left > 0 or (_worker_row >= 0 and _foreman._owners.routes._resident_ref(_worker_row) == _crew.worker)
 
 
 func crew() -> Foreman.Crew:
@@ -126,13 +133,16 @@ func start(session: RefCounted, near: Vector3i) -> StringName:
 
 
 func walk_ticks_left() -> int:
-	"""ADR1219: fixed ticks of the crew's surface walk to H still to run; zero once it has arrived."""
+	"""ADR1219: fixed ticks of the crew's surface walk to H still to run (decision 1940: or of the finished crew's walk
+	out to H); zero once it has arrived."""
 	return _walk_left
 
 
 func advance(tick: int) -> StringName:
 	"""ADR1210 G7: one fixed tick of the planned foreman; its first refusal stops the chain for alerting.
-	ADR1219: while the crew walks to H the tick is the walk's; arrival places it on H the same tick."""
+	ADR1219: while the crew walks to H the tick is the walk's; arrival places it on H the same tick. Decision 1940:
+	once done, the tick is the crew's leave."""
+	if is_leaving(): return _leave()
 	if not is_running(): return &""
 	if _foreman.awaiting_crew(): return _replace_crew(tick, false)
 	var code: StringName = _crew_loss_refusal()
@@ -148,8 +158,45 @@ func advance(tick: int) -> StringName:
 	code = _foreman.advance(tick)
 	if code != &"": return _stop(code)
 	if not _foreman.is_done(): return &""
+	if _foreman.planned_installations() < _foreman.installations(): return _plan_stage(_foreman, _foreman._paid)
 	_step = STEP_DONE
 	return _stop(REFUSE_KITCHEN_UNBUILT) # ADR1227/1229: raised once, on the finishing tick (G9).
+
+
+func _leave() -> StringName:
+	"""Decision 1940: the finished crew holds a retired Job, so it is stale to every other actor's occupancy proof and
+	Routes holds it. It leaves the underground roster from rest (DEC-059's resting unregistration; the foreman ends it
+	at rest, so a crew not at rest is refused and named once), then walks out to H by ADR1219's timed walk, keeping
+	its heading, reserved until it arrives. A lost crew's actor is removed (ADR1225) and nothing walks. A busy Routes
+	is retried the next tick."""
+	var routes: Foreman.Routes = _foreman._owners.routes
+	if _crew_loss_refusal() != &"":
+		_walk_left = 0
+		var removed: StringName = routes.unregister_lost_actor(_crew.worker) if routes._lost_actor_row(_crew.worker) >= 0 \
+			else &""
+		return &"" if removed in TRANSIENT_ROUTE_REFUSALS else _end_leave(removed)
+	if _walk_left > 0: return _walk_out()
+	var code: StringName = routes.unregister_resting_actor(_crew.worker)
+	if code in TRANSIENT_ROUTE_REFUSALS: return &"" # Review M3: retried next tick.
+	if code == &"": code = _begin_walk(_foreman._owners.locations, _transforms, _foreman._owners.residents, -1)
+	if code == &"" and _walk_left == 0: code = routes.refresh_occupancy()
+	return _end_leave(code)
+
+
+func _walk_out() -> StringName:
+	"""One tick of the walk out; arrival places the crew on H. The placement is a foreign pose change to Routes, so
+	its occupancy roots are rebuilt at once (decision 1937), or no actor still underground could move again."""
+	_walk_left -= 1
+	if _walk_left > 0: return &""
+	if not _place_on_anchor(): return _end_leave(REFUSE_SURFACE_ARRIVAL)
+	return _end_leave(_foreman._owners.routes.refresh_occupancy())
+
+
+func _end_leave(code: StringName) -> StringName:
+	"""A refused leave stops for good: no walk, its own code retained and raised once."""
+	if code == &"": return &""
+	_walk_left = 0
+	return _stop(code)
 
 
 func _halt(code: StringName) -> StringName:
@@ -254,15 +301,19 @@ func owns_job(job_slot: int) -> bool:
 
 func reserves_resident(resident_slot: int) -> bool:
 	"""ADR1223: the crew is reserved from the foreman's planning while the chain can run, and for good once it is a
-	route actor (ADR1219: it stays registered underground); a chain stopped before registration releases it."""
+	route actor (ADR1219: it stays registered underground); a chain stopped before registration releases it.
+	Decision 1940: a finished entry's crew is released once it has left the roster and walked out to H."""
 	if _foreman == null or resident_slot != _worker_row \
 			or _foreman._owners.residents.directory().get_typed_row(_crew.worker) != _worker_row:
 		return false
-	return is_running() or _foreman._owners.routes._resident_ref(resident_slot) != NULL_REF
+	return is_running() or (_step == STEP_DONE and _walk_left > 0) \
+		or _foreman._owners.routes._resident_ref(resident_slot) != NULL_REF
 
 
 func _bind_dispatcher(o: RefCounted) -> StringName:
-	"""ADR1223: this runtime answers the JobSelector's dispatch questions from now on (a restore rebinds)."""
+	"""ADR1223: this runtime answers the JobSelector's dispatch questions from now on (a restore rebinds). Decision
+	1936: when the host's composite dispatcher is bound it already asks this runtime, so it is left in place."""
+	if preload("res://scripts/core/underground_dispatch.gd").bound_to(o.jobs): return &""
 	var bound: RefCounted = o.jobs.bind_dispatcher(owns_job, reserves_resident)
 	return &"" if bound.ok else bound.error
 
@@ -361,7 +412,7 @@ func _plan_foreman(o: RefCounted) -> StringName:
 	var code: StringName = foreman.configure(_foreman_owners(o), _crew, _entry_placement(o))
 	var paid: Foreman.Installer.Paid = Foreman.Installer.Paid.new()
 	paid.router = o.router; paid.connector = o.connector; paid.contacts = o.contacts; paid.budget = o.budget
-	for ordinal: int in INSTALLATIONS:
+	for ordinal: int in foreman.stage_last(0) + 1: # Decision 2044 (P-2044-7 (a)): the first stage; the rest follow.
 		if code == &"": code = foreman.configure_installation(paid, ordinal)
 	if code == &"": code = foreman.plan_arrival(_published.endpoints[0])
 	if code == &"": code = _begin_walk(o.locations, o.transforms, o.residents, foreman.arrival_yaw())
@@ -374,19 +425,34 @@ func _plan_foreman(o: RefCounted) -> StringName:
 	return _bind_dispatcher(o)
 
 
+func _plan_stage(foreman: Foreman, paid: Foreman.Installer.Paid) -> StringName:
+	"""Decision 2044 (P-2044-7 (a)): once a stage has settled, the foreman takes the next one, from the next
+	installation to the last before new cuts are needed (`Foreman.stage_last`); the chain keeps running."""
+	var first: int = foreman.planned_installations()
+	var code: StringName = foreman.begin_stage()
+	for ordinal: int in range(first, foreman.stage_last(first) + 1):
+		if code == &"": code = foreman.configure_installation(paid, ordinal)
+	return _halt(code) if code != &"" else &""
+
+
 func _station_paths(station: Vector2i) -> StringName:
 	"""ADR1229: the descent's cut stations get their paths (and the done T0 stations lose theirs) just before the
 	first of them is worked, and lose them once a later step starts with the crew off them; derived from the live
-	graph and the crew's Location, so a restored chain asks the same question."""
+	graph and the crew's Location, so a restored chain asks the same question. Decision 2044: per batch of eight
+	(`WorkArea.batch_of`); a batch the crew has left retires when the next step starts."""
 	var o: Foreman.Owners = _foreman._owners
-	var open: bool = WorkArea.deep_paths_open(o.routes, _published)
-	if WorkArea.is_deep_station(_published, station):
-		return &"" if open else WorkArea.open_deep_paths(o.binding, o.routes, _foreman._paid.budget, o.binding._owner(),
-			_origin, _published, o.profiles.content_revision())
 	var here: Vector2i = o.routes._resident_pair(Foreman.Routes.R_LOCATION_SLOT, _worker_row) if _worker_row >= 0 \
 		else NULL_REF
-	if not open or WorkArea.is_deep_station(_published, here): return &""
-	return WorkArea.close_deep_paths(o.binding, o.routes, _foreman._paid.budget, _published)
+	var wanted: int = WorkArea.batch_of(_published, station)
+	var code: StringName = &""
+	if wanted >= 0 and not WorkArea.batch_joined(o.routes, _published, wanted):
+		code = WorkArea.join_batch(o.binding, o.routes, _foreman._paid.budget, o.binding._owner(), _origin, _published,
+			o.profiles.content_revision(), wanted)
+	for batch: int in WorkArea.BATCHES:
+		if code != &"" or batch == wanted or WorkArea.batch_of(_published, here) == batch \
+				or not WorkArea.batch_joined(o.routes, _published, batch): continue
+		code = WorkArea.close_batch(o.binding, o.routes, _foreman._paid.budget, _published, batch)
+	return code
 
 
 func _foreman_owners(o: RefCounted) -> Foreman.Owners:
@@ -553,9 +619,13 @@ func _read_foreman(r: Progress.Reader, o: RefCounted) -> StringName:
 
 func _walk_refusal(o: RefCounted) -> StringName:
 	"""ADR1219: a walk still under way must end on the live H at H's own point, facing the foreman's arrival
-	heading; the Transforms handle is the Session's own (re-derived, never written)."""
+	heading (decision 1940: a finished crew's walk out keeps its own, off the route roster); the Transforms handle is
+	the Session's own (re-derived, never written)."""
 	if _walk_left == 0: return &""
-	if _step != STEP_RUNNING or _arrival_yaw != _foreman.arrival_yaw(): return Progress.REFUSE_SHAPE
+	if _step == STEP_DONE and (_arrival_yaw != -1 or _error != REFUSE_KITCHEN_UNBUILT or _crew.worker == NULL_REF
+			or o.routes._lost_actor_row(_crew.worker) >= 0):
+		return Progress.REFUSE_SHAPE # Decision 1940: the walk out keeps its heading, G9 held, the crew off the roster.
+	if _step != STEP_DONE and (_step != STEP_RUNNING or _arrival_yaw != _foreman.arrival_yaw()): return Progress.REFUSE_SHAPE
 	var record: Foreman.Locations.Record = Foreman.Locations.Record.new()
 	record.envelope.resize(6)
 	record.support.resize(6)

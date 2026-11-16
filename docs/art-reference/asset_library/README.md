@@ -273,6 +273,14 @@ cap 12):
 |---|---|---|
 | `icon/sheet_flax_linen_wax/sheet.png` (flax, linen and beeswax, each with two alternates) | `01a0fce6-bbf4-75f2-92a6-c99baf0c1a38` | nano-banana-2, 6, conditioned on `sheet_foods_a` |
 
+**Follow-up: the eleven dishes without an icon** (decision
+[1831](../../decisions/1831-icons-for-the-eleven-dishes-without-one.md), cap 20, 12 spent):
+
+| Sheet | Task | Model |
+|---|---|---|
+| `icon/sheet_dishes_feasts_breakfasts/sheet.png` (the feasts' four courses, two porridges, three empty vessels) | `01a121b3-a6d1-736d-a23c-8d5b0b8008c4` | nano-banana-2, 6, conditioned on `sheet_foods_a` |
+| `icon/sheet_dishes_suppers/sheet.png` (two soups, the vegetable stew, two poached fish, four empty vessels) | `01a121b4-1c00-7232-9bb7-94c58cdd265e` | nano-banana-2, 6, conditioned on `sheet_foods_a` |
+
 **3D models.** Each uses the library recipe: a concept from the style reference (nano-banana-2, 6), then a meshy-7
 high-poly (PBR, 2K, triangles, no remesh; 30). That is 36 a model. All are in the `prop/` family.
 

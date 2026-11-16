@@ -1,7 +1,8 @@
 extends RefCounted
 ## PLAYER-NAMED PROJECTS (decision 0481; review UX-020): up to MAX_PROJECTS pinned projects of the player's own -- a
 ## NAME, the PLACES it is about (what was selected when it was pinned: a bed, a tunnel, residents) and one simple
-## MEASURE with a target ("Wood in store reaches 60.0 U", "2 bridges open", "10.0 U harvested from now"). The measure
+## MEASURE with a target ("Wood in store reaches 60 logs", "Bridges open reaches 2", "Harvested into store from now
+## reaches 2 baskets"; a good in its natural measure, goods_measures.gd, decisions 1011 and 1801). The measure
 ## is read from the village's own figures (guide_world.gd), never from anything the project keeps itself; when it
 ## reaches its target the project is DONE, once, and its CHRONICLE entry goes into the village news history (the
 ## Village source, decision 0331's history) with the before and after figures and a Go to its first place. A done
@@ -12,7 +13,7 @@ extends RefCounted
 const WorldScript := preload("res://demo/guide/guide_world.gd")
 const FactsScript := preload("res://demo/guide/guide_facts.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
-const FarmText := preload("res://demo/farm/farm_text.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 const MAX_PROJECTS: int = 3
 const MAX_PLACES: int = 3
@@ -30,11 +31,14 @@ const MEASURE_NAMES: Array[String] = ["Wood in store", "Planks in store", "Stone
 	"Harvested into store from now", "Suppers eaten from now", "Bridges open", "Tunnel stretches open"]
 ## Whether a measure counts from when the project is pinned (else it is a level).
 const FROM_NOW: Array[bool] = [false, false, false, false, true, true, false, false]
-## Units: milli-U (shown "12.0 U"), milli-days ("2.5 days") or a plain count.
+## Units: milli-U of the measure's good (shown in its natural measure, "60 logs"), milli-days ("2.5 days") or a plain
+## count.
 const UNIT_MILLI: int = 0
 const UNIT_DAYS: int = 1
 const UNIT_COUNT: int = 2
 const UNITS: Array[int] = [UNIT_MILLI, UNIT_MILLI, UNIT_MILLI, UNIT_DAYS, UNIT_MILLI, UNIT_COUNT, UNIT_COUNT, UNIT_COUNT]
+## The good a UNIT_MILLI measure counts (goods_measures.gd's key; the harvest is mixed food); &"" for the others.
+const GOODS: Array[StringName] = [&"wood", &"planks", &"stone", &"", &"food", &"", &"", &""]
 ## The target's step for the - and + buttons, and its first value, by measure (in the measure's own unit).
 const STEPS: Array[int] = [10000, 5000, 5000, 1000, 5000, 1, 1, 1]
 const FIRST_TARGETS: Array[int] = [60000, 10000, 30000, 3000, 10000, 2, 1, 2]
@@ -128,17 +132,29 @@ static func raw_value(measure: int, world: WorldScript, facts: FactsScript) -> i
 
 
 static func amount_text(measure: int, value: int) -> String:
-	"""A measure's value as the player reads it: '12.0 U', '2.5 days', '3'."""
+	"""A measure's value as the player reads it beside its name: '40 logs' (its good, rounded down), '2.5 days', '3'."""
 	match UNITS[measure]:
-		UNIT_MILLI: return FarmText.units_text(maxi(value, 0))
+		UNIT_MILLI: return Measures.amount_cell(GOODS[measure], maxi(value, 0))
 		UNIT_DAYS:
 			@warning_ignore("integer_division") return "%d.%d days" % [maxi(value, 0) / 1000, (maxi(value, 0) % 1000) / 100]
 	return str(value)
 
 
+static func target_text(measure: int, target: int) -> String:
+	"""A target the player set, unrounded: '60 logs', '2.5 days', '2'."""
+	return Measures.exact_cell(GOODS[measure], target) if UNITS[measure] == UNIT_MILLI else amount_text(measure, target)
+
+
+static func progress_text(measure: int, value: int, target: int) -> String:
+	"""How far a measure has come against its target: '40 of 60 logs' (a good, in the target's measure), '1 of 2'."""
+	if UNITS[measure] == UNIT_MILLI:
+		return Measures.have_need(GOODS[measure], maxi(value, 0), target)
+	return "%s of %s" % [amount_text(measure, value), target_text(measure, target)]
+
+
 static func goal_text(measure: int, target: int) -> String:
-	"""'Wood in store reaches 60.0 U'."""
-	return "%s reaches %s" % [MEASURE_NAMES[measure], amount_text(measure, target)]
+	"""'Wood in store reaches 60 logs'."""
+	return "%s reaches %s" % [MEASURE_NAMES[measure], target_text(measure, target)]
 
 
 func chronicle_text(project: Project) -> String:
@@ -147,7 +163,7 @@ func chronicle_text(project: Project) -> String:
 	var shown_end: int = project.finish - project.start if FROM_NOW[project.measure] else project.finish
 	return CHRONICLE % [project.name, MEASURE_NAMES[project.measure].to_lower(),
 		amount_text(project.measure, shown_start), amount_text(project.measure, shown_end),
-		amount_text(project.measure, project.target)]
+		target_text(project.measure, project.target)]
 
 
 func is_full() -> bool:

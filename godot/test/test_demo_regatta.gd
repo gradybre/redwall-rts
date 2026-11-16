@@ -41,7 +41,6 @@ const DemoFarmScript := preload("res://demo/farm/demo_farm.gd")
 const Layout := preload("res://demo/world/world_layout.gd")
 const Ledger := preload("res://demo/people/people_ledger.gd")
 const PeopleText := preload("res://demo/people/people_text.gd")
-const ForestRules := preload("res://demo/forestry/forest_rules.gd")
 
 const DT: float = 0.1
 const SUMMER_1: int = 12
@@ -292,9 +291,9 @@ func test_the_preview_refuses_what_is_invalid_and_names_what_is_missing() -> voi
 	assert_false(crew.has(2) or crew.has(0), "never the host or the cook")
 	var text: String = "\n".join(r.preview_lines(day, 2))
 	assert_true(text.contains("bean hotpot x%d" % Rules.main_batches(r.residents())), "the main course: %s" % text)
-	assert_true(text.contains("short of nuts: %d.0 U needed, 0.0 U free" % (2 * Rules.second_batches(r.residents()))),
+	assert_true(text.contains("short of nuts: %d handfuls needed, none free" % (4 * Rules.second_batches(r.residents()))),
 		"what can't be made, said from the real stock: %s" % text.replace("\n", " | "))
-	assert_true(text.contains("short of herb: 0.2 U needed"), "the infusion's shortfall, said")
+	assert_true(text.contains("short of herb: 1 handful needed"), "the infusion's shortfall, said (0.25 U: a handful)")
 	assert_true(text.contains("no Shared Warmth"), "no buff without every course")
 	_stock(rig, OATS, 40000)
 	_stock(rig, CARROT, 40000)
@@ -952,11 +951,13 @@ func test_the_regatta_counts_the_food_its_supper_already_holds() -> void:
 	var free: int = rig.kitchen.takes.free_milli_of_crop(rig.pantry, FarmingScript.CROP_BEANS)
 	var need: int = r.main_food_milli(r.residents())
 	assert_true(held > 0 and free < need and free + held >= need, "the day's supper holds the rest (free %d, held %d, need %d)" % [free, held, need])
+	assert_equal(need, 4000, "two batches of 2 U")
+	assert_true(free + held < 40000, "under two sacks: counted in scoops (1 U), floored")
+	@warning_ignore("integer_division") var scoops: int = (free + held) / 1000
 	var lines: String = "\n".join(r.preview_lines(day, 2))
-	assert_true(lines.contains("beans %s (free %s)" % [ForestRules.units_text(need), ForestRules.units_text(free + held)]),
-		"the preview counts the day's supper: %s" % lines)
+	assert_true(lines.contains("beans 4 scoops (free %d scoops)" % scoops), "the preview counts the day's supper: %s" % lines)
 	lines = "\n".join(r.preview_lines(day + 1, 2))
-	assert_false(lines.contains("(free %s)" % ForestRules.units_text(free + held)), "not another day's preview")
+	assert_false(lines.contains("(free %d scoops)" % scoops), "not another day's preview")
 	r.count_supper(day)
 	assert_equal(r.free_beans(), free + held, "counted for that day's feast")
 	r.count_supper(day + 1)

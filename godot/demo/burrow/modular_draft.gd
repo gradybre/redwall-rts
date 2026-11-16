@@ -2,6 +2,9 @@ extends RefCounted
 ## Pure room-drawing session. No graph, inventory, project, or resident references live here.
 ## Grid pitch and bounds are explicit inputs, never an excavation price or a paid-cut mapping.
 ## A stroke previews against its original cells, then changes the draft once on release.
+## BLOCK (decision 1912, slice C1 of DEC-061) is the build panel's Paint/Erase brush: the cells the drag passes, each
+## grown to the 2 × 2 block it is the top-left corner of, so every stamped cell lies in a 2 × 2 block (BUILD-REQ-002).
+## `apply_cells` is one completed edit from given cells (the build batch's merge and split), with a stroke's checks.
 
 const Footprint := preload("res://scripts/core/room_footprint.gd")
 const Catalog := preload("res://scripts/core/catalog.gd")
@@ -10,7 +13,10 @@ const ROUNDED: int = 1
 const ELLIPSE: int = 2
 const BRUSH: int = 3
 const TUNNEL: int = 4
-const TOOL_COUNT: int = 5
+const BLOCK: int = 5
+const TOOL_COUNT: int = 6
+## BLOCK's stamp: the cell and its east, south and south-east neighbours.
+const BLOCK_OFFSETS: Array[Vector2i] = [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1)]
 const HISTORY_LIMIT: int = 32
 const I32_MAX: int = 2147483647
 
@@ -85,7 +91,7 @@ func extend_stroke(at: Vector2i) -> StringName:
 	if at == _last:
 		return _preview_error
 	_last = at
-	if _tool == BRUSH or _tool == TUNNEL:
+	if _tool == BRUSH or _tool == TUNNEL or _tool == BLOCK:
 		if _path.size() >= _capacity * 2:
 			visual_revision += 1
 			_preview_error = &"DRAWING_STROKE_TOO_LONG"
@@ -110,6 +116,25 @@ func finish_stroke() -> StringName:
 	_preview_error = &""
 	visual_revision += 1
 	return error
+
+
+func apply_cells(cells: PackedInt32Array, erase: bool) -> StringName:
+	"""One completed edit adding (or erasing) `cells`, checked as a stroke's release is (capacity, the planning area);
+	refused during a drag. Nothing changes and no history step is kept when it adds or erases no cell."""
+	if not _configured or _drawing:
+		return &"DRAWING_SESSION_NOT_READY"
+	var combined: Dictionary = Footprint.combine(_cells, cells, erase, _capacity)
+	if not combined.ok:
+		return combined.error
+	var outside: StringName = _inside_bounds(combined.cells)
+	if outside != &"":
+		return outside
+	if combined.cells != _cells:
+		_push(_undo, _cells)
+		_redo.clear()
+		_cells = combined.cells
+		_changed()
+	return &""
 
 
 func cancel_stroke() -> bool:
@@ -212,6 +237,8 @@ func _stamp(at: Vector2i) -> Dictionary:
 	"""All tools use the same canonical integer helper, including the connected tunnel path."""
 	if _tool == BRUSH or _tool == TUNNEL:
 		return Footprint.tunnel_path(_path, _radius, _capacity)
+	if _tool == BLOCK:
+		return _block_path()
 	var x: int = mini(_start.x, at.x)
 	var z: int = mini(_start.y, at.y)
 	var width: int = absi(int(_start.x) - int(at.x)) + 1
@@ -222,6 +249,22 @@ func _stamp(at: Vector2i) -> Dictionary:
 		@warning_ignore("integer_division") var radius: int = mini(_radius, mini(width, depth) / 2)
 		return Footprint.rounded_rectangle(x, z, width, depth, radius, _capacity)
 	return Footprint.rectangle(x, z, width, depth, _capacity)
+
+
+func _block_path() -> Dictionary:
+	"""BLOCK's stamp: the drag's one-cell route (the tunnel tool's own supercover), each cell grown to its 2 × 2 block."""
+	var route: Dictionary = Footprint.tunnel_path(_path, 0, _capacity)
+	if not route.ok:
+		return route
+	var seen: Dictionary = {}
+	var grown: PackedInt32Array = PackedInt32Array()
+	for at: int in range(0, route.cells.size(), 2):
+		for offset: Vector2i in BLOCK_OFFSETS:
+			var cell: Vector2i = Vector2i(route.cells[at], route.cells[at + 1]) + offset
+			if not seen.has(cell):
+				seen[cell] = true
+				grown.append_array(PackedInt32Array([cell.x, cell.y]))
+	return Footprint.combine(PackedInt32Array(), grown, false, _capacity)
 
 
 func _inside_bounds(cells: PackedInt32Array) -> StringName:

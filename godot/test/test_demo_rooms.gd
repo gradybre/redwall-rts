@@ -945,10 +945,11 @@ func test_a_room_s_crew_works_three_faces() -> void:
 
 func test_the_room_readout_counts_its_cells_ramp_and_passage() -> void:
 	"""A loam home standing alone: 24 cells and a 4 m ramp with its shaft, 29 quanta; one digger at 1000 per
-	mille: (24 + 5) x 113 ticks over 750 an hour (decision 0421) is 4.3 h; 58 U of spoil; and it says it stands alone."""
+	mille: (24 + 5) x 113 ticks over 750 an hour (decision 0421) is 4.3 h; 58 U of spoil, 29 baskets of earth; and it
+	says it stands alone."""
 	var plan := PlanScript.new()
 	var text := ReadoutScript.room_text(RoomsScript.TEMPLATE_HOME, HOME_AT, 0, plan, null, 1000, 1000, 1, "")
-	assert_equal(text, "Burrow home · 29 quanta · 4.3 h (one digger)\n58 U spoil · standalone: dig a tunnel to one of its sockets later",
+	assert_equal(text, "Burrow home · 29 quanta · 4.3 h (one digger)\n29 baskets of earth · standalone: dig a tunnel to one of its sockets later",
 		"the readout")
 	var passage := PlanScript.new()
 	passage.try_add_snapped(6144, 0, SpecScript.END_ON_SEGMENT, 1, BOUNDS_U, PackedInt32Array())

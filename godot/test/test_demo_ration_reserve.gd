@@ -12,6 +12,7 @@ const PantryScript := preload("res://demo/farm/farm_pantry.gd")
 const StorageScript := preload("res://demo/farm/farm_storage.gd")
 const TakesScript := preload("res://demo/kitchen/ingredient_takes.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const WaterPanel := preload("res://demo/waterplay/water_panel.gd")
 
 const WHEAT: int = 13
 const GRAIN: int = FarmingScript.CROP_GRAIN
@@ -175,3 +176,12 @@ func test_no_grain_is_gathered_while_a_mill_batch_grinds() -> void:
 	reserve.top_up(0, 0, true)
 	assert_equal(reserve.held_milli(GRAIN), 0, "milling: let go")
 	assert_equal(reserve.wanted_milli(GRAIN, 0, true), 0, "and not wanted")
+
+
+func test_the_reserve_buttons_say_the_batch_in_rations() -> void:
+	"""The Keep fewer / Keep more hover texts state the step in rations (decision 1801: a ration is counted, 1 U each),
+	and the step they state is the reserve's own (TARGET_STEP_MILLI, 3 U)."""
+	assert_equal(ReserveScript.TARGET_STEP_MILLI, 3000, "a batch: 3 rations")
+	assert_equal(WaterPanel.BUTTON_TIPS[&"reserve_fewer"], "Keep one batch (3 rations) fewer in reserve (UI-SET-099)", "fewer")
+	assert_true(String(WaterPanel.BUTTON_TIPS[&"reserve_more"]).begins_with("Keep one batch (3 rations) more in reserve: "),
+		"more")

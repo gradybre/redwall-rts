@@ -35,6 +35,7 @@ extends Node3D
 
 const IntMath := preload("res://scripts/core/int_math.gd")
 const Rules := preload("res://demo/forestry/forest_rules.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 const StandScript := preload("res://demo/forestry/forest_stand.gd")
 const ZonesScript := preload("res://demo/forestry/forest_zones.gd")
 const DeadfallScript := preload("res://demo/forestry/forest_deadfall.gd")
@@ -297,8 +298,8 @@ func storm(what: String) -> int:
 		_post(NoticesScript.LEVEL_NOTE, "%s shook the woods: deadfall is down" % what)
 		return -1
 	services.incidents.report("woods:windthrow:%d" % t, NoticesScript.SOURCE_WOODS, IncidentsScript.SEVERITY_WARNING,
-		"%s blew down %s: %s of wood lie across the ground — clear it" % [what, text.where_tree(t),
-		Rules.units_text(_read.value)], "A tree blew down — haul it clear", NoticesScript.TARGET_TREE, t,
+		"%s blew down %s: %s lie across the ground — clear it" % [what, text.where_tree(t),
+		Measures.amount(&"wood", _read.value)], "A tree blew down — haul it clear", NoticesScript.TARGET_TREE, t,
 		windthrow_state.bind(t))
 	crew.raise_routine_jobs()
 	return t

@@ -34,6 +34,7 @@ const UiWorldSessionScript := preload("res://scripts/ui/ui_world_session.gd")
 const UiShellScript := preload("res://scripts/ui/ui_shell.gd")
 const UiNoticesScript := preload("res://scripts/ui/ui_notices.gd")
 const ColonyFixture := preload("res://test/fixtures/starter_colony_fixture.gd")
+const InventoryScript := preload("res://scripts/core/inventory.gd")
 const StarterColonyScript := preload("res://scripts/core/starter_colony.gd")
 const CatalogScript := preload("res://scripts/core/catalog.gd")
 const UndergroundSessionScript := preload("res://scripts/core/underground_session.gd")
@@ -61,8 +62,10 @@ const STARTING_INVENTORY_U: Dictionary = {
 ## had to move, and the duplicate is why this suite failed after the first was corrected.
 const STARTER_FOOD_DAYS_TEXT: String = "5.48 days"
 const STARTER_READY_NP_TEXT: String = "408,000 NP"
-const STARTER_WOOD_TEXT: String = "180 U"
-const STARTER_STONE_TEXT: String = "100 U"
+## UI-SET-004/005 in natural measures (DEC-049, decisions 1011 §4a and 1801): §5.1's 180 U of wood is 180 logs and its
+## 100 U of stone 100 blocks, all of it available. Wood shows no level while §5.8 has no heating-demand input.
+const STARTER_WOOD_TEXT: String = "180 logs available; none reserved"
+const STARTER_STONE_TEXT: String = "100 blocks available; none reserved"
 
 ## GDD §5.8's unpopulated marker, stated independently of both hud.gd and economy_system.gd.
 const UNPOPULATED: String = "--"
@@ -195,8 +198,8 @@ func test_every_supplied_counter_matches_the_starter_fixture() -> void:
 	_ui.register_hud(_hud)
 	var line: String = _rendered_counters()
 	assert_true(line.contains("Ready NP %s" % STARTER_READY_NP_TEXT), "ready NP is 408,000 NP")
-	assert_true(line.contains("Wood %s" % STARTER_WOOD_TEXT), "wood is 180 U")
-	assert_true(line.contains("Stone %s" % STARTER_STONE_TEXT), "stone is 100 U")
+	assert_true(line.contains("Wood %s" % STARTER_WOOD_TEXT), "wood is 180 logs, got '%s'" % line)
+	assert_true(line.contains("Stone %s" % STARTER_STONE_TEXT), "stone is 100 blocks")
 	assert_true(line.contains("Fuel-days %s" % UNPOPULATED), "fuel-days stays unpopulated")
 	# UI-C3-R01 §2 renders living population as "N / 256". `contains("Residents 12")` still
 	# passed against "Residents 12 / 256" -- a prefix match that no longer proves the format,
@@ -230,6 +233,39 @@ func test_the_counters_track_the_stores_rather_than_a_constant() -> void:
 		"the stale 5.48 is gone from the label")
 	assert_true(after.contains("Food-days %s" % EconomySystem.food_days_text()),
 		"the new figure is the one the economy now derives")
+
+
+func test_wood_and_stone_read_available_and_reserved_in_their_measures() -> void:
+	"""UI-SET-004/005 (DEC-049): available and reserved in logs and blocks, each rounded down; Wood reads "none" with no
+	available wood (decision 1011 §4b's first level) and no level otherwise, while §5.8 cannot judge one."""
+	_ui.register_hud(_hud)
+	assert_true(_rendered_counters().contains("Wood none — none available; none reserved"), _rendered_counters())
+	assert_true(EconomySystem.deposit(&"wood", 10 * MILLI + 500), "10.5 U of wood stored")
+	_ui.register_hud(_hud)
+	assert_true(_rendered_counters().contains("Wood 10 logs available; none reserved"), _rendered_counters())
+	var lot: Vector2i = _first_lot_of(&"wood")
+	assert_true(EconomySystem.inventory().reserve_lot(lot, 4 * MILLI).ok, "4 U reserved")
+	_ui.register_hud(_hud)
+	assert_true(_rendered_counters().contains("Wood 6 logs available; 4 logs reserved"), _rendered_counters())
+	assert_true(EconomySystem.inventory().reserve_lot(lot, 6 * MILLI + 500).ok, "the rest reserved")
+	_ui.register_hud(_hud)
+	assert_true(_rendered_counters().contains("Wood none — none available; 10 logs reserved"), _rendered_counters())
+	assert_true(EconomySystem.deposit(&"stone", 800), "a rock quantum's 0.8 U of stone")
+	_ui.register_hud(_hud)
+	assert_true(_rendered_counters().contains("Stone 4 kg available; none reserved"), "below a block: its weight")
+
+
+func _first_lot_of(item_key: StringName) -> Vector2i:
+	"""The first lot of `item_key` in the four stockpiles (the economy's stores 1..4)."""
+	var inventory: InventoryScript = EconomySystem.inventory()
+	var item_id: int = EconomySystem.definitions().compiled_id(item_key)
+	for index: int in range(EconomySystem.FIRST_STOCKPILE_STORE, EconomySystem.STORE_COUNT):
+		var lot: Vector2i = inventory.container_first_lot(EconomySystem._store(index))
+		while lot != InventoryScript.NULL_REF:
+			if inventory.lot_item_id(lot) == item_id:
+				return lot
+			lot = inventory.container_next_lot(lot)
+	return InventoryScript.NULL_REF
 
 
 func test_a_lost_population_returns_the_label_to_the_marker() -> void:

@@ -14,7 +14,8 @@ extends CanvasLayer
 ## WHAT IT SHOWS: the weather and what it does to walking; the demo stores (the HUD's Wood and Stone
 ## are the simulation's, and the demo never spends them); the demo's burrow homes, their beds and
 ## root cellars (the HUD's Beds counter is the simulation's; the rooms are placed with the Dig tool's
-## room tool, decision 0209, not from here); the finds tally; the selected tunnel,
+## room tool, decision 0209, opened from the build panel's cards, decision 1871 -- the "Plan an underground room"
+## button that stood here is gone: the build panel paints rooms now); the finds tally; the selected tunnel,
 ## its state and the jobs that can be ordered on it; and the last few things said. Its buttons emit
 ## `action` with a name (ACTION_*); nothing here decides anything.
 ##
@@ -57,7 +58,6 @@ const ACTION_EVENT: StringName = &"event"
 const ACTION_ROOM_CONFIRM: StringName = &"blueprint:confirm"
 const ACTION_ROOM_MOVE: StringName = &"blueprint:move"
 const ACTION_ROOM_DISCARD: StringName = &"blueprint:discard"
-const ACTION_MODULAR_ROOM: StringName = &"blueprint:modular_room"
 ## ACTION_NEXT_WEATHER and ACTION_EVENT are test triggers: their buttons are the Demo Lab's
 ## (demo/ui/demo_lab.gd, decision 0261), which sends them through the same `on_action` as this panel.
 const BUTTON_TEXT: Dictionary = {
@@ -140,8 +140,6 @@ func build() -> void:
 	_body.add_child(column)
 	_column = column
 	column.add_child(_label(TITLE, TITLE_PX, Palette.INK, Styles.heading_font()))
-	_button_words[ACTION_MODULAR_ROOM] = "Plan an underground room"
-	column.add_child(_button(ACTION_MODULAR_ROOM))
 	_build_blueprint_box(column)
 	for key: StringName in [&"weather", &"stores", &"housing", &"finds"]:
 		_lines[key] = _label("", BODY_PX, Palette.INK, null)

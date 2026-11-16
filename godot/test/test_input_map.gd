@@ -7,7 +7,7 @@ extends "res://test/framework/test_case.gd"
 ## `test_legacy_battle_combat_system.gd` uses for its autoload guard.
 ##
 ## THREE THINGS THIS SUITE EXISTS TO CATCH.
-## 1. A section 5 action ID silently missing. SPEC_ACTIONS names all 87 explicitly, so a gap
+## 1. A section 5 action ID silently missing. SPEC_ACTIONS names all 90 explicitly, so a gap
 ##    fails by name and not as a count that someone can "fix" by editing the expected number.
 ## 2. Pause drifting back onto Escape. The prototype mapped a `cancel` action on Escape to
 ##    `GameManager.toggle_pause()`. Section 5 puts pause on `time_pause` (Space, and Ctrl+Space
@@ -55,7 +55,7 @@ const SPEC_ACTIONS: Array[String] = [
 	# Time and speed.
 	"time_pause", "time_speed_1", "time_speed_2", "time_speed_4",
 	# Panels and views.
-	"open_build", "open_zones", "open_harvest", "open_jobs", "open_food", "open_residents",
+	"open_build", "level_up", "level_down", "open_zones", "open_harvest", "open_jobs", "open_food", "open_residents",
 	"open_feast", "open_objectives", "open_history", "open_calendar", "minimap_toggle",
 	"camera_home", "camera_follow", "roof_cycle",
 	# Placement and brush tools.
@@ -65,7 +65,7 @@ const SPEC_ACTIONS: Array[String] = [
 	"open_demolish", "resident_pin", "open_world_list", "save_quick", "load_quick",
 	# UI ladder and editing.
 	"ui_accept", "ui_cancel", "ui_tab_next", "ui_tab_previous",
-	"tool_undo", "text_select_all", "open_menu",
+	"tool_undo", "tool_redo", "text_select_all", "open_menu",
 ]
 
 ## The four prototype IDs decision 0006 row 10 rejects. None may survive.
@@ -100,8 +100,6 @@ const SHADOW_PAIRS: Array[String] = [
 	"camera_pan_left|select_box",
 	"camera_pan_left|text_select_all",
 	"camera_pan_right|select_box",
-	"camera_zoom_in|camera_pitch_up",
-	"camera_zoom_out|camera_pitch_down",
 	"group_recall_0|group_assign_0",
 	"group_recall_1|group_assign_1",
 	"group_recall_2|group_assign_2",
@@ -117,6 +115,9 @@ const SHADOW_PAIRS: Array[String] = [
 	"interior_commit|placement_repeat",
 	"interior_commit|select_similar",
 	"interior_commit|select_toggle",
+	"level_down|camera_pitch_down",
+	"level_up|camera_pitch_up",
+	"open_zones|tool_redo",
 	"open_zones|tool_undo",
 	"placement_commit|brush_erase",
 	"placement_commit|command_queue",
@@ -132,6 +133,7 @@ const SHADOW_PAIRS: Array[String] = [
 	"selection_next|ui_tab_next",
 	"selection_next|ui_tab_previous",
 	"selection_previous|ui_tab_previous",
+	"tool_undo|tool_redo",
 	"ui_accept|brush_erase",
 	"ui_accept|command_queue",
 	"ui_accept|placement_repeat",
@@ -142,7 +144,7 @@ const SHADOW_PAIRS: Array[String] = [
 
 
 func test_every_action_named_by_section_5_is_registered() -> void:
-	"""All 87 section 5 action IDs resolve in the InputMap, each failing by its own name."""
+	"""All 90 section 5 action IDs resolve in the InputMap, each failing by its own name."""
 	for action: String in SPEC_ACTIONS:
 		assert_true(InputMap.has_action(action), "section 5 action '%s' is registered" % action)
 
@@ -421,3 +423,25 @@ func _shadow_pairs() -> Array[String]:
 				pairs.append(pair)
 	pairs.sort()
 	return pairs
+
+
+func test_zoom_is_on_equals_and_minus_and_page_keys_change_level() -> void:
+	"""Decision 1851 OPEN-09 (UI-BUILD-014): = / − (keypad + / −) zoom; PageUp / PageDown are level_up / level_down
+	and no longer zoom; Alt+PageUp / PageDown stay the pitch."""
+	assert_true(_action_has_chord("camera_zoom_in", KEY_EQUAL, 0), "= zooms in")
+	assert_true(_action_has_chord("camera_zoom_in", KEY_KP_ADD, 0), "keypad + zooms in")
+	assert_true(_action_has_chord("camera_zoom_out", KEY_MINUS, 0), "- zooms out")
+	assert_true(_action_has_chord("camera_zoom_out", KEY_KP_SUBTRACT, 0), "keypad - zooms out")
+	assert_false(_action_has_chord("camera_zoom_in", KEY_PAGEUP, 0), "PageUp no longer zooms")
+	assert_false(_action_has_chord("camera_zoom_out", KEY_PAGEDOWN, 0), "PageDown no longer zooms")
+	assert_true(_action_has_chord("level_up", KEY_PAGEUP, 0), "PageUp: a level up")
+	assert_true(_action_has_chord("level_down", KEY_PAGEDOWN, 0), "PageDown: a level down")
+	assert_true(_action_has_chord("camera_pitch_up", KEY_PAGEUP, MASK_ALT), "Alt+PageUp pitches")
+	assert_true(_action_has_chord("camera_pitch_down", KEY_PAGEDOWN, MASK_ALT), "Alt+PageDown pitches")
+
+
+func test_redo_is_ctrl_shift_z_or_ctrl_y_and_cmd_shift_z() -> void:
+	"""UI §5 tool_redo, beside tool_undo's Ctrl+Z / Cmd+Z."""
+	assert_true(_action_has_chord("tool_redo", KEY_Z, MASK_CTRL | MASK_SHIFT), "Ctrl+Shift+Z")
+	assert_true(_action_has_chord("tool_redo", KEY_Y, MASK_CTRL), "Ctrl+Y")
+	assert_true(_action_has_chord("tool_redo", KEY_Z, MASK_META | MASK_SHIFT), "Cmd+Shift+Z")

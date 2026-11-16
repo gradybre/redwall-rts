@@ -2220,21 +2220,41 @@ func _snapshot_refusal() -> StringName:
 
 
 func _claims_refusal(staged: bool, allow_prepared: bool = true) -> StringName:
-	"""Long-lived Room and temporary Construction claim identities retain distinct exact namespaces."""
-	for row: int in _region_capacity:
-		if staged and (_s_r_present[row] == 0 or _s_r_claim_kind[row] == CLAIM_NONE):
-			continue
-		if not staged and (_r_present[row] == 0 or _r_claim_kind[row] == CLAIM_NONE):
-			continue
-		var ref: Vector2i = Vector2i(_s_r_claim_slot[row], _s_r_claim_generation[row]) if staged \
-			else Vector2i(_r_claim_slot[row], _r_claim_generation[row])
-		var owner: Vector2i = Vector2i(_s_r_owner_slot[row], _s_r_owner_generation[row]) if staged \
-			else Vector2i(_r_owner_slot[row], _r_owner_generation[row])
-		var kind: int = _s_r_claim_kind[row] if staged else _r_claim_kind[row]
-		var code: StringName = _claim_refusal(kind, ref, owner, staged and allow_prepared)
-		if code != &"":
-			return code
+	"""Long-lived Room and temporary Construction claim identities retain distinct exact namespaces.
+	Decision 1951: absent rows are skipped by `_next_present`, which visits exactly the rows the full scan would."""
+	var binary: bool = _binary_present(_s_r_present if staged else _r_present)
+	var row: int = _next_present(_s_r_present if staged else _r_present, 0, binary)
+	while row >= 0 and row < _region_capacity:
+		var claimed: bool = (_s_r_present[row] != 0 and _s_r_claim_kind[row] != CLAIM_NONE) if staged \
+			else (_r_present[row] != 0 and _r_claim_kind[row] != CLAIM_NONE)
+		if claimed:
+			var code: StringName = _claim_row_refusal(row, staged, allow_prepared)
+			if code != &"":
+				return code
+		row = _next_present(_s_r_present if staged else _r_present, row + 1, binary)
 	return &""
+
+
+func _claim_row_refusal(row: int, staged: bool, allow_prepared: bool) -> StringName:
+	"""One claimed region row's claim, read from the staged or the live bank."""
+	var ref: Vector2i = Vector2i(_s_r_claim_slot[row], _s_r_claim_generation[row]) if staged \
+		else Vector2i(_r_claim_slot[row], _r_claim_generation[row])
+	var owner: Vector2i = Vector2i(_s_r_owner_slot[row], _s_r_owner_generation[row]) if staged \
+		else Vector2i(_r_owner_slot[row], _r_owner_generation[row])
+	var kind: int = _s_r_claim_kind[row] if staged else _r_claim_kind[row]
+	return _claim_refusal(kind, ref, owner, staged and allow_prepared)
+
+
+static func _binary_present(column: PackedByteArray) -> bool:
+	"""Decision 1951: every byte is 0 or 1, so `find(1)` reaches exactly the rows a `!= 0` test admits."""
+	return column.count(0) + column.count(1) == column.size()
+
+
+static func _next_present(column: PackedByteArray, from: int, binary: bool) -> int:
+	"""The first row at or after `from` that a full `!= 0` scan would not skip (every row when not binary)."""
+	if not binary:
+		return from if from < column.size() else -1
+	return column.find(1, from) if from < column.size() else -1
 
 
 func _claim_refusal(kind: int, ref: Vector2i, owner: Vector2i, staged: bool = false) -> StringName:
@@ -2336,12 +2356,14 @@ func _sources_refusal(staged: bool, allow_prepared: bool = true) -> StringName:
 		var code: StringName = _room_before_refusal()
 		if code != &"":
 			return code
-	for row: int in _source_capacity:
-		if (staged and _s_o_present[row] == 0) or (not staged and _o_present[row] == 0):
-			continue
-		var code: StringName = _source_row_refusal(row, staged, allow_prepared)
-		if code != &"":
-			return code
+	var binary: bool = _binary_present(_s_o_present if staged else _o_present)
+	var row: int = _next_present(_s_o_present if staged else _o_present, 0, binary)
+	while row >= 0 and row < _source_capacity: # Decision 1951: only rows the full scan would check.
+		if (staged and _s_o_present[row] != 0) or (not staged and _o_present[row] != 0):
+			var code: StringName = _source_row_refusal(row, staged, allow_prepared)
+			if code != &"":
+				return code
+		row = _next_present(_s_o_present if staged else _o_present, row + 1, binary)
 	return _room_source_refusal() if staged and allow_prepared and _room_row >= 0 else &""
 
 

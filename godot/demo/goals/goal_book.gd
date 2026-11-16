@@ -5,11 +5,12 @@ extends RefCounted
 ##
 ## A GOAL is an id, a title, a short WHY, a group (the GDD's MILESTONES, or the demo's VILLAGE goals) and one or more
 ## PARTS. A part is a key, a label, a target, a unit and a MEASURE: a `() -> int` Callable bound by whoever registered
-## the goal, read at least-or-more against its target ("Residents: 9 of 12"). A part registered WITHOUT a measure is a
-## condition the demo does not model yet ("Fuel for 18 winter days: not in this demo yet"): it is shown, never met, so
-## its goal cannot be reached until a later feature binds a measure to it (`bind_measure`). A goal is REACHED when every
-## part is met; reached, it stays reached (a goal is an achievement, as the GDD's milestone awards are monotonic) and its
-## values go on being shown as they stand.
+## the goal, read at least-or-more against its target ("Residents: 9 of 12"). A part counted in a good (UNIT_MILLI)
+## names its GOOD too, and is worded in that good's natural measure ("Wood in store: 60 logs"; decisions 1011, 1801).
+## A part registered WITHOUT a measure is a condition the demo does not model yet ("Fuel for 18 winter days: not in
+## this demo yet"): it is shown, never met, so its goal cannot be reached until a later feature binds a measure to it
+## (`bind_measure`). A goal is REACHED when every part is met; reached, it stays reached (a goal is an achievement, as
+## the GDD's milestone awards are monotonic) and its values go on being shown as they stand.
 ##
 ## EVALUATED ON THE GAME HOUR, never per frame: `update(hour_index)` does nothing unless the calendar's hour index has
 ## changed since the last look (an integer compare: the per-frame cost), and then reads every unreached goal's measures
@@ -22,10 +23,13 @@ extends RefCounted
 ##     book.register(&"winter_no_one_chilled", "A warm first winter", "Why it matters...", parts)
 ##     book.bind_measure(&"m4_hearth_charter", &"fuel", my_model.fuel_winter_days_milli)
 ## `register` returns "" when taken, else why not (a duplicate id, no title, no parts, a part without a positive target
-## or with an unknown unit). A measure must be cheap and allocation-free: it is read once a game hour.
+## or with an unknown unit, or a part counted in a good that names none goods_measures.gd knows). A measure must be
+## cheap and allocation-free: it is read once a game hour.
+
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 const UNIT_COUNT: int = 0
-## Thousandths of a unit, shown "12.0 U".
+## Milli-U of the part's good, shown in its natural measure ("60 logs", "8 baskets"; goods_measures.gd).
 const UNIT_MILLI: int = 1
 ## Thousandths of a day, shown "2.5 days".
 const UNIT_DAYS: int = 2
@@ -45,6 +49,7 @@ const REFUSE_TARGET: String = "Every part needs a target above zero."
 const REFUSE_UNIT: String = "A part's unit is unknown."
 const REFUSE_GROUP: String = "A goal's group is unknown."
 const REFUSE_KEY: String = "Two parts of one goal share a key."
+const REFUSE_GOOD: String = "A part counted in a good needs a good with a measure."
 
 
 ## One condition of a goal.
@@ -53,6 +58,8 @@ class Part extends RefCounted:
 	var label: String = ""
 	var target: int = 0
 	var unit: int = 0
+	## The good a UNIT_MILLI part counts (goods_measures.gd's key); &"" for any other unit.
+	var good: StringName = &""
 	## `() -> int`; invalid while the demo does not model the condition.
 	var measure: Callable = Callable()
 	## Its value at the last evaluation (UNREAD before one, or unmeasured).
@@ -110,14 +117,16 @@ var _owners: Array[RefCounted] = []
 
 
 static func part(key: StringName, label: String, target: int, unit: int = UNIT_COUNT,
-		measure: Callable = Callable()) -> Part:
-	"""A goal's part: `key` names it within its goal (for `bind_measure`); no measure = not modelled yet."""
+		measure: Callable = Callable(), good: StringName = &"") -> Part:
+	"""A goal's part: `key` names it within its goal (for `bind_measure`); no measure = not modelled yet; `good` is
+	what a UNIT_MILLI part counts."""
 	var made := Part.new()
 	made.key = key
 	made.label = label
 	made.target = target
 	made.unit = unit
 	made.measure = measure
+	made.good = good
 	return made
 
 
@@ -158,6 +167,8 @@ func _refusal(id: StringName, title: String, parts: Array[Part], group: int) -> 
 			return REFUSE_TARGET
 		if each.unit < 0 or each.unit >= UNIT_LIMIT:
 			return REFUSE_UNIT
+		if each.unit == UNIT_MILLI and not Measures.knows(each.good):
+			return REFUSE_GOOD
 		if keys.has(each.key):
 			return REFUSE_KEY
 		keys.append(each.key)
@@ -263,8 +274,9 @@ func count(group: int) -> int:
 
 # --- words -----------------------------------------------------------------------------------------------------------
 
-static func amount_text(unit: int, value: int) -> String:
-	"""A value as the player reads it: '12', '12.0 U', '2.5 days', 'yes' / 'not yet'."""
+static func amount_text(unit: int, value: int, good: StringName = &"") -> String:
+	"""A value as the player reads it, for a row its part's label names: '12', '60 logs' (UNIT_MILLI: `good` in its
+	natural measure, rounded down), '2.5 days', 'yes' / 'not yet'."""
 	if unit == UNIT_FLAG:
 		return "yes" if value > 0 else "not yet"
 	var shown: int = maxi(value, 0)
@@ -273,6 +285,20 @@ static func amount_text(unit: int, value: int) -> String:
 	@warning_ignore("integer_division")
 	var tenth: int = (shown % 1000) / 100
 	match unit:
-		UNIT_MILLI: return "%d.%d U" % [whole, tenth]
+		UNIT_MILLI: return Measures.amount_cell(good, shown)
 		UNIT_DAYS: return "%d.%d days" % [whole, tenth]
 	return str(shown)
+
+
+static func target_text(each: Part) -> String:
+	"""A part's target as the player reads it: an authored figure, so a good's is exact ("8 baskets")."""
+	if each.unit == UNIT_MILLI:
+		return Measures.exact_cell(each.good, each.target)
+	return amount_text(each.unit, each.target)
+
+
+static func progress_text(each: Part) -> String:
+	"""A part's value against its target: '9 of 12', '2 of 8 baskets' (a good's in the target's measure)."""
+	if each.unit == UNIT_MILLI:
+		return Measures.have_need(each.good, maxi(each.value, 0), each.target)
+	return "%s of %s" % [amount_text(each.unit, each.value), target_text(each)]

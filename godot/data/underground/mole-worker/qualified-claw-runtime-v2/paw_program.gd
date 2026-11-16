@@ -9,12 +9,16 @@ const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Clock := preload("res://data/underground/mole-worker/qualified-claw-runtime-v1/paw_clock.gd")
 const Parent := preload("res://data/underground/mole-worker/qualified-assembly-v1/source_program.gd")
 const Claw := preload("res://data/underground/mole-worker/qualified-claw-runtime-v2/claw_program.gd")
-const Pins := preload("res://data/underground/mole-worker/qualified-claw-stairs-v11/catalog_source.gd")
+const Pins := preload("res://data/underground/mole-worker/qualified-stair-carry-v13/catalog_source.gd")
 const TAG: int = Parent.TAG
 const CONTENT: int = 10
 const PROFILE_COUNT: int = 67
 const BOX_COUNT: int = 547
 const SOURCE_COUNT: int = 6
+## Decision 1972: content 12's census (content 10's rows, boxes and sources followed by rows 67-84 and sources 6/7).
+const SUCCESSOR_PROFILE_COUNT: int = 85
+const SUCCESSOR_BOX_COUNT: int = 637
+const SUCCESSOR_SOURCE_COUNT: int = 8
 const SOURCE: int = 5
 const ROLE_COUNT: int = 7
 const STATES: int = 457
@@ -56,8 +60,16 @@ static func is_tread(profile: int) -> bool:
 	return profile == Pins.PAW_TREAD_HANDLING_ROW
 
 
+static func census_matches(header: PackedInt64Array) -> bool:
+	"""Content 10's exact census, or its successor content 12's (decision 1972)."""
+	if header[0] == CONTENT:
+		return header[1] == PROFILE_COUNT and header[2] == BOX_COUNT and header[3] == SOURCE_COUNT
+	return header[0] == Claw.SUCCESSOR_CONTENT and header[1] == SUCCESSOR_PROFILE_COUNT \
+		and header[2] == SUCCESSOR_BOX_COUNT and header[3] == SUCCESSOR_SOURCE_COUNT
+
+
 static func uses(actual: Profiles) -> bool:
-	"""Content 10 with both handling rows exact."""
+	"""Content 10, or its successor 12 (decision 1972), with both handling rows exact."""
 	return actual != null and actual._live != null and actual._live.header.size() == 4 \
 		and profile_refusal(actual, Pins.PAW_HANDLING_ROW, 1, actual._live.header[0]) == &"" \
 		and profile_refusal(actual, Pins.PAW_TREAD_HANDLING_ROW, 1, actual._live.header[0]) == &""
@@ -66,9 +78,8 @@ static func uses(actual: Profiles) -> bool:
 static func profile_refusal(actual: Profiles, profile: int, revision: int, content: int) -> StringName:
 	"""Every published handling word, box and both v2 image digests must match before the clock is parsed."""
 	if actual == null or actual._live == null or actual._loading or actual._live.header.size() != 4 \
-			or not owns(profile) or revision != 1 or content != CONTENT or actual._live.header[0] != content \
-			or actual._live.header[1] != PROFILE_COUNT or actual._live.header[2] != BOX_COUNT \
-			or actual._live.header[3] != SOURCE_COUNT:
+			or not owns(profile) or revision != 1 or not Claw.serves(content) or actual._live.header[0] != content \
+			or not census_matches(actual._live.header):
 		return &"ASSEMBLY_SOURCE_PROFILE"
 	if Profiles.selection_policy_leaf(actual, profile, revision, content) != Profiles.POLICY_ASSEMBLY_HANDLING \
 			or actual._live.flags[profile] != Profiles.CERT_REQUIRED \

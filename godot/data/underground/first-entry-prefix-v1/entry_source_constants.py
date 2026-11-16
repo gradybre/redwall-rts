@@ -89,14 +89,15 @@ def _linked(packet):
 
 def _paces_extend(cat, cat_paces, ground, ground_paces):
     """The structure carries the ground caps exactly, optionally followed by authored connector rows (ADR 1229:
-    family >= 0, RATE_AUTHORED), as DEC-050's stair paces are."""
+    family >= 0, RATE_AUTHORED; decision 1972: or RATE_AUTHORED_MILLI, a stair timing in milli-u/s), as DEC-050's
+    stair paces are."""
     if cat_paces < ground_paces:
         return False
     rows = cat[len(cat) - 8 - 36 * cat_paces:len(cat) - 8]
     if rows[:36 * ground_paces] != ground[136:len(ground) - 8]:
         return False
     extra = [struct.unpack_from("<7iq", rows, 36 * r) for r in range(ground_paces, cat_paces)]
-    return all(row[1] >= 0 and row[6] == 1 and row[5] >= 1 for row in extra)
+    return all(row[1] >= 0 and row[6] in (1, 2) and row[5] >= 1 for row in extra)
 
 
 def _frontier(raw, cat, group, recipe, profile, assemblies):

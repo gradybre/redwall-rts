@@ -57,9 +57,25 @@ static func _source_storage_matches(actual: Catalog) -> bool:
 
 static func _source_digests_match(actual: Catalog) -> bool:
 	"""No source callback or temporary hash buffer follows this final immutable-byte comparison."""
-	var source_offset: int = actual._live.header[10] * 32
+	return _digests_equal(actual._live.digests, actual._profiles._live.sources, actual._live.header[10] * 32,
+		actual._levels._digest)
+
+
+static func _digests_equal(digests: PackedByteArray, sources: PackedByteArray, source_offset: int,
+		levels: PackedByteArray) -> bool:
+	"""The Catalog's source and level digests equal the Profiles source and the Level digest. Decision 1951: read as
+	64-bit words when every range exists; otherwise the original byte loop, unchanged."""
+	if digests.size() >= 96 and source_offset >= 0 and levels.size() >= 32 and sources.size() >= source_offset + 32:
+		return _same_words(digests, 32, sources, source_offset) and _same_words(digests, 64, levels, 0)
 	for index: int in 32:
-		if actual._live.digests[32 + index] != actual._profiles._live.sources[source_offset + index] \
-				or actual._live.digests[64 + index] != actual._levels._digest[index]:
+		if digests[32 + index] != sources[source_offset + index] or digests[64 + index] != levels[index]:
+			return false
+	return true
+
+
+static func _same_words(a: PackedByteArray, a_at: int, b: PackedByteArray, b_at: int) -> bool:
+	"""Decision 1951: thirty-two bytes equal, compared as four 64-bit words; both ranges are known to exist."""
+	for word: int in 4:
+		if a.decode_u64(a_at + 8 * word) != b.decode_u64(b_at + 8 * word):
 			return false
 	return true

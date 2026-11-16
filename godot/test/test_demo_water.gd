@@ -1077,9 +1077,9 @@ func test_overlay_site_text_reads_the_fishery() -> void:
 	var driver := _driver()
 	var text: String = Overlay.site_text(driver, Driver.SITE_RUN, Driver.Preview.new())
 	assert_equal(text.split("\n").size(), 2, "two lines: %s" % text)
-	assert_equal(text.split("\n")[0], "stream_run  quota 52.5 / 52.5 U  slots 4 / 4", "site line")
-	assert_true(text.split("\n")[1].begins_with("trout 480 open   "), "trout first: %s" % text)
-	assert_true(text.split("\n")[1].ends_with("   salmon 480 shut to s2 d1"), "salmon shut: %s" % text)
+	assert_equal(text.split("\n")[0], "stream_run  quota 52 fish a day, 52 fish left  slots 4 / 4", "site line")
+	assert_true(text.split("\n")[1].begins_with("480 trout open   "), "trout first: %s" % text)
+	assert_true(text.split("\n")[1].ends_with("   480 salmon shut to s2 d1"), "salmon shut: %s" % text)
 
 
 # --- boundary cases the fixtures above cannot tell apart -------------------------------------------

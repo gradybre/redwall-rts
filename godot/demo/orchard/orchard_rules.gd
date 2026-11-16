@@ -61,6 +61,8 @@ const NONE: int = -1
 const APPLE: int = Hive.SPECIES_APPLE
 const PEAR: int = Hive.SPECIES_PEAR
 const SPECIES_NAMES: Array[String] = ["apple", "pear"]
+## Each species' sapling as goods_measures.gd counts it (decision 1801).
+const SAPLING_GOODS: Array[StringName] = [&"sapling_apple", &"sapling_pear"]
 
 # --- the sites --------------------------------------------------------------------------------------------------------
 

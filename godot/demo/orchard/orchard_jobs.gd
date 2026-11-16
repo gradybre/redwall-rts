@@ -30,6 +30,12 @@ extends RefCounted
 ## drought tending check their inputs when the work starts and take them when it is done, so a cancelled job owes
 ## nothing back (a PROPOSAL of decision 0671: §5.7 production takes its inputs at the start).
 ##
+## CALLED AWAY (decision 1900; resident_brain.gd RESUMING, decision 0205): a worker taken off its job by another order,
+## a meal's call or the night keeps it to come back to (`unfinished_of`, `take_back`), and the work board leaves it to
+## that resident meanwhile (decision 0411's promise) -- it does not go to whoever is free first. A walk it could not
+## finish is not kept: that job waits RETRY_USEC and is offered to anyone. The board's Pause, Cancel and Reassign keep
+## nothing (the job's serial or its waiting state turns a kept entry stale).
+##
 ## ROUTINE (`plan_work`, each game hour): a tending for every tree that needs it, a harvest for every tree that may be
 ## picked (by its group's TIMING), a picking while the hedge has fruit above its floor, a haul while a stand holds more
 ## than its group keeps, a planting for every plan whose sapling is ready, a propagation for every plan waiting, and the
@@ -56,6 +62,9 @@ const SimClock := preload("res://scripts/core/sim_clock.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const HiveRules := preload("res://demo/hives/hive_rules.gd")
 const HiveText := preload("res://demo/hives/hive_text.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
+const UnfinishedScript := preload("res://demo/cast/unfinished_job.gd")
+const WorkIds := preload("res://demo/work/work_ids.gd")
 
 const MAX_JOBS: int = 16
 const NONE: int = -1
@@ -561,15 +570,17 @@ func drive(j: int, job_serial: int, brain: BrainScript, delta: float) -> bool:
 	return is_job(j, job_serial) and worker[j] == brain.index
 
 
-func called_away(j: int, job_serial: int, brain: BrainScript) -> void:
+func called_away(j: int, job_serial: int, brain: BrainScript) -> bool:
 	"""The brain gave the task up: a walk it could not finish (it waits RETRY_USEC and is offered again; after MAX_TRIES
-	the routine's job is dropped), or an order, the night or a release (back on the board; a load in hand set down)."""
+	the routine's job is dropped), or an order, a meal, the night or a release (back on the board, a load in hand set
+	down). True when the worker keeps the job to come back to (see CALLED AWAY): let go here, not for a failed walk."""
 	if not is_job(j, job_serial) or worker[j] != brain.index:
-		return
+		return false
 	if brain.trip_failed():
 		_unreached(j, brain)
-	else:
-		_let_go(j, brain)
+		return false
+	_let_go(j, brain)
+	return true
 
 
 func _unreached(j: int, brain: BrainScript) -> void:
@@ -582,6 +593,22 @@ func _unreached(j: int, brain: BrainScript) -> void:
 	if tries[j] >= MAX_TRIES and not carrying(j):
 		_note(Text.gave_up(self, j), true)
 		_end_job(j)
+
+
+func unfinished_of(j: int, job_serial: int) -> UnfinishedScript:
+	"""Job `j` as the entry its worker keeps when called away (see CALLED AWAY): taken back by `take_back` while it is
+	still the same job, naming the work board's task (its serial) so nobody else claims it meanwhile. Null once the job
+	is over."""
+	if not is_job(j, job_serial):
+		return null
+	return UnfinishedScript.new(take_back.bind(j, job_serial), Text.order_words(self, j), WorkIds.SOURCE_ORCHARD,
+		job_serial)
+
+
+func take_back(brain: BrainScript, j: int, job_serial: int) -> bool:
+	"""A resident called away comes back to job `j` (resident_brain.gd RESUMING): claimed again while it is the same job
+	and waits for someone (not paused, not given to another, not waiting out a walk nobody finished)."""
+	return is_job(j, job_serial) and claim(j, brain.index)
 
 
 func must_finish(j: int, job_serial: int) -> bool:
@@ -920,7 +947,7 @@ func _plant_inputs_refusal(j: int) -> String:
 	if not why.is_empty():
 		return Text.plant_words(why)
 	if _compost() < Hive.PLANT_COMPOST_MILLI:
-		return Text.NO_COMPOST % Text.units(Hive.PLANT_COMPOST_MILLI)
+		return Text.no_compost(Hive.PLANT_COMPOST_MILLI)
 	return ""
 
 
@@ -940,11 +967,11 @@ func _propagate_inputs_refusal(plan: int) -> String:
 		return Text.PLAN_GONE
 	var item: int = Catalog.item_of_orchard_species(model.plan_species[plan])
 	if pantry == null or _at_stands(item) < Hive.NURSERY_FRUIT_MILLI:
-		return Text.NO_FRUIT % [Text.units(Hive.NURSERY_FRUIT_MILLI), Catalog.ITEM_LABELS[item].to_lower()]
+		return Text.NO_FRUIT % Measures.need(Catalog.ITEM_KEYS[item], Hive.NURSERY_FRUIT_MILLI)
 	if _compost() < Hive.NURSERY_COMPOST_MILLI:
-		return Text.NO_COMPOST % Text.units(Hive.NURSERY_COMPOST_MILLI)
+		return Text.no_compost(Hive.NURSERY_COMPOST_MILLI)
 	if stores == null or stores.water_milli_u < Hive.NURSERY_WATER_MILLI:
-		return Text.NO_WATER % Text.units(Hive.NURSERY_WATER_MILLI)
+		return Text.NO_WATER % Measures.need(&"water", Hive.NURSERY_WATER_MILLI)
 	return ""
 
 
@@ -1133,7 +1160,7 @@ func _fed(apiary: int) -> String:
 	var got: int = int(_take_honey.call(want)) if _take_honey.is_valid() and want > 0 else 0
 	if got <= 0 or not model.apiary.add_feed(apiary, got):
 		return ""
-	return "%s of honey put by in %s for the winter" % [Text.units(got), HiveRules.APIARY_NAMES[apiary]]
+	return "%s put by in %s for the winter" % [Text.cap(Measures.amount(&"honey", got)), HiveRules.APIARY_NAMES[apiary]]
 
 
 func _recolonize_paid(apiary: int) -> String:
@@ -1187,7 +1214,7 @@ func _planted(j: int) -> String:
 	var site: int = target[j]
 	var why: String = _plant_inputs_refusal(j)
 	if not why.is_empty() or not _take_compost_milli(Hive.PLANT_COMPOST_MILLI):
-		return Text.cannot(self, j, why if not why.is_empty() else Text.NO_COMPOST % Text.units(Hive.PLANT_COMPOST_MILLI))
+		return Text.cannot(self, j, why if not why.is_empty() else Text.no_compost(Hive.PLANT_COMPOST_MILLI))
 	model.take_sapling(site, species[j], _from_plan(j))
 	model.plant(site, species[j], today())
 	return Text.planted(model, site, today())
@@ -1200,7 +1227,7 @@ func _propagated(plan: int) -> String:
 		return why
 	var item: int = Catalog.item_of_orchard_species(model.plan_species[plan])
 	if not _take_compost_milli(Hive.NURSERY_COMPOST_MILLI):
-		return Text.NO_COMPOST % Text.units(Hive.NURSERY_COMPOST_MILLI)
+		return Text.no_compost(Hive.NURSERY_COMPOST_MILLI)
 	stores.take_water(Hive.NURSERY_WATER_MILLI)
 	_withdraw(item, Hive.NURSERY_FRUIT_MILLI)
 	model.start_growing(plan, today())
@@ -1406,7 +1433,7 @@ func order_refusal(job_kind: int, job_target: int, job_species: int) -> String:
 			var from_plan: bool = plan != NONE and model.plan_state[plan] == ModelScript.PLAN_READY
 			var why: String = Text.plant_words(model.plant_refusal(job_target, job_species, today(), from_plan))
 			return why if not why.is_empty() or _compost() >= Hive.PLANT_COMPOST_MILLI \
-				else Text.NO_COMPOST % Text.units(Hive.PLANT_COMPOST_MILLI)
+				else Text.no_compost(Hive.PLANT_COMPOST_MILLI)
 		K_HAUL:
 			return "" if _haul_lot(job_target) != NONE else Text.NOTHING_TO_HAUL
 		K_PROPAGATE:
@@ -1520,7 +1547,7 @@ func move_order_refusal(site: int) -> String:
 		return Text.move_words(ModelScript.REFUSE_NOT_ELIGIBLE)
 	var why: String = Text.move_words(model.move_refusal(site, move_target(site)))
 	if why.is_empty() and _compost() < Rules.MOVE_COMPOST_MILLI:
-		return Text.NO_COMPOST % Text.units(Rules.MOVE_COMPOST_MILLI)
+		return Text.no_compost(Rules.MOVE_COMPOST_MILLI)
 	return why
 
 
@@ -1553,7 +1580,7 @@ func _replanted(j: int) -> String:
 	var dest: int = model.move_dest[site]
 	var why: String = Text.move_words(model.replant_refusal(site, today()))
 	if why.is_empty() and not _take_compost_milli(Rules.MOVE_COMPOST_MILLI):
-		why = Text.NO_COMPOST % Text.units(Rules.MOVE_COMPOST_MILLI)
+		why = Text.no_compost(Rules.MOVE_COMPOST_MILLI)
 	if why.is_empty() and not model.move_tree(site, today()):
 		why = Text.move_words(ModelScript.REFUSE_NO_MOVE_SITE)
 	if not why.is_empty():
@@ -1570,7 +1597,7 @@ func cart_refusal(group: int) -> String:
 		return Text.HAS_CART
 	var wood: int = stores.wood_milli_u if stores != null else 0
 	if wood < Rules.CART_WOOD_MILLI:
-		return Text.NO_WOOD % [Text.units(Rules.CART_WOOD_MILLI), Text.units(wood)]
+		return Text.NO_WOOD % [Measures.need(&"wood", Rules.CART_WOOD_MILLI), Measures.amount_cell(&"wood", wood)]
 	return ""
 
 

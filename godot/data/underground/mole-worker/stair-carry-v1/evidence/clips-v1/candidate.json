@@ -1,0 +1,1410 @@
+{
+  "schema": 1,
+  "decision": [
+    "1981",
+    "1217",
+    "1209",
+    "1142"
+  ],
+  "motion": "the basic stair carry",
+  "recipes": {
+    "descent": {
+      "rise": -128,
+      "advance": 256,
+      "drop": 128,
+      "lead_foot": 360,
+      "guide": 0.0,
+      "toe_degrees": 20
+    },
+    "ascent": {
+      "rise": 128,
+      "lead_advance": 68,
+      "lead_lift": 50
+    },
+    "handoffs": "author_stair_handoffs.episode_controls, unchanged"
+  },
+  "accepted_recipes": {
+    "descent": {
+      "status": "SOURCE_CANDIDATE_ONLY",
+      "rise_u": -128,
+      "run_u": 512,
+      "edge_z_u": -169,
+      "phase_frames": 30,
+      "root_contract": "separate_integer_ceil_v1",
+      "guide_magnitude": 0.0,
+      "root_advance_u": 256,
+      "root_drop_u": 128,
+      "leading_foot_advance_u": 360,
+      "max_link_length_error_m": 6.938893903907228e-17,
+      "source_method": "independent forward-facing descent; actual unchanged bone lengths, proper transport of the source knee plane with an explicit smooth side-dependent twist, full anatomical foot solve; no reversed anatomy, modified geometry, or gameplay movement",
+      "root_horizontal_lift_hold": "phase1 holds the first quarter while the trailing foot lifts, then smooth advance; explicit integer root rows own playback",
+      "toe_first_degrees": 20,
+      "foot_rotation_rule": "actual ankle/toe frames rotate together, with unchanged link length, before whole-foot minimum solve; every body primitive and whole-foot projection stays in the independent proof"
+    },
+    "ascent": {
+      "status": "SOURCE_CANDIDATE_ONLY",
+      "rise_u": 128,
+      "run_u": 512,
+      "edge_z_u": -169,
+      "phase_frames": 30,
+      "lead_root_advance_u": 68,
+      "lead_root_lift_u": 50,
+      "sole_solver_limit": 128,
+      "foot_label": "every complete triangle touched by a vertex whose largest positive actual skin influence is the corresponding foot/toe; retain all mixed boundary vertices and all tied labels; all original body triangles remain collision geometry",
+      "sole_rule": "direct floating source skin equation chooses the minimum of the complete anatomical foot for both swing and plant; no projected-vertex omission; every emitted F32 coefficient remains independently subject to Q24/native-error clearance proof",
+      "max_link_length_error_m": 6.938893903907228e-17,
+      "root_contract": "separate_integer_ceil_v1",
+      "root_equation": "root-local palettes; add root track once after skinning through actual Actor.set_world_root using exact integer ceil interpolation; no actual Transforms owner is moved",
+      "knee_rule": "proper rotations; original two segment lengths and original bend-side projection",
+      "all_other_source_joints": "compact idle frame8; original geometry, hand/tool fit and materials preserved"
+    }
+  },
+  "handoff_author_sha256": "d9a711690e2da698adef2eabb6354e6dbc552fc6e2454b5055d9533c636adbda",
+  "basis": {
+    "sha256": "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9",
+    "producer_sha256": "e68ec74b02bb227a065d9881ca2c12fe3b1ef122f032e7bb1324213d3031813f",
+    "heading_count": 65536,
+    "exact_norm_squared": {
+      "numerator": 281475000105385,
+      "denominator": 281474976710656
+    },
+    "max_norm_yaw": 40791,
+    "max_component": {
+      "numerator": 1,
+      "denominator": 1
+    },
+    "metadata": {
+      "api_version": "4.1 Metal - 90.5",
+      "coefficient_order": [
+        "basis.x.x",
+        "basis.z.x"
+      ],
+      "display_server": "macOS",
+      "engine": {
+        "build": "official",
+        "hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+        "hex": 263938,
+        "major": 4,
+        "minor": 7,
+        "patch": 2,
+        "status": "stable",
+        "string": "4.7.2-stable (official)",
+        "timestamp": 0
+      },
+      "heading_count": 65536,
+      "meaning": "every finite native Y basis, immutable presentation source; not a contact or clearance certificate",
+      "orientation": "0=-Z,+quarter=-X; +Y remains up",
+      "rendering_driver": "opengl3",
+      "rendering_method": "gl_compatibility",
+      "schema": 1,
+      "source": {
+        "path": "res://../tools/bake_underground_world_basis.gd",
+        "sha256": "e68ec74b02bb227a065d9881ca2c12fe3b1ef122f032e7bb1324213d3031813f"
+      }
+    },
+    "backend_certificate": {
+      "engine": {
+        "build": "official",
+        "hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+        "hex": 263938,
+        "major": 4,
+        "minor": 7,
+        "patch": 2,
+        "status": "stable",
+        "string": "4.7.2-stable (official)",
+        "timestamp": 0
+      },
+      "driver": "opengl3",
+      "api_version": "4.1 Metal - 90.5",
+      "specification": "https://registry.khronos.org/OpenGL/specs/gl/GLSLangSpec.4.10.pdf",
+      "attribute_specification": "https://registry.khronos.org/OpenGL/specs/gl/glspec41.core.pdf#page=28",
+      "sections": [
+        "4.5",
+        "4.5.1"
+      ],
+      "single_precision_rounding": "directed or nearest; unit bound 2^-23",
+      "shader_contract": "Godot4.7.2 original no-displacement desktop OpenGL skin and scene shaders"
+    }
+  },
+  "arm_swing_degrees": {
+    "right": 0,
+    "left": 0
+  },
+  "endpoint_support_rule": "a foot is planted at a handoff's first and last keys when one of its vertices lies in the contact cell [0, 1) u (P-1981-7 (a))",
+  "clips": {
+    "wood": {
+      "approach": {
+        "id": "mole_worker.handoff.approach",
+        "frames": 91,
+        "sha256": "393c01b24aed49786e6a1f32942c1e0244e8519e2c516767cabaf65ff22c2144",
+        "handoff": {
+          "name": "approach",
+          "controls_u": [
+            [
+              0,
+              0,
+              -1536
+            ],
+            [
+              0,
+              0,
+              -1664
+            ],
+            [
+              0,
+              0,
+              -1879
+            ],
+            [
+              0,
+              0,
+              -1879
+            ]
+          ],
+          "heading_controls": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "first_key": {
+            "root_u": [
+              0,
+              0,
+              -1536
+            ],
+            "yaw": 0,
+            "planted_mask": 3,
+            "support_primitive": 0,
+            "ankle_u": [
+              [
+                -169.5980927794632,
+                73.92227901294682,
+                -1529.702589452791
+              ],
+              [
+                157.15395844182981,
+                77.72382853283206,
+                -1446.765689101172
+              ]
+            ],
+            "foot_yaw": [
+              0,
+              0
+            ],
+            "lift_u": [
+              0.0,
+              0.0
+            ],
+            "minimum_u": [
+              0.0018262678545420963,
+              0.001953150706287321
+            ],
+            "knee_guidance": 0.0
+          },
+          "last_key": {
+            "root_u": [
+              0,
+              0,
+              -1879
+            ],
+            "yaw": 0,
+            "planted_mask": 3,
+            "support_primitive": 0,
+            "ankle_u": [
+              [
+                -169.5980927794632,
+                73.92227901294682,
+                -1872.702589452791
+              ],
+              [
+                157.15395844182981,
+                77.72382853283206,
+                -1789.765689101172
+              ]
+            ],
+            "foot_yaw": [
+              0,
+              0
+            ],
+            "lift_u": [
+              0.0,
+              0.0
+            ],
+            "minimum_u": [
+              0.0018262678545420963,
+              0.001953150706287321
+            ],
+            "knee_guidance": 0.0
+          }
+        },
+        "endpoint_planted_mask": 3
+      },
+      "descent": {
+        "id": "mole_worker.descent_diagnostic.-128",
+        "frames": 91,
+        "sha256": "3d3a7ddd97d9b52ca03ade6d9230373489dd59922865bcf86156559ac79d6acf",
+        "recipe": {
+          "rise_u": -128,
+          "run_u": 512,
+          "edge_z_u": -169,
+          "phase_frames": 30,
+          "root_contract": "separate_integer_ceil_v1",
+          "guide_magnitude": 0.0,
+          "root_advance_u": 256,
+          "root_drop_u": 128,
+          "leading_foot_advance_u": 360,
+          "max_link_length_error_m": 5.551115123125783e-17,
+          "source_method": "independent forward-facing descent; actual unchanged bone lengths, proper transport of the source knee plane with an explicit smooth side-dependent twist, full anatomical foot solve; no reversed anatomy, modified geometry, or gameplay movement",
+          "root_horizontal_lift_hold": "phase1 holds the first quarter while the trailing foot lifts, then smooth advance; explicit integer root rows own playback",
+          "toe_first_degrees": 20,
+          "foot_rotation_rule": "actual ankle/toe frames rotate together, with unchanged link length, before whole-foot minimum solve; every body primitive and whole-foot projection stays in the independent proof"
+        },
+        "root_end_u": [
+          0,
+          -128,
+          -512
+        ]
+      },
+      "ascent": {
+        "id": "mole_worker.stair_diagnostic.128",
+        "frames": 91,
+        "sha256": "0dbfaa721ddbcfdaefce4271e07081382b7583fb65f8cc57d84b0582541fd16c",
+        "recipe": {
+          "rise_u": 128,
+          "run_u": 512,
+          "edge_z_u": -169,
+          "phase_frames": 30,
+          "lead_root_advance_u": 68,
+          "lead_root_lift_u": 50,
+          "sole_solver_limit": 128,
+          "foot_label": "every complete triangle touched by a vertex whose largest positive actual skin influence is the corresponding foot/toe; retain all mixed boundary vertices and all tied labels; all original body triangles remain collision geometry",
+          "sole_rule": "direct floating source skin equation chooses the minimum of the complete anatomical foot for both swing and plant; no projected-vertex omission; every emitted F32 coefficient remains independently subject to Q24/native-error clearance proof",
+          "max_link_length_error_m": 6.938893903907228e-17,
+          "root_contract": "separate_integer_ceil_v1",
+          "root_equation": "root-local palettes; add root track once after skinning through actual Actor.set_world_root using exact integer ceil interpolation; no actual Transforms owner is moved",
+          "knee_rule": "proper rotations; original two segment lengths and original bend-side projection",
+          "all_other_source_joints": "compact idle frame8; original geometry, hand/tool fit and materials preserved"
+        },
+        "root_end_u": [
+          0,
+          128,
+          -512
+        ]
+      },
+      "turn": {
+        "id": "mole_worker.handoff.turn",
+        "frames": 271,
+        "sha256": "451238a669ba39f0f15aa5e5a6f5a4935a15e64af830ddb9e6ebc7b6185be211",
+        "handoff": {
+          "name": "turn",
+          "controls_u": [
+            [
+              0,
+              -128,
+              -2391
+            ],
+            [
+              0,
+              -128,
+              -2362
+            ],
+            [
+              0,
+              -128,
+              -2333
+            ],
+            [
+              0,
+              -128,
+              -2304
+            ],
+            [
+              0,
+              -128,
+              -2304
+            ],
+            [
+              0,
+              -128,
+              -2304
+            ],
+            [
+              0,
+              -128,
+              -2304
+            ],
+            [
+              0,
+              -128,
+              -2304
+            ],
+            [
+              0,
+              -128,
+              -2217
+            ],
+            [
+              0,
+              -128,
+              -2217
+            ]
+          ],
+          "heading_controls": [
+            0,
+            5461,
+            10923,
+            16384,
+            21845,
+            27307,
+            32768,
+            32768,
+            32768,
+            32768
+          ],
+          "first_key": {
+            "root_u": [
+              0,
+              -128,
+              -2391
+            ],
+            "yaw": 0,
+            "planted_mask": 3,
+            "support_primitive": 7,
+            "ankle_u": [
+              [
+                -169.5980927794632,
+                -54.07772098705318,
+                -2384.702589452791
+              ],
+              [
+                157.15395844182981,
+                -50.27617146716794,
+                -2301.765689101172
+              ]
+            ],
+            "foot_yaw": [
+              0,
+              0
+            ],
+            "lift_u": [
+              0.0,
+              0.0
+            ],
+            "minimum_u": [
+              -127.99817373214546,
+              -127.99804684929371
+            ],
+            "knee_guidance": 0.0
+          },
+          "last_key": {
+            "root_u": [
+              0,
+              -128,
+              -2217
+            ],
+            "yaw": 32768,
+            "planted_mask": 3,
+            "support_primitive": 7,
+            "ankle_u": [
+              [
+                169.59809222892608,
+                -54.07772098705318,
+                -2223.2974253739453
+              ],
+              [
+                -157.15396624294104,
+                -50.27617146716794,
+                -2306.2342971599924
+              ]
+            ],
+            "foot_yaw": [
+              32768,
+              32768
+            ],
+            "lift_u": [
+              0.0,
+              0.0
+            ],
+            "minimum_u": [
+              -127.99817373214546,
+              -127.99804684929371
+            ],
+            "knee_guidance": 0.0
+          }
+        },
+        "endpoint_planted_mask": 3
+      },
+      "retreat": {
+        "id": "mole_worker.handoff.retreat",
+        "frames": 91,
+        "sha256": "4a17a8fcea0757120735ea92556cf8ff36aa4aec6ac17acb5d01af37e9818da6",
+        "handoff": {
+          "name": "retreat",
+          "controls_u": [
+            [
+              0,
+              0,
+              -1705
+            ],
+            [
+              0,
+              0,
+              -1641
+            ],
+            [
+              0,
+              0,
+              -1536
+            ],
+            [
+              0,
+              0,
+              -1536
+            ]
+          ],
+          "heading_controls": [
+            32768,
+            32768,
+            32768,
+            32768
+          ],
+          "first_key": {
+            "root_u": [
+              0,
+              0,
+              -1705
+            ],
+            "yaw": 32768,
+            "planted_mask": 3,
+            "support_primitive": 0,
+            "ankle_u": [
+              [
+                169.59809222892608,
+                73.92227901294682,
+                -1711.297425373945
+              ],
+              [
+                -157.15396624294104,
+                77.72382853283206,
+                -1794.2342971599926
+              ]
+            ],
+            "foot_yaw": [
+              32768,
+              32768
+            ],
+            "lift_u": [
+              0.0,
+              0.0
+            ],
+            "minimum_u": [
+              0.0018262678545420963,
+              0.001953150706287321
+            ],
+            "knee_guidance": 0.0
+          },
+          "last_key": {
+            "root_u": [
+              0,
+              0,
+              -1536
+            ],
+            "yaw": 32768,
+            "planted_mask": 3,
+            "support_primitive": 0,
+            "ankle_u": [
+              [
+                169.59809222892608,
+                73.92227901294682,
+                -1542.297425373945
+              ],
+              [
+                -157.15396624294104,
+                77.72382853283206,
+                -1625.2342971599926
+              ]
+            ],
+            "foot_yaw": [
+              32768,
+              32768
+            ],
+            "lift_u": [
+              0.0,
+              0.0
+            ],
+            "minimum_u": [
+              0.0018262678545420963,
+              0.001953150706287321
+            ],
+            "knee_guidance": 0.0
+          }
+        },
+        "endpoint_planted_mask": 3
+      },
+      "back_up": {
+        "id": "mole_worker.handoff.approach.reversed",
+        "frames": 91,
+        "sha256": "a5d7957e7da21111c2fb554669a41b62d9cbe6068100055aea9a15fc870ccbae",
+        "handoff": {
+          "name": "back_up",
+          "controls_u": [
+            [
+              0,
+              0,
+              -1536
+            ],
+            [
+              0,
+              0,
+              -1664
+            ],
+            [
+              0,
+              0,
+              -1879
+            ],
+            [
+              0,
+              0,
+              -1879
+            ]
+          ],
+          "heading_controls": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "first_key": {
+            "root_u": [
+              0,
+              0,
+              -1879
+            ],
+            "yaw": 0,
+            "planted_mask": 3,
+            "support_primitive": 0,
+            "ankle_u": [
+              [
+                -169.5980927794632,
+                73.92227901294682,
+                -1872.702589452791
+              ],
+              [
+                157.15395844182981,
+                77.72382853283206,
+                -1789.765689101172
+              ]
+            ],
+            "foot_yaw": [
+              0,
+              0
+            ],
+            "lift_u": [
+              0.0,
+              0.0
+            ],
+            "minimum_u": [
+              0.0018262678545420963,
+              0.001953150706287321
+            ],
+            "knee_guidance": 0.0
+          },
+          "last_key": {
+            "root_u": [
+              0,
+              0,
+              -1536
+            ],
+            "yaw": 0,
+            "planted_mask": 3,
+            "support_primitive": 0,
+            "ankle_u": [
+              [
+                -169.5980927794632,
+                73.92227901294682,
+                -1529.702589452791
+              ],
+              [
+                157.15395844182981,
+                77.72382853283206,
+                -1446.765689101172
+              ]
+            ],
+            "foot_yaw": [
+              0,
+              0
+            ],
+            "lift_u": [
+              0.0,
+              0.0
+            ],
+            "minimum_u": [
+              0.0018262678545420963,
+              0.001953150706287321
+            ],
+            "knee_guidance": 0.0
+          }
+        },
+        "endpoint_planted_mask": 3,
+        "reverse_of": "approach"
+      }
+    },
+    "stone": {
+      "approach": {
+        "id": "mole_worker.handoff.approach",
+        "frames": 91,
+        "sha256": "2a962793766778ccf6be0de776a272e9cae40ecc17d54133624bf0146ebd29d6",
+        "handoff": {
+          "name": "approach",
+          "controls_u": [
+            [
+              0,
+              0,
+              -1536
+            ],
+            [
+              0,
+              0,
+              -1664
+            ],
+            [
+              0,
+              0,
+              -1879
+            ],
+            [
+              0,
+              0,
+              -1879
+            ]
+          ],
+          "heading_controls": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "first_key": {
+            "root_u": [
+              0,
+              0,
+              -1536
+            ],
+            "yaw": 0,
+            "planted_mask": 3,
+            "support_primitive": 0,
+            "ankle_u": [
+              [
+                -169.5980927794632,
+                73.92227901294682,
+                -1529.702589452791
+              ],
+              [
+                157.15395844182981,
+                77.72382853283206,
+                -1446.765689101172
+              ]
+            ],
+            "foot_yaw": [
+              0,
+              0
+            ],
+            "lift_u": [
+              0.0,
+              0.0
+            ],
+            "minimum_u": [
+              0.0018262678545420963,
+              0.001953150706287321
+            ],
+            "knee_guidance": 0.0
+          },
+          "last_key": {
+            "root_u": [
+              0,
+              0,
+              -1879
+            ],
+            "yaw": 0,
+            "planted_mask": 3,
+            "support_primitive": 0,
+            "ankle_u": [
+              [
+                -169.5980927794632,
+                73.92227901294682,
+                -1872.702589452791
+              ],
+              [
+                157.15395844182981,
+                77.72382853283206,
+                -1789.765689101172
+              ]
+            ],
+            "foot_yaw": [
+              0,
+              0
+            ],
+            "lift_u": [
+              0.0,
+              0.0
+            ],
+            "minimum_u": [
+              0.0018262678545420963,
+              0.001953150706287321
+            ],
+            "knee_guidance": 0.0
+          }
+        },
+        "endpoint_planted_mask": 3
+      },
+      "descent": {
+        "id": "mole_worker.descent_diagnostic.-128",
+        "frames": 91,
+        "sha256": "1c5b4babafd4f67c6f1c0e5353045891462e99acb90095ee0432f74ec1020c5b",
+        "recipe": {
+          "rise_u": -128,
+          "run_u": 512,
+          "edge_z_u": -169,
+          "phase_frames": 30,
+          "root_contract": "separate_integer_ceil_v1",
+          "guide_magnitude": 0.0,
+          "root_advance_u": 256,
+          "root_drop_u": 128,
+          "leading_foot_advance_u": 360,
+          "max_link_length_error_m": 5.551115123125783e-17,
+          "source_method": "independent forward-facing descent; actual unchanged bone lengths, proper transport of the source knee plane with an explicit smooth side-dependent twist, full anatomical foot solve; no reversed anatomy, modified geometry, or gameplay movement",
+          "root_horizontal_lift_hold": "phase1 holds the first quarter while the trailing foot lifts, then smooth advance; explicit integer root rows own playback",
+          "toe_first_degrees": 20,
+          "foot_rotation_rule": "actual ankle/toe frames rotate together, with unchanged link length, before whole-foot minimum solve; every body primitive and whole-foot projection stays in the independent proof"
+        },
+        "root_end_u": [
+          0,
+          -128,
+          -512
+        ]
+      },
+      "ascent": {
+        "id": "mole_worker.stair_diagnostic.128",
+        "frames": 91,
+        "sha256": "339c2dcc62e969f398ee8278c281ec8a9e0593e2722298a811da58866b96bb72",
+        "recipe": {
+          "rise_u": 128,
+          "run_u": 512,
+          "edge_z_u": -169,
+          "phase_frames": 30,
+          "lead_root_advance_u": 68,
+          "lead_root_lift_u": 50,
+          "sole_solver_limit": 128,
+          "foot_label": "every complete triangle touched by a vertex whose largest positive actual skin influence is the corresponding foot/toe; retain all mixed boundary vertices and all tied labels; all original body triangles remain collision geometry",
+          "sole_rule": "direct floating source skin equation chooses the minimum of the complete anatomical foot for both swing and plant; no projected-vertex omission; every emitted F32 coefficient remains independently subject to Q24/native-error clearance proof",
+          "max_link_length_error_m": 6.938893903907228e-17,
+          "root_contract": "separate_integer_ceil_v1",
+          "root_equation": "root-local palettes; add root track once after skinning through actual Actor.set_world_root using exact integer ceil interpolation; no actual Transforms owner is moved",
+          "knee_rule": "proper rotations; original two segment lengths and original bend-side projection",
+          "all_other_source_joints": "compact idle frame8; original geometry, hand/tool fit and materials preserved"
+        },
+        "root_end_u": [
+          0,
+          128,
+          -512
+        ]
+      },
+      "turn": {
+        "id": "mole_worker.handoff.turn",
+        "frames": 271,
+        "sha256": "1651001048bdd90282ecc6b9f099a0abeabbf5a9554b00e6fb5d3940f45fdc90",
+        "handoff": {
+          "name": "turn",
+          "controls_u": [
+            [
+              0,
+              -128,
+              -2391
+            ],
+            [
+              0,
+              -128,
+              -2362
+            ],
+            [
+              0,
+              -128,
+              -2333
+            ],
+            [
+              0,
+              -128,
+              -2304
+            ],
+            [
+              0,
+              -128,
+              -2304
+            ],
+            [
+              0,
+              -128,
+              -2304
+            ],
+            [
+              0,
+              -128,
+              -2304
+            ],
+            [
+              0,
+              -128,
+              -2304
+            ],
+            [
+              0,
+              -128,
+              -2217
+            ],
+            [
+              0,
+              -128,
+              -2217
+            ]
+          ],
+          "heading_controls": [
+            0,
+            5461,
+            10923,
+            16384,
+            21845,
+            27307,
+            32768,
+            32768,
+            32768,
+            32768
+          ],
+          "first_key": {
+            "root_u": [
+              0,
+              -128,
+              -2391
+            ],
+            "yaw": 0,
+            "planted_mask": 3,
+            "support_primitive": 7,
+            "ankle_u": [
+              [
+                -169.5980927794632,
+                -54.07772098705318,
+                -2384.702589452791
+              ],
+              [
+                157.15395844182981,
+                -50.27617146716794,
+                -2301.765689101172
+              ]
+            ],
+            "foot_yaw": [
+              0,
+              0
+            ],
+            "lift_u": [
+              0.0,
+              0.0
+            ],
+            "minimum_u": [
+              -127.99817373214546,
+              -127.99804684929371
+            ],
+            "knee_guidance": 0.0
+          },
+          "last_key": {
+            "root_u": [
+              0,
+              -128,
+              -2217
+            ],
+            "yaw": 32768,
+            "planted_mask": 3,
+            "support_primitive": 7,
+            "ankle_u": [
+              [
+                169.59809222892608,
+                -54.07772098705318,
+                -2223.2974253739453
+              ],
+              [
+                -157.15396624294104,
+                -50.27617146716794,
+                -2306.2342971599924
+              ]
+            ],
+            "foot_yaw": [
+              32768,
+              32768
+            ],
+            "lift_u": [
+              0.0,
+              0.0
+            ],
+            "minimum_u": [
+              -127.99817373214546,
+              -127.99804684929371
+            ],
+            "knee_guidance": 0.0
+          }
+        },
+        "endpoint_planted_mask": 3
+      },
+      "retreat": {
+        "id": "mole_worker.handoff.retreat",
+        "frames": 91,
+        "sha256": "521dea2b5d18038877954fdb33abf3c1b8743bc3e94284658ea18ef5a72ca768",
+        "handoff": {
+          "name": "retreat",
+          "controls_u": [
+            [
+              0,
+              0,
+              -1705
+            ],
+            [
+              0,
+              0,
+              -1641
+            ],
+            [
+              0,
+              0,
+              -1536
+            ],
+            [
+              0,
+              0,
+              -1536
+            ]
+          ],
+          "heading_controls": [
+            32768,
+            32768,
+            32768,
+            32768
+          ],
+          "first_key": {
+            "root_u": [
+              0,
+              0,
+              -1705
+            ],
+            "yaw": 32768,
+            "planted_mask": 3,
+            "support_primitive": 0,
+            "ankle_u": [
+              [
+                169.59809222892608,
+                73.92227901294682,
+                -1711.297425373945
+              ],
+              [
+                -157.15396624294104,
+                77.72382853283206,
+                -1794.2342971599926
+              ]
+            ],
+            "foot_yaw": [
+              32768,
+              32768
+            ],
+            "lift_u": [
+              0.0,
+              0.0
+            ],
+            "minimum_u": [
+              0.0018262678545420963,
+              0.001953150706287321
+            ],
+            "knee_guidance": 0.0
+          },
+          "last_key": {
+            "root_u": [
+              0,
+              0,
+              -1536
+            ],
+            "yaw": 32768,
+            "planted_mask": 3,
+            "support_primitive": 0,
+            "ankle_u": [
+              [
+                169.59809222892608,
+                73.92227901294682,
+                -1542.297425373945
+              ],
+              [
+                -157.15396624294104,
+                77.72382853283206,
+                -1625.2342971599926
+              ]
+            ],
+            "foot_yaw": [
+              32768,
+              32768
+            ],
+            "lift_u": [
+              0.0,
+              0.0
+            ],
+            "minimum_u": [
+              0.0018262678545420963,
+              0.001953150706287321
+            ],
+            "knee_guidance": 0.0
+          }
+        },
+        "endpoint_planted_mask": 3
+      },
+      "back_up": {
+        "id": "mole_worker.handoff.approach.reversed",
+        "frames": 91,
+        "sha256": "7a833ee999abf9f8c3d41d63347e8de3be4441d88818d37b37aacaadbf21588a",
+        "handoff": {
+          "name": "back_up",
+          "controls_u": [
+            [
+              0,
+              0,
+              -1536
+            ],
+            [
+              0,
+              0,
+              -1664
+            ],
+            [
+              0,
+              0,
+              -1879
+            ],
+            [
+              0,
+              0,
+              -1879
+            ]
+          ],
+          "heading_controls": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "first_key": {
+            "root_u": [
+              0,
+              0,
+              -1879
+            ],
+            "yaw": 0,
+            "planted_mask": 3,
+            "support_primitive": 0,
+            "ankle_u": [
+              [
+                -169.5980927794632,
+                73.92227901294682,
+                -1872.702589452791
+              ],
+              [
+                157.15395844182981,
+                77.72382853283206,
+                -1789.765689101172
+              ]
+            ],
+            "foot_yaw": [
+              0,
+              0
+            ],
+            "lift_u": [
+              0.0,
+              0.0
+            ],
+            "minimum_u": [
+              0.0018262678545420963,
+              0.001953150706287321
+            ],
+            "knee_guidance": 0.0
+          },
+          "last_key": {
+            "root_u": [
+              0,
+              0,
+              -1536
+            ],
+            "yaw": 0,
+            "planted_mask": 3,
+            "support_primitive": 0,
+            "ankle_u": [
+              [
+                -169.5980927794632,
+                73.92227901294682,
+                -1529.702589452791
+              ],
+              [
+                157.15395844182981,
+                77.72382853283206,
+                -1446.765689101172
+              ]
+            ],
+            "foot_yaw": [
+              0,
+              0
+            ],
+            "lift_u": [
+              0.0,
+              0.0
+            ],
+            "minimum_u": [
+              0.0018262678545420963,
+              0.001953150706287321
+            ],
+            "knee_guidance": 0.0
+          }
+        },
+        "endpoint_planted_mask": 3,
+        "reverse_of": "approach"
+      }
+    },
+    "empty": {
+      "empty_walk_off": {
+        "id": "mole_worker.stair_carry.empty_walk_off",
+        "frames": 91,
+        "sha256": "8cb5f777fdc8af8b91abf343d9f66e3e5074672162cddbd37fb71b18fbcd1e0f",
+        "handoff": {
+          "name": "approach",
+          "controls_u": [
+            [
+              0,
+              0,
+              -1536
+            ],
+            [
+              0,
+              0,
+              -1664
+            ],
+            [
+              0,
+              0,
+              -1879
+            ],
+            [
+              0,
+              0,
+              -1879
+            ]
+          ],
+          "heading_controls": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "first_key": {
+            "root_u": [
+              0,
+              0,
+              -1536
+            ],
+            "yaw": 0,
+            "planted_mask": 1,
+            "support_primitive": 0,
+            "ankle_u": [
+              [
+                -169.5980927794632,
+                73.91138507202122,
+                -1529.702589452791
+              ],
+              [
+                157.15395844182981,
+                81.13157109274188,
+                -1446.765689101172
+              ]
+            ],
+            "foot_yaw": [
+              0,
+              0
+            ],
+            "lift_u": [
+              0.0,
+              0.0
+            ],
+            "minimum_u": [
+              0.0019531193049777684,
+              3.41142376427604
+            ],
+            "knee_guidance": 0.0
+          },
+          "last_key": {
+            "root_u": [
+              0,
+              0,
+              -1879
+            ],
+            "yaw": 0,
+            "planted_mask": 1,
+            "support_primitive": 0,
+            "ankle_u": [
+              [
+                -169.5980927794632,
+                73.91138507202122,
+                -1872.702589452791
+              ],
+              [
+                157.15395844182981,
+                81.13157109274188,
+                -1789.765689101172
+              ]
+            ],
+            "foot_yaw": [
+              0,
+              0
+            ],
+            "lift_u": [
+              0.0,
+              0.0
+            ],
+            "minimum_u": [
+              0.0019531193049777684,
+              3.41142376427604
+            ],
+            "knee_guidance": 0.0
+          }
+        },
+        "endpoint_planted_mask": 1
+      },
+      "empty_back_up": {
+        "id": "mole_worker.stair_carry.empty_walk_off.reversed",
+        "frames": 91,
+        "sha256": "11e93d0296c371700f045f90e39b53dba0a9afb17682ad2770d0f904f189b1b8",
+        "handoff": {
+          "name": "empty_back_up",
+          "controls_u": [
+            [
+              0,
+              0,
+              -1536
+            ],
+            [
+              0,
+              0,
+              -1664
+            ],
+            [
+              0,
+              0,
+              -1879
+            ],
+            [
+              0,
+              0,
+              -1879
+            ]
+          ],
+          "heading_controls": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "first_key": {
+            "root_u": [
+              0,
+              0,
+              -1879
+            ],
+            "yaw": 0,
+            "planted_mask": 1,
+            "support_primitive": 0,
+            "ankle_u": [
+              [
+                -169.5980927794632,
+                73.91138507202122,
+                -1872.702589452791
+              ],
+              [
+                157.15395844182981,
+                81.13157109274188,
+                -1789.765689101172
+              ]
+            ],
+            "foot_yaw": [
+              0,
+              0
+            ],
+            "lift_u": [
+              0.0,
+              0.0
+            ],
+            "minimum_u": [
+              0.0019531193049777684,
+              3.41142376427604
+            ],
+            "knee_guidance": 0.0
+          },
+          "last_key": {
+            "root_u": [
+              0,
+              0,
+              -1536
+            ],
+            "yaw": 0,
+            "planted_mask": 1,
+            "support_primitive": 0,
+            "ankle_u": [
+              [
+                -169.5980927794632,
+                73.91138507202122,
+                -1529.702589452791
+              ],
+              [
+                157.15395844182981,
+                81.13157109274188,
+                -1446.765689101172
+              ]
+            ],
+            "foot_yaw": [
+              0,
+              0
+            ],
+            "lift_u": [
+              0.0,
+              0.0
+            ],
+            "minimum_u": [
+              0.0019531193049777684,
+              3.41142376427604
+            ],
+            "knee_guidance": 0.0
+          }
+        },
+        "endpoint_planted_mask": 1,
+        "reverse_of": "approach"
+      }
+    }
+  },
+  "source_pins": {
+    "palette": "5b368eb3ad594b4a6f82b5981a891150e6f7053944daf888d4ab5aa293c822fe",
+    "grip_palette": "08de54533d28b1a45a2e171180a0ca68812912f67c9b7294bf26c25eec424cda",
+    "closed_body": "29f8d3218fddfaa6f2369c1c1c7dfd9b0a429b3df5cbefa38c6bf6ab9364fe14",
+    "topology": "da623e5c7c3c5a6aff5c466b143425422f3aa2253497527c84f713738f997b42",
+    "stand": "05564adf19b2b29142d99c469839b3aa18c20cdce995d055669528ce88e51b89",
+    "wood_topology": "66255515b72899999456ac927a669f46683132fe0f2333940485aeab6b98ba7e",
+    "stone_capture": "ddcb70bf666021ded1b12741f3a741e25ffb9d37b79ed9c95f71f74dcb091a6e",
+    "wood_hold": "778fee6b52ccdb154f667d169cd620cce13e6c887ab136ae3b22d68bf9b3f20f",
+    "stone_hold": "a28934d9e7a1da9f7a9019360cc4fe92a9c88af2247fa159d70b527b7f848f77"
+  },
+  "production_qualified": false,
+  "producer_sources": {
+    "godot/data/underground/mole-worker/stair-carry-v1/author_stair_carry.py": "cd0fc65a3282dafcb552841f33e9fb5d553c2c449efb8e83538be1a35a89c35e",
+    "godot/data/underground/mole-worker/stair-carry-v1/stair_carry_source.py": "ec05dd89dcb94935234834faa19be1bb9d3ad7c33303b98f9d22d6ef833d9c36",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_handoffs.py": "d9a711690e2da698adef2eabb6354e6dbc552fc6e2454b5055d9533c636adbda",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_descent.py": "6a1a5608c87261222c7eab4cb5568467c1770b669d7e825ce3918bd46d6e5bdc",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_motion.py": "e843ebc713118ef165cc3e114d84b860d8a2513a1144adff94ebdf0256f24c6e"
+  }
+}

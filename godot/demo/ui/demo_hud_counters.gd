@@ -15,7 +15,9 @@ extends RefCounted
 ##     cell, the shell's own rule), the cell enabled so it opens the ledger like the others. The shell's table
 ##     (ui_availability.gd) is untouched: the game's claim stays true for the game.
 ##   * Heating fuel's no-demand STATE ("No demand") is words, not a figure: drawn in the 16 px disclosure role, as
-##     "Unavailable" is, so it fits the narrow cell (decision 0571).
+##     "Unavailable" is, so it fits the narrow cell (decision 0571). Wood's LEVEL ("running low", decision 1011 §3,
+##     DEC-049; MEAS-2, decision 1801) is words the same way: 91 px at 16 px inside the 1280x720 cell's 101, where the
+##     18 px value face would need 106 and disclose the ledger instead.
 ##   * Heating fuel's WARNING state (demo_hud_model.gd `is_warning`: under 2 days) draws its value in clay with the
 ##     shell's warning glyph in place of the fuel one (UI §7's fuel warning).
 ##   * A figure whose owner is absent (demo_hud_model.gd UNAVAILABLE IS NOT ZERO) is drawn "Unavailable" in the
@@ -26,7 +28,8 @@ extends RefCounted
 ## REPAINTING. UIManager repaints the wired cells and the ledger with the settlement's figures whenever the
 ## simulation's stock changes, and the shell repaints every cell on a relayout. `sync()` paints a cell again when
 ## its figure changed or when its drawn caption or value is no longer what the demo drew; the ledger likewise.
-## Per frame: six integer reads and compares, the model's stamp (the planks and the fuel's breakdown, decision 0571) and
+## Per frame: six integer reads and compares, the model's stamp (the planks, the fuel's breakdown, decision 0571, and the Wood level's three integer reads,
+## decision 1801) and
 ## thirteen short string compares; formatting only on a change.
 
 const UiShell := preload("res://scripts/ui/ui_shell.gd")

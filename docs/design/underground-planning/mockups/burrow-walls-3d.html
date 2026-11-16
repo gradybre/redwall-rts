@@ -1,0 +1,280 @@
+<title>Burrow Walls in 3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya:wght@500;700&family=Alegreya+Sans:wght@400;500&display=swap">
+<style>
+/* Layout: one column — the burrow scene is the page; controls sit under it like a field notebook's legend. Single dark look, by choice (the scene is underground). */
+:root {
+  --bg: #17130f;
+  --panel: #221c16;
+  --line: #3a3027;
+  --fg: #eadfcd;
+  --muted: #b3a48c;
+  --moss: #9cb874;
+  --moss-ink: #17200d;
+  --font-display: "Alegreya", Georgia, "Times New Roman", serif;
+  --font-body: "Alegreya Sans", "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+html, body { height: auto; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.55;
+  padding-inline: 16px;
+  padding-block: 20px 28px;
+}
+.wrap { max-width: 980px; margin: 0 auto; display: grid; gap: 14px; }
+header { display: grid; gap: 4px; }
+h1 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.6rem, 5vw, 2.3rem);
+  line-height: 1.1;
+  margin: 0;
+  text-wrap: balance;
+}
+.sub { color: var(--muted); margin: 0; max-width: 62ch; }
+.stage {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: #0f0c09;
+  touch-action: none;
+}
+@media (min-width: 760px) { .stage { aspect-ratio: 16 / 9; } }
+.stage canvas { display: block; width: 100%; height: 100%; }
+.hint {
+  position: absolute; left: 10px; bottom: 10px;
+  font-size: 13px; color: var(--muted);
+  background: rgba(23, 19, 15, 0.78);
+  padding: 4px 10px; border-radius: 999px;
+  pointer-events: none;
+}
+.badge {
+  position: absolute; left: 10px; top: 10px;
+  font-family: var(--font-display); font-weight: 700; font-size: 15px;
+  color: var(--moss-ink); background: var(--moss);
+  padding: 3px 12px; border-radius: 999px;
+  pointer-events: none;
+}
+.controls {
+  display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+  padding: 12px 14px;
+}
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.seg button {
+  font: 500 15px var(--font-body);
+  color: var(--muted); background: transparent; border: 0;
+  padding: 8px 14px; min-height: 40px; cursor: pointer;
+}
+.seg button[aria-pressed="true"] { background: var(--moss); color: var(--moss-ink); }
+.seg button:focus-visible, input:focus-visible { outline: 2px solid var(--moss); outline-offset: 2px; }
+label { display: inline-flex; align-items: center; gap: 8px; color: var(--fg); font-size: 15px; min-height: 40px; }
+input[type="range"] { width: 140px; accent-color: var(--moss); }
+input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--moss); }
+.val { color: var(--muted); font-variant-numeric: tabular-nums; min-width: 4.5ch; }
+.notes { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.note { min-width: 0; border-top: 1px solid var(--line); padding-top: 10px; }
+.note h2 { font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; margin: 0 0 4px; }
+.note p { margin: 0; color: var(--muted); font-size: 15px; }
+.err { color: var(--fg); padding: 20px; }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Burrow walls: cells or hand-dug</h1>
+    <p class="sub">The same level-1 burrow, dug one metre deep on the 1&nbsp;m cell grid. Switch between today's square cut and rounded walls. The cells stay the same; only the walls are drawn differently.</p>
+  </header>
+
+  <div class="stage" id="stage">
+    <span class="badge" id="badge">Rounded</span>
+    <span class="hint">Drag to turn · pinch to zoom · two fingers to pan</span>
+  </div>
+
+  <div class="controls" role="group" aria-label="Wall style">
+    <div class="seg">
+      <button id="bCells" type="button" aria-pressed="false">Cells today</button>
+      <button id="bRound" type="button" aria-pressed="true">Rounded</button>
+    </div>
+    <label for="rad">Rounding <input id="rad" type="range" min="10" max="50" value="33"><span class="val" id="radV">0.33 cell</span></label>
+    <label for="wob"><input id="wob" type="checkbox" checked> Hand-dug wobble</label>
+    <label for="grid"><input id="grid" type="checkbox"> Show cells</label>
+  </div>
+
+  <div class="notes">
+    <div class="note"><h2>Tunnel mouths flare</h2><p>Where the passage meets the Kitchen and Dormitory, the corner widens into a curved mouth instead of a hard notch.</p></div>
+    <div class="note"><h2>No cell is lost</h2><p>Turn on Show cells. Every cell's floor stays fully dug. The curves cut further into the earth, never into the room.</p></div>
+    <div class="note"><h2>Coved walls</h2><p>Walls curve into the floor and round over at the top lip, so a room reads as scooped out by paws, not sawn.</p></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function () {
+  const stage = document.getElementById('stage');
+  if (!window.THREE || !THREE.OrbitControls) {
+    stage.insertAdjacentHTML('beforeend', '<p class="err">The 3D view could not load. Check your connection and reload.</p>');
+    return;
+  }
+  const ROOMS = [[3,7,5,9],[6,8,16,9],[8,2,13,7],[17,6,24,11],[21,12,22,15],[19,15,28,17]];
+  const OX = -16, OZ = -10, DEPTH = 1.0, RES = 8, X0 = -3, X1 = 33, Z0 = -2, Z1 = 22;
+  const state = { rounded: true, rad: 0.33, wob: true, grid: false };
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.shadowMap.enabled = true;
+  stage.prepend(renderer.domElement);
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0f0c09);
+  scene.fog = new THREE.Fog(0x0f0c09, 30, 60);
+  const camera = new THREE.PerspectiveCamera(42, 4 / 3, 0.1, 200);
+  camera.position.set(-6, 14, 17);
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.target.set(1, -0.6, -1);
+  controls.enableDamping = true;
+  controls.maxPolarAngle = 1.3;
+  controls.minDistance = 4;
+  controls.maxDistance = 40;
+
+  scene.add(new THREE.HemisphereLight(0xd8c8a8, 0x2a1d12, 0.55));
+  const sun = new THREE.DirectionalLight(0xffe2b8, 0.95);
+  sun.position.set(-10, 18, 8);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(1024, 1024);
+  Object.assign(sun.shadow.camera, { left: -22, right: 22, top: 16, bottom: -16, near: 1, far: 60 });
+  scene.add(sun);
+
+  function hash(x, y) { const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return s - Math.floor(s); }
+  function vnoise(x, y) {
+    const ix = Math.floor(x), iy = Math.floor(y), fx = x - ix, fy = y - iy;
+    const u = fx * fx * (3 - 2 * fx), v = fy * fy * (3 - 2 * fy);
+    const a = hash(ix, iy), b = hash(ix + 1, iy), c = hash(ix, iy + 1), d = hash(ix + 1, iy + 1);
+    return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+  }
+  function boxSdf(px, pz, r) {
+    const x0 = r[0], z0 = r[1], x1 = r[2] + 1, z1 = r[3] + 1;
+    const qx = Math.abs(px - (x0 + x1) / 2) - (x1 - x0) / 2, qz = Math.abs(pz - (z0 + z1) / 2) - (z1 - z0) / 2;
+    return Math.hypot(Math.max(qx, 0), Math.max(qz, 0)) + Math.min(Math.max(qx, qz), 0);
+  }
+  function smin(a, b, k) { const h = Math.max(k - Math.abs(a - b), 0) / k; return Math.min(a, b) - h * h * k * 0.25; }
+  function sdf(px, pz) {
+    let d = 1e9;
+    for (const r of ROOMS) { const b = boxSdf(px, pz, r); d = state.rounded ? smin(d, b, state.rad * 1.8) : Math.min(d, b); }
+    if (state.rounded) {
+      d -= state.rad * 0.45;
+      if (state.wob) d += (vnoise(px * 1.7, pz * 1.7) - 0.5) * 0.22 + (vnoise(px * 4.3, pz * 4.3) - 0.5) * 0.07;
+    }
+    return d;
+  }
+  function heightAt(px, pz) {
+    const d = sdf(px, pz);
+    if (d >= 0) return 0;
+    const w = state.rounded ? 0.35 + state.rad * 0.6 : 0.1;
+    const t = Math.min(-d / w, 1);
+    return state.rounded ? -DEPTH * (0.5 - 0.5 * Math.cos(Math.PI * t)) : -DEPTH * t;
+  }
+
+  const segX = (X1 - X0) * RES, segZ = (Z1 - Z0) * RES;
+  const geo = new THREE.PlaneGeometry(X1 - X0, Z1 - Z0, segX, segZ);
+  geo.rotateX(-Math.PI / 2);
+  geo.translate((X0 + X1) / 2 + OX, 0, (Z0 + Z1) / 2 + OZ);
+  geo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(geo.attributes.position.count * 3), 3));
+  const ground = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0 }));
+  ground.receiveShadow = true;
+  ground.castShadow = true;
+  scene.add(ground);
+
+  const TOP = new THREE.Color(0x4a3524), WALL = new THREE.Color(0x6e4a2c), FLOOR = new THREE.Color(0xb88a58), tmp = new THREE.Color();
+  function rebuild() {
+    const pos = geo.attributes.position, col = geo.attributes.color;
+    for (let i = 0; i < pos.count; i++) {
+      const wx = pos.getX(i) - OX, wz = pos.getZ(i) - OZ;
+      const h = heightAt(wx, wz);
+      pos.setY(i, h);
+      const n = (hash(wx * 8.1, wz * 8.1) - 0.5) * 0.12 + (vnoise(wx * 2.2, wz * 2.2) - 0.5) * 0.1;
+      const depth = -h / DEPTH;
+      if (depth < 0.02) tmp.copy(TOP);
+      else if (depth > 0.97) tmp.copy(FLOOR);
+      else tmp.copy(WALL).lerp(FLOOR, Math.pow(depth, 3));
+      tmp.offsetHSL(0, 0, n);
+      col.setXYZ(i, tmp.r, tmp.g, tmp.b);
+    }
+    pos.needsUpdate = true;
+    col.needsUpdate = true;
+    geo.computeVertexNormals();
+  }
+
+  function addBox(x, z, w, d, h, color, y0) {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshStandardMaterial({ color, roughness: 0.85 }));
+    m.position.set(x + w / 2 + OX, (y0 === undefined ? -DEPTH : y0) + h / 2, z + d / 2 + OZ);
+    m.castShadow = true; m.receiveShadow = true;
+    scene.add(m);
+    return m;
+  }
+  function bed(x, z) {
+    addBox(x + 0.1, z + 0.1, 1.8, 1.8, 0.35, 0x7a5a3a);
+    addBox(x + 0.2, z + 0.15, 1.6, 0.6, 0.12, 0xe6dccb, -DEPTH + 0.35);
+    addBox(x + 0.2, z + 0.8, 1.6, 1.0, 0.1, 0x5f6f80, -DEPTH + 0.35);
+  }
+  bed(9, 3); bed(11.6, 3); bed(24, 15.2);
+  addBox(18.2, 6.3, 3.6, 1.6, 1.1, 0x8a867e);
+  addBox(19.4, 6.9, 1.2, 0.4, 0.35, 0xd8662f, -DEPTH + 0.15);
+  addBox(18.1, 9.7, 3.8, 1.2, 0.7, 0x9b6a3e);
+  addBox(23.7, 7.1, 1.2, 3.8, 0.7, 0x9b6a3e);
+  for (let s = 0; s < 4; s++) addBox(3 + s * 0.7, 7.1, 0.7, 2.8, DEPTH - s * 0.25, 0x8b6438);
+
+  const gridPts = [];
+  for (const r of ROOMS) for (let i = r[0]; i <= r[2]; i++) for (let j = r[1]; j <= r[3]; j++) {
+    const a = [i + OX + 0.04, -DEPTH + 0.02, j + OZ + 0.04], b = [i + OX + 0.96, -DEPTH + 0.02, j + OZ + 0.96];
+    gridPts.push(a[0], a[1], a[2], b[0], a[1], a[2], b[0], a[1], a[2], b[0], a[1], b[2], b[0], a[1], b[2], a[0], a[1], b[2], a[0], a[1], b[2], a[0], a[1], a[2]);
+  }
+  const gridGeo = new THREE.BufferGeometry();
+  gridGeo.setAttribute('position', new THREE.Float32BufferAttribute(gridPts, 3));
+  const gridLines = new THREE.LineSegments(gridGeo, new THREE.LineBasicMaterial({ color: 0xfff1d6, transparent: true, opacity: 0.75 }));
+  gridLines.visible = false;
+  scene.add(gridLines);
+
+  function resize() {
+    const w = stage.clientWidth, h = stage.clientHeight;
+    if (!w || !h) return;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+  new ResizeObserver(resize).observe(stage);
+  resize();
+
+  const bCells = document.getElementById('bCells'), bRound = document.getElementById('bRound');
+  const rad = document.getElementById('rad'), radV = document.getElementById('radV');
+  const wob = document.getElementById('wob'), grid = document.getElementById('grid'), badge = document.getElementById('badge');
+  function sync() {
+    bCells.setAttribute('aria-pressed', String(!state.rounded));
+    bRound.setAttribute('aria-pressed', String(state.rounded));
+    rad.disabled = wob.disabled = !state.rounded;
+    badge.textContent = state.rounded ? 'Rounded' : 'Cells today';
+    radV.textContent = state.rad.toFixed(2) + ' cell';
+    gridLines.visible = state.grid;
+    rebuild();
+  }
+  bCells.addEventListener('click', () => { state.rounded = false; sync(); });
+  bRound.addEventListener('click', () => { state.rounded = true; sync(); });
+  rad.addEventListener('input', () => { state.rad = rad.value / 100; sync(); });
+  wob.addEventListener('change', () => { state.wob = wob.checked; sync(); });
+  grid.addEventListener('change', () => { state.grid = grid.checked; gridLines.visible = state.grid; });
+  sync();
+
+  (function loop() { controls.update(); renderer.render(scene, camera); requestAnimationFrame(loop); })();
+})();
+</script>

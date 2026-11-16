@@ -14,9 +14,10 @@ const Rules := preload("res://demo/stores/cellar_rules.gd")
 const PantryScript := preload("res://demo/farm/farm_pantry.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const Text := preload("res://demo/farm/farm_text.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 const ACTION: String = "Move to a cooler store"
-const TARGET: String = "%s of %s: %s → %s (keeps %s as long)"
+const TARGET: String = "%s: %s → %s (keeps %s as long)"
 const GONE: String = "(gone)"
 const BUILD_ACTIONS: Array[String] = ["", "Fetch materials for", "Build"]
 const BY_ITS_CELLAR: String = "a cellar's work is cancelled with the cellar (the Pantry's Cancel)"
@@ -159,13 +160,13 @@ func _fill_place(task: TaskScript, p: int) -> void:
 
 
 func target_words(row: int) -> String:
-	"""'12.0 U of carrot: Covered store → Root cellar 1 (keeps 2.8× as long)'."""
+	"""'2 baskets of carrots: Covered store → Root cellar 1 (keeps 2.8× as long)' (goods_measures.gd; decision 1801)."""
 	var from: int = _haul.source_of(row)
 	var to: int = _haul.destination_of(row)
 	var storage := _pantry.storage
 	var gain: String = Text.keeps_text(storage.permille_of(from), storage.permille_of(to)) \
 		if from != HaulScript.NONE and to != HaulScript.NONE else "?"
-	return TARGET % [Text.units_text(_haul.milli[row]), Catalog.ITEM_LABELS[_haul.item[row]].to_lower(),
+	return TARGET % [Measures.amount(Catalog.ITEM_KEYS[_haul.item[row]], _haul.milli[row]),
 		storage.label_of(from) if from != HaulScript.NONE else GONE, storage.label_of(to) if to != HaulScript.NONE else GONE,
 		gain]
 

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Allocate and audit the existing Godot suite without changing its runner.
 
-    ./tools/run_tests.sh --shard 0/10 --output-dir artifacts/test-shards
-    python3 tools/ci_test_shards.py verify --reports artifacts/test-shards --count 10
-    python3 tools/ci_test_shards.py verify --reports artifacts/test-shards --count 10 --baseline-log full.log
+    ./tools/run_tests.sh --shard 0/12 --output-dir artifacts/test-shards
+    python3 tools/ci_test_shards.py verify --reports artifacts/test-shards --count 12
+    python3 tools/ci_test_shards.py verify --reports artifacts/test-shards --count 12 --baseline-log full.log
     python3 tools/ci_test_shards.py tier fast    # JSON list of the fast tier (every suite not declared slow)
 
 Test tiers (decision 1240): godot/test/slow_suites.json declares the slow tier. `./tools/run_tests.sh
@@ -126,6 +126,9 @@ def make_plan(count: int, repo: Path = REPO, weights_path: Path = WEIGHTS) -> di
     known = json.loads(weights_path.read_text(encoding="utf-8"))["suite_usec"] if weights_path.exists() else {}
     require(isinstance(known, dict) and all(isinstance(k, str) and integer(v, 1) for k, v in known.items()),
             "timing weights must be positive integer microseconds")
+    unknown = sorted(set(known) - set(corpus))
+    # Like slow_suites.json: a weight for a renamed or deleted suite is refused, not silently dropped (decision 1895).
+    require(not unknown, f"{weights_path.name} names suites that do not exist: {unknown}")
     # Unknown files get a conservative source-size estimate; coverage never depends on timing data.
     rates = [known[name] / (repo / "godot/test" / name).stat().st_size for name in corpus if name in known]
     rate = max(1.0, statistics.median(rates)) if rates else 1.0

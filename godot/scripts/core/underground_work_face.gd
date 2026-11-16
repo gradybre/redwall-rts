@@ -31,6 +31,15 @@ const REFUSE_STROKE: StringName = &"WORK_FACE_STROKE"
 const REFUSE_CONTACT: StringName = &"WORK_FACE_CONTACT"
 const REFUSE_BUSY: StringName = &"WORK_FACE_REENTRY"
 const REFUSE_PHASE: StringName = &"WORK_FACE_FINISH_SCOPE"
+## Decision 1971 (P-1971-3 "Painted height"): an upper quantum is worked from its column's floor station, so the
+## cubes of the column below it must already be finished void (a column is dug bottom-up).
+const REFUSE_COLUMN: StringName = &"WORK_FACE_COLUMN_UNOPENED"
+const QUANTUM_U: int = Contract.QUANTUM_SIDE_U
+## A column never leaves its level: the level pack's clear_height_u (initial_level_pack.json, SET-BUILD-001 §3), checked
+## against the pack by test_underground_work_face.gd. A station on another level never strikes this level's column.
+const COLUMN_RISE_LIMIT_U: int = 4096
+## Charge per lattice quantum of the cut-history scan (a binary search), as the connector cut scans charge.
+const CUT_SCAN_CHECKS: int = 20
 
 
 class Request extends RefCounted:
@@ -62,6 +71,8 @@ class Check extends RefCounted:
 	var section: Owner.Region = Owner.Region.new()
 	var proof: Routes.Clearance = null
 	var target: PackedInt32Array = PackedInt32Array()
+	## The cube the claws strike: the target, or its column's floor-band cube (decision 1971 column digging).
+	var struck: PackedInt32Array = PackedInt32Array()
 	var bounds: PackedInt32Array = PackedInt32Array()
 	var support: PackedInt32Array = PackedInt32Array()
 	var scratch: PackedInt32Array = PackedInt32Array()
@@ -189,6 +200,8 @@ class Check extends RefCounted:
 		if code == &"":
 			code = snapshot_refusal()
 		if code == &"":
+			code = column_refusal()
+		if code == &"":
 			code = geometry_refusal()
 		if code == &"":
 			code = finish_refusal()
@@ -226,8 +239,34 @@ class Check extends RefCounted:
 		target = Space.quantum_box(domain, request.target_origin)
 		if target.is_empty():
 			return REFUSE_TARGET
+		struck = Space.quantum_box(domain, struck_origin(request.target_origin, endpoint.point.y, anchor_height()))
+		if struck.is_empty():
+			return REFUSE_TARGET
 		var code: StringName = actual.terrain.dig_refusal(target)
 		return code if code != &"" else current_refusal()
+
+	func anchor_height() -> int:
+		"""The absolute height of the row's single CONTACT_POINT, or the endpoint floor when there is none."""
+		var found: int = 0
+		var height: int = endpoint.point.y
+		for ordinal: int in descriptor.box_count:
+			if actual.profiles.box_into(request.profile_id, request.profile_revision, request.content_revision,
+					ordinal, body) != &"" or body.role != Profiles.CONTACT_POINT:
+				continue
+			found += 1
+			height = int(endpoint.point.y) + int(body.low.y)
+		return height if found == 1 else int(endpoint.point.y)
+
+	func column_refusal() -> StringName:
+		"""An upper quantum's column, from the struck floor-band cube up to the target, must be finished void."""
+		if struck == target:
+			return &""
+		for axis: int in 6:
+			scratch[axis] = struck[axis]
+		scratch[4] = target[1]
+		if proof.blocked(scratch, true) or not proof.covered(scratch, Space.SUPPORTED_VOID):
+			return proof.error if proof.error != &"" else REFUSE_COLUMN
+		return current_refusal()
 
 	func snapshot_refusal() -> StringName:
 		"""The earlier admission survey must already be dropped; this is one separately charged physical image."""
@@ -351,31 +390,141 @@ class Check extends RefCounted:
 		return true
 
 	func stroke_refusal() -> StringName:
-		"""Only the exact queried target may contain solid stroke; a second cube or support is not excused."""
+		"""Only the exact queried target may contain solid stroke above the stance plane; a second cube or support is
+		not excused. Below it, the claws may scrape natural earth (decision 1971, P-1971-2 (a); `scrape_refusal`)."""
 		if stroke_blocked():
 			return proof.error if proof.error != &"" else REFUSE_STROKE
+		var below: bool = bounds[4] <= endpoint.point.y
 		for row: int in proof.image.volumes.role.size():
 			if not proof.spend():
 				return proof.error
 			if proof.image.volumes.role[row] not in [Space.SUPPORT, Space.DRY_SOLID]:
 				continue
 			proof.read_box(row, scratch)
-			if not Space.overlaps(bounds, scratch):
+			if below or not Space.overlaps(bounds, scratch):
 				continue
-			if proof.image.volumes.role[row] == Space.SUPPORT:
+			if proof.image.volumes.role[row] == Space.SUPPORT or not within_target(scratch):
 				return REFUSE_STROKE
-			for axis: int in 3:
-				if maxi(bounds[axis], scratch[axis]) < target[axis] \
-						or mini(bounds[axis + 3], scratch[axis + 3]) > target[axis + 3]:
-					return REFUSE_STROKE
 		proof.start(bounds)
 		if not proof.subtract_role(Space.SUPPORTED_VOID):
 			return proof.error
 		for axis: int in 6:
 			proof.cover[axis] = target[axis]
-		if not proof.subtract_cover() or proof.count != 0:
-			return proof.error if proof.error != &"" else REFUSE_STROKE
-		return current_refusal()
+		if not proof.subtract_cover():
+			return proof.error
+		var code: StringName = scrape_refusal() if below and proof.count != 0 else &""
+		if code == &"" and not below and proof.count != 0:
+			code = REFUSE_STROKE
+		return code if code != &"" else current_refusal()
+
+	func within_target(row_box: PackedInt32Array) -> bool:
+		"""The overlap of the stroke and one solid row lies inside the target cube on every axis."""
+		for axis: int in 3:
+			if maxi(bounds[axis], row_box[axis]) < target[axis] \
+					or mini(bounds[axis + 3], row_box[axis + 3]) > target[axis + 3]:
+				return false
+		return true
+
+	func scrape_refusal() -> StringName:
+		"""P-1971-2 (a): what a below-plane stroke box leaves after open void and the target is natural earth only:
+		the terrain's original dry footing (no water, resource or foundation) in cubes no Site ever cut, so never
+		installed timber, backfill or another dig. The box itself is the row's own published below-plane stroke."""
+		var sites: Sites = excavation_sites()
+		if sites == null:
+			return REFUSE_STROKE
+		for fragment: int in proof.count:
+			for axis: int in 6:
+				scratch[axis] = proof.fragments[fragment * 6 + axis]
+			if not proof.spend(Terrain.LOCAL_QUERY_CHECKS + CUT_SCAN_CHECKS * cube_span(sites._domain, scratch)):
+				return proof.error
+			if actual.terrain.natural_support_refusal(scratch) != &"" or ever_cut(sites, scratch):
+				return REFUSE_STROKE
+		return &""
+
+	static func struck_origin(paid: Vector3i, floor_y: int, anchor_y: int) -> Vector3i:
+		"""Decision 1971 (P-1971-3 "Painted height"): the cube a work row's claws strike. It is the target when the anchor
+		lies in the target's own band; when the target sits a whole number of quanta above the stance floor and the anchor
+		lies strictly inside the floor band (a side strike, never the floor or the band's top plane), it is the column's
+		floor-band cube, which the claws strike while the upper earth is paid."""
+		if anchor_y >= paid.y and anchor_y <= paid.y + QUANTUM_U:
+			return paid
+		var rise: int = int(paid.y) - floor_y
+		if rise > 0 and rise < COLUMN_RISE_LIMIT_U and rise % QUANTUM_U == 0 and anchor_y > floor_y \
+				and anchor_y < floor_y + QUANTUM_U:
+			return Vector3i(paid.x, floor_y, paid.z)
+		return paid
+
+	static func ever_cut(sites: Sites, box: PackedInt32Array) -> bool:
+		"""Whether any quantum meeting the box was ever cut by a Site (direct columns; no Site observer runs)."""
+		var lattice: Contract.Domain = sites._domain
+		var low: Vector3i = lattice_low(lattice, box)
+		var cell: Vector3i = low
+		while cell.y < box[4]:
+			cell.z = low.z
+			while cell.z < box[5]:
+				cell.x = low.x
+				while cell.x < box[3]:
+					var row: int = cut_row(sites, lattice_key(lattice, cell))
+					if row >= 0 and sites._ever_cut[row] == 1:
+						return true
+					cell.x += QUANTUM_U
+				cell.z += QUANTUM_U
+			cell.y += QUANTUM_U
+		return false
+
+	static func lattice_key(site_domain: Contract.Domain, origin: Vector3i) -> int:
+		"""Rank the exact integer cube without calling an overridable Site observer or allocating a box."""
+		var local: Vector3i = Vector3i.ZERO
+		for axis: int in 3:
+			var delta: int = int(origin[axis]) - int(site_domain.datum_u[axis])
+			if delta % Contract.QUANTUM_SIDE_U != 0: return -1
+			@warning_ignore("integer_division") var cell: int = delta / Contract.QUANTUM_SIDE_U - site_domain.minimum_quantum[axis]
+			if cell < 0 or cell >= site_domain.size_quanta[axis]: return -1
+			local[axis] = cell
+		return (int(local.y) * site_domain.size_quanta.z + local.z) * site_domain.size_quanta.x + local.x
+
+	static func lattice_low(lattice: Contract.Domain, box: PackedInt32Array) -> Vector3i:
+		"""The lattice origin of the quantum holding the box's low corner (integer floor; no float)."""
+		var low: Vector3i = Vector3i.ZERO
+		for axis: int in 3:
+			var delta: int = int(box[axis]) - int(lattice.datum_u[axis])
+			low[axis] = int(lattice.datum_u[axis]) + delta - posmod(delta, QUANTUM_U)
+		return low
+
+	static func cube_span(lattice: Contract.Domain, box: PackedInt32Array) -> int:
+		"""How many lattice quanta the box meets: the scan `ever_cut` performs, charged before it runs."""
+		var low: Vector3i = lattice_low(lattice, box)
+		var count: int = 1
+		for axis: int in 3:
+			@warning_ignore("integer_division") var cells: int = (int(box[axis + 3]) - int(low[axis]) + QUANTUM_U - 1) / QUANTUM_U
+			count *= cells
+		return count
+
+	static func cut_row(sites: Sites, key: int) -> int:
+		"""The Site row of one lattice key by binary search of the sorted key index, or -1."""
+		if key < 0:
+			return -1
+		var low: int = 0
+		var high: int = sites._count
+		while low < high:
+			@warning_ignore("integer_division") var middle: int = low + (high - low) / 2
+			if sites._ordered_key[middle] < key:
+				low = middle + 1
+			else:
+				high = middle
+		return sites._ordered_row[low] if low < sites._count and sites._ordered_key[low] == key else -1
+
+	func excavation_sites() -> Sites:
+		"""The bound excavation authority (the Sites owner) on this World's lattice, or null (no scrape is proved)."""
+		var construction: Construction = actual.sources._construction if actual.sources != null else null
+		if construction == null or construction._excavation_authority == null:
+			return null
+		var sites: Sites = construction._excavation_authority.get_ref() as Sites
+		if sites == null or sites._domain == null or sites._domain.world_ref != domain._world \
+				or sites._domain.datum_u != domain._datum or sites._domain.minimum_quantum != domain._min_quantum \
+				or sites._domain.size_quanta != domain._size_quanta:
+			return null
+		return sites
 
 	func stroke_blocked() -> bool:
 		"""The solid observer keeps every unfinished/obstacle row blocking its work stroke."""
@@ -389,12 +538,12 @@ class Check extends RefCounted:
 				return REFUSE_CONTACT
 			contact[axis] = value
 		@warning_ignore("integer_division") var face_axis: int = request.face / 2
-		var plane: int = target[face_axis + (3 if request.face % 2 == 1 else 0)]
+		var plane: int = struck[face_axis + (3 if request.face % 2 == 1 else 0)]
 		if contact[face_axis] != plane or (request.face % 2 == 0 and endpoint.point[face_axis] >= plane) \
 				or (request.face % 2 == 1 and endpoint.point[face_axis] < plane):
 			return REFUSE_CONTACT
 		for axis: int in 3:
-			if contact[axis] < target[axis] or contact[axis] > target[axis + 3]:
+			if contact[axis] < struck[axis] or contact[axis] > struck[axis + 3]:
 				return REFUSE_CONTACT
 		has_contact = true
 		return contact_stroke_refusal()
@@ -402,7 +551,7 @@ class Check extends RefCounted:
 	func patch_refusal() -> StringName:
 		"""The complete positive-area source patch must lie on the chosen face, never just its focus anchor."""
 		@warning_ignore("integer_division") var face_axis: int = request.face / 2
-		var plane: int = target[face_axis + (3 if request.face % 2 == 1 else 0)]
+		var plane: int = struck[face_axis + (3 if request.face % 2 == 1 else 0)]
 		for axis: int in 3:
 			var low: int = int(endpoint.point[axis]) + int(body.low[axis])
 			var high: int = int(endpoint.point[axis]) + int(body.high[axis])
@@ -411,7 +560,7 @@ class Check extends RefCounted:
 			if axis == face_axis:
 				if low != plane or high != plane:
 					return REFUSE_CONTACT
-			elif low >= high or low < target[axis] or high > target[axis + 3]:
+			elif low >= high or low < struck[axis] or high > struck[axis + 3]:
 				return REFUSE_CONTACT
 		has_patch = true
 		return &""
@@ -558,14 +707,7 @@ class FinishCheck extends Check:
 
 	static func _key_at(site_domain: Contract.Domain, origin: Vector3i) -> int:
 		"""Rank the exact integer cube without calling an overridable Site observer or allocating a box."""
-		var local: Vector3i = Vector3i.ZERO
-		for axis: int in 3:
-			var delta: int = int(origin[axis]) - int(site_domain.datum_u[axis])
-			if delta % Contract.QUANTUM_SIDE_U != 0: return -1
-			@warning_ignore("integer_division") var cell: int = delta / Contract.QUANTUM_SIDE_U - site_domain.minimum_quantum[axis]
-			if cell < 0 or cell >= site_domain.size_quanta[axis]: return -1
-			local[axis] = cell
-		return (int(local.y) * site_domain.size_quanta.z + local.z) * site_domain.size_quanta.x + local.x
+		return lattice_key(site_domain, origin)
 
 	static func _typed_row(ids: Directory, ref: Vector2i, kind: int) -> int:
 		"""Require the complete live Directory generation, positive PID and reverse typed owner."""
@@ -713,3 +855,9 @@ func prospective_solid_face_refusal(config: Routes.Configuration, request: Reque
 		code = check.run()
 	_reading = false
 	return REFUSE_BUSY if _reentered else code
+
+
+static func struck_origin(target: Vector3i, floor_y: int, anchor_y: int) -> Vector3i:
+	"""Decision 1971: the cube a work row's claws strike (`Check.struck_origin`), for the Room owners that derive a
+	contact face from an anchor (the frontier, the world bindings and the space authority)."""
+	return Check.struck_origin(target, floor_y, anchor_y)

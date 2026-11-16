@@ -35,8 +35,14 @@ const STAGE_RESUME: int = 12 # DEC-057: the crew was lost; the replacement re-ha
 const STAGE_LEG_STAIRS: int = 13
 ## DEC-059 (P1): from the previous tread's station straight down to this one (step forward, one descent).
 const STAGE_LEG_CHAIN: int = 14
-const Tread := preload("res://data/underground/mole-worker/qualified-claw-runtime-v2/tread_geometry.gd")
+## Decision 2044 (P-2044-16 (a)): from a landing's floor the climb to the crossing arrival comes first, turning to each
+## leg's own heading (a deep station's walk to the hub ends sideways, and the retreat to F' faces down the flight),
+## so the haul and the walk to M then start from X as they do on the first module.
+const STAGE_LEG_UPS: int = 15
+## Decision 2044 (P-2044-9 (a)): the module-aware M5 tread geometry (module 0 is the published one).
+const Tread := preload("res://data/underground/mole-worker/qualified-m5-runtime-v1/tread_geometry.gd")
 ## DEC-059 (P1): the first tread's haul brings every tread's wood to M at once (D3: each tread's bill is T0's).
+## Decision 2044: every module's T1 does so for its own module (`Tread.first_tread`); module 0's is assembly 2.
 const FIRST_TREAD: int = 2
 const REFUSE_CHAIN_STOCK: StringName = &"ENTRY_INSTALLER_CHAIN_STOCK"
 const StairPath := preload("res://scripts/core/underground_entry_stair_path.gd")
@@ -164,6 +170,7 @@ func _run(tick: int) -> StringName:
 		STAGE_LEG_STATION: return _leg_station(tick)
 		STAGE_LEG_STAIRS: return _leg_stairs(tick)
 		STAGE_LEG_CHAIN: return _leg_chain(tick)
+		STAGE_LEG_UPS: return _leg_ups(tick)
 		STAGE_FUND: return _fund(tick)
 		STAGE_HANDLE: return _handle(tick)
 		STAGE_INSTALL_ENTER: return _install_enter(tick)
@@ -185,15 +192,67 @@ func _open(tick: int) -> StringName:
 	var queue: PackedInt32Array = PackedInt32Array()
 	code = _units(queue)
 	if code == &"" and not _plan.chain.is_empty(): return _open_chain(queue, tick)
-	# ADR1229: from a tread station the walk back up the stair is the haul's first legs (a walk-in when empty).
-	if code == &"" and (not queue.is_empty() or not _plan.ups.is_empty()): return _begin_haul(queue, tick)
-	if code != &"": return code
+	if code == &"" and _climbs(): return _open_ups(tick)
+	return _after_order(queue, tick) if code == &"" else code
+
+
+func _after_order(queue: PackedInt32Array, tick: int) -> StringName:
+	"""ADR1229: from a tread station the walk back up the stair is the haul's first legs (a walk-in when empty)."""
+	if not queue.is_empty() or not _plan.ups.is_empty(): return _begin_haul(queue, tick)
 	var worker: int = _o.residents.directory().get_typed_row(_crew.worker)
 	var result: RefCounted = _o.jobs.assign_worker(worker, _job)
 	if not result.ok: return result.error
-	code = _travel(_plan.walk_profile, _plan.walk_revision, _plan.material, tick)
+	var code: StringName = _travel(_plan.walk_profile, _plan.walk_revision, _plan.material, tick)
 	if code == &"": _stage = STAGE_LEG_MATERIAL
 	return code
+
+
+func _climbs() -> bool:
+	"""Decision 2044: the way up crosses a landing (a floor walk or the back-up onto F), so it turns. Every way up from
+	below a landing backs up F' -> F, so the retreat row alone (module 0's H -> X too) never decides it: module 0's
+	orders keep their haul as before."""
+	var pins: Script = Routes.Stair.Pins
+	for at: int in range(2, _plan.ups.size(), 4):
+		var row: int = int(_plan.ups[at])
+		if row == pins.CLAW_WALK_ROW or row in pins.STAIR_EMPTY_FLOOR_ROWS:
+			return true
+	return false
+
+
+func _open_ups(tick: int) -> StringName:
+	"""Decision 2044: take the Job where the crew stands and climb to X leg by leg, each on its own heading."""
+	var result: RefCounted = _o.jobs.assign_worker(_o.residents.directory().get_typed_row(_crew.worker), _job)
+	if not result.ok: return result.error
+	_stair_leg = 0
+	var first: Hauler.Leg = _plan_leg(_plan.ups, 0)
+	var code: StringName = _face_and_travel(first, tick)
+	if code == &"": _stage = STAGE_LEG_UPS
+	return code
+
+
+func _leg_ups(tick: int) -> StringName:
+	"""Decision 2044: one source-ready arrival per climbing leg; at X the Job is released and the order continues as
+	from the crossing arrival (any haul, then M)."""
+	var leg: Hauler.Leg = _plan_leg(_plan.ups, 4 * _stair_leg)
+	var arrived: int = _arrived(leg.target, leg.profile, leg.revision, tick)
+	if arrived < 0: return &"ENTRY_INSTALLER_ROUTE_HELD"
+	if arrived == 0: return &""
+	_stair_leg += 1
+	if 4 * _stair_leg < _plan.ups.size(): return _face_and_travel(_plan_leg(_plan.ups, 4 * _stair_leg), tick)
+	_plan.ups = PackedInt64Array()
+	var released: RefCounted = _o.jobs.release_worker(_o.residents.directory().get_typed_row(_crew.worker))
+	if not released.ok: return released.error
+	var queue: PackedInt32Array = PackedInt32Array()
+	var code: StringName = _units(queue)
+	return _after_order(queue, tick) if code == &"" else code
+
+
+func _face_and_travel(leg: Hauler.Leg, tick: int) -> StringName:
+	"""Turn to a yaw-exact leg's heading when the crew does not face it, then route on the leg."""
+	var code: StringName = _o.routes.read_actor_into(_crew.worker, _actor)
+	if code == &"" and not _all_yaw(leg.profile) and _actor.yaw != _yaw(leg.profile):
+		code = WorldRoutes.turn_actor(_o.binding, _crew.worker, _job_ref(), _yaw(leg.profile), Space.MAX_CHECKS)
+	return _travel(leg.profile, leg.revision, leg.target, tick) if code == &"" else code
 
 
 func _open_chain(queue: PackedInt32Array, tick: int) -> StringName:
@@ -232,7 +291,7 @@ func _units(out: PackedInt32Array) -> StringName:
 	if _o.delivery == null: return &""
 	var items: PackedInt32Array = PackedInt32Array()
 	var milli: PackedInt64Array = PackedInt64Array()
-	var batch: int = Tread.TREADS if _plan.ordinal == FIRST_TREAD else 1
+	var batch: int = Tread.TREADS if Tread.first_tread(_plan.ordinal) else 1
 	for line: int in _quote.input_count:
 		items.append(_o.items.compiled_id(_quote.input_keys[line]))
 		milli.append(_quote.input_milli[line] * batch)
@@ -665,7 +724,7 @@ func read_state(r: Progress.Reader, owners: RefCounted, crew: RefCounted, paid: 
 	_paid = paid
 	_plan = _read_plan(r)
 	_content = r.i64()
-	_stage = r.ranged(STAGE_OPEN, STAGE_LEG_CHAIN)
+	_stage = r.ranged(STAGE_OPEN, STAGE_LEG_UPS)
 	_project = r.ref()
 	_job = r.i32()
 	var job: Vector2i = r.ref()

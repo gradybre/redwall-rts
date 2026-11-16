@@ -106,6 +106,10 @@ const SIZES: Dictionary = {
 	&"jar_shelf": [RULE_HEIGHT, 0.95], &"crock_stoneware": [RULE_HEIGHT, 0.5],
 	# Art pass 3's brewing props (DEC-048; wired by decision 1621): the brewery's mash vat (rim 0.80 m) and its cask.
 	&"brew_vat": [RULE_HEIGHT, 0.95], &"ale_cask": [RULE_HEIGHT, 0.8],
+	# The build panel's proof of concept (decision 1913): the Entrance's burrow mouth, its arch tall enough for a mole
+	# (0.90 m) to walk in upright, spreading past the Entrance's 2 × 2 m; the stair flight a dug landing's 2 m
+	# (demo_build_dug.gd stretches it to the landing and the room's 1 m rise).
+	&"burrow_mouth": [RULE_LONGEST, 3.0], &"dig_stairs": [RULE_LONGEST, 2.0],
 }
 ## Library BUILDINGS this pass draws as props: drawn at their authoritative envelope height
 ## (world_sizes.gd, lookdev_dimensions.gd BUILDING_MAX_Y_MM) -- the root cellar's door-in-a-mound
@@ -137,6 +141,9 @@ var _icon_paths: Dictionary = {}
 ## The manifest's `ui` section, and each UI picture read so far (res path -> Texture2D; null: it would not load).
 var _ui: Dictionary = {}
 var _ui_textures: Dictionary = {}
+## The manifest's `build` section (tools/stage_build_art.py, decision 1913), and each texture read so far.
+var _build: Dictionary = {}
+var _build_textures: Dictionary = {}
 ## Icons whose file would not load (`staged_icon` tries each once).
 var _icon_failed: Dictionary = {}
 
@@ -155,6 +162,8 @@ func load_from(manifest: Dictionary) -> void:
 			_icon_paths[StringName(key)] = path
 	var ui: Variant = manifest.get("ui", {})
 	_ui = ui if ui is Dictionary else {}
+	var build: Variant = manifest.get("build", {})
+	_build = build if build is Dictionary else {}
 
 
 static func _parts_exist(row: Dictionary) -> bool:
@@ -464,6 +473,21 @@ func ui_texture(path: String) -> Texture2D:
 			image = Image.load_from_file(DemoManifestScript.readable_path(path))
 		_ui_textures[path] = ImageTexture.create_from_image(image) if image != null and not image.is_empty() else null
 	return _ui_textures[path]
+
+
+func build_texture(key: String) -> Texture2D:
+	"""The build panel's staged earth texture `key` (the manifest's `build` section: earth_floor, earth_wall), with
+	mipmaps (it tiles across a whole level), read once; null when none is staged (CI) or it will not load."""
+	if not _build_textures.has(key):
+		var row: Variant = _build.get(key)
+		var path: String = String((row as Dictionary).get("path", "")) if row is Dictionary else ""
+		var image: Image = null
+		if not path.is_empty() and (FileAccess.file_exists(path) or FileAccess.file_exists(path + ".import")):
+			image = Image.load_from_file(DemoManifestScript.readable_path(path))
+		if image != null and not image.is_empty():
+			image.generate_mipmaps()
+		_build_textures[key] = ImageTexture.create_from_image(image) if image != null and not image.is_empty() else null
+	return _build_textures[key]
 
 
 func portrait(cast_key: StringName, size: int) -> Texture2D:

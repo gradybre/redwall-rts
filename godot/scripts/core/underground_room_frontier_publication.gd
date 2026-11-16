@@ -17,9 +17,11 @@ const Contract := preload("res://scripts/core/excavation_contract.gd")
 const Jobs := preload("res://scripts/core/jobs.gd")
 const Itinerary := preload("res://scripts/core/underground_room_itinerary.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
-const MAX_STATIONS: int = 3
-## ADR1212: the ADR1215 air recount is 8,970 B; the ceiling is charged inside Budget.COLD_BYTES.
-const CONTROL_BYTES: int = 9216
+## Decision 1943: the Locations frontier bound (three stations before).
+const MAX_STATIONS: int = Locations.FRONTIER_MAX_STATIONS
+## ADR1212: the ADR1215 air recount is 8,970 B at three stations; decision 1943's two further stations bring it to
+## 11,450 B (census `publication_controls`). The ceiling is charged inside Budget.COLD_BYTES.
+const CONTROL_BYTES: int = 12288
 const REFUSE_SCOPE: StringName = &"ROOM_FRONTIER_PUBLICATION_SCOPE"
 const REFUSE_BUSY: StringName = &"ROOM_FRONTIER_PUBLICATION_BUSY"
 const REFUSE_CHANGED: StringName = &"ROOM_FRONTIER_PUBLICATION_CHANGED"
@@ -34,8 +36,8 @@ class Request extends RefCounted:
 	## Fixed caller packet admitted under the original cold lease; final station is WORK, preceding stations TRANSIT.
 	var gateway: Vector2i = NULL_REF
 	var count: int = 0
-	var sections: PackedInt32Array = PackedInt32Array() # Three full section refs.
-	var points: PackedInt32Array = PackedInt32Array() # Three integer XYZ points.
+	var sections: PackedInt32Array = PackedInt32Array() # MAX_STATIONS full section refs.
+	var points: PackedInt32Array = PackedInt32Array() # MAX_STATIONS integer XYZ points.
 	var profiles: PackedInt64Array = PackedInt64Array() # Per station: forward ID/revision, reverse ID/revision.
 	var work_profile: int = -1
 	var work_revision: int = 0
@@ -43,11 +45,12 @@ class Request extends RefCounted:
 	var yaw: int = -1
 	## ADR1215: optional caller air per station. Zero keeps the one-AABB record; otherwise the boxes (first holds
 	## the root) must contain every adjoining source's air primitive, and Locations proves each box is open void.
-	var air_counts: PackedInt32Array = PackedInt32Array([0, 0, 0])
+	var air_counts: PackedInt32Array = PackedInt32Array() # MAX_STATIONS zeros.
 	var air: PackedInt32Array = PackedInt32Array()
 
 	func _init() -> void:
 		"""Fixed shape for the optional per-station air boxes."""
+		air_counts.resize(MAX_STATIONS)
 		air.resize(MAX_STATIONS * AIR_BOXES * 6)
 
 
@@ -55,8 +58,8 @@ class Result extends RefCounted:
 	## Caller-owned fixed output; every refusal leaves all fields and packed elements unchanged.
 	var work: Vector2i = NULL_REF
 	var count: int = 0
-	var locations: PackedInt32Array = PackedInt32Array() # Three full new refs.
-	var edges: PackedInt32Array = PackedInt32Array() # Three forward then three reverse refs; only count prefixes are used.
+	var locations: PackedInt32Array = PackedInt32Array() # MAX_STATIONS full new refs.
+	var edges: PackedInt32Array = PackedInt32Array() # MAX_STATIONS forward then MAX_STATIONS reverse refs; only count prefixes are used.
 
 
 class Query extends RefCounted:
@@ -110,7 +113,8 @@ static func publish_into(actual: Provider, candidate: Frontier.Candidate, reques
 	var code: StringName = Frontier._guard(actual, cold, Budget.COLD_BYTES, max_checks)
 	if code != &"": return code
 	if candidate == null or candidate.get_script() != Frontier.Candidate or request == null \
-			or request.get_script() != Request or out == null or out.get_script() != Result or out.locations.size() != 6 or out.edges.size() != 12: return REFUSE_SCOPE
+			or request.get_script() != Request or out == null or out.get_script() != Result \
+			or out.locations.size() != 2 * MAX_STATIONS or out.edges.size() != 4 * MAX_STATIONS: return REFUSE_SCOPE
 	code = _input(actual, candidate, request)
 	if code != &"": return code
 	var query: Query = Query.new()
@@ -126,7 +130,8 @@ static func _input(actual: Provider, candidate: Frontier.Candidate, request: Req
 	if candidate.project != NULL_REF or candidate.operation not in [Contract.OP_BRACE, Contract.OP_CUT] \
 			or request.face < 0 or request.face > 5 or request.work_profile < 0 or request.work_revision <= 0 \
 			or request.yaw < 0 or request.yaw > 65535 or request.count < 1 or request.count > MAX_STATIONS \
-			or request.sections.size() != 6 or request.points.size() != 9 or request.profiles.size() != 12 \
+			or request.sections.size() != 2 * MAX_STATIONS or request.points.size() != 3 * MAX_STATIONS \
+			or request.profiles.size() != 4 * MAX_STATIONS \
 			or request.air_counts.size() != MAX_STATIONS or request.air.size() != MAX_STATIONS * AIR_BOXES * 6: return REFUSE_SCOPE
 	for index: int in MAX_STATIONS:
 		if request.air_counts[index] < 0 or request.air_counts[index] > AIR_BOXES: return REFUSE_AIR
@@ -156,16 +161,17 @@ static func _hold(q: Query, actual: Provider, candidate: Frontier.Candidate, req
 
 static func _allocate(q: Query) -> void:
 	"""Only the pre-admitted cold Query owns these exact fixed packets; no geometry or route bank is allocated."""
-	q.request.sections.resize(6); q.request.points.resize(9); q.request.profiles.resize(12)
+	q.request.sections.resize(2 * MAX_STATIONS); q.request.points.resize(3 * MAX_STATIONS)
+	q.request.profiles.resize(4 * MAX_STATIONS)
 	q.gateway.envelope.resize(6); q.gateway.support.resize(6)
 	q.records.resize(MAX_STATIONS); q.sections.resize(MAX_STATIONS)
 	for index: int in MAX_STATIONS:
 		q.records[index] = Locations.Record.new(); q.sections[index] = Owner.Region.new()
 		q.records[index].envelope.resize(6); q.records[index].support.resize(6); q.sections[index].box.resize(6)
 	q.outer_section.box.resize(6); q.bounds.resize(6); q.edge.points.resize(6); q.remaining_out.resize(1)
-	q.refs.resize(6); q.refs.fill(-1); q.context.refs.resize(6); q.context.refs.fill(-1)
-	q.context.edges.resize(12); q.context.edges.fill(-1)
-	q.edges.resize(12); q.edges.fill(-1); q.heap_patch.resize(Locations.FRONTIER_HEAP_WORDS)
+	q.refs.resize(2 * MAX_STATIONS); q.refs.fill(-1); q.context.refs.resize(2 * MAX_STATIONS); q.context.refs.fill(-1)
+	q.context.edges.resize(4 * MAX_STATIONS); q.context.edges.fill(-1)
+	q.edges.resize(4 * MAX_STATIONS); q.edges.fill(-1); q.heap_patch.resize(Locations.FRONTIER_HEAP_WORDS)
 
 
 static func _pin_context(q: Query) -> void:
@@ -190,9 +196,9 @@ static func _copy_request(source: Request, out: Request) -> void:
 	out.gateway = source.gateway; out.count = source.count
 	out.work_profile = source.work_profile; out.work_revision = source.work_revision
 	out.face = source.face; out.yaw = source.yaw
-	for index: int in 6: out.sections[index] = source.sections[index]
-	for index: int in 9: out.points[index] = source.points[index]
-	for index: int in 12: out.profiles[index] = source.profiles[index]
+	for index: int in 2 * MAX_STATIONS: out.sections[index] = source.sections[index]
+	for index: int in 3 * MAX_STATIONS: out.points[index] = source.points[index]
+	for index: int in 4 * MAX_STATIONS: out.profiles[index] = source.profiles[index]
 	for index: int in MAX_STATIONS: out.air_counts[index] = source.air_counts[index]
 	for index: int in out.air.size(): out.air[index] = source.air[index]
 
@@ -260,7 +266,7 @@ static func _run(q: Query, out: Result) -> StringName:
 	if code == &"": code = _observe_final(q)
 	if code == &"": code = _final_leaf(q)
 	if code != &"": return code
-	if out.get_script() != Result or out.locations.size() != 6 or out.edges.size() != 12: return REFUSE_SCOPE
+	if out.get_script() != Result or out.locations.size() != 2 * MAX_STATIONS or out.edges.size() != 4 * MAX_STATIONS: return REFUSE_SCOPE
 	q.actual._publishing = true
 	var published: bool = WorldRoutes.commit_frontier_preflighted(q.actual, q.context)
 	q.actual._publishing = false
@@ -480,9 +486,14 @@ static func _edge_into(q: Query, ordinal: int) -> StringName:
 	var first_ref: Vector2i = q.request.gateway if index == 0 else _new_ref(q, index - 1)
 	var last_ref: Vector2i = _new_ref(q, index)
 	var section: Owner.Region = q.outer_section if index == 0 else q.sections[index - 1]
+	var owner: Locations.Record = first
+	if section_span_refusal(first.point, last.point, section.box) != &"" \
+			and section_span_refusal(first.point, last.point, q.sections[index].box) == &"":
+		section = q.sections[index] # Decision 1943: a run down across a section's low edge lies in the next one.
+		owner = last
 	q.edge.from_location = last_ref if reverse else first_ref
 	q.edge.to_location = first_ref if reverse else last_ref
-	q.edge.section = first.section; q.edge.room = first.room; q.edge.level = section.level
+	q.edge.section = owner.section; q.edge.room = owner.room; q.edge.level = section.level
 	q.edge.family = -1; q.edge.variant = 0; q.edge.rotation = 0
 	q.edge.mode = Profiles.MODE_WALK; q.edge.posture = Profiles.POSTURE_UPRIGHT
 	q.edge.content_revision = q.context.profiles; q.edge.geometry_revision = q.context.revision; q.edge.point_count = 2
@@ -522,7 +533,7 @@ static func _final_leaf(q: Query) -> StringName:
 	"""Precharge each complete scan, then close selected masks, physical exclusions, sources and original inputs."""
 	var scans: int = 256 + 40 * q.config.locations._capacity + 64 * q.config.routes._edge_capacity \
 		+ 3 * q.config.routes._live.vertex_count + 2 * WorldRoutes.MASK_BYTES * q.config.routes._edge_capacity
-	scans += 84 * (q.config.locations._capacity + q.config.routes._edge_capacity) + 2 * 6 * 14 * 84 * 4
+	scans += 84 * (q.config.locations._capacity + q.config.routes._edge_capacity) + heap_precharge(q.request.count)
 	if not _spend(q, scans): return REFUSE_BUDGET
 	var code: StringName = WorldRoutes.frontier_leaf_refusal(q.actual, q.context, q.records, q.heap_patch)
 	if code == &"": code = _selected_edges(q)
@@ -532,6 +543,12 @@ static func _final_leaf(q: Query) -> StringName:
 		if not _spend(q, checks): return REFUSE_BUDGET
 		code = FinalFacts.frontier_refusal(q.config.owner, q.config.routes, q.config.locations, q.context, checks)
 	return _scope(q) if code == &"" else code
+
+
+static func heap_precharge(count: int) -> int:
+	"""The final leaf's prepaid sparse-heap replay: both banks' removals (at least ADR 1161's six), each up to 14
+	writes, priced 84 x 4 apiece. Decision 1943: unchanged through three stations, grown for four and five."""
+	return 2 * maxi(6, 2 * count) * 14 * 84 * 4
 
 
 static func _selected_edges(q: Query) -> StringName:
@@ -653,8 +670,8 @@ static func _edge_section_matches(q: Query) -> bool:
 static func _output(q: Query, out: Result) -> void:
 	"""Only the completed coupled publication writes the caller's fixed full-handle packet."""
 	out.work = _new_ref(q, q.request.count - 1); out.count = q.request.count
-	for index: int in 6: out.locations[index] = q.refs[index]
-	for index: int in 12: out.edges[index] = q.context.edges[index]
+	for index: int in 2 * MAX_STATIONS: out.locations[index] = q.refs[index]
+	for index: int in 4 * MAX_STATIONS: out.edges[index] = q.context.edges[index]
 
 static func _cleanup(q: Query) -> void:
 	"""Original independent tokens survive borrowed-context mutation; drop only owned candidates and never another lease."""

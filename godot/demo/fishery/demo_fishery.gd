@@ -64,10 +64,12 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")
 const Recipes := preload("res://demo/preserve/preserve_rules.gd")
+const MealRules := preload("res://demo/kitchen/meal_rules.gd")
 const RationReserveScript := preload("res://demo/preserve/ration_reserve.gd")
 const PlanScript := preload("res://demo/fishery/catch_plan.gd")
 const RollsScript := preload("res://demo/fishery/fishing_rolls.gd")
 const StewardScript := preload("res://demo/fishery/fishery_stewardship.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 const PANEL_REFRESH_S: float = 0.25
 const OVERDUE_KEY: String = "water:overdue:%d"
@@ -461,14 +463,15 @@ func _on_reserve(action_name: StringName) -> bool:
 
 
 func step_reserve(steps: int) -> String:
-	"""UI-SET-099's stepper: the target moved by `steps` batches (3 U each), within its range. The answer -- saying,
-	while released, that nothing is held until the reserves are kept again (the review of 72817b34)."""
+	"""UI-SET-099's stepper: the target moved by `steps` batches (3 rations each), within its range. The answer ("Ration
+	reserve: keep 3 rations") -- saying, while released, that nothing is held until the reserves are kept again (the
+	review of 72817b34)."""
 	@warning_ignore("integer_division")
 	var most: int = RationReserveScript.TARGET_CAP_MILLI / RationReserveScript.TARGET_STEP_MILLI
 	var target: int = fishery.set_ration_reserve_target(fishery.ration_reserve.target_milli
 		+ clampi(steps, -most, most) * RationReserveScript.TARGET_STEP_MILLI)
 	var said: String = "Ration reserve: none — nothing is held back for rations" if target == 0 \
-		else "Ration reserve: keep %s of rations" % Text.units(target)
+		else "Ration reserve: keep %s" % Measures.exact(&"ration", target)
 	return "%s (released: nothing is held until you keep them again)" % said if fishery.ration_reserve.released \
 		else said
 
@@ -488,26 +491,27 @@ func toggle_release() -> String:
 
 
 func held_words() -> String:
-	"""What is withheld from the kitchen and the hungry, in words: what the reserve holds ("1.0 U dried fish, 1.0 U nuts,
-	2.0 U flour") and the dried fish 1740's keep keeps from raw eating ("1.0 U dried fish kept from raw eating"); ""
-	when nothing."""
+	"""What is withheld from the kitchen and the hungry, in words: what the reserve holds ("a string of dried fish, 2
+	handfuls of nuts, 2 scoops of flour") and the dried fish 1740's keep keeps from raw eating ("a string of dried fish
+	kept from raw eating"); "" when nothing."""
 	var parts := PackedStringArray()
 	for category: int in RationReserveScript.HELD:
 		var milli: int = fishery.ration_reserve.held_milli(category)
 		if milli > 0:
-			parts.append("%s %s" % [Text.units(milli), Recipes.category_words(category)])
+			parts.append(Measures.amount(MealRules.selector_good(category), milli))
 	var kept: int = mini(fishery.ration_keep_milli(Catalog.CAT_DRIED_FISH),
 		fishery.takes.free_milli_of_crop(fishery.pantry, Catalog.CAT_DRIED_FISH)) if fishery.takes != null else 0
 	if kept > 0:
-		parts.append("%s dried fish kept from raw eating" % Text.units(kept))
+		parts.append("%s kept from raw eating" % Measures.amount(&"dried_fish", kept))
 	return ", ".join(parts)
 
 
 func reserve_text() -> String:
-	"""The reserve's line, two lines: what it keeps and what the village owns; then released, what it holds, or nothing."""
+	"""The reserve's line, two lines: what it keeps and what the village owns ("Ration reserve: keep 6 rations (3 rations
+	owned)", "(none owned)"); then released, what it holds, or nothing."""
 	var reserve: RationReserveScript = fishery.ration_reserve
 	var head: String = RESERVE_NONE if reserve.target_milli == 0 else "Ration reserve: keep %s (%s owned)" \
-		% [Text.units(reserve.target_milli), Text.units(fishery.rations_owned_milli())]
+		% [Measures.exact(&"ration", reserve.target_milli), Measures.amount_cell(&"ration", fishery.rations_owned_milli())]
 	if reserve.released:
 		return "%s\nReleased: nothing held until kept again" % head
 	var held: String = held_words()
@@ -596,7 +600,7 @@ func record_text() -> String:
 		return ""
 	var lines := PackedStringArray()
 	for water: int in StewardScript.WATER_COUNT:
-		lines.append(fishery.steward.record_line(fishery.driver, water, Callable(Text, &"units")))
+		lines.append(fishery.steward.record_line(fishery.driver, water, Callable(Measures, &"amount")))
 	return "\n".join(lines)
 
 
@@ -623,8 +627,8 @@ func preview_text() -> String:
 	var closure: String = Text.closure_line(p)
 	if not closure.is_empty():
 		lines.append(closure)
-	lines.append("Expected catch: %s a cycle (base %s; fishing %d)" % [Text.units(p.expected_catch_milli),
-		Text.units(p.base_catch_milli), level])
+	lines.append("Expected catch: %s a cycle (base %s; fishing %d)" % [Measures.amount(p.species_key,
+		p.expected_catch_milli), Measures.amount(p.species_key, p.base_catch_milli), level])
 	lines.append(_gear_condition())
 	lines.append("Risk of injury: %s" % Text.risk_text(p.injury_per_10000))
 	lines.append("Rare catch: %d in 10000 a cycle makes a quarter of it excellent" % RollsScript.rare_chance(level))
@@ -664,10 +668,10 @@ func trips_text() -> String:
 			continue
 		lines.append("%s%s: %s%s" % ["▸ " if t == chosen else "", fishery.trip_name(t), _trip_state_words(t), _crew_words(t)])
 	if lines.is_empty():
-		return "No trips out. Caught so far: %s; landed in the stores: %s" % [Text.units(fishery.caught_milli),
-			Text.units(fishery.landed_milli)]
-	lines.append("Caught so far: %s; landed: %s; excellent: %s" % [Text.units(fishery.caught_milli),
-		Text.units(fishery.landed_milli), Text.units(fishery.rolls.excellent_milli)])
+		return "No trips out. Caught so far: %s; landed in the stores: %s" % [Measures.amount(&"fish",
+			fishery.caught_milli), Measures.amount(&"fish", fishery.landed_milli)]
+	lines.append("Caught so far: %s; landed: %s; excellent: %s" % [Measures.amount(&"fish", fishery.caught_milli),
+		Measures.amount(&"fish", fishery.landed_milli), Measures.amount(&"fish", fishery.rolls.excellent_milli)])
 	return "\n".join(lines)
 
 
@@ -694,8 +698,8 @@ func gear_text() -> String:
 			parts.append("%s%s" % [LockerScript.KIND_NAMES[kind], out])
 		else:
 			parts.append("%s %d/1000, %d left%s" % [LockerScript.KIND_NAMES[kind], locker.durability_of(k), locker.cycles_left(k), out])
-	return "Gear locker: %s. Rope %s, iron %s" % ["; ".join(parts), Text.units(locker.material_milli(LockerScript.MAT_ROPE)),
-		Text.units(locker.material_milli(LockerScript.MAT_IRON))]
+	return "Gear locker: %s. Rope: %s; iron: %s" % ["; ".join(parts), Measures.amount_cell(&"rope",
+		locker.material_milli(LockerScript.MAT_ROPE)), Measures.amount_cell(&"iron", locker.material_milli(LockerScript.MAT_IRON))]
 
 
 func boats_text() -> String:
@@ -713,39 +717,43 @@ func boats_text() -> String:
 
 
 func stations_text() -> String:
-	"""The rack's slots, the mill, and the pantry's fish, dried fish and flour."""
+	"""The rack's slots, the mill, and the pantry's fresh fish (every species, counted), dried fish and flour: "In the
+	pantry: 9 fish · 3 strings of dried fish · 3 scoops of flour"."""
 	var states := PackedInt32Array([0, 0, 0, 0, 0])
 	for slot: int in Rules.RACK_SLOTS:
 		states[fishery.tables.s_state[slot]] += 1
 	var rack: String = "Rack (smoked and dried): %d curing, %d cured, %d loading, %d empty" % [states[Tables.SLOT_CURING],
 		states[Tables.SLOT_READY] + states[Tables.SLOT_TAKING], states[Tables.SLOT_LOADING], states[Tables.SLOT_EMPTY]]
 	var mill: String = "Mill: %s" % ("grinding" if fishery.grinding() else "idle")
-	return "%s\n%s\nIn the pantry: fresh fish %s · dried fish %s · flour %s" % [rack, mill, Text.units(_fresh_fish()),
-		Text.units(fishery.pantry.milli_of(Catalog.ITEM_DRIED_FISH)), Text.units(fishery.pantry.milli_of(Catalog.ITEM_FLOUR))]
+	return "%s\n%s\nIn the pantry: %s · %s · %s" % [rack, mill, Measures.amount(&"fish", _fresh_fish()),
+		_pantry_amount(Catalog.ITEM_DRIED_FISH), _pantry_amount(Catalog.ITEM_FLOUR)]
 
 
 func preserves_text() -> String:
 	"""The preserves (decisions 1611, 1625): what the rack's slots dry, the preserving table and its crocks, and the
-	pantry's fruit, dried fruit, rations, jam, cheese, vinegar and pickles."""
+	pantry's fruit (apples and pears together), dried fruit, rations, jam, cheese, vinegar and pickles."""
 	var fruit: int = 0
 	for slot: int in Rules.RACK_SLOTS:
 		var drying: bool = fishery.tables.s_state[slot] != Tables.SLOT_EMPTY
 		fruit += 1 if drying and fishery.tables.s_recipe[slot] == Recipes.R_DRY_FRUIT else 0
-	return "Fruit drying on the rack: %d slot%s · the preserving table: %s · crocks in use: %d\nIn the pantry: fruit %s · dried fruit %s · rations %s · jam %s · cheese %s · vinegar %s · pickles %s" % [
+	return "Fruit drying on the rack: %d slot%s · the preserving table: %s · crocks in use: %d\nIn the pantry: %s" % [
 		fruit, "" if fruit == 1 else "s", "in use" if fishery.packing() else "free",
-		fishery.slots_in_use(Recipes.STATION_TABLE),
-		Text.units(fishery.pantry.milli_of(Catalog.ITEM_APPLE) + fishery.pantry.milli_of(Catalog.ITEM_PEAR)),
-		Text.units(fishery.pantry.milli_of(Catalog.ITEM_DRIED_FRUIT)), Text.units(fishery.pantry.milli_of(Catalog.ITEM_RATION)),
-		Text.units(fishery.pantry.milli_of(Catalog.ITEM_JAM)), Text.units(fishery.pantry.milli_of(Catalog.ITEM_CHEESE)),
-		Text.units(fishery.pantry.milli_of(Catalog.ITEM_VINEGAR)), Text.units(fishery.pantry.milli_of(Catalog.ITEM_PICKLES))]
+		fishery.slots_in_use(Recipes.STATION_TABLE), " · ".join(PackedStringArray([Measures.amount(&"fruit",
+		fishery.pantry.milli_of(Catalog.ITEM_APPLE) + fishery.pantry.milli_of(Catalog.ITEM_PEAR)),
+		_pantry_amount(Catalog.ITEM_DRIED_FRUIT), _pantry_amount(Catalog.ITEM_RATION), _pantry_amount(Catalog.ITEM_JAM),
+		_pantry_amount(Catalog.ITEM_CHEESE), _pantry_amount(Catalog.ITEM_VINEGAR), _pantry_amount(Catalog.ITEM_PICKLES)]))]
 
 
 func brewing_text() -> String:
 	"""The brewery (decisions 1621, 1625): its vats (vinegar sours in one too), and the pantry's honey and its drinks."""
-	return "Brewery: %d of %d vats in use\nIn the pantry: honey %s · mead %s · cordial %s · ale %s · cider %s" % [
-		fishery.brewing(), Recipes.VAT_SLOTS, Text.units(fishery.pantry.milli_of(Catalog.ITEM_HONEY)),
-		Text.units(fishery.pantry.milli_of(Catalog.ITEM_MEAD)), Text.units(fishery.pantry.milli_of(Catalog.ITEM_CORDIAL)),
-		Text.units(fishery.pantry.milli_of(Catalog.ITEM_ALE)), Text.units(fishery.pantry.milli_of(Catalog.ITEM_CIDER))]
+	return "Brewery: %d of %d vats in use\nIn the pantry: %s · %s · %s · %s · %s" % [fishery.brewing(), Recipes.VAT_SLOTS,
+		_pantry_amount(Catalog.ITEM_HONEY), _pantry_amount(Catalog.ITEM_MEAD), _pantry_amount(Catalog.ITEM_CORDIAL),
+		_pantry_amount(Catalog.ITEM_ALE), _pantry_amount(Catalog.ITEM_CIDER)]
+
+
+func _pantry_amount(item: int) -> String:
+	"""What the pantry holds of `item`, in its natural measure ("a jar of honey", "no cider")."""
+	return Measures.amount(Catalog.ITEM_KEYS[item], fishery.pantry.milli_of(item))
 
 
 func _fresh_fish() -> int:
@@ -826,9 +834,9 @@ func make_card(kind: int, members: PackedInt32Array) -> CardScript:
 	"""A Make button's card: `fishery.make_refusal`, its costs (the stores' wood, the locker's rope or iron)."""
 	_card.reset("Make a %s at the workbench" % LockerScript.KIND_NAMES[kind])
 	var why: String = fishery.make_refusal(kind)
-	_card.add_cost("Wood", fishery.stores.wood_milli_u, LockerScript.MAKE_WOOD_MILLI[kind])
+	_card.add_cost("Wood", &"wood", fishery.stores.wood_milli_u, LockerScript.MAKE_WOOD_MILLI[kind])
 	var mat: int = LockerScript.MAKE_MATERIAL[kind]
-	_card.add_cost(LockerScript.MAT_NAMES[mat].capitalize(), fishery.locker.material_milli(mat), LockerScript.MAKE_MATERIAL_MILLI[kind])
+	_card.add_cost(LockerScript.MAT_NAMES[mat].capitalize(), LockerScript.MAT_KEYS[mat], fishery.locker.material_milli(mat), LockerScript.MAKE_MATERIAL_MILLI[kind])
 	_card.result = "A new %s in the gear locker (1000/1000)" % LockerScript.KIND_NAMES[kind]
 	if not why.is_empty():
 		_card.refuse(fishery.refused_code, why, fishery.refused_fix)
@@ -843,8 +851,8 @@ func mend_card(members: PackedInt32Array) -> CardScript:
 	var target: int = fishery.worst_to_mend()
 	_card.reset("Mend %s" % _mend_name(target))
 	var why: String = fishery.mend_refusal(target)
-	_card.add_cost("Wood", fishery.stores.wood_milli_u, LockerScript.MEND_WOOD_MILLI)
-	_card.add_cost("Rope", fishery.locker.material_milli(LockerScript.MAT_ROPE), LockerScript.MEND_ROPE_MILLI)
+	_card.add_cost("Wood", &"wood", fishery.stores.wood_milli_u, LockerScript.MEND_WOOD_MILLI)
+	_card.add_cost("Rope", &"rope", fishery.locker.material_milli(LockerScript.MAT_ROPE), LockerScript.MEND_ROPE_MILLI)
 	_card.result = "+%d durability (to at most 1000)" % LockerScript.MEND_POINTS
 	if not why.is_empty():
 		_card.refuse(fishery.refused_code, why, fishery.refused_fix)
@@ -867,8 +875,9 @@ func dry_card(members: PackedInt32Array) -> CardScript:
 	"""Dry fish's card: `fishery.dry_refusal`, §5.7's dry_fish (fish 4 -> dried fish 3, 24 WU + 12 h)."""
 	_card.reset("Dry fish on the smoking rack")
 	var why: String = fishery.dry_refusal()
-	_card.add_cost("Fresh fish", fishery.input_available_milli(Recipes.IN_FIRST[Recipes.R_DRY_FISH]), Rules.DRY_IN_MILLI)
-	_card.result = "%s of dried fish (keeps 720 h; eaten as it is) after 12 game hours on the rack" % Text.units(Rules.DRY_OUT_MILLI)
+	_card.add_cost("Fresh fish", &"fish", fishery.input_available_milli(Recipes.IN_FIRST[Recipes.R_DRY_FISH]), Rules.DRY_IN_MILLI)
+	_card.result = "%s (keeps 720 h; eaten as it is) after 12 game hours on the rack" % Measures.exact(&"dried_fish",
+		Rules.DRY_OUT_MILLI)
 	_card.prerequisites.append("a free rack slot (4); the fish that spoils first is taken")
 	if not why.is_empty():
 		_card.refuse(fishery.refused_code, why, fishery.refused_fix)
@@ -886,13 +895,14 @@ func batch_card(recipe: int, members: PackedInt32Array) -> CardScript:
 	var why: String = fishery.batch_refusal(recipe)
 	for k: int in Recipes.IN_COUNT[recipe]:
 		var input: int = Recipes.IN_FIRST[recipe] + k
-		_card.add_cost(Recipes.cap(Recipes.category_words(Recipes.IN_CATEGORY[input])), fishery.input_available_milli(input),
+		_card.add_cost(Recipes.cap(Recipes.category_words(Recipes.IN_CATEGORY[input])),
+			MealRules.selector_good(Recipes.IN_CATEGORY[input]), fishery.input_available_milli(input),
 			Recipes.IN_MILLI[input])
 	if Recipes.WATER_MILLI[recipe] > 0:
-		_card.add_cost("Water", maxi(0, fishery.stores.water_milli_u - fishery.water_held_milli()) if fishery.stores != null \
+		_card.add_cost("Water", &"water", maxi(0, fishery.stores.water_milli_u - fishery.water_held_milli()) if fishery.stores != null \
 			else 0, Recipes.WATER_MILLI[recipe])
-	_card.result = "%s of %s (keeps %d h; %s)%s" % [Text.units(Recipes.OUT_MILLI[recipe]),
-		Catalog.ITEM_LABELS[item].to_lower(), Catalog.shelf_hours_of(item),
+	_card.result = "%s (keeps %d h; %s)%s" % [Measures.exact(Catalog.ITEM_KEYS[item], Recipes.OUT_MILLI[recipe]),
+		Catalog.shelf_hours_of(item),
 		PreserveText.card_use(recipe), " after %d game hours at %s" % [Recipes.PASSIVE_HOURS[recipe],
 		Recipes.STATION_NAMES[Recipes.STATION[recipe]]] if Recipes.is_passive(recipe) else ""]
 	var warning: String = fishery.drink_stock_warning(recipe)
@@ -911,8 +921,9 @@ func mill_card(members: PackedInt32Array) -> CardScript:
 	"""Mill grain's card: `fishery.mill_refusal`, §5.7's flour (grain 3 -> flour 3, 12 WU)."""
 	_card.reset("Mill grain at the watermill")
 	var why: String = fishery.mill_refusal()
-	_card.add_cost("Grain", fishery.grain_available_milli(), Rules.MILL_IN_MILLI)
-	_card.result = "%s of flour in the pantry (keeps 240 h). No dish here uses it yet: it is kept for later" % Text.units(Rules.MILL_OUT_MILLI)
+	_card.add_cost("Grain", &"grain", fishery.grain_available_milli(), Rules.MILL_IN_MILLI)
+	_card.result = "%s in the pantry (keeps 240 h). No dish here uses it yet: it is kept for later" % Measures.exact(&"flour",
+		Rules.MILL_OUT_MILLI)
 	if not why.is_empty():
 		_card.refuse(fishery.refused_code, why, fishery.refused_fix)
 		return _card

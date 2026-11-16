@@ -266,6 +266,23 @@ func test_placeholder_build_works_on_an_empty_manifest() -> void:
 	assert_not_null(village.get_node_or_null(^"Cover_grass_tuft"), "ground cover built")
 
 
+func test_placements_are_listed_in_node_order_and_one_can_be_hidden() -> void:
+	"""Decision 2002: `placements` lists every placed piece as `hide_placement` names it (a copy); hiding one hides its
+	node once; a placement there is none of is refused."""
+	assert_true(_world.placements().size() > 0, "laid out before a build")
+	_world.build(_empty_manifest())
+	var listed: Array[Dictionary] = _world.placements()
+	var village: Node = _world.get_node(^"Village")
+	var first: Node3D = village.get_child(0) as Node3D
+	assert_true(listed.size() >= Layout.placements().size(), "every authored placement and the scatter")
+	listed[0]["key"] = &"changed"
+	assert_true(_world.placements()[0]["key"] != &"changed", "a fresh copy")
+	assert_true(_world.hide_placement(0), "hidden")
+	assert_false(first.visible, "its node")
+	assert_false(_world.hide_placement(0), "only once")
+	assert_false(_world.hide_placement(-1) or _world.hide_placement(listed.size()), "no such placement")
+
+
 func test_placeholder_hall_is_drawn_at_its_envelope_height() -> void:
 	"""A placeholder is scaled like the asset: the hall box is exactly 7.0 m tall."""
 	_world.build(_empty_manifest())

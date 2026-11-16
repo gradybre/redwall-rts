@@ -9,7 +9,8 @@ extends RefCounted
 ##   views     the underground view on or off; the map layer shown (its index in the farm's lenses), and the layer
 ##             compared with it (decision 0581; -1 when none)
 ##   orders    every order mark (`demo_command.gd mark`), accepted or refused, with how many were selected; and the
-##             party panel's Dig tunnel, Release and room buttons
+##             party panel's Release button
+##   build     the build panel open or closed, and its pending changes (decision 1871)
 ##   notices   each new village-news post: its source and level (the text stays in the game's own history)
 ##   speed     the clock's speed and state (the node hears GameManager's signals itself)
 ##   scene     this village built, and opened once its first frames are drawn (`opened`)
@@ -28,7 +29,7 @@ const SPEED_WORDS: Array[String] = Crumbs.SPEED_WORDS
 
 
 static func wire(village: Node, gate: InputGateScript, zone: DetailZoneScript, lenses: LensesScript,
-		command: DemoCommandScript, notices: NoticesScript, calendar: CalendarScript) -> void:
+		command: DemoCommandScript, notices: NoticesScript, calendar: CalendarScript, build: Object = null) -> void:
 	"""Bind one village's sources (see THE SOURCES); they are dropped when it leaves the tree."""
 	var node: Node = PlaytestLog.ensure(village.get_tree())
 	PlaytestLog.clear_probes()
@@ -43,6 +44,9 @@ static func wire(village: Node, gate: InputGateScript, zone: DetailZoneScript, l
 	PlaytestLog.probe(Crumbs.KIND_VIEW, &"map layer", func() -> int: return lenses.active)
 	PlaytestLog.probe(Crumbs.KIND_VIEW, &"compare layer", func() -> int: return lenses.compare)
 	_wire_orders(command)
+	if build != null:
+		PlaytestLog.probe(Crumbs.KIND_PANEL, &"build panel", func() -> int: return int(build.call(&"is_open")))
+		PlaytestLog.probe(Crumbs.KIND_ORDER, &"build pending", func() -> int: return build.get(&"batch").pending_count())
 	PlaytestLog.probe(Crumbs.KIND_NOTICE, &"notice", func() -> int: return notices.revision,
 		func() -> int: return notices.source(0) * 2 + notices.level(0) if notices.count() > 0 else 0)
 	village.tree_exiting.connect(PlaytestLog.clear_probes)
@@ -57,12 +61,8 @@ static func _wire_orders(command: DemoCommandScript) -> void:
 	var panel: Object = command.panel()
 	if panel == null:
 		return
-	panel.connect(&"dig_requested", func() -> void: PlaytestLog.crumb(Crumbs.KIND_ORDER, &"dig tunnel",
-		command.selection_count()))
 	panel.connect(&"release_requested", func() -> void: PlaytestLog.crumb(Crumbs.KIND_ORDER, &"release",
 		command.selection_count()))
-	panel.connect(&"room_requested", func(kind: int) -> void: PlaytestLog.crumb(Crumbs.KIND_ORDER, &"room",
-		command.selection_count(), kind))
 
 
 static func opened() -> void:

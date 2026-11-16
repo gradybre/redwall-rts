@@ -1,0 +1,78 @@
+{
+  "active_tool": null,
+  "clips": [
+    {
+      "duration_q16": 65536,
+      "frames": 2,
+      "id": "stair_carry_v1.wood.hold",
+      "loop": 0,
+      "part_visibility_mask": 3
+    },
+    {
+      "duration_q16": 5898240,
+      "frames": 91,
+      "id": "stair_carry_v1.wood.approach",
+      "loop": 0,
+      "part_visibility_mask": 3
+    },
+    {
+      "duration_q16": 5898240,
+      "frames": 91,
+      "id": "stair_carry_v1.wood.descent",
+      "loop": 0,
+      "part_visibility_mask": 3
+    },
+    {
+      "duration_q16": 5898240,
+      "frames": 91,
+      "id": "stair_carry_v1.wood.ascent",
+      "loop": 0,
+      "part_visibility_mask": 3
+    },
+    {
+      "duration_q16": 17694720,
+      "frames": 271,
+      "id": "stair_carry_v1.wood.turn",
+      "loop": 0,
+      "part_visibility_mask": 3
+    },
+    {
+      "duration_q16": 5898240,
+      "frames": 91,
+      "id": "stair_carry_v1.wood.retreat",
+      "loop": 0,
+      "part_visibility_mask": 3
+    },
+    {
+      "duration_q16": 5898240,
+      "frames": 91,
+      "id": "stair_carry_v1.wood.back_up",
+      "loop": 0,
+      "part_visibility_mask": 3
+    },
+    {
+      "duration_q16": 5898240,
+      "frames": 91,
+      "id": "stair_carry_v1.wood.empty_walk_off",
+      "loop": 0,
+      "part_visibility_mask": 1
+    },
+    {
+      "duration_q16": 5898240,
+      "frames": 91,
+      "id": "stair_carry_v1.wood.empty_back_up",
+      "loop": 0,
+      "part_visibility_mask": 1
+    }
+  ],
+  "decision": "1981",
+  "item": "wood",
+  "parts": [
+    "body",
+    "stock"
+  ],
+  "production_qualified": false,
+  "quantity_milli": 1000,
+  "schema": 1,
+  "source_clock": "presentation sampling only; the stair carry's pace is DEC-050's (decision 1981)"
+}

@@ -21,7 +21,6 @@ const PIN_TEXT: String = "Pin project"
 const REMOVE_TEXT: String = "Remove"
 const GO_TO: String = "Go to %s"
 const ROW: String = "%s %s -- %s"
-const PROGRESS: String = "%s of %s"
 
 var projects: ProjectsScript = null
 var world: WorldScript = null
@@ -128,7 +127,7 @@ func refresh() -> void:
 		_drawn = projects.revision
 		_draw_rows()
 	_measure.text = ProjectsScript.MEASURE_NAMES[_measure_k]
-	_target.text = "Target: %s" % ProjectsScript.amount_text(_measure_k, _target_value)
+	_target.text = "Target: %s" % ProjectsScript.target_text(_measure_k, _target_value)
 	_places.text = _places_text()
 	var full: bool = projects != null and projects.is_full()
 	_form.visible = not full
@@ -183,8 +182,8 @@ func _progress_lines() -> void:
 			continue
 		var project: ProjectsScript.Project = projects.projects[k]
 		var mark: String = "✓" if project.done else "◻"
-		var so_far: String = PROGRESS % [ProjectsScript.amount_text(project.measure,
-			projects.progress(project, world, facts)), ProjectsScript.amount_text(project.measure, project.target)]
+		var so_far: String = ProjectsScript.progress_text(project.measure, projects.progress(project, world, facts),
+			project.target)
 		(row.get_child(0) as Label).text = ROW % [mark, project.name, ProjectsScript.goal_text(project.measure,
 			project.target)] + " (" + ("done" if project.done else so_far) + ")"
 		k += 1

@@ -439,14 +439,17 @@ func cancel(task_source: int, row: int) -> String:
 
 
 func reassign(task_source: int, row: int, who: int) -> String:
-	"""Give the task to `who` instead, taken off whatever it was doing: "" when done, else why not."""
+	"""Give the task to `who` instead, taken off whatever it was doing: "" when done, else why not. Nobody promises it
+	any more (decision 1905): one who meant to come back to it would otherwise hold a task someone else now has."""
 	var why: String = eligibility_words(task_source, row, who)
 	if not why.is_empty():
 		return why
 	var said: String = _done(_command_source(task_source, row),
 		func(src: SourceScript) -> String: return src.reassign(row, who))
 	if said.is_empty():
-		_brains[who].forget_task(task_source, _sources[task_source].key(row))
+		var task_key: int = _sources[task_source].key(row)
+		for brain: BrainScript in _brains:
+			brain.forget_task(task_source, task_key)
 	return said
 
 

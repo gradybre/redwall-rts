@@ -234,9 +234,9 @@ func hold_card() -> CardScript:
 	_card.reset("Hold the %s regatta" % regatta.day_text(regatta.choice_day))
 	regatta.count_supper(regatta.choice_day)
 	var e: int = regatta.residents()
-	_card.add_cost("Beans", regatta.free_beans(), regatta.main_food_milli(e))
-	_card.add_cost(_sentence_case(RegattaScript.main_greens_words()), regatta.free_greens(), regatta.main_food_milli(e))
-	_card.add_cost("Wood", services.stores.wood_milli_u, Rules.service_wood_milli(e))
+	_card.add_cost("Beans", &"beans", regatta.free_beans(), regatta.main_food_milli(e))
+	_card.add_cost(_sentence_case(RegattaScript.main_greens_words()), RegattaScript.main_greens_good(), regatta.free_greens(), regatta.main_food_milli(e))
+	_card.add_cost("Wood", &"wood", services.stores.wood_milli_u, Rules.service_wood_milli(e))
 	_card.result = "The race at %02d:00, the %s feast at supper for %d; remembered in the chronicle" % [Rules.RACE_HOUR,
 		Rules.THEME_NAME, e]
 	_card.prerequisites.append("a host who neither races nor cooks; two helms (fishing 1); the main course's food free")

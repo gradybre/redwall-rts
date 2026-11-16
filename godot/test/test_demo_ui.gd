@@ -846,3 +846,13 @@ func test_the_tabs_and_the_close_fit_the_right_column_at_1280x720() -> void:
 	var rect: Rect2 = DetailZoneScript.strip_placement(1280, 720, UiLayoutScript.new(), UiLayoutScript.Geometry.new())
 	assert_true(needed > 200.0, "measured (%.1f px)" % needed)
 	assert_true(needed <= rect.size.x, "%.1f px of tabs and × in a %.1f px column" % [needed, rect.size.x])
+
+
+func test_the_demo_s_unlocked_build_command_keeps_its_own_tip() -> void:
+	"""P-B3: the build panel unlocks Build in the demo with its own tip; apply() leaves it, as it leaves Food."""
+	var shell := _tipped_shell()
+	var build := shell.control_for(UiShellScript.ID_BUILD) as Button
+	build.disabled = false
+	build.tooltip_text = "Build (B) — the panel's own"
+	assert_equal(CommandTips.apply(shell), 6, "the other six")
+	assert_equal(build.tooltip_text, "Build (B) — the panel's own", "kept")

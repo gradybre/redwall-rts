@@ -512,6 +512,9 @@ var _life_stages_required: bool = false
 var _present_count: int = 0
 var _living_count: int = 0
 var _death_count: int = 0
+## Decision 1951: a runtime token that changes whenever `_present` or whether `_health` is above zero may have
+## changed (spawn, despawn, clear, restore, a health write crossing zero). Never saved; zero (saturated) poisons.
+var _life_revision: int = 1
 var _last_refused_slot: int = -1
 ## The bulk-column namespace's own refusal code (decision 0132). Category 3 like the counters
 ## above: not state, not persisted, and excluded from `state_bytes()` so a refusal cannot alter
@@ -587,6 +590,7 @@ func _check_rate_bounds() -> void:
 
 func _allocate_columns() -> void:
 	"""The only place that sizes a packed array (ARCH-MEM-005: allocate once)."""
+	_mark_life_changed()
 	_need_value.resize(RESIDENT_CAPACITY * NEED_COUNT)
 	_need_remainder.resize(RESIDENT_CAPACITY * NEED_COUNT)
 	_health.resize(RESIDENT_CAPACITY)
@@ -613,6 +617,7 @@ func _allocate_columns() -> void:
 
 func clear() -> void:
 	"""Return every column to the empty settlement state without reallocating."""
+	_mark_life_changed()
 	_need_value.fill(0)
 	_need_remainder.fill(0)
 	_health.fill(0)
@@ -723,6 +728,7 @@ func _spawn_checked(slot: int, size_class: int) -> StringName:
 
 func _write_spawn_row(slot: int, size_class: int) -> void:
 	"""Write every authoritative and input column of one freshly spawned resident."""
+	_mark_life_changed()
 	var base: int = slot * NEED_COUNT
 	for need: int in NEED_COUNT:
 		_need_value[base + need] = INITIAL_NEED_VALUE
@@ -759,6 +765,7 @@ func _despawn_checked(slot: int) -> StringName:
 		return code
 	if _status[slot] != STATUS_DEAD:
 		_living_count -= 1
+	_mark_life_changed()
 	var base: int = slot * NEED_COUNT
 	for need: int in NEED_COUNT:
 		_need_value[base + need] = 0
@@ -776,6 +783,17 @@ func _despawn_checked(slot: int) -> StringName:
 
 
 # --- readers ---------------------------------------------------------------------------------
+
+func life_revision() -> int:
+	"""Decision 1951: changes on every write of `_present` and on every health write that crosses zero."""
+	return _life_revision if _life_revision < IntMath.INT64_MAX else 0
+
+
+func _mark_life_changed() -> void:
+	"""Saturate on exhaustion so a cache keyed on the token can never see a recycled value."""
+	if _life_revision < IntMath.INT64_MAX:
+		_life_revision += 1
+
 
 func is_present(slot: int) -> bool:
 	"""True when `slot` is in range and holds a spawned resident row, dead or alive."""
@@ -1206,6 +1224,7 @@ func _apply_health_event_checked(slot: int, points: int) -> StringName:
 		return REFUSE_OVERFLOW
 	var before: int = _health[slot]
 	var value: int = clampi(_math.value, HEALTH_MIN, HEALTH_MAX)
+	if (before > 0) != (value > 0): _mark_life_changed()
 	_health[slot] = value
 	var remainder: int = _health_remainder[slot]
 	if (value == HEALTH_MAX and remainder > 0) or (value == HEALTH_MIN and remainder < 0):
@@ -1414,6 +1433,7 @@ func _integrate_health(slot: int, rate: int) -> StringName:
 	if code != REFUSE_NONE:
 		return code
 	var died: bool = _step_value == HEALTH_MIN and _health[slot] > HEALTH_MIN
+	if (_health[slot] > 0) != (_step_value > 0): _mark_life_changed()
 	_health[slot] = _step_value
 	_health_remainder[slot] = _step_remainder
 	if died:
@@ -2280,6 +2300,7 @@ static func _living_row_count(present: PackedByteArray, status: PackedByteArray)
 
 func _install_columns(columns: Columns) -> void:
 	"""Take a private copy of each validated column. `duplicate()` so the caller cannot alias one."""
+	_mark_life_changed()
 	_present = columns.present.duplicate()
 	_need_value = columns.need_value.duplicate()
 	_need_remainder = columns.need_remainder.duplicate()

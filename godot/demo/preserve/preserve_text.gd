@@ -5,17 +5,18 @@ extends RefCounted
 
 const Recipes := preload("res://demo/preserve/preserve_rules.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
-const ForestRules := preload("res://demo/forestry/forest_rules.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")
+const MealRules := preload("res://demo/kitchen/meal_rules.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 ## Per recipe row (preserve_rules.gd R_*): the guide's one line (the fish row's is the guide's own, decision 0434).
 const SUMMARY: Array[String] = ["", "Fruit dried on the rack", "Packed at the preserving table", "Brewed at the brewery",
 	"Made at the brewery's bench", "Cooked at the preserving table", "Set in a crock at the preserving table",
 	"Brewed at the brewery", "Pressed and brewed at the brewery", "Soured in a vat at the brewery",
 	"Pickled in a crock at the preserving table"]
-const DRINK_USE: String = "A drink for the feast: poured at the regatta's supper, a unit for every four guests, when the brewery has made enough. No one is made drunk."
+const DRINK_USE: String = "A drink for the feast: poured at the regatta's supper, a jug for every four guests, when the brewery has made enough. No one is made drunk."
 ## The cordial is also a TABLE DRINK (decision 1733): poured at every ordinary supper as well as at the feast.
-const CORDIAL_USE: String = "A table drink: poured at every supper, a unit for every four who ate, and at the " \
+const CORDIAL_USE: String = "A table drink: poured at every supper, a jug for every four who ate, and at the " \
 	+ "regatta's feast. No one is made drunk."
 const VINEGAR_USE: String = "An ingredient: the pickles' apple vinegar. Never drunk or eaten."
 const DRINK_ALTERNATIVE: String = "The Hearth feast's warm infusion of herbs and water is poured whatever the brewery has made."
@@ -55,7 +56,8 @@ static func guide_fields(item: int, raw_np: int) -> PackedStringArray:
 	var recipe: int = recipe_of(item)
 	var drink: bool = Recipes.USE[recipe] == Recipes.USE_DRINK
 	var use: String = DRINK_USE if drink \
-		else "The village's reserve: eaten as it is by a hungry resident when a meal is missed (%d NP a unit)." % raw_np
+		else "The village's reserve: eaten as it is by a hungry resident when a meal is missed (%d NP for %s)." % [raw_np,
+			Measures.exact(Catalog.ITEM_KEYS[item], MealRules.MILLI_PER_U)]
 	if Recipes.USE[recipe] == Recipes.USE_INGREDIENT:
 		use = VINEGAR_USE
 	elif recipe == Recipes.R_CORDIAL:
@@ -67,18 +69,20 @@ static func guide_fields(item: int, raw_np: int) -> PackedStringArray:
 
 
 static func made_words(recipe: int) -> String:
-	"""How a row is made, in the guide's words: its button, station, inputs, output, work and wait."""
+	"""How a row is made, in the guide's words: its button, station, inputs, output, work and wait -- every amount as the
+	recipe states it ("3 jars of honey, 3 jugs of water make 4 jugs of mead")."""
 	var inputs := PackedStringArray()
 	for k: int in Recipes.IN_COUNT[recipe]:
 		var input: int = Recipes.IN_FIRST[recipe] + k
-		inputs.append("%s %s" % [Recipes.category_words(Recipes.IN_CATEGORY[input]), ForestRules.units_text(Recipes.IN_MILLI[input])])
+		inputs.append(Measures.exact(MealRules.selector_good(Recipes.IN_CATEGORY[input]), Recipes.IN_MILLI[input]))
 	if Recipes.WATER_MILLI[recipe] > 0:
-		inputs.append("water %s" % ForestRules.units_text(Recipes.WATER_MILLI[recipe]))
+		inputs.append(Measures.exact(&"water", Recipes.WATER_MILLI[recipe]))
 	var wait: String = " and %d hours at %s" % [Recipes.PASSIVE_HOURS[recipe], Recipes.STATION_NAMES[Recipes.STATION[recipe]]] \
 		if Recipes.is_passive(recipe) else ""
 	@warning_ignore("integer_division") var work_wu: int = Recipes.WORK_MWU[recipe] / 1000
 	return "%s (the Water panel) at %s: %s make %s, %d WU%s." % [Recipes.VERB[recipe],
-		Recipes.STATION_NAMES[Recipes.STATION[recipe]], ", ".join(inputs), ForestRules.units_text(Recipes.OUT_MILLI[recipe]),
+		Recipes.STATION_NAMES[Recipes.STATION[recipe]], ", ".join(inputs),
+		Measures.exact(Catalog.ITEM_KEYS[Recipes.OUT_ITEM[recipe]], Recipes.OUT_MILLI[recipe]),
 		work_wu, wait]
 
 

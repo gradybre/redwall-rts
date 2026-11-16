@@ -18,7 +18,10 @@ extends RefCounted
 ## shelved there as its own item: nuts, mushrooms, herbs or berries, each its own lot that ages as §5.8 says.
 ##
 ## INTERRUPTION loses nothing. Called away on the way or at work (an order, the night, a meal), the seat goes back on the
-## board with its claim, its room and its work done kept, for whoever takes it next. A haul in hand is carried home
+## board with its claim, its room and its work done kept, and its forager keeps it to come back to (`unfinished_of`,
+## `take_back`; decision 1905, as the orchard's 1900): the work board leaves it to that forager meanwhile (decision
+## 0411's promise), and a seat refilled meanwhile is not taken back. A walk it could not finish keeps nothing (the seat
+## is offered to another), nor do the board's Pause and Reassign. A haul in hand is carried home
 ## before the night or a meal takes its forager (`must_finish`); an order that takes it sets the haul down where it
 ## stands, still in the books, for the next to fetch. CANCEL calls off the seats not yet carrying (their claims and room
 ## given back); a haul in hand is always brought home.
@@ -51,6 +54,10 @@ const CastOrdersScript := preload("res://demo/cast/cast_orders.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 const ForestRules := preload("res://demo/forestry/forest_rules.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
+const UnfinishedScript := preload("res://demo/cast/unfinished_job.gd")
+const WorkIds := preload("res://demo/work/work_ids.gd")
+const HeldPlaces := preload("res://demo/work/held_places.gd")
 
 const NONE: int = -1
 const NULL_REF: Vector2i = DriverScript.NULL_REF
@@ -130,6 +137,8 @@ var j_need: PackedInt64Array = PackedInt64Array()
 var j_wait_usec: PackedInt64Array = PackedInt64Array()
 var j_tries: PackedInt32Array = PackedInt32Array()
 var j_failed: PackedInt32Array = PackedInt32Array()
+## Who was let keep the seat when called away (demo/work/held_places.gd; NONE: nobody), cleared when anyone claims it.
+var j_keeper: PackedInt32Array = PackedInt32Array()
 var j_paused: PackedByteArray = PackedByteArray()
 var j_words: PackedStringArray = PackedStringArray()
 
@@ -169,7 +178,8 @@ func _size_rows() -> void:
 	for column: PackedInt64Array in [t_asked, t_got, t_posted]:
 		column.resize(Rules.MAX_TRIPS)
 	t_live.resize(Rules.MAX_TRIPS)
-	for column: PackedInt32Array in [j_serial, j_trip, j_step, j_worker, j_claim_slot, j_claim_gen, j_hold, j_tries, j_failed]:
+	for column: PackedInt32Array in [j_serial, j_trip, j_step, j_worker, j_claim_slot, j_claim_gen, j_hold, j_tries,
+			j_failed, j_keeper]:
 		column.resize(Rules.MAX_JOBS)
 	for column: PackedInt64Array in [j_share, j_claimed, j_load, j_num, j_mwu, j_need, j_wait_usec]:
 		column.resize(Rules.MAX_JOBS)
@@ -223,6 +233,18 @@ static func item_of(kind_index: int) -> int:
 	return Catalog.item_of_patch(Rules.KINDS[kind_index])
 
 
+static func good_of(kind_index: int) -> StringName:
+	"""The good kind index `kind_index` is worded as (goods_measures.gd, decision 1801): its pantry item's key."""
+	return Catalog.ITEM_KEYS[item_of(kind_index)]
+
+
+func quota_words(good: StringName) -> String:
+	"""The basin's daily quota, what is left of it and the day's whole, in `good`'s measure (every forage good weighs
+	250 g a U, so the shared quota reads truly in any of them): "21 handfuls left of 42 handfuls of nuts"."""
+	return "%s left of %s" % [Measures.amount_cell(good, driver.quota_left_milli()),
+		Measures.amount(good, driver.quota_today_milli())]
+
+
 # --- the books -------------------------------------------------------------------------------------------
 
 func in_hand_milli(kind_index: int) -> int:
@@ -252,6 +274,39 @@ func update(usec: int) -> void:
 	for j: int in Rules.MAX_JOBS:
 		if j_live[j] == 1 and j_wait_usec[j] > 0:
 			j_wait_usec[j] = maxi(0, j_wait_usec[j] - usec)
+	_release_held_seats()
+
+
+func _hand_over_keep(j: int) -> void:
+	"""Job `j` claimed: the worker who kept it while away keeps it no longer -- her kept entry goes, as the
+	board's Reassign does (her own take-back has popped it already) -- else her promise would outlive the keeper column
+	and hold the trip; the column is cleared."""
+	HeldPlaces.hand_over(j_keeper[j], self, WorkIds.SOURCE_FORAGE, j_serial[j])
+	j_keeper[j] = NONE
+
+
+func _release_held_seats() -> void:
+	"""TRIP DOESN'T WAIT (decision 1905, demo/work/held_places.gd): a party under way -- another of its seats has its
+	forager -- does not wait, in working hours, for a seat its forager KEPT when called away with nothing in hand. A
+	seat the player queued for someone waits for her; a party of one, or a seat whose haul was set down, keeps it."""
+	for j: int in Rules.MAX_JOBS:
+		if j_keeper[j] != NONE and waiting(j) and j_load[j] == 0 and _party_out(j):
+			_release_kept(j)
+
+
+func _party_out(j: int) -> bool:
+	"""Whether another seat of seat `j`'s trip has its forager (the party is under way)."""
+	for k: int in Rules.MAX_JOBS:
+		if k != j and j_live[k] == 1 and j_trip[k] == j_trip[j] and j_worker[k] != NONE:
+			return true
+	return false
+
+
+func _release_kept(j: int) -> void:
+	"""Seat `j`'s keeper gives it up (held_places.gd: only her kept entry, only in working hours); the board offers it
+	to anyone idle."""
+	if HeldPlaces.try_release(j_keeper[j], calendar, self, WorkIds.SOURCE_FORAGE, j_serial[j]):
+		j_keeper[j] = NONE
 
 
 func _credit_work(usec: int) -> void:
@@ -294,11 +349,11 @@ func nothing_left_words(kind_index: int) -> String:
 	reserve (decision 1721) -- or all of it claimed."""
 	if driver.quota_left_milli() < Rules.MIN_SHARE_MILLI:
 		return "the woods' daily quota is gathered (%s a day this season) — it opens again at midnight" % \
-			Rules.units_text(driver.quota_today_milli())
-	var floor_words: String = Rules.units_text(driver.floor_milli(Rules.KINDS[kind_index]))
+			Measures.amount(good_of(kind_index), driver.quota_today_milli())
+	var floor_words: String = Measures.need(good_of(kind_index), driver.floor_milli(Rules.KINDS[kind_index]))
 	var reserve: int = reserve_milli(kind_index)
 	if reserve > 0:
-		floor_words += " and %s more in the protected grove" % Rules.units_text(reserve)
+		floor_words += " and %s more in the protected grove" % Measures.need_cell(good_of(kind_index), reserve)
 	return "the woods keep their last %s (the sustainable floor), and the rest is spoken for" % floor_words
 
 
@@ -486,7 +541,7 @@ func _remember(t: int) -> void:
 
 
 func note_line(kind_index: int) -> String:
-	"""What the village remembers of `kind_index`'s spot ("": nothing yet): 'Remembered (Y1 Summer 2): 8.0 U of nuts,
+	"""What the village remembers of `kind_index`'s spot ("": nothing yet): 'Remembered (Y1 Summer 2): 8 handfuls of nuts,
 	out 2 h 10 min, led by Wenna'."""
 	if note_tick[kind_index] < 0:
 		return ""
@@ -495,8 +550,8 @@ func note_line(kind_index: int) -> String:
 	@warning_ignore("integer_division") var hours: int = note_ticks[kind_index] / SimClock.TICKS_PER_HOUR
 	@warning_ignore("integer_division") var minutes: int = (note_ticks[kind_index] % SimClock.TICKS_PER_HOUR) * 60 / SimClock.TICKS_PER_HOUR
 	var led: String = ", led by %s" % note_lead[kind_index] if not note_lead[kind_index].is_empty() else ""
-	return "Remembered (Y%d %s %d): %s of %s, out %d h %02d min%s" % [when.year, CalendarScript.SEASON_TITLES[when.season],
-		when.season_day, Rules.units_text(note_milli[kind_index]), Rules.KIND_WORDS[kind_index], hours, minutes, led]
+	return "Remembered (Y%d %s %d): %s, out %d h %02d min%s" % [when.year, CalendarScript.SEASON_TITLES[when.season],
+		when.season_day, Measures.amount(good_of(kind_index), note_milli[kind_index]), hours, minutes, led]
 
 
 func _give_first(j: int, members: PackedInt32Array, given: PackedInt32Array) -> void:
@@ -569,6 +624,7 @@ func _open_seat(t: int, share: int) -> int:
 	j_trip[j] = t
 	j_step[j] = S_TO_SPOT
 	j_worker[j] = NONE
+	j_keeper[j] = NONE
 	j_share[j] = share
 	j_claimed[j] = 0
 	j_claim_slot[j] = NULL_REF.x
@@ -635,6 +691,7 @@ func claim(j: int, who: int) -> bool:
 		j_worker[j] = NONE
 		_tasks[j] = null
 		return false
+	_hand_over_keep(j)
 	revision += 1
 	return true
 
@@ -664,8 +721,8 @@ func _seat_over(t: int) -> void:
 	var k: int = t_kind[t]
 	if t_got[t] > 0:
 		_remember(t)
-		_note("The foraging party is back from %s: %s of %s in the stores%s" % [Rules.SPOT_NAMES[k],
-			Rules.units_text(t_got[t]), Rules.KIND_WORDS[k], outing_words(t)], false)
+		_note("The foraging party is back from %s: %s in the stores%s" % [Rules.SPOT_NAMES[k],
+			Measures.amount(good_of(k), t_got[t]), outing_words(t)], false)
 
 
 func _let_go(j: int) -> void:
@@ -721,14 +778,34 @@ func drive(j: int, serial: int, brain: BrainScript, delta: float) -> bool:
 	return is_job(j, serial) and j_worker[j] == brain.index
 
 
-func called_away(j: int, serial: int, brain: BrainScript) -> void:
-	"""The brain gave the seat up: a walk it could not finish, or an order, the night, a meal or a release."""
+func called_away(j: int, serial: int, brain: BrainScript) -> bool:
+	"""The brain gave the seat up: a walk it could not finish, or an order, the night, a meal or a release. True when
+	the forager keeps the seat to come back to (see INTERRUPTION): let go here, not for a failed walk."""
 	if not is_job(j, serial) or j_worker[j] != brain.index:
-		return
+		return false
 	if brain.trip_failed() and j_step[j] != S_GATHER:
 		_unreached(j, brain)
-		return
+		return false
 	_let_go(j)
+	j_keeper[j] = brain.index
+	return true
+
+
+func unfinished_of(j: int, serial: int) -> UnfinishedScript:
+	"""Seat `j` as the entry its forager keeps when called away (decision 1905, the orchard's 1900): taken back by
+	`take_back` while it is still the same job, naming the work board's task (its serial) so nobody else claims it
+	meanwhile. Null once the job is over."""
+	if not is_job(j, serial):
+		return null
+	return UnfinishedScript.new(take_back.bind(j, serial), "%s, %s" % [task_words(j), place_words(j)],
+		WorkIds.SOURCE_FORAGE, serial)
+
+
+func take_back(brain: BrainScript, j: int, serial: int) -> bool:
+	"""A resident called away comes back to job `j` (resident_brain.gd RESUMING): claimed again only while it is the
+	same job and waits for someone -- never a seat or a crew place refilled meanwhile, a paused job, or one waiting out
+	a walk nobody finished."""
+	return is_job(j, serial) and claim(j, brain.index)
 
 
 func must_finish(j: int, serial: int) -> bool:
@@ -868,7 +945,7 @@ func _hold_and_claim(j: int, k: int, amount: int, brain: BrainScript) -> String:
 	var kind: int = Rules.KINDS[k]
 	if not pantry.reserve_near_into(item_of(k), amount, brain.surface_point(), _read):
 		_room_short = true
-		return "no store has room for %s of %s — make room in the Pantry (K)" % [Rules.units_text(amount), Rules.KIND_WORDS[k]]
+		return "no store has room for %s — make room in the Pantry (K)" % Measures.need(good_of(k), amount)
 	j_hold[j] = _read.value
 	var job: Vector2i = driver.open_claim(kind, amount)
 	if job == NULL_REF:
@@ -926,8 +1003,7 @@ func _deliver(j: int, brain: BrainScript) -> void:
 	if _room_for_haul(j, brain):
 		_begin_walk(j, brain)
 		return
-	j_words[j] = "no store has room for %s of %s — make room in the Pantry (K)" % [Rules.units_text(j_load[j]),
-		Rules.KIND_WORDS[k]]
+	j_words[j] = "no store has room for %s — make room in the Pantry (K)" % Measures.need(good_of(k), j_load[j])
 	j_wait_usec[j] = Rules.RETRY_USEC
 
 
@@ -949,7 +1025,7 @@ func doing_text(j: int, serial: int) -> String:
 		S_GATHER:
 			return "gathering %s at %s" % [Rules.KIND_WORDS[k], Rules.SPOT_NAMES[k]]
 		S_TO_STORE:
-			return "carrying %s of %s home to %s" % [Rules.units_text(j_load[j]), Rules.KIND_WORDS[k], place_words(j)]
+			return "carrying %s home to %s" % [Measures.amount(good_of(k), j_load[j]), place_words(j)]
 	return "foraging: going to %s for %s" % [Rules.SPOT_NAMES[k], Rules.KIND_WORDS[k]]
 
 
@@ -1039,18 +1115,19 @@ func season_words(kind_index: int) -> String:
 
 
 func trip_line(t: int) -> String:
-	"""'Nuts from the hazel brake: 2 foragers, 8.0 U asked, 4.0 U home'."""
+	"""'Nuts from the hazel brake: 2 foragers (2 out), 16 handfuls asked, 8 handfuls home'."""
 	var k: int = t_kind[t]
 	var out: int = 0
 	for j: int in Rules.MAX_JOBS:
 		out += 1 if j_live[j] == 1 and j_trip[j] == t and j_worker[j] != NONE else 0
 	var turned: String = " · %d turned back for the dark" % t_turned[t] if t_turned[t] > 0 else ""
 	return "%s from %s: %d foragers (%d out), %s asked, %s home%s%s" % [Rules.KIND_WORDS[k].capitalize(),
-		Rules.SPOT_NAMES[k], t_party[t], out, Rules.units_text(t_asked[t]), Rules.units_text(t_got[t]), outing_words(t),
-		turned]
+		Rules.SPOT_NAMES[k], t_party[t], out, Measures.need_cell(good_of(k), t_asked[t]),
+		Measures.amount_cell(good_of(k), t_got[t]), outing_words(t), turned]
 
 
 func status_line() -> String:
-	"""The Routes layer's and the panel's line: 'Foraging: 1 trip out · today's quota 9.8 of 21.1 U left'."""
-	return "Foraging: %d trip%s out · the woods' quota today %s of %s left" % [trip_count(),
-		"" if trip_count() == 1 else "s", Rules.units_text(driver.quota_left_milli()), Rules.units_text(driver.quota_today_milli())]
+	"""The Routes layer's and the panel's line: 'Foraging: 1 trip out · the woods' quota today: 1½ baskets left of 4
+	baskets of food' (the quota is shared by every kind: mixed food, goods_measures.gd)."""
+	return "Foraging: %d trip%s out · the woods' quota today: %s" % [trip_count(), "" if trip_count() == 1 else "s",
+		quota_words(&"food")]

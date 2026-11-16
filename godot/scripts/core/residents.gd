@@ -435,6 +435,9 @@ var _skill_level: PackedInt32Array = PackedInt32Array()
 ## Ascending list of spawned rows, so demand iterates the population and not all 512 slots.
 var _live_slots: PackedInt32Array = PackedInt32Array()
 var _live_count: int = 0
+## Decision 1951: a runtime token that changes whenever `_present`, `_ref_slot` or `_ref_generation` may have
+## changed (spawn, despawn, clear, restore). Never saved; zero (saturated) permanently poisons a reader's cache.
+var _identity_revision: int = 1
 
 ## Rows created by the in-flight spawn_initial_settlement(), so a mid-cohort refusal can undo
 ## exactly what that call made and nothing else. Sized once with every other column.
@@ -537,6 +540,7 @@ func _declared_size_of(key: StringName) -> int:
 
 func _allocate_columns() -> void:
 	"""The only place that sizes a packed array (ARCH-MEM-005: allocate once)."""
+	_mark_identity_changed()
 	_present.resize(RESIDENT_CAPACITY)
 	_species.resize(RESIDENT_CAPACITY)
 	_size_class.resize(RESIDENT_CAPACITY)
@@ -586,6 +590,7 @@ func _clear_identity_columns() -> void:
 	`_life_stage` goes to ADULT because MOVE-DEP-R02 makes 0 the canonical unused value; an
 	empty row is still distinguished by `_present`, never by this byte.
 	"""
+	_mark_identity_changed()
 	_present.fill(0)
 	_species.fill(0)
 	_size_class.fill(SIZE_SMALL)
@@ -599,6 +604,7 @@ func _clear_identity_columns() -> void:
 
 func _clear_reference_columns() -> void:
 	"""Reset every stored EntityRef pair and the Equipment mirror to null/empty."""
+	_mark_identity_changed()
 	_home_slot.fill(EntityDirectory.NULL_SLOT)
 	_home_generation.fill(EntityDirectory.NULL_GENERATION)
 	_bed_slot.fill(EntityDirectory.NULL_SLOT)
@@ -612,6 +618,17 @@ func _clear_reference_columns() -> void:
 
 
 # --- collaborators and catalog readers -------------------------------------------------------
+
+func identity_revision() -> int:
+	"""Decision 1951: changes on every write of the presence and identity columns; zero poisons caches."""
+	return _identity_revision if _identity_revision < IntMath.INT64_MAX else 0
+
+
+func _mark_identity_changed() -> void:
+	"""Saturate on exhaustion so a cache keyed on the token can never see a recycled value."""
+	if _identity_revision < IntMath.INT64_MAX:
+		_identity_revision += 1
+
 
 func directory() -> EntityDirectory:
 	"""The allocator behind every resident reference."""
@@ -760,6 +777,7 @@ func _write_spawn_row(slot: int, ref: Vector2i, species_id_value: int, size_clas
 	`life_stage` is written here rather than left at whatever the previous tenant of a reused
 	slot held: MOVE-DEP-R02 requires free-slot reuse to initialize the stage explicitly.
 	"""
+	_mark_identity_changed()
 	_present[slot] = 1
 	_species[slot] = species_id_value
 	_size_class[slot] = size_class
@@ -819,6 +837,7 @@ func despawn(ref: Vector2i) -> OpResult:
 		return _refuse(REFUSE_NOT_PRESENT)
 	if _needs.is_present(slot):
 		_needs.despawn(slot)
+	_mark_identity_changed()
 	_present[slot] = 0
 	_named[slot] = 0
 	_life_stage[slot] = LIFE_STAGE_ADULT
@@ -2381,6 +2400,7 @@ func _column_live_row_refusal(columns: Columns) -> StringName:
 
 func _install_columns(columns: Columns) -> void:
 	"""Take a private copy of each validated column. `duplicate()` so the caller cannot alias one."""
+	_mark_identity_changed()
 	_present = columns.present.duplicate()
 	_species = columns.species.duplicate()
 	_size_class = columns.size_class.duplicate()

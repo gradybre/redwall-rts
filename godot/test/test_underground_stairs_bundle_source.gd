@@ -1,7 +1,9 @@
 extends "res://test/framework/test_case.gd"
-## ADR 1229: the T1-T6 bundle (`qualified-stairs-v8`, increment 6; v7 lacked the seventh row's CUT group) through
-## the actual Catalog, Recipes, Assemblies and Frontier readers, against content 10 loaded in a fixture Profiles store.
-## The mounted Session runs this very bundle; nothing here grants a Location, route or Job.
+## ADR 1229: the T1-T6 bundle through the actual Catalog, Recipes, Assemblies and Frontier readers, in a fixture
+## Profiles store. Decision 1972: the mounted bundle is `qualified-stairs-v10`, on content 12 (content 10's rows 0-66
+## byte for byte, then the claw wall rows 67-70 and the stair carry 71-84).
+## Decision 2044 (P-2044-15): the mounted Session runs its successor, the M2 interim `qualified-stairs-m2-v1` (v10's
+## rows first); nothing here grants a Location, route or Job.
 
 const Host := preload("res://scripts/systems/settlement_system.gd")
 const Session := preload("res://scripts/core/underground_session.gd")
@@ -11,10 +13,11 @@ const Assemblies := preload("res://scripts/core/underground_connector_assemblies
 const Recipes := preload("res://scripts/core/underground_connector_recipes.gd")
 const Frontier := preload("res://scripts/core/underground_entry_frontier.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
-const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-v9/catalog_source.gd")
+const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-v10/catalog_source.gd")
+const Mounted := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-m2-v1/catalog_source.gd")
 const Pins := preload("res://data/underground/mole-worker/qualified-claw-stairs-v11/catalog_source.gd")
 const Tread := preload("res://data/underground/mole-worker/qualified-claw-runtime-v2/tread_geometry.gd")
-const CAPACITIES: Vector3i = Vector3i(67, 547, 6)
+const CAPACITIES: Vector3i = Vector3i(85, 637, 8)
 
 var _host: Host = null
 var _content: Content = null
@@ -27,7 +30,7 @@ var _frontier: Frontier = null
 
 
 func before_each() -> void:
-	"""The original mounted owners supply World, levels and Movement; content 9 is a separate fixture store."""
+	"""The original mounted owners supply World, levels and Movement; content 12 is a separate fixture store."""
 	_host = Host.new()
 	_content = Content.new()
 	assert_equal(_content.load_file(Session.ACTOR_PATH, Session.Catalog.Pins.ACTOR_SHA, Session.PRESENTATION_BYTES), &"",
@@ -37,12 +40,12 @@ func before_each() -> void:
 	_session = _host.underground_session()
 	assert_true(_host.compose_underground_room_owners(), "actual Room owners")
 	assert_true(_host.compose_underground_route_owners(), "actual ground owners")
-	_profiles = _content_ten()
+	_profiles = _content_twelve()
 	var o: Session.Retirement.Owners = _session._retirement_owners
 	_catalog = Catalog.new()
 	assert_equal(_catalog.configure(Catalog.RESERVED_BYTES), &"", "full catalog reservation")
 	assert_equal(_catalog.bind_actual(_profiles, o.world_routes._levels, o.world_routes._movement, o.residents,
-		o.transforms, o.space._domain), &"", "content 9 with the original World owners")
+		o.transforms, o.space._domain), &"", "content 12 with the original World owners")
 
 
 func after_each() -> void:
@@ -58,13 +61,13 @@ func after_each() -> void:
 	_host = null
 
 
-func _content_ten() -> Profiles:
-	"""Content 10 through the actual loader, in its exact capacity."""
+func _content_twelve() -> Profiles:
+	"""Content 12 through the actual loader, in its exact capacity."""
 	var store: Profiles = Profiles.new()
 	var packed: int = 2 * (CAPACITIES.x * Profiles.PROFILE_WIRE_BYTES + CAPACITIES.y * 28 + CAPACITIES.z * 32 + 32)
 	assert_equal(store.configure(CAPACITIES.x, CAPACITIES.y, CAPACITIES.z, packed + Profiles.CONTROL_RESERVE), &"",
 		"capacity")
-	assert_equal(store.load_file(Bundle.PROFILE_PATH, Bundle.PROFILE_SHA, 10), &"", "content 10")
+	assert_equal(store.load_file(Bundle.PROFILE_PATH, Bundle.PROFILE_SHA, 12), &"", "content 12")
 	return store
 
 
@@ -88,19 +91,21 @@ func _readers() -> void:
 
 
 func test_structure_carries_the_flight_and_the_stair_paces() -> void:
-	"""Content 10 on source 4; 52 parts in eight assemblies; content 10's ground caps and DEC-050's three stair rows."""
+	"""Content 12 on source 4; 52 parts in eight assemblies; the 26 ground caps and 17 stair rows. Decision 1972:
+	DEC-050's u/s rates (528, 528, 116) are authored in milli-u/s, with the same ticks."""
 	_readers()
-	assert_equal([_catalog._live.header[8], _catalog._live.header[10], _catalog._live.header[7]], [10, 4, 29],
+	assert_equal([_catalog._live.header[8], _catalog._live.header[10], _catalog._live.header[7]], [12, 4, 43],
 		"content, source, paces")
 	var pace: Catalog.IntMath.IntResult = Catalog.IntMath.IntResult.new()
-	for row: Vector2i in [Vector2i(Pins.CLAW_DESCENT_ROW, 528), Vector2i(Pins.CLAW_ASCENT_ROW, 528),
-			Vector2i(Pins.CLAW_TURN_ROW, 116)]:
-		assert_equal(_catalog.pace_into(row.x, 1, 10, 0, 0, 1, pace), &"", "authored pace %d" % row.x)
+	for row: Vector2i in [Vector2i(Pins.CLAW_DESCENT_ROW, 528000), Vector2i(Pins.CLAW_ASCENT_ROW, 528000),
+			Vector2i(Pins.CLAW_TURN_ROW, 116000)]:
+		assert_equal(_catalog.pace_into(row.x, 1, 12, 0, 0, 1, pace), &"", "authored pace %d" % row.x)
 		assert_equal(pace.value, row.y, "DEC-050 rate of row %d" % row.x)
 	assert_equal(_assemblies._header[5], 8, "L0, T0..T6")
 	var o: Session.Retirement.Owners = _session._retirement_owners
 	assert_equal([o.world_routes._catalog._live.header[8], o.world_routes._catalog._live.digests.decode_s64(0)],
-		[Bundle.CONTENT_REVISION, Bundle.CATALOG_DIGEST_0], "the mounted structure is this bundle's")
+		[Mounted.CONTENT_REVISION, Mounted.CATALOG_DIGEST_0], "the mounted structure is the M2 interim's (decision 2044)")
+	assert_equal(Mounted.CONTENT_REVISION, Bundle.CONTENT_REVISION, "on the same content")
 
 
 func test_frontier_loads_the_tread_installs_and_stops() -> void:
@@ -122,7 +127,7 @@ func test_workpieces_name_the_derived_tread_bearers() -> void:
 	"""Rows 65 for L0/T0 and 66 for every tread, with TreadGeometry's part, turn and translation."""
 	var bytes: PackedByteArray = FileAccess.get_file_as_bytes(Bundle.WORKPIECES_PATH)
 	assert_equal(FileAccess.get_sha256(Bundle.WORKPIECES_PATH), Bundle.WORKPIECES_SHA, "pinned bytes")
-	assert_equal([bytes.decode_s64(52), bytes.decode_s64(76)], [10, 5], "content 10, paw source")
+	assert_equal([bytes.decode_s64(52), bytes.decode_s64(76)], [12, 5], "content 12, paw source")
 	for assembly: int in 8:
 		var at: int = 212 + 32 * assembly
 		assert_equal(bytes.decode_s32(at + 20), Pins.PAW_HANDLING_ROW if assembly < 2 else Pins.PAW_TREAD_HANDLING_ROW,

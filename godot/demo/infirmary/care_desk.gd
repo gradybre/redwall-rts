@@ -38,6 +38,7 @@ const Rules := preload("res://demo/infirmary/care_rules.gd")
 const StateScript := preload("res://demo/infirmary/care_state.gd")
 const Tasks := preload("res://demo/infirmary/care_tasks.gd")
 const Text := preload("res://demo/infirmary/care_text.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 const PaceScript := preload("res://demo/work/work_pace.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const NightScript := preload("res://demo/burrow/night_routine.gd")
@@ -582,8 +583,8 @@ func _shelve_foraged() -> void:
 		return
 	var moved: int = state.shelve_herbs(int(pantry_herb.call(Rules.HERB_TARGET_MILLI - state.herb_milli)))
 	if moved > 0 and _notices != null:
-		_notices.post(NoticesScript.SOURCE_WOODS, NoticesScript.LEVEL_NOTE, "%s U of the foragers' herbs went to the care shelf (%s U)"
-			% [Text.units(moved), Text.units(state.herb_milli)])
+		_notices.post(NoticesScript.SOURCE_WOODS, NoticesScript.LEVEL_NOTE, "The care shelf took %s from the foragers (%s on it)"
+			% [Measures.amount(&"herb", moved), Measures.amount_cell(&"herb", state.herb_milli)])
 
 
 func _dispatch_gather() -> void:
@@ -608,8 +609,9 @@ func _deliver(who: int, milli: int) -> void:
 	"""A load at the shelf: booked (care_state.gd `deliver_herbs`) and said."""
 	var moved: int = state.deliver_herbs(milli)
 	if moved > 0 and _notices != null:
-		_notices.post(NoticesScript.SOURCE_WOODS, NoticesScript.LEVEL_NOTE, "%s brought %s U of herbs to the shelf (%s U)"
-			% [name_of(who), Text.units(moved), Text.units(state.herb_milli)], "", NoticesScript.TARGET_RESIDENT, who)
+		_notices.post(NoticesScript.SOURCE_WOODS, NoticesScript.LEVEL_NOTE, "%s brought %s to the shelf (%s on it)"
+			% [name_of(who), Measures.amount(&"herb", moved), Measures.amount_cell(&"herb", state.herb_milli)], "",
+			NoticesScript.TARGET_RESIDENT, who)
 
 
 func _on_gather_ended(who: int) -> void:

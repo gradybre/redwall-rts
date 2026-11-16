@@ -13,6 +13,7 @@ const Hive := preload("res://scripts/core/orchard_hive.gd")
 const DemoCommandScript := preload("res://demo/control/demo_command.gd")
 const HiveRules := preload("res://demo/hives/hive_rules.gd")
 const HiveText := preload("res://demo/hives/hive_text.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 ## demo_orchard.gd's selection kinds (SEL_*), mirrored so this file needs no cycle back to the node.
 const SEL_SITE: int = 1
@@ -47,11 +48,14 @@ func configure(model: ModelScript, jobs: JobsScript, command: DemoCommandScript)
 # --- the standing lines ----------------------------------------------------------------------------------------------------
 
 func status_line() -> String:
-	"""Today, the picking windows, and what has been picked."""
-	return "%s · apples Autumn %d–%d, pears Autumn %d–%d · picked: %s apple, %s pear, %s berries" % [
+	"""Today, the picking windows, and what has been picked ("picked: 6 baskets of apples, no pears, 3 bowls of
+	berries")."""
+	return "%s · apples Autumn %d–%d, pears Autumn %d–%d · picked: %s, %s, %s" % [
 		Text.day_text(_model.today_hint), Hive.SPECIES_HARVEST_FIRST_DAY[0], Hive.SPECIES_HARVEST_LAST_DAY[0],
-		Hive.SPECIES_HARVEST_FIRST_DAY[1], Hive.SPECIES_HARVEST_LAST_DAY[1], Text.units(_model.fruit_picked_milli[0]),
-		Text.units(_model.fruit_picked_milli[1]), Text.units(_model.berries_picked_milli)]
+		Hive.SPECIES_HARVEST_FIRST_DAY[1], Hive.SPECIES_HARVEST_LAST_DAY[1],
+		Measures.amount(Text.fruit_good(Rules.APPLE), _model.fruit_picked_milli[0]),
+		Measures.amount(Text.fruit_good(Rules.PEAR), _model.fruit_picked_milli[1]),
+		Measures.amount(&"berries", _model.berries_picked_milli)]
 
 
 func jobs_line() -> String:
@@ -95,13 +99,21 @@ func text(kind: int, id: int) -> String:
 		SEL_STAND:
 			return stand_text(id)
 		SEL_NURSERY:
-			return "Saplings for the orchard: §5.6 propagation is fruit 4 U, compost 2 U, water 2 U and 120 WU, then 12 days."
+			return nursery_rule()
 		SEL_GROVE:
 			return "A rest and observation spot: its trees are never felled while it is protected, someone looks in once a " \
 				+ "season, and foraging trips leave its %s a reserve." % Text.grove_forage_words(id)
 		SEL_APIARY:
 			return apiary_text(id)
 	return ""
+
+
+static func nursery_rule() -> String:
+	"""§5.6 propagation from its own constants: "Saplings for the orchard: §5.6 propagation takes 4 apples or 4 pears, a
+	basket of compost, 2 jugs of water and 120 WU, then 12 days."."""
+	return "Saplings for the orchard: §5.6 propagation takes %s or %s, %s, %s and 120 WU, then 12 days." % [
+		Measures.exact(&"apple", Hive.NURSERY_FRUIT_MILLI), Measures.exact(&"pear", Hive.NURSERY_FRUIT_MILLI),
+		Measures.exact(&"compost", Hive.NURSERY_COMPOST_MILLI), Measures.exact(&"water", Hive.NURSERY_WATER_MILLI)]
 
 
 func apiary_text(apiary: int) -> String:
@@ -141,7 +153,8 @@ func tree_text(site: int) -> String:
 	var next: int = _model.next_harvest_day(site, _model.today_hint)
 	var why: String = _model.harvest_refusal(site, _model.today_hint)
 	if why.is_empty():
-		lines.append("Ready to pick now: about %s" % Text.units(_model.expected_yield_milli(site)))
+		lines.append("Ready to pick now: about %s" % Measures.amount(Text.fruit_good(_model.species_of(site)),
+			_model.expected_yield_milli(site)))
 	elif next > 0:
 		lines.append("Next picking: %s%s" % [Text.day_text(next), _crop_words(site)])
 	lines.append(Text.cap(Text.fruit_words(_model.species_of(site))))
@@ -190,8 +203,8 @@ func bush_text() -> String:
 	var season: int = Hive.season_of_day(_model.today_hint)
 	var available: int = _model.berries_available_milli(season)
 	var state: String = "in fruit" if Rules.berry_availability(season) > 0 else "not fruiting (berries in summer and autumn)"
-	return "The hedge holds %s of berries, %s; %s may be picked now (a fifth is always left)." % [
-		Text.units(_model.hedge_milli), state, Text.units(available)]
+	return "The hedge holds %s, %s; %s may be picked now (a fifth is always left)." % [
+		Measures.amount(&"berries", _model.hedge_milli), state, Measures.amount_cell(&"berries", available)]
 
 
 func stand_text(group: int) -> String:
@@ -203,9 +216,9 @@ func stand_text(group: int) -> String:
 	for item: int in Catalog.PANTRY_ITEM_COUNT:
 		var milli: int = _jobs.pantry.milli_at(item, at)
 		if milli > 0:
-			parts.append("%s %s" % [Catalog.ITEM_LABELS[item], Text.units(milli)])
+			parts.append(Measures.amount(Catalog.ITEM_KEYS[item], milli))
 	return "In the baskets: %s · room %s · %s · %s" % ["nothing" if parts.is_empty() else ", ".join(parts),
-		Text.units(_jobs.pantry.room_milli_of(at)), share_words(group), cart_words(group)]
+		Measures.amount_cell(&"food", _jobs.pantry.room_milli_of(at)), share_words(group), cart_words(group)]
 
 
 func share_words(group: int) -> String:
@@ -215,10 +228,10 @@ func share_words(group: int) -> String:
 
 
 func cart_words(group: int) -> String:
-	"""Whether the group has its handcart (decision 1721)."""
+	"""Whether the group has its handcart (decision 1721), and the load a haul carries, as a weight."""
 	if _model.has_cart(group):
-		return "a handcart: %s a haul" % Text.units(Rules.CART_LOAD_MILLI)
-	return "no cart: a basket's %s a haul" % Text.units(Rules.HAUL_LOAD_MILLI)
+		return "a handcart: %s a haul" % Text.load_words(Rules.CART_LOAD_MILLI)
+	return "no cart: a basket's %s a haul" % Text.load_words(Rules.HAUL_LOAD_MILLI)
 
 
 func shown_actions(kind: int, id: int) -> Array[StringName]:
@@ -317,7 +330,7 @@ func _fix_of(why: String) -> String:
 		return "the Pantry (K), or send the baskets on"
 	if why.contains("compost"):
 		return "compost spoiled food in the Pantry (K)"
-	if why.contains("of wood"):
+	if why.contains(" log"):
 		return "fell a tree in the woods (the Woods panel)"
 	if why.contains("sapling"):
 		return "plan one here: the nursery propagates it from fruit"
@@ -330,9 +343,10 @@ func _result_of(action: StringName, kind: int, id: int) -> String:
 		&"tend":
 			return "Today's care: +50 health at midnight instead of -100"
 		&"harvest":
-			return "About %s picked into the group's baskets" % Text.units(_model.expected_yield_milli(id))
+			return "About %s picked into the group's baskets" % Measures.amount(Text.fruit_good(_model.species_of(id)),
+				_model.expected_yield_milli(id))
 		&"pick":
-			return "A basket of up to %s of %s, as berries" % [Text.units(Rules.PICK_LOAD_MILLI), Text.BUSH_FRUIT[id]]
+			return "A basket of up to %s of %s, as berries" % [Text.load_words(Rules.PICK_LOAD_MILLI), Text.BUSH_FRUIT[id]]
 		&"haul", &"move", &"cart":
 			return _remainder_result(action, id)
 		&"plant_apple", &"plant_pear":
@@ -354,14 +368,14 @@ func _remainder_result(action: StringName, id: int) -> String:
 	"""Decision 1721's results: a haul by basket or cart and its share, a move, a cart."""
 	match action:
 		&"haul":
-			return "Up to %s carried on (%s; %d%% wanted on the fresh table)" % [Text.units(_model.haul_load_milli(id)),
+			return "Up to %s carried on (%s; %d%% wanted on the fresh table)" % [Text.load_words(_model.haul_load_milli(id)),
 				"by handcart" if _model.has_cart(id) else "a basket", _model.group_fresh_pct[id]]
 		&"move":
 			var dest: int = _jobs.move_target(id)
 			return "Lifted and replanted at %s; it settles %d days before it grows again, and is never moved twice" % [
 				Rules.SITE_NAMES[dest] if dest >= 0 else "a free site", Rules.MOVE_SETTLE_DAYS]
-	return "A handcart at the baskets: each haul carries up to %s instead of %s" % [Text.units(Rules.CART_LOAD_MILLI),
-		Text.units(Rules.HAUL_LOAD_MILLI)]
+	return "A handcart at the baskets: each haul carries up to %s instead of %s" % [Text.load_words(Rules.CART_LOAD_MILLI),
+		Text.load_words(Rules.HAUL_LOAD_MILLI)]
 
 
 func _costs_of(action: StringName) -> void:
@@ -370,16 +384,16 @@ func _costs_of(action: StringName) -> void:
 	match action:
 		&"plant_apple", &"plant_pear":
 			var species: int = Rules.APPLE if action == &"plant_apple" else Rules.PEAR
-			_card.add_cost("%s saplings" % Text.cap(Rules.SPECIES_NAMES[species]), _model.saplings[species] * 1000,
+			_card.add_cost("%s saplings" % Text.cap(Rules.SPECIES_NAMES[species]), Rules.SAPLING_GOODS[species], _model.saplings[species] * 1000,
 				Hive.PLANT_SAPLING_MILLI)
-			_card.add_cost("Compost", compost, Hive.PLANT_COMPOST_MILLI)
+			_card.add_cost("Compost", &"compost", compost, Hive.PLANT_COMPOST_MILLI)
 		&"move":
-			_card.add_cost("Compost", compost, Rules.MOVE_COMPOST_MILLI)
+			_card.add_cost("Compost", &"compost", compost, Rules.MOVE_COMPOST_MILLI)
 		&"cart":
-			_card.add_cost("Wood", _jobs.stores.wood_milli_u if _jobs.stores != null else 0, Rules.CART_WOOD_MILLI)
+			_card.add_cost("Wood", &"wood", _jobs.stores.wood_milli_u if _jobs.stores != null else 0, Rules.CART_WOOD_MILLI)
 		&"recolonize":
-			_card.add_cost("Honey (free)", _jobs.hive_honey_free(), HiveRules.RECOLONIZE_HONEY_MILLI)
-			_card.add_cost("Wood", _jobs.stores.wood_milli_u if _jobs.stores != null else 0, HiveRules.RECOLONIZE_WOOD_MILLI)
+			_card.add_cost("Honey (free)", &"honey", _jobs.hive_honey_free(), HiveRules.RECOLONIZE_HONEY_MILLI)
+			_card.add_cost("Wood", &"wood", _jobs.stores.wood_milli_u if _jobs.stores != null else 0, HiveRules.RECOLONIZE_WOOD_MILLI)
 
 
 func _work_of(job_kind: int, id: int) -> int:
@@ -452,8 +466,8 @@ func dest_word(group: int) -> String:
 
 
 func keep_word(group: int) -> String:
-	"""What the group keeps for the nursery, short for its button."""
-	return Text.units(_model.group_keep[group]) if group >= 0 else ""
+	"""What the group keeps for the nursery, short for its button: "4 apples, 4 pears"."""
+	return Text.each_fruit(_model.group_keep[group]) if group >= 0 else ""
 
 
 func nursery_text() -> String:
@@ -497,9 +511,11 @@ func policy_tip(action: StringName, group: int) -> String:
 				"This year: %d%% sent to the kitchen pantry." % _model.kitchen_share_pct(group),
 				"Press: 0, 25, 50, 75 or 100%."]))
 		&"keep":
-			return CardScript.wrap_lines(PackedStringArray(["Kept at the baskets for the nursery: %s of each fruit" % Text.units(
-				_model.group_keep[group]), "4.0 U of fruit makes one sapling (with compost 2 U and water 2 U).",
-				"Press: 0, 4.0 or 8.0 U."]))
+			return CardScript.wrap_lines(PackedStringArray(["Kept at the baskets for the nursery: %s" % Text.each_fruit(
+				_model.group_keep[group]), "%s or %s make one sapling (with %s and %s)." % [Text.cap(Measures.exact(&"apple",
+				Hive.NURSERY_FRUIT_MILLI)), Measures.exact(&"pear", Hive.NURSERY_FRUIT_MILLI), Measures.exact(&"compost",
+				Hive.NURSERY_COMPOST_MILLI), Measures.exact(&"water", Hive.NURSERY_WATER_MILLI)],
+				"Press: none, 4 or 8 of each fruit."]))
 	var grove: int = maxi(group, 0)
 	return CardScript.wrap_lines(PackedStringArray(["%s: %s" % [Text.cap(Rules.GROVE_NAMES[grove]),
 		"protected" if _model.is_grove_protected(grove) else "not protected"],

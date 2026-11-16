@@ -117,6 +117,10 @@ func test_register_refuses_in_words() -> void:
 		"a known group")
 	var twins: Array[BookScript.Part] = [BookScript.part(&"x", "X", 1), BookScript.part(&"x", "Y", 1)]
 	assert_equal(book.register(&"b", "B", "", twins), BookScript.REFUSE_KEY, "distinct keys")
+	var no_good: Array[BookScript.Part] = [BookScript.part(&"x", "X", 1000, BookScript.UNIT_MILLI)]
+	assert_equal(book.register(&"b", "B", "", no_good), BookScript.REFUSE_GOOD, "a part in a good names its good")
+	var odd_good: Array[BookScript.Part] = [BookScript.part(&"x", "X", 1000, BookScript.UNIT_MILLI, Callable(), &"gold")]
+	assert_equal(book.register(&"b", "B", "", odd_good), BookScript.REFUSE_GOOD, "a good with a measure")
 	assert_equal(book.goals.size(), 1, "only the first")
 	assert_equal(book.count(BookScript.GROUP_VILLAGE), 1, "a village goal by default")
 
@@ -193,10 +197,18 @@ func test_an_unmodelled_part_blocks_until_a_measure_is_bound() -> void:
 
 
 func test_amounts_read_as_the_player_reads_them() -> void:
-	"""Counts, units, days and yes / not yet; a negative shown as nothing."""
+	"""Counts, a good in its natural measure (decision 1801), days and yes / not yet; a negative shown as nothing."""
 	assert_equal(BookScript.amount_text(BookScript.UNIT_COUNT, 12), "12", "count")
-	assert_equal(BookScript.amount_text(BookScript.UNIT_MILLI, 40000), "40.0 U", "units")
-	assert_equal(BookScript.amount_text(BookScript.UNIT_MILLI, 1999), "1.9 U", "units, floored")
+	assert_equal(BookScript.amount_text(BookScript.UNIT_MILLI, 40000, &"wood"), "40 logs", "a good")
+	assert_equal(BookScript.amount_text(BookScript.UNIT_MILLI, 1999, &"wood"), "1 log", "a good, floored")
+	assert_equal(BookScript.amount_text(BookScript.UNIT_MILLI, 0, &"food"), "none", "none of a good")
+	var harvest: BookScript.Part = BookScript.part(&"h", "Harvested", 40000, BookScript.UNIT_MILLI, Callable(), &"food")
+	assert_equal(BookScript.target_text(harvest), "8 baskets", "a good's target, exact")
+	harvest.value = 12000
+	assert_equal(BookScript.progress_text(harvest), "2 of 8 baskets", "a good's progress, in the target's measure")
+	var residents: BookScript.Part = BookScript.part(&"r", "Residents", 12)
+	residents.value = 9
+	assert_equal(BookScript.progress_text(residents), "9 of 12", "a count's progress")
 	assert_equal(BookScript.amount_text(BookScript.UNIT_DAYS, 2500), "2.5 days", "days")
 	assert_equal(BookScript.amount_text(BookScript.UNIT_FLAG, 1), "yes", "yes")
 	assert_equal(BookScript.amount_text(BookScript.UNIT_FLAG, 0), "not yet", "not yet")
@@ -506,7 +518,7 @@ func test_a_season_with_nothing_harvested_is_not_clean() -> void:
 # --- the owner ---------------------------------------------------------------------------------------------------------
 
 func test_the_owner_says_a_reached_goal_once_in_village_news() -> void:
-	"""60 U of wood stacked: at the next game hour 'Goal reached: Wood for the cold' goes into the Village news once;
+	"""60 logs stacked: at the next game hour 'Goal reached: Wood for the cold' goes into the Village news once;
 	within the hour nothing is evaluated; a milestone would be said as its conditions met."""
 	var world := _world(9)
 	var notices := NoticesScript.new()
@@ -522,7 +534,7 @@ func test_the_owner_says_a_reached_goal_once_in_village_news() -> void:
 	assert_true(goals.update(), "the hour")
 	assert_equal(notices.count(), 1, "one entry")
 	assert_equal(notices.source(0), NoticesScript.SOURCE_VILLAGE, "the Village's")
-	assert_equal(notices.text(0), "Goal reached: Wood for the cold -- 60 U of wood is stacked in store.", "its words")
+	assert_equal(notices.text(0), "Goal reached: Wood for the cold -- 60 logs are stacked in store.", "its words")
 	world.calendar.tick += HOUR_TICKS
 	goals.update()
 	assert_equal(notices.count(), 1, "said once")
@@ -558,7 +570,7 @@ func test_also_reached_is_told_each_goal_once_after_its_news() -> void:
 	goals.update()
 	world.calendar.tick += HOUR_TICKS
 	goals.update()
-	assert_equal(told, ["news", "winter_wood|Wood for the cold|60 U of wood is stacked in store."], "once, after its news")
+	assert_equal(told, ["news", "winter_wood|Wood for the cold|60 logs are stacked in store."], "once, after its news")
 	goals.post = Callable()
 	goals.also_reached = Callable()
 
@@ -670,9 +682,9 @@ func test_the_goals_page_shows_the_book() -> void:
 		goals.book.count(BookScript.GROUP_VILLAGE), "one reached")
 	assert_equal(page.heading_text(BookScript.GROUP_MILESTONE), "Milestones (the full game's): 0 of 4 met", "none met")
 	assert_true((page.get_child(1) as Label).text.begins_with("Village goals"), "the reachable goals drawn first")
-	assert_equal(page.goal_text(&"winter_wood"), "✓ Wood for the cold -- reached Y1 Spring 1, 06:00\n  ✓ Wood in store: 60.0 U",
+	assert_equal(page.goal_text(&"winter_wood"), "✓ Wood for the cold -- reached Y1 Spring 1, 06:00\n  ✓ Wood in store: 60 logs",
 		"reached, dated")
-	assert_equal(page.goal_text(&"harvest_home"), "◻ Harvest home\n  · Harvested into store: 12.0 U of 40.0 U", "to go")
+	assert_equal(page.goal_text(&"harvest_home"), "◻ Harvest home\n  · Harvested into store: 2 of 8 baskets", "to go")
 	assert_true(page.goal_text(&"m2_abundance").contains("  · Recipes mastered (3): not in this demo yet"), "unmodelled")
 	assert_true(page.goal_text(&"m4_hearth_charter").contains("  · Every resident warm-bedded (yes): not in this demo yet"),
 		"an unmodelled yes-or-no")

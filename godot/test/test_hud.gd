@@ -135,7 +135,7 @@ func test_supplying_one_counter_leaves_the_others_unpopulated() -> void:
 func test_clear_counters_returns_the_line_to_unpopulated() -> void:
 	"""Dropping recorded values restores the marker rather than freezing the last figure."""
 	_hud.set_counter_text(&"Food-days", "5.48")
-	_hud.set_counter(&"Wood", 180, "U")
+	_hud.set_counter_text(&"Wood", "180 logs available; none reserved")
 	_hud.clear_counters()
 	assert_equal(_rendered_counters(), _expected_counters({}),
 		"every counter returned to the unpopulated marker")
@@ -178,8 +178,8 @@ func test_integer_counters_render_the_supplied_value_unmodified() -> void:
 
 func test_negative_integer_counters_keep_their_sign_and_grouping() -> void:
 	"""A negative counter is rendered as a negative number, not as an absolute value."""
-	_hud.set_counter(&"Wood", -4200, "U")
-	assert_equal(_rendered_counters(), _expected_counters({&"Wood": "-4,200 U"}),
+	_hud.set_counter(&"Ready NP", -4200, "NP")
+	assert_equal(_rendered_counters(), _expected_counters({&"Ready NP": "-4,200 NP"}),
 		"the sign and the grouping both survive")
 
 
@@ -231,9 +231,9 @@ func test_a_counter_value_reaches_its_cells_numeric_line_verbatim() -> void:
 		"the food cell's numeric line carries the supplied string")
 	assert_equal(shell.counter_caption_label(UiShell.ID_FOOD).text, "Ready food",
 		"beside the caption that identifies which food it is")
-	_hud.set_counter(&"Wood", 1000, "U")
-	assert_equal(shell.counter_value_label(UiShell.ID_WOOD).text, "1,000 U",
-		"and the wood cell carries the grouped integer and its unit")
+	_hud.set_counter(&"Residents", 1000, "")
+	assert_equal(shell.counter_value_label(UiShell.ID_POPULATION).text, "1,000",
+		"and the residents cell carries the grouped integer")
 
 
 func test_an_unavailable_counter_never_takes_the_dash_marker_in_its_cell() -> void:

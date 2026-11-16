@@ -1,8 +1,8 @@
 extends VBoxContainer
 ## THE GOALS' PAGE (decision 0781) in the village guide: the goal book's goals in its two groups -- the demo's village
 ## goals, which this village can reach, then the GDD's milestones, the road ahead -- each its mark and title (with the date it was reached), its short why and its parts'
-## progress ("Residents: 9 of 12"; "Recipes mastered (3): not in this demo yet"). It shows; the book decides and the
-## village's own figures measure, once a game hour. The rows are built when the goals change (one registered later) and
+## progress ("Residents: 9 of 12"; "Harvested into store: 2 of 8 baskets"; "Recipes mastered (3): not in this demo
+## yet"). It shows; the book decides and the village's own figures measure, once a game hour. The rows are built when the goals change (one registered later) and
 ## their words rewritten when the book has evaluated since the last look. DEMO UI in the woodland skin.
 
 const BookScript := preload("res://demo/goals/goal_book.gd")
@@ -21,7 +21,7 @@ const DISPLAY_ORDER: Array[int] = [BookScript.GROUP_VILLAGE, BookScript.GROUP_MI
 const EMPTY: String = "No goals yet."
 const MARK_DONE: String = "✓ %s -- reached %s"
 const MARK_OPEN: String = "◻ %s"
-const PART_LINE: String = "  · %s: %s of %s"
+const PART_LINE: String = "  · %s: %s"
 const PART_MET: String = "  ✓ %s: %s"
 const PART_FLAG: String = "  · %s: %s"
 const PART_UNMODELLED: String = "  · %s (%s): not in this demo yet"
@@ -122,17 +122,17 @@ static func part_lines(goal: BookScript.Goal) -> PackedStringArray:
 	"""A goal's parts as lines: met, its progress, not modelled, or not read yet."""
 	var lines := PackedStringArray()
 	for part: BookScript.Part in goal.parts:
-		var target: String = BookScript.amount_text(part.unit, part.target)
 		if not part.is_measured():
-			lines.append(PART_UNMODELLED % [part.label, target if part.unit != BookScript.UNIT_FLAG else "yes"])
+			lines.append(PART_UNMODELLED % [part.label, BookScript.target_text(part) if part.unit != BookScript.UNIT_FLAG
+				else "yes"])
 		elif part.value == BookScript.UNREAD:
 			lines.append(NOT_YET_READ % part.label)
 		elif part.is_met():
-			lines.append(PART_MET % [part.label, BookScript.amount_text(part.unit, part.value)])
+			lines.append(PART_MET % [part.label, BookScript.amount_text(part.unit, part.value, part.good)])
 		elif part.unit == BookScript.UNIT_FLAG:
 			lines.append(PART_FLAG % [part.label, BookScript.amount_text(part.unit, part.value)])
 		else:
-			lines.append(PART_LINE % [part.label, BookScript.amount_text(part.unit, part.value), target])
+			lines.append(PART_LINE % [part.label, BookScript.progress_text(part)])
 	return lines
 
 

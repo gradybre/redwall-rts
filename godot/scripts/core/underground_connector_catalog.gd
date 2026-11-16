@@ -11,6 +11,8 @@ const Space := preload("res://scripts/core/room_space.gd")
 const Connectors := preload("res://scripts/core/room_connectors.gd")
 const Geometry := preload("res://scripts/core/connector_geometry.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+## Decision 1972: the stair program decides which rows' paces are stair timings (reported in milli-u/s).
+const Stair := preload("res://data/underground/mole-worker/qualified-claw-runtime-v2/stair_program.gd")
 const MAX_VARIANTS: int = 16
 const MAX_POINTS: int = 512
 const MAX_REGIONS: int = 1024
@@ -28,6 +30,11 @@ const NATIVE_RESERVE: int = 16384 # Explicit reservation, not a measured native 
 const RESERVED_BYTES: int = 2 * BANK_BYTES + FIXED_RESERVE + NATIVE_RESERVE
 const RATE_GROUND_CAP: int = 0
 const RATE_AUTHORED: int = 1
+## Decision 1972 (P-1972-6, "Keep 90 ticks"): an authored stair timing in milli-u/s, admitted only for a row the stair
+## program owns. `pace_into` reports every stair timing in milli-u/s (an older u/s row times 1,000), so its ticks
+## are unchanged and a 169 u handoff can take exactly 90 ticks.
+const RATE_AUTHORED_MILLI: int = 2
+const MILLI: int = 1000
 const V_FAMILY: int = 0
 const V_VARIANT: int = 1
 const V_ROTATIONS: int = 2
@@ -531,26 +538,41 @@ static func _compare_pace(bank: Bank, first: int, second: int) -> int:
 
 func _pace_row_refusal(bank: Bank, row: int) -> StringName:
 	"""A certified physical descriptor supplies identity; authored timing cannot add a missing movement species."""
-	var code: StringName = _profiles.descriptor_into(_p(bank, row, P_PROFILE), bank.header[8], _descriptor)
+	var profile: int = _p(bank, row, P_PROFILE)
+	var code: StringName = _profiles.descriptor_into(profile, bank.header[8], _descriptor)
 	var family: int = _p(bank, row, P_FAMILY)
 	var variant: int = _p(bank, row, P_VARIANT)
+	# Decision 1972: a rooted row (decision 1981) is a loaded or empty twin of the stair's claw rows on its own image
+	# (source 6 or 7) in the same pinned content, so it may pace the stair Placement's variant.
+	var rooted: bool = code == &"" and Profiles.is_rooted_policy(Profiles.selection_policy_leaf(_profiles, profile,
+		_descriptor.profile_revision, bank.header[8]))
 	# ADR1200: a ground-cap row takes its rate from Movement, not from any source; it may name a row of
 	# another source in the same pinned profile content. Authored connector timing stays bound to header[10].
 	if code != &"" or _descriptor.profile_revision != bank.pace_revisions[row] \
-			or (_descriptor.source_id != bank.header[10] and family != -1) or (_descriptor.mode != Profiles.MODE_WALK \
-			and _descriptor.mode != Profiles.MODE_CARRY and _descriptor.mode != Profiles.MODE_CLIMB):
+			or (_descriptor.source_id != bank.header[10] and family != -1 and not rooted) \
+			or (_descriptor.mode != Profiles.MODE_WALK and _descriptor.mode != Profiles.MODE_CARRY \
+			and _descriptor.mode != Profiles.MODE_CLIMB):
 		return &"CONNECTOR_PACE_PROFILE"
 	if family == -1:
 		if variant != 0 or _p(bank, row, P_KIND) != RATE_GROUND_CAP or _p(bank, row, P_RATE) != 0 \
 				or _descriptor.mode == Profiles.MODE_CLIMB:
 			return &"CONNECTOR_PACE_GROUND"
-	else:
-		var geometry: int = _variant_row(bank, family, variant)
-		if geometry < 0 or _p(bank, row, P_KIND) != RATE_AUTHORED or _p(bank, row, P_RATE) < 1 \
-				or (_descriptor.family_mask & (1 << family)) == 0 \
-				or _descriptor.mode != _v(bank, geometry, V_MODE) or _descriptor.posture != _v(bank, geometry, V_POSTURE):
-			return &"CONNECTOR_PACE_UNAUTHORED"
+	elif _authored_refusal(bank, row, _variant_row(bank, family, variant), family, rooted):
+		return &"CONNECTOR_PACE_UNAUTHORED"
 	return _movement_pace_refusal(bank, row)
+
+
+func _authored_refusal(bank: Bank, row: int, geometry: int, family: int, rooted: bool) -> bool:
+	"""An authored row needs its variant, a positive rate of an authored kind (milli-u/s only for a stair-program
+	row), the family bit, the variant's posture, and the variant's mode (a rooted CARRY row may pace a WALK stair)."""
+	var kind: int = _p(bank, row, P_KIND)
+	if geometry < 0 or _p(bank, row, P_RATE) < 1 or (kind != RATE_AUTHORED and kind != RATE_AUTHORED_MILLI) \
+			or (kind == RATE_AUTHORED_MILLI and not Stair.owns(_profiles, _p(bank, row, P_PROFILE))) \
+			or (_descriptor.family_mask & (1 << family)) == 0 or _descriptor.posture != _v(bank, geometry, V_POSTURE):
+		return true
+	var mode: int = _v(bank, geometry, V_MODE)
+	return _descriptor.mode != mode \
+		and not (rooted and _descriptor.mode == Profiles.MODE_CARRY and mode == Profiles.MODE_WALK)
 
 
 func _movement_pace_refusal(bank: Bank, row: int) -> StringName:
@@ -564,7 +586,8 @@ func _movement_pace_refusal(bank: Bank, row: int) -> StringName:
 		return &"CONNECTOR_PACE_SPECIES_STAGE"
 	if not _movement.profile_speed_into(profile, _number) or _number.value < 1:
 		return &"CONNECTOR_PACE_UNAUTHORED"
-	if _p(bank, row, P_KIND) == RATE_AUTHORED and _p(bank, row, P_RATE) > _number.value:
+	if _p(bank, row, P_KIND) == RATE_AUTHORED and _p(bank, row, P_RATE) > _number.value \
+			or _p(bank, row, P_KIND) == RATE_AUTHORED_MILLI and _p(bank, row, P_RATE) > _number.value * MILLI:
 		return &"CONNECTOR_PACE_EXCEEDS_CAP"
 	return &""
 
@@ -716,8 +739,16 @@ func pace_into(profile_id: int, profile_revision: int, profile_content_revision:
 	code = _pace_row_refusal(_live, row)
 	if code != &"":
 		return code
-	out.succeed(_number.value if family == -1 else _p(_live, row, P_RATE))
+	out.succeed(_reported_rate(row, family, profile_id))
 	return &""
+
+
+func _reported_rate(row: int, family: int, profile_id: int) -> int:
+	"""The Movement cap for a ground row, else the authored rate; decision 1972: every pace of a row the stair program
+	owns is a stair timing in milli-u/s (`Stair.ticks_for`), so a u/s rate or cap is reported times 1,000."""
+	var rate: int = _number.value if family == -1 else _p(_live, row, P_RATE)
+	if family != -1 and _p(_live, row, P_KIND) == RATE_AUTHORED_MILLI: return rate
+	return rate * MILLI if Stair.owns(_profiles, profile_id) else rate
 
 
 func _pace_row(profile_id: int, family: int, variant: int) -> int:

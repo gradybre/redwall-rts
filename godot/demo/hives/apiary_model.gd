@@ -23,6 +23,7 @@ const Hive := preload("res://scripts/core/orchard_hive.gd")
 const EntityDirectory := preload("res://scripts/core/entity_directory.gd")
 const Rng := preload("res://scripts/core/rng.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 const REFUSE_NOT_ABANDONED: String = "NOT_ABANDONED"
 const REFUSE_NOT_SPRING: String = "NOT_SPRING"
@@ -249,7 +250,8 @@ func _wildlife(apiary: int) -> void:
 	_set_hive_honey(apiary, honey_in_hive(apiary) - taken)
 	lost_milli += taken
 	if taken > 0:
-		_say("Something got into %s in the night: %s of honey gone" % [Rules.APIARY_NAMES[apiary], Rules.units(taken)], true)
+		_say("Something got into %s in the night: %s gone" % [Rules.APIARY_NAMES[apiary], Measures.amount(&"honey", taken)],
+			true)
 	else:
 		_say("Something got into %s in the night, but found no honey" % Rules.APIARY_NAMES[apiary], true)
 

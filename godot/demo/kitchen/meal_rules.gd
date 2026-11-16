@@ -165,6 +165,12 @@ static var SIDE_MILLI: PackedInt32Array = PackedInt32Array()
 const CATEGORY_WORDS: Array[String] = ["beans", "greens", "flax", "grain", "roots", "fresh fish", "dried fish", "flour",
 	"honey", "nuts", "mushrooms", "herbs", "berries", "fruit", "dried fruit", "rations", "mead", "cordial",
 	"jam", "cheese", "ale", "cider", "vinegar", "pickles"]
+## The good each category's amounts are worded as (scripts/ui/goods_measures.gd's keys; decision 1801), aligned with
+## CATEGORY_WORDS: §5.7's cabbage row is the kitchen's "greens", its fish the counted "fish" (1011 §1 "Kitchen
+## categories").
+const CATEGORY_GOODS: Array[StringName] = [&"beans", &"greens", &"flax", &"grain", &"roots", &"fish", &"dried_fish",
+	&"flour", &"honey", &"nuts", &"mushrooms", &"herb", &"berries", &"fruit", &"dried_fruit", &"ration", &"mead",
+	&"cordial", &"jam", &"cheese", &"ale", &"cider", &"vinegar", &"pickles"]
 ## BAL-SUPPLY-004: "wood 100 milli-U/batch".
 const WOOD_MILLI_PER_BATCH: int = 100
 ## A portion's mass and spoiled food's (§5.7: 500 g and 250 g a unit): a spoiled portion is twice its milli-U.
@@ -502,6 +508,27 @@ static func same_recipe(a: int, b: int) -> bool:
 	"""Whether two dishes are one §5.7 recipe (§5.7: "Ingredient differences inside the same recipe do not fake
 	variety")."""
 	return a >= 0 and b >= 0 and ROW_OF[a] == ROW_OF[b]
+
+
+static func selector_good(selector: int) -> StringName:
+	"""The good a selector's amounts are worded as (decision 1801): a category's (CATEGORY_GOODS); for items, the one
+	item's own key, or else the first item's category's ("beetroot or onion" are roots); mixed food for anything."""
+	if selector >= 0 and (selector & TakesScript.SELECT_ITEMS) == 0:
+		return CATEGORY_GOODS[selector] if selector < CATEGORY_GOODS.size() else &"food"
+	var first: int = -1
+	var count: int = 0
+	for item: int in Catalog.PANTRY_ITEM_COUNT:
+		if selector >= 0 and TakesScript.matches(selector, item):
+			first = item if first < 0 else first
+			count += 1
+	if first < 0:
+		return &"food"
+	return Catalog.ITEM_KEYS[first] if count == 1 else selector_good(Catalog.category_of(first))
+
+
+static func input_good(dish: int, k: int) -> StringName:
+	"""The good `dish`'s input `k` is worded as (`selector_good` of its selector)."""
+	return selector_good(IN_SELECTOR[INPUT_FIRST[dish] + k])
 
 
 static func items_text(selector: int) -> String:

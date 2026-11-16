@@ -11,7 +11,9 @@ const Owner := preload("res://scripts/core/underground_space_owner.gd")
 const Space := preload("res://scripts/core/room_space.gd")
 const Directory := preload("res://scripts/core/entity_directory.gd")
 const Source := preload("res://data/underground/mole-worker/qualified-assembly-v1/source_program.gd")
-const Pins := preload("res://data/underground/mole-worker/qualified-claw-stairs-v11/catalog_source.gd")
+const Pins := preload("res://data/underground/mole-worker/qualified-stair-carry-v13/catalog_source.gd")
+## Decision 1972: the content predicate (content 10, or its successor 12 with content 10's rows 0-66).
+const Claw := preload("res://data/underground/mole-worker/qualified-claw-runtime-v2/claw_program.gd")
 const REFUSE: StringName = &"CLAW_ENDPOINT_CERTIFICATE"
 const BUDGET: StringName = &"LOCATION_OPERATION_BUDGET"
 const CONTENT: int = 10
@@ -93,7 +95,7 @@ static func _span_source_refusal(b: RefCounted, p: RefCounted, c: RefCounted,
 static func _span_descriptor_matches(d: Source.Profiles.Descriptor, revision: int) -> bool:
 	"""The complete narrow claw descriptor; a canonical-ground, pick or other-heading row cannot substitute."""
 	return d != null and (d.profile_id == Pins.CLAW_APPROACH_ROWS[0] or d.profile_id == Pins.CLAW_RETREAT_ROWS[0]) \
-		and d.profile_revision == 1 and d.content_revision == revision and revision == CONTENT \
+		and d.profile_revision == 1 and d.content_revision == revision and Claw.serves(revision) \
 		and d.source_id == CLAW_SOURCE and d.species == 6 and d.life_stage == 0 \
 		and d.rig == 6 and d.mode == Source.Profiles.MODE_WALK and d.posture == 0 \
 		and d.tool_item == -1 and d.tool_variant == -1 and d.cargo_item == -1 and d.cargo_variant == -1 \
@@ -453,8 +455,8 @@ static func _spend(actual: RefCounted, amount: int) -> bool:
 
 static func _digests_refusal(p: Source.Profiles, revision: int) -> StringName:
 	"""Content 10 with the claw v2 image at source 4 and the paw v2 image at source 5."""
-	if p == null or p._loading or p._live == null or p._live.header.size() != 4 or revision != CONTENT \
-			or p._live.header[0] != CONTENT or p._live.header[3] <= PAW_SOURCE \
+	if p == null or p._loading or p._live == null or p._live.header.size() != 4 or not Claw.serves(revision) \
+			or p._live.header[0] != revision or p._live.header[3] <= PAW_SOURCE \
 			or p._live.sources.size() < 32 * (PAW_SOURCE + 1): return REFUSE
 	var claw: PackedByteArray = Pins.CLAW_SOURCE_SHA.hex_decode()
 	var paw: PackedByteArray = Pins.PAW_SOURCE_SHA.hex_decode()

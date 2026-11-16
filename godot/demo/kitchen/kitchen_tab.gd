@@ -14,6 +14,7 @@ const CardScript := preload("res://demo/ui/action_card.gd")
 const StoreScript := preload("res://demo/kitchen/meal_store.gd")
 const FedScript := preload("res://demo/kitchen/nourishment.gd")
 const PropsScript := preload("res://demo/props/demo_props.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 signal said(text: String)
 
@@ -235,11 +236,13 @@ func pot_text() -> String:
 
 
 func water_text() -> String:
-	"""The butt, what is on its way, what the meals need; the fuel."""
-	return "Water butt by the well: %s of %s (%s on its way; the planned meals need %s) · Fuel: wood %s (0.1 U a batch)" % [
-		Words.units(_kitchen.stores.water_milli_u), Words.units(_kitchen.stores.WATER_CAP_MILLI_U),
-		Words.units(_kitchen.water_on_the_way()), Words.units(_kitchen.water_needed()),
-		Words.units(_kitchen.stores.wood_milli_u)]
+	"""The butt, what is on its way, what the meals need; the fuel: "Water butt by the well: 3 jugs of its 4 buckets (2
+	jugs on its way; the planned meals need 6 jugs) · Fuel: 40 logs (a bundle of kindling a batch)"."""
+	return "Water butt by the well: %s of its %s (%s on its way; the planned meals need %s) · Fuel: %s (%s a batch)" % [
+		Measures.amount_cell(&"water", _kitchen.stores.water_milli_u),
+		Measures.exact_cell(&"water", _kitchen.stores.WATER_CAP_MILLI_U),
+		Measures.amount_cell(&"water", _kitchen.water_on_the_way()), Measures.need_cell(&"water", _kitchen.water_needed()),
+		Measures.amount(&"wood", _kitchen.stores.wood_milli_u), Words.batch_wood()]
 
 
 func village_text() -> String:

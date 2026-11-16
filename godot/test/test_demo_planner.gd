@@ -127,9 +127,9 @@ func test_a_closed_day_is_the_ledgers_movement_that_day() -> void:
 		"spring 1's 12 °C, seen at its opening hour")
 	assert_equal([record.value(1, RecordScript.F_WEATHER_SEEN), record.value(2, RecordScript.F_WEATHER_SEEN)], [0, 0],
 		"spring 2 and 3, only jumped across: not seen")
-	assert_equal(RecordText.day_summary(record, 0), "Spring 1's record: +5.1 U harvested · 0 portions eaten",
+	assert_equal(RecordText.day_summary(record, 0), "Spring 1's record: +1 basket harvested · 0 portions eaten",
 		"the news strip's line")
-	assert_true(RecordText.day_line(record, 0).begins_with("Day's record, Spring 1: harvested 5.1 U (carrot 5.1 U) · "),
+	assert_true(RecordText.day_line(record, 0).begins_with("Day's record, Spring 1: harvested a basket of food (5 bunches of carrots) · "),
 		RecordText.day_line(record, 0))
 
 
@@ -232,7 +232,7 @@ func test_the_record_maps_every_kitchen_counter() -> void:
 	assert_equal([record.value(0, RecordScript.F_PORTIONS_SPOILED), record.value(0, RecordScript.F_KITCHEN_SPOILED),
 		record.value(0, RecordScript.F_RAW)], [2, 1500, 700], "the day's own spoilage and raw food")
 	assert_equal(record.value(0, RecordScript.F_ATE), 3, "one portion and two raw meals: three ate")
-	assert_true(RecordText.day_line(record, 0).contains("2 portions, 1.5 U from a cancelled batch"),
+	assert_true(RecordText.day_line(record, 0).contains("2 portions, 1 bowl from a cancelled batch"),
 		RecordText.day_line(record, 0))
 
 
@@ -276,7 +276,7 @@ func test_a_season_s_totals_are_its_days_and_a_year_is_kept() -> void:
 	assert_equal(record.season_total(1, RecordScript.F_HARVESTED), 27000, "summer's two days: 13 + 14 U")
 	assert_equal([record.season_days(0), record.season_days(1)], [12, 2], "days kept per season")
 	assert_equal(record.season_item_total(1, RecordScript.G_HARVESTED, RADISH), 27000, "by item")
-	assert_true(RecordText.season_line(record, 0).begins_with("Spring, year 1 (12 days): harvested 78.0 U · "),
+	assert_true(RecordText.season_line(record, 0).begins_with("Spring, year 1 (12 days): harvested 15 baskets of food · "),
 		RecordText.season_line(record, 0))
 	record.close_through(60 * 24)
 	assert_equal(record.day_count(), RecordScript.MAX_DAYS, "a year kept")
@@ -291,7 +291,7 @@ func test_the_farm_posts_each_day_and_each_season_to_the_news() -> void:
 	farm.advance_calendar(18 * HOUR_USEC)
 	var notices: NoticesScript = farm.services.notices
 	assert_true(notices.has_text(RecordText.day_line(farm.record, 0)), "spring 1's record in the news")
-	assert_true(notices.has_summary("Spring 1's record: +0 U harvested · 0 portions eaten"), "with its short line")
+	assert_true(notices.has_summary("Spring 1's record: nothing harvested · 0 portions eaten"), "with its short line")
 	farm.advance_calendar(24 * 11 * HOUR_USEC)
 	assert_equal(farm.record.value(farm.record.day_count() - 1, RecordScript.F_DAY), 11, "spring 12 closed")
 	assert_true(notices.has_text("Season's record, " + RecordText.season_line(farm.record, 0)), "spring's record posted")
@@ -315,7 +315,9 @@ func test_a_growing_bed_s_forecast_is_the_tick_it_ripens() -> void:
 	assert_equal(Rows.ripe_tick_of(sim, BED_CARROTS), forecast, "ripe at the very tick forecast")
 	assert_true(sim.expected_yield_into(BED_CARROTS, _read), "a harvest now")
 	var shown: int = _read.value
-	assert_true(Rows.harvest_text(sim, BED_CARROTS, _read).begins_with("Ripe now: %s" % Rows.units(shown)), "said")
+	assert_equal(shown, 5100, "the carrots' 5.1 U")
+	assert_true(Rows.harvest_text(sim, BED_CARROTS, _read).begins_with("Ripe now: 5\u00a0bunches"),
+		"said in the crop's measure, 5.1 U as 5 bunches, kept on one line")
 	assert_equal(sim.harvest(BED_CARROTS).value, shown, "the harvest brings what was shown")
 
 
@@ -358,8 +360,11 @@ func test_the_overview_s_cells_are_the_bed_panel_s_words() -> void:
 	farm.sim.choose(BED_LOAM, RADISH)
 	assert_equal(Rows.next_text(farm.sim, BED_LOAM), "Sow Radish now", "chosen and sowable")
 	assert_true(Rows.harvest_text(farm.sim, BED_LOAM, _read).begins_with("If sown now: ≈ "), "what it would bring")
-	assert_true(Rows.harvest_text(farm.sim, BED_LOAM, _read).ends_with("about " + Rows.units(
-		Text.sown_estimate_milli(farm.sim, BED_LOAM, RADISH))), "the picker's own estimate")
+	var estimate: int = Text.sown_estimate_milli(farm.sim, BED_LOAM, RADISH)
+	assert_true(estimate >= 2000 and estimate < 10000, "under two baskets: radishes in bunches of 1 U")
+	@warning_ignore("integer_division") var bunches: int = estimate / 1000
+	assert_true(Rows.harvest_text(farm.sim, BED_LOAM, _read).ends_with("about %d\u00a0bunches" % bunches),
+		"the picker's own estimate")
 
 
 func test_needs_attention_is_the_warning_needs_and_waiting_harvests() -> void:
@@ -572,6 +577,12 @@ func test_the_compost_plan_is_compost_then_the_picker_s_estimate() -> void:
 	assert_equal(Plans.staff_hundredths(10 * HOUR_USEC), 100, "ten game hours of work: a staff-day")
 	assert_true(sim.compost(BED_LOAM).ok, "really composted")
 	assert_equal(plan.harvest_milli, Text.sown_estimate_milli(sim, BED_LOAM, RADISH), "the estimate after compost")
+	assert_true(PlanText.steps_line(plan).begins_with("Compost on %s (a basket of compost), then sow radish on " %
+		PlanText.day_text(plan.start_day)), PlanText.steps_line(plan))
+	assert_true(plan.harvest_milli >= 2000 and plan.harvest_milli < 10000, "under two baskets: radishes in bunches")
+	@warning_ignore("integer_division") var bunches: int = plan.harvest_milli / 1000
+	assert_true(PlanText.harvest_line(plan).begins_with("This season: about %d bunches of radishes, ≈ " % bunches),
+		PlanText.harvest_line(plan))
 	var again: Plans.Plan = Plans.plans_for(sim, BED_LOAM, _read)[Plans.PLAN_COMPOST]
 	assert_true(PlanText.warning(again).begins_with("Can't now: Composted this season already"), PlanText.warning(again))
 
@@ -751,3 +762,18 @@ func _key(code: Key) -> InputEventKey:
 	event.physical_keycode = code
 	event.pressed = true
 	return event
+
+
+func test_a_harvest_cell_keeps_its_measure_on_one_line() -> void:
+	"""Decision 1801: a bed's harvest in its crop's measure with a no-break space ("5 bunches"), mixed food in baskets for
+	a day's harvest; the season's hearth rule in logs."""
+	assert_equal(Rows.harvest_cell(WHEAT, 25000), "25\u00a0scoops", "25 U of wheat: a sack only from 2 (40 U)")
+	assert_equal(Rows.harvest_cell(CARROT, 12500), "2½\u00a0baskets", "12.5 U of carrots: baskets of 5 U, in halves")
+	assert_equal(Rows.harvest_cell(Catalog.NO_ITEM, 5100), "1\u00a0basket", "a day's mixed harvest: food baskets")
+	assert_equal(Rows.harvest_cell(CABBAGE, 0), "none", "nothing")
+	var season := SeasonScript.new()
+	season.season = WeatherScript.SEASON_WINTER
+	assert_equal(season._fuel_rule(), "every hearth burns 4 logs a day, a great hall's 3 logs (a log heats a hearth 6 hours)",
+		"§5.8's 4 U a hearth, 3 U at tier 2")
+	season.season = WeatherScript.SEASON_SPRING
+	assert_true(season._fuel_rule().begins_with("a hearth burns 2 logs a day on a day whose mean is under "), "2 U")

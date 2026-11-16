@@ -14,6 +14,7 @@ const Directory := preload("res://scripts/core/entity_directory.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const Placements := preload("res://scripts/core/underground_connector_placements.gd")
 const Locations := preload("res://scripts/core/underground_locations.gd")
+const Face := preload("res://scripts/core/underground_work_face.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const NO_ROW: int = -1
 const I32_FIELDS: int = 11
@@ -701,7 +702,9 @@ func _contacts_refusal(check: ColdCheck, room: Vector2i) -> StringName:
 		var point: Vector3i = Space.point_at(contacts.work_xyz, row)
 		if not _covers(check, approach, [Space.SUPPORTED_VOID]):
 			return check.error if check.error != &"" else &"SPACE_WORK_APPROACH_UNFINISHED"
-		if not Space.contains_box(reach, approach) or not _contains_point(reach, point) or not _on_face(check.target, point):
+		if not Space.contains_box(reach, approach) or not _contains_point(reach, point) \
+				or not _on_face(Space.quantum_box(_domain, Face.struck_origin( # Decision 1971: the column's struck cube.
+				Vector3i(check.target[0], check.target[1], check.target[2]), approach[1], point.y)), point):
 			return &"SPACE_WORK_REACH"
 		if not _covers(check, reach, [Space.DRY_SOLID, Space.SUPPORTED_VOID, Space.UNFINISHED]):
 			return check.error if check.error != &"" else &"SPACE_WORK_REACH"

@@ -1,0 +1,64 @@
+{
+  "active_tool": null,
+  "clips": [
+    {
+      "duration_q16": 65536,
+      "frames": 2,
+      "id": "stair_carry_v1.stone.hold",
+      "loop": 0,
+      "part_visibility_mask": 3
+    },
+    {
+      "duration_q16": 5898240,
+      "frames": 91,
+      "id": "stair_carry_v1.stone.approach",
+      "loop": 0,
+      "part_visibility_mask": 3
+    },
+    {
+      "duration_q16": 5898240,
+      "frames": 91,
+      "id": "stair_carry_v1.stone.descent",
+      "loop": 0,
+      "part_visibility_mask": 3
+    },
+    {
+      "duration_q16": 5898240,
+      "frames": 91,
+      "id": "stair_carry_v1.stone.ascent",
+      "loop": 0,
+      "part_visibility_mask": 3
+    },
+    {
+      "duration_q16": 17694720,
+      "frames": 271,
+      "id": "stair_carry_v1.stone.turn",
+      "loop": 0,
+      "part_visibility_mask": 3
+    },
+    {
+      "duration_q16": 5898240,
+      "frames": 91,
+      "id": "stair_carry_v1.stone.retreat",
+      "loop": 0,
+      "part_visibility_mask": 3
+    },
+    {
+      "duration_q16": 5898240,
+      "frames": 91,
+      "id": "stair_carry_v1.stone.back_up",
+      "loop": 0,
+      "part_visibility_mask": 3
+    }
+  ],
+  "decision": "1981",
+  "item": "stone",
+  "parts": [
+    "body",
+    "stock"
+  ],
+  "production_qualified": false,
+  "quantity_milli": 1000,
+  "schema": 1,
+  "source_clock": "presentation sampling only; the stair carry's pace is DEC-050's (decision 1981)"
+}

@@ -534,7 +534,7 @@ func test_a_short_second_input_is_refused_in_words() -> void:
 	var d: KitchenScript.Decision = kitchen.decide_meal()
 	assert_equal(d.code, KitchenScript.NO_FOOD, "refused")
 	assert_equal(d.reason, Words.no_side_reason(Rules.DISH_BEAN_HOTPOT, 1, 0), "its words")
-	assert_true(d.reason.contains("0 U of greens or roots for bean hotpot; a batch takes 2.0 U"), d.reason)
+	assert_true(d.reason.contains("short of greens or roots for bean hotpot: 0 of 2 bowls a batch"), d.reason)
 
 
 func test_ready_food_counts_the_hotpot_and_never_a_variant_twice() -> void:

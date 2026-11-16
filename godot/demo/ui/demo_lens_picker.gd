@@ -50,7 +50,7 @@ const LegendScript := preload("res://demo/ui/demo_lens_legend.gd")
 const TITLE: String = "Map layer"
 const LIST_CLOSED: String = "▾"
 const LIST_OPEN: String = "▴"
-const KEY_HINT: String = "V steps through the layers · U switches the underground view"
+const KEY_HINT: String = "V steps through the layers · U switches to Underground"
 const COMPARE_TIP: String = "Compare: outline a second layer's areas over this one"
 const COMPARE_ON_TEXT: String = "Outlined: %s"
 ## The compare button's glyph, drawn like the HUD's line icons (24 px, a 2 px cream stroke): a filled square under an

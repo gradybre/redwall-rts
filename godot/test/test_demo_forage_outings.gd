@@ -29,6 +29,8 @@ const WaterplayScript := preload("res://demo/waterplay/demo_waterplay.gd")
 const DemoWorldScript := preload("res://demo/world/demo_world.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
+const WorkIds := preload("res://demo/work/work_ids.gd")
+const Promises := preload("res://test/work_promises.gd")
 const DemoFarmScript := preload("res://demo/farm/demo_farm.gd")
 
 const DT: float = 0.1
@@ -127,12 +129,17 @@ func _run(rig: Rig, done: Callable, frames: int = MAX_FRAMES) -> bool:
 
 
 func _board_pass(rig: Rig) -> void:
-	"""The work board's part: each waiting seat to the first idle resident who may take it."""
+	"""The work board's part: each waiting seat to the first idle resident who may take it -- never one promised to
+	another, who means to come back to it (decision 0411; 1905)."""
 	var t: TripsScript = rig.trips
 	for j: int in Rules.MAX_JOBS:
 		if not t.waiting(j):
 			continue
+		var keeper: int = Promises.promised_to(rig.trips, rig.cast.actor_count(),
+			WorkIds.SOURCE_FORAGE, t.j_serial[j])
 		for who: int in rig.cast.actor_count():
+			if keeper >= 0 and keeper != who:
+				continue
 			var brain: BrainScript = t.brain_of(who)
 			if brain.order == BrainScript.ORDER_NONE and t.eligibility(j, who).is_empty() and t.claim(j, who):
 				break
@@ -258,7 +265,7 @@ func test_the_kit_goes_with_one_trip_and_its_carrier_brings_two_baskets() -> voi
 	assert_true(_run(rig, func() -> bool: return t.trip_count() == 0), "home")
 	assert_equal(rig.pantry.milli_of(Catalog.ITEM_HERB), 12000, "12 U of herbs")
 	assert_equal(t.kit_trip(), TripsScript.NONE, "the kit is home")
-	assert_true(t.note_line(HERBS).contains("12.0 U of herbs"), t.note_line(HERBS))
+	assert_true(t.note_line(HERBS).contains("12 bunches of herbs"), t.note_line(HERBS))
 	assert_true(t.note_line(HERBS).begins_with("Remembered (Y1 Summer 1)"), t.note_line(HERBS))
 
 
@@ -280,7 +287,7 @@ func test_a_named_lead_is_in_the_news_and_the_note() -> void:
 	assert_true(t.note_line(HERBS).contains(" h ") and t.note_line(HERBS).contains(" min"), t.note_line(HERBS))
 	assert_equal(t.order_trip(HERBS, 1, PackedInt32Array([3])), "", "another, nobody named")
 	assert_true(_run(rig, func() -> bool: return t.trip_count() == 0), "home again")
-	assert_true(t.note_line(HERBS).contains("4.0 U of herbs") and not t.note_line(HERBS).contains("led by"),
+	assert_true(t.note_line(HERBS).contains("4 bunches of herbs") and not t.note_line(HERBS).contains("led by"),
 		"the latest trip's note only: %s" % t.note_line(HERBS))
 
 

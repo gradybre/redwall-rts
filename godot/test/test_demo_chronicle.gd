@@ -133,7 +133,8 @@ func _page(writer: WriterScript, tally: TallyScript, draft: bool = false) -> Str
 
 
 func _harvest_record() -> FakeRecord:
-	"""A season that stored 41.2 U (carrot, wheat, radish and a fourth item), ate 96 portions and lost nobody a meal."""
+	"""A season that stored 41200 milli-U (carrot, wheat, radish and a fourth item), ate 96 portions and lost nobody a
+	meal."""
 	var record := FakeRecord.new()
 	record.totals = {RecordScript.F_HARVESTED: 41200, RecordScript.F_PORTIONS: 96}
 	record.items = {CARROT: 20000, WHEAT: 12000, RADISH: 8000, 4: 1200}
@@ -235,7 +236,7 @@ func test_occasions_are_the_village_s_chronicle_lines() -> void:
 	feed.post(NoticesScript.SOURCE_VILLAGE, NoticesScript.LEVEL_NOTE, GuideText.CHRONICLE_COMPLETE % "with a bridge")
 	assert_true(tally.read_row(feed, 0), "the first village")
 	feed.post(NoticesScript.SOURCE_VILLAGE, NoticesScript.LEVEL_NOTE, ProjectsScript.CHRONICLE % ["Winter larder",
-		"ready food", "0 U", "40 U", "40 U"])
+		"ready food", "0.0 days", "4.0 days", "4.0 days"])
 	assert_true(tally.read_row(feed, 0), "a project")
 	feed.post(NoticesScript.SOURCE_CREW, NoticesScript.LEVEL_NOTE, "Chronicle: Corra Netley brought Tobit ashore (Spring 4)")
 	assert_false(tally.read_row(feed, 0), "the people's pinned deed is the ledger's")
@@ -413,7 +414,8 @@ func test_the_harvest_and_the_table() -> void:
 	village's first food and first meals told once."""
 	var writer := _writer(_harvest_record())
 	var text: String = _page(writer, TallyScript.new(0))
-	assert_true(text.contains("41.2 U") and text.contains("carrot 20.0 U, wheat 12.0 U, radish 8.0 U and 1 more"), text)
+	assert_true(text.contains("8 baskets of food") and text.contains(
+		"4 baskets of carrots, 12 scoops of wheat, 8 bunches of radishes and 1 more"), text)
 	assert_true(text.contains(Text.FIRST_HARVEST) and text.contains(Text.FIRST_MEALS), "the firsts")
 	assert_true(text.contains("96 portions") and text.contains(Text.NONE_WITHOUT), "the table")
 	assert_equal(writer.firsts_after, WriterScript.FIRST_FOOD | WriterScript.FIRST_MEALS, "two firsts used")
@@ -743,7 +745,8 @@ func test_the_largest_items_ties_and_exactly_three() -> void:
 	record.totals = {RecordScript.F_HARVESTED: 15000}
 	record.items = {CARROT: 5000, RADISH: 5000, WHEAT: 5000}
 	var writer := _writer(record)
-	assert_equal(writer.top_items(0), "radish 5.0 U, carrot 5.0 U and wheat 5.0 U", "ties in catalog order, no more")
+	assert_equal(writer.top_items(0), "5 bunches of radishes, 5 bunches of carrots and 5 scoops of wheat",
+		"ties in catalog order, no more")
 	var text: String = _page(writer, TallyScript.new(0))
 	assert_false(text.contains(Text.NONE_WITHOUT), "no meal served: nothing said of going without")
 
@@ -855,7 +858,7 @@ func test_one_portion_and_a_project_name_with_a_quote() -> void:
 	var feed := _feed()
 	var tally := TallyScript.new(0)
 	feed.post(NoticesScript.SOURCE_VILLAGE, NoticesScript.LEVEL_NOTE, ProjectsScript.CHRONICLE % ["The \"big\" larder",
-		"ready food", "0 U", "40 U", "40 U"])
+		"ready food", "0.0 days", "4.0 days", "4.0 days"])
 	tally.read_row(feed, 0)
 	assert_equal(tally.occasion_text, PackedStringArray(["The \"big\" larder"]), "the whole name")
 	feed.post(NoticesScript.SOURCE_VILLAGE, NoticesScript.LEVEL_NOTE, ProjectsScript.CHRONICLE % ["Path\" -- west",

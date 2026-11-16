@@ -1,6 +1,11 @@
 # 1127 — Export source-bound underground profile prerequisites
 Date: 2026-10-04 · Status: Independently reviewed; staged packaging prerequisite verified
 
+> **Superseded in part by [1841](1841-the-demo-pack-carries-every-underground-binary-by-an-export-plugin.md)
+> (2026-10-09):** the preset's include_filter no longer names the profile and actor paths. The editor plugin
+> `godot/addons/demo_pack_files` packs every underground binary the runtime reads, from
+> `godot/data/underground/runtime_files.gd`. Script export mode 0 and the cached-source check are unchanged.
+
 ## Decision
 
 Use Godot script export mode 0 for the Windows demo preset and include the exact

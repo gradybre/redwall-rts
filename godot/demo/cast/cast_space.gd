@@ -45,7 +45,8 @@ extends RefCounted
 ## REBUILT IN SLICES; once per dig accepted, never per frame). Heaps stand one per mouth (`set_heap`, by
 ## mouth row). A room's turfed MOUND and its door ramp are obstacles too, from the moment it is laid
 ## (`set_mound`, MOUND_CIRCLES by room row; decision 0209): nobody walks over a burrow home or its dig -- in
-## at its door, round it otherwise.
+## at its door, round it otherwise. The build panel's Mound homes stand the same way (`set_build_mounds`, at most
+## BUILD_MOUND_CIRCLES; decision 2002): round the hill, in only at a door's yard.
 ##
 ## NEIGHBOURS BY CELL (decision 1004). A walker's questions about the residents round it -- `separation`, `constrain`,
 ## `standing_blocks` (and so `line_clear`), `surface_occupied` -- read only those in the cells round the question
@@ -96,6 +97,8 @@ const MOUND_CIRCLES: int = 4
 ## (demo_stores.gd FIRST_STRUCTURE, decision 0612) and the infirmary the last (infirmary_building.gd STRUCTURE, decision
 ## 0623); the two lanes' identical hunks were merged once at the batch 7 integration (decision 0902).
 const STRUCTURES: int = 4
+## The build panel's Mound hills as obstacle circles: at most this many (decision 2002).
+const BUILD_MOUND_CIRCLES: int = 128
 const STOCKPILE_WORDS: PackedStringArray = ["stockpile", "store", "storage", "pile", "crate", "sack", "log"]
 const CARRY_CLIP: StringName = &"carry_heavy_object_walk"
 const LOCOMOTION_CLIPS: Array[StringName] = [&"walk", &"carry_heavy_object_walk"]
@@ -143,6 +146,7 @@ var _world_obstacles: PackedVector3Array = PackedVector3Array()
 var _heap_circles: PackedVector3Array = PackedVector3Array()
 var _mound_circles: PackedVector3Array = PackedVector3Array()
 var _structure_circles: PackedVector3Array = PackedVector3Array()
+var _build_mound_circles: PackedVector3Array = PackedVector3Array()
 ## The residents by cell (see NEIGHBOURS BY CELL), the candidates a question gathers, and the widest body registered.
 var _cells: ResidentCellsScript = ResidentCellsScript.new()
 var _near: PackedInt32Array = PackedInt32Array()
@@ -216,6 +220,16 @@ func set_mound(r: int, circles: PackedVector3Array) -> void:
 	_rebuild_obstacles()
 
 
+func set_build_mounds(circles: PackedVector3Array) -> void:
+	"""The build panel's Mound hills now stand as these circles (x, radius, z; at most BUILD_MOUND_CIRCLES, the rest
+	dropped; decision 2002). The obstacles are rebuilt as a heap's are -- only when they changed."""
+	var kept: PackedVector3Array = circles.slice(0, BUILD_MOUND_CIRCLES)
+	if kept == _build_mound_circles:
+		return
+	_build_mound_circles = kept
+	_rebuild_obstacles()
+
+
 func set_structure(s: int, circle: Vector3) -> void:
 	"""Surface structure `s` (0..STRUCTURES-1; a cellar building or the infirmary) now stands as this circle (x, radius,
 	z); radius 0 removes it. The obstacles are rebuilt as a heap's are."""
@@ -245,6 +259,7 @@ func _rebuild_obstacles() -> void:
 	for circle in _structure_circles:
 		if circle.y > 0.0:
 			obstacles.append(circle)
+	obstacles.append_array(_build_mound_circles)
 	nav.setup(obstacles)
 	routes.worker.share_world(nav)
 

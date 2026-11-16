@@ -9,13 +9,17 @@ const Placements := preload("res://scripts/core/underground_connector_placements
 const ConnectorCatalog := preload("res://scripts/core/underground_connector_catalog.gd")
 const Locations := preload("res://scripts/core/underground_locations.gd")
 const Routes := preload("res://scripts/core/underground_routes.gd")
-const Tread := preload("res://data/underground/mole-worker/qualified-claw-runtime-v2/tread_geometry.gd")
+## Decision 2044 (P-2044-9 (a)): the module-aware M5 tread geometry (module 0 is the published one).
+const Tread := preload("res://data/underground/mole-worker/qualified-m5-runtime-v1/tread_geometry.gd")
 const Connectors := preload("res://scripts/core/room_connectors.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const ENTRY_FIXED_BYTES: int = 4096
 const ENTRY_EPISODE_FIELDS: int = 19
 const ENTRY_BEARING_FIELDS: int = 9
 const TIMBER_SCOPE_CHECKS: int = 2048
+## Decision 1972: natural earth under a landing is retained to the natural bearings' depth (ADR 1209: y -1152..-1024
+## under a floor at -1024), which holds every stair fixture deck that stands on the floor under the landing.
+const NATURAL_DEPTH_U: int = 128
 const REFUSE_ENTRY_SOURCE: StringName = &"ENTRY_SOURCE_MISMATCH"
 const REFUSE_ENTRY_CUTS: StringName = &"ENTRY_EXACT_CUT_SET_REQUIRED"
 const REFUSE_ENTRY_BEARING: StringName = &"ENTRY_NATURAL_BEARING_REMOVED"
@@ -139,6 +143,10 @@ var _entry_contact: Locations.Record = Locations.Record.new()
 var _entry_row: PackedInt32Array = PackedInt32Array()
 var _entry_bearing: PackedInt32Array = PackedInt32Array()
 var _entry_transform: Connectors.Placement = Connectors.Placement.new()
+## Decision 2044 (P-2044-10 (a)): the confirmation's episodes indexed once by world cube: sorted keys and each key's
+## BRACE/CUT/FINISH mask, so a cube or a bearing costs a binary search instead of a pass over every episode.
+var _entry_cube_keys: PackedInt64Array = PackedInt64Array()
+var _entry_cube_masks: PackedInt32Array = PackedInt32Array()
 var _timber_placement: Vector2i = NULL_REF
 var _timber_project: Vector2i = NULL_REF
 var _timber_assembly: int = -1
@@ -372,7 +380,7 @@ func _entry_cut_set_refusal() -> StringName:
 	var code: StringName = cursor.configure(_entry_pin.claims, domain, _entry_checks, _actual_sites().remaining_history_capacity())
 	var count: int = 0
 	while code == &"" and cursor.advance():
-		code = cursor.charge_checks(HISTORY_LOOKUP_CHECKS + _entry_frontier._header[8 + Frontier.EPISODE] * 32)
+		code = cursor.charge_checks(HISTORY_LOOKUP_CHECKS + CUBE_LOOKUP_CHECKS) # P-2044-10 (a): one indexed lookup.
 		if code == &"" and _actual_sites().site_at(cursor.current_origin()) != NULL_REF:
 			code = REFUSE_RETAINED
 		if code == &"": code = _entry_cube_coverage(cursor.current_origin())
@@ -391,18 +399,70 @@ func _read_entry_episode(row: int) -> void:
 
 
 func _entry_cube_coverage(origin: Vector3i) -> StringName:
-	"""Each exact world cube needs BRACE/CUT/FINISH source coverage; no partial-cube permission is inferred."""
-	var mask: int = 0
+	"""Each exact world cube needs BRACE/CUT/FINISH source coverage; no partial-cube permission is inferred.
+	Decision 2044 (P-2044-10 (a)): the episodes' union masks are read from the cube index (built once)."""
+	var code: StringName = _entry_cube_index()
+	if code != &"": return code
+	return &"" if _entry_cube_mask(origin) == 7 else REFUSE_ENTRY_CUTS
+
+
+## Decision 2044 (P-2044-10 (a)): the cube index. A key packs a cube's lattice coordinates; a binary search over the
+## sorted keys costs at most CUBE_LOOKUP_CHECKS. Each lattice coordinate takes 18 bits, so a key shifted left by the
+## three mask bits stays below 2^57 (a Space Domain spans far fewer than 2^17 cubes on any axis).
+const CUBE_LOOKUP_CHECKS: int = 64
+const CUBE_KEY_OFFSET: int = 1 << 17
+
+
+func _entry_cube_key(origin: Vector3i) -> int:
+	"""A world cube origin's lattice key relative to the Space datum."""
+	return _cube_key(origin, _entry_placements._space._domain._datum)
+
+
+static func _cube_key(origin: Vector3i, datum: Vector3i) -> int:
+	"""The lattice key of the cube holding `origin`: three 18-bit offset lattice coordinates."""
+	return ((Locations._floor_div(int(origin.x) - datum.x, 1024) + CUBE_KEY_OFFSET) << 36) \
+		| ((Locations._floor_div(int(origin.y) - datum.y, 1024) + CUBE_KEY_OFFSET) << 18) \
+		| (Locations._floor_div(int(origin.z) - datum.z, 1024) + CUBE_KEY_OFFSET)
+
+
+func _entry_cube_index() -> StringName:
+	"""Index every episode's whole cubes once per confirmation, merging the masks of a cube several episodes name."""
+	if not _entry_cube_keys.is_empty(): return &""
+	var packed: PackedInt64Array = PackedInt64Array()
 	for row: int in _entry_frontier._header[8 + Frontier.EPISODE]:
+		if not _entry_spend(32): return REFUSE_MASK_BUDGET
 		_read_entry_episode(row)
-		var local_box: PackedInt32Array = _entry_row.slice(0, 6)
-		var world_box: PackedInt32Array = Connectors.transform_box(local_box, _entry_transform)
-		if world_box.size() != 6: return REFUSE_ENTRY_CUTS
-		if origin.x >= world_box[0] and int(origin.x) + 1024 <= world_box[3] \
-				and origin.y >= world_box[1] and int(origin.y) + 1024 <= world_box[4] \
-				and origin.z >= world_box[2] and int(origin.z) + 1024 <= world_box[5]:
-			mask |= _entry_row[6]
-	return &"" if mask == 7 else REFUSE_ENTRY_CUTS
+		var box: PackedInt32Array = Connectors.transform_box(_entry_row.slice(0, 6), _entry_transform)
+		if box.size() != 6: return REFUSE_ENTRY_CUTS
+		var code: StringName = _entry_index_box(box, _entry_row[6], packed)
+		if code != &"": return code
+	if not _entry_spend(8 * packed.size()): return REFUSE_MASK_BUDGET
+	packed.sort()
+	for entry: int in packed:
+		var key: int = entry >> 3
+		if not _entry_cube_keys.is_empty() and _entry_cube_keys[_entry_cube_keys.size() - 1] == key:
+			_entry_cube_masks[_entry_cube_masks.size() - 1] |= entry & 7
+			continue
+		_entry_cube_keys.append(key)
+		_entry_cube_masks.append(entry & 7)
+	return &""
+
+
+func _entry_index_box(box: PackedInt32Array, mask: int, packed: PackedInt64Array) -> StringName:
+	"""Append (key, mask) for every whole cube of one episode box."""
+	for y: int in range(box[1], box[4], 1024):
+		for z: int in range(box[2], box[5], 1024):
+			for x: int in range(box[0], box[3], 1024):
+				if not _entry_spend(8): return REFUSE_MASK_BUDGET
+				packed.append((_entry_cube_key(Vector3i(x, y, z)) << 3) | mask)
+	return &""
+
+
+func _entry_cube_mask(origin: Vector3i) -> int:
+	"""The indexed mask of one world cube, 0 when no episode names it."""
+	var key: int = _entry_cube_key(origin)
+	var at: int = _entry_cube_keys.bsearch(key)
+	return _entry_cube_masks[at] if at < _entry_cube_keys.size() and _entry_cube_keys[at] == key else 0
 
 
 func _entry_source_cube_count(expected: int) -> StringName:
@@ -472,14 +532,19 @@ func _entry_paid_cube_physics(space_token: int) -> StringName:
 
 
 func _entry_natural_bearing(bounds: PackedInt32Array, space_token: int) -> StringName:
-	"""A later paid cut cannot remove the source's supposedly retained natural load-bearing matter."""
-	for row: int in _entry_frontier._header[8 + Frontier.EPISODE]:
-		if not _entry_spend(32): return REFUSE_MASK_BUDGET
-		_read_entry_episode(row)
-		if (_entry_row[6] & 2) == 0: continue
-		var paid: PackedInt32Array = Connectors.transform_box(_entry_row.slice(0, 6), _entry_transform)
-		if paid.size() != 6 or Space.overlaps(bounds, paid): return REFUSE_ENTRY_BEARING
-	var code: StringName = _entry_bearing_history_refusal(bounds)
+	"""A later paid cut cannot remove the source's supposedly retained natural load-bearing matter. Decision 2044
+	(P-2044-10 (a)): every cube the bearing meets is looked up in the cube index; a CUT episode's cube refuses."""
+	var code: StringName = _entry_cube_index()
+	if code != &"": return code
+	var datum: Vector3i = _entry_placements._space._domain._datum
+	var low: Vector3i = Vector3i(Locations._floor_div(int(bounds[0]) - datum.x, 1024),
+		Locations._floor_div(int(bounds[1]) - datum.y, 1024), Locations._floor_div(int(bounds[2]) - datum.z, 1024))
+	for y: int in range(datum.y + 1024 * low.y, bounds[4], 1024):
+		for z: int in range(datum.z + 1024 * low.z, bounds[5], 1024):
+			for x: int in range(datum.x + 1024 * low.x, bounds[3], 1024):
+				if not _entry_spend(CUBE_LOOKUP_CHECKS): return REFUSE_MASK_BUDGET
+				if (_entry_cube_mask(Vector3i(x, y, z)) & 2) != 0: return REFUSE_ENTRY_BEARING
+	code = _entry_bearing_history_refusal(bounds)
 	if code == &"": code = _entry_terrain_box(bounds, Terrain.FOOTING, space_token)
 	if code == &"": code = _entry_terrain_box(bounds, Terrain.EXCLUSIONS, space_token)
 	return _entry_retained_box(bounds, true) if code == &"" else code
@@ -513,7 +578,6 @@ func _entry_terrain_box(bounds: PackedInt32Array, purpose: int, space_token: int
 		var x: int = bounds[0]
 		var next_z: int = z
 		while x < bounds[3]:
-			if not _entry_spend(Terrain.LOCAL_QUERY_CHECKS): return REFUSE_MASK_BUDGET
 			@warning_ignore("integer_division") var tile_x: int = x / World.TILE_SIZE_UNITS
 			@warning_ignore("integer_division") var tile_z: int = z / World.TILE_SIZE_UNITS
 			_region.box[0] = x
@@ -522,6 +586,7 @@ func _entry_terrain_box(bounds: PackedInt32Array, purpose: int, space_token: int
 			_region.box[3] = mini(bounds[3], (tile_x + 8) * World.TILE_SIZE_UNITS)
 			_region.box[4] = bounds[4]
 			_region.box[5] = mini(bounds[5], (tile_z + 8) * World.TILE_SIZE_UNITS)
+			if not _entry_spend(_entry_window_checks(_region.box)): return REFUSE_MASK_BUDGET
 			x = _region.box[3]
 			next_z = _region.box[5]
 			var provider: WorldBindings = _provider.get_ref() as WorldBindings
@@ -533,6 +598,21 @@ func _entry_terrain_box(bounds: PackedInt32Array, purpose: int, space_token: int
 			if code != &"": return code
 		z = next_z
 	return &""
+
+
+## Decision 2044: Terrain's per-tile share of a full window's LOCAL_QUERY_CHECKS (its sixteen tile/leaf checks).
+@warning_ignore("integer_division")
+const TERRAIN_TILE_CHECKS: int = (Terrain.LOCAL_QUERY_CHECKS - 1) / Terrain.LOCAL_TILE_LIMIT
+
+
+static func _entry_window_checks(box: PackedInt32Array) -> int:
+	"""Decision 2044: the checks one terrain window query can spend, by the tiles it reads: Terrain charges sixteen per
+	tile, and LOCAL_QUERY_CHECKS is that for a full 8x8 window. A 128 u bearing reads one tile, yet each paid the full
+	window; M5's 139 bearings, 58 contacts and 154 cubes made that 621,000 checks a pass, twice per confirmation.
+	The timber proofs' terrain windows are charged the same way."""
+	@warning_ignore("integer_division") var across: int = (box[3] - 1) / World.TILE_SIZE_UNITS - box[0] / World.TILE_SIZE_UNITS + 1
+	@warning_ignore("integer_division") var down: int = (box[5] - 1) / World.TILE_SIZE_UNITS - box[2] / World.TILE_SIZE_UNITS + 1
+	return TERRAIN_TILE_CHECKS * across * down + 1
 
 
 func _entry_natural_support_row(owner: Owner, row: int) -> bool:
@@ -575,7 +655,7 @@ func _entry_surface_contacts_refusal(space_token: int) -> StringName:
 func _entry_surface_contact(point: Vector3i, role: int, space_token: int) -> StringName:
 	"""A current full endpoint and actual source section are mandatory; source coordinates grant no permission."""
 	var locations: Locations = _entry_placements._locations
-	if not _entry_spend(256 + 4 * _entry_placements._space._source_capacity): return REFUSE_MASK_BUDGET
+	if not _entry_spend(_entry_section_charge(locations)): return REFUSE_MASK_BUDGET
 	var row: int = _entry_surface_contact_row(point, role)
 	if row == ROW_BUDGET: return REFUSE_MASK_BUDGET
 	if row < 0: return REFUSE_ENTRY_CONTACT
@@ -590,6 +670,15 @@ func _entry_surface_contact(point: Vector3i, role: int, space_token: int) -> Str
 	if code == &"": code = _entry_natural_bearing(_entry_contact.support, space_token)
 	if code == &"": code = _entry_retained_box(_entry_contact.envelope, false)
 	return code
+
+
+func _entry_section_charge(locations: Locations) -> int:
+	"""Decision 2044: the section resolution's charge. Every contact must share the anchor's World section, so once
+	Locations holds the World's exact source row as its resolution hint, a resolution reads that row and scans no
+	sources; only a cold hint pays the source scan. M5's 58 contacts each paid the scan, 490,000 checks over the
+	confirmation's cold budget."""
+	var warm: bool = locations._resolve_source_ref == _entry_pin.world and locations._resolve_source_hint >= 0
+	return 256 if warm else 256 + 4 * _entry_placements._space._source_capacity
 
 
 func _entry_surface_contact_row(point: Vector3i, role: int) -> int:
@@ -807,6 +896,8 @@ func _drop_entry() -> void:
 		_budget.release(_entry_token)
 	_entry_token = 0
 	_entry_checks = 0
+	_entry_cube_keys.clear()
+	_entry_cube_masks.clear()
 
 
 func _timber_cold_bytes(placement: Vector2i, assembly: int) -> int:
@@ -815,6 +906,15 @@ func _timber_cold_bytes(placement: Vector2i, assembly: int) -> int:
 			or not _entry_placements._is_live(_entry_placements._live, placement) or assembly < 0 \
 			or assembly >= _entry_frontier._header[8 + Frontier.INSTALL]: return 0
 	return Budget.COLD_BYTES
+
+
+## Decision 2044 (P-2044-15, "Exact cost fixes"): a Region scan visits the present rows only, found natively in the
+## present bank, and charges each one; an empty slot is never read, so it costs nothing (as `_entry_retained_box`).
+static func _next_region_row(owner: Owner, from: int, staged: bool) -> int:
+	"""The first present Region row at or after `from` (staged bank or live), else the region capacity."""
+	var bank: PackedByteArray = owner._s_r_present if staged else owner._r_present
+	var at: int = bank.find(1, from) if from < owner._region_capacity else -1
+	return at if at >= 0 and at < owner._region_capacity else owner._region_capacity
 
 
 func _timber_scope_leaf(proof: TimberClearance = null) -> StringName:
@@ -927,7 +1027,10 @@ func _workpiece_air(proof: TimberClearance, bounds: PackedInt32Array, token: int
 	"""An unfinished cube or another obstacle cannot become air merely because the source calls it a set-down."""
 	var owner: Owner = _entry_placements._space
 	proof.start(bounds)
-	for row: int in owner._region_capacity:
+	var row: int = -1
+	while true:
+		row = _next_region_row(owner, row + 1, false)
+		if row >= owner._region_capacity: break
 		if not proof.spend(): return REFUSE_MASK_BUDGET
 		if owner._r_present[row] != 1 or owner._r_role[row] == Space.FLOOR_DATUM \
 				or _timber_claim(row, false) or _workpiece_live_row(row): continue
@@ -936,8 +1039,8 @@ func _workpiece_air(proof: TimberClearance, bounds: PackedInt32Array, token: int
 		if not Space.overlaps(bounds, proof.cover): continue
 		if owner._r_role[row] != Space.SUPPORTED_VOID or not _timber_void_row(row, false): return REFUSE_TIMBER_CUT
 		if not proof.subtract_cover(): return REFUSE_MASK_BUDGET
-	for row: int in proof.count:
-		for axis: int in 6: proof.box[axis] = proof.fragments[row * 6 + axis]
+	for fragment_row: int in proof.count:
+		for axis: int in 6: proof.box[axis] = proof.fragments[fragment_row * 6 + axis]
 		var code: StringName = _timber_terrain(proof, proof.box, Terrain.EXTERIOR, token)
 		if code != &"": return code
 	return &""
@@ -963,7 +1066,10 @@ func _workpiece_foot(proof: TimberClearance, bounds: PackedInt32Array, token: in
 	if code != &"": return code
 	proof.start(_cube)
 	var owner: Owner = _entry_placements._space
-	for row: int in owner._region_capacity:
+	var row: int = -1
+	while true:
+		row = _next_region_row(owner, row + 1, false)
+		if row >= owner._region_capacity: break
 		if not proof.spend(): return REFUSE_MASK_BUDGET
 		if owner._r_present[row] != 1 or owner._r_role[row] == Space.FLOOR_DATUM or _timber_claim(row, false): continue
 		if not proof.spend(12): return REFUSE_MASK_BUDGET
@@ -1026,6 +1132,7 @@ func _timber_physical(space_token: int, staging: bool) -> StringName:
 	code = _timber_dependencies(proof, space_token if not staging else 0, staging)
 	if code == &"": code = _timber_connections(proof)
 	if code == &"": code = _timber_parts(proof, space_token, staging)
+	if code == &"" and not staging and space_token != 0: code = _timber_landing_footing(proof, space_token)
 	if code == &"" and not staging: code = _timber_contact_air(proof, space_token, false)
 	if code == &"": code = _timber_scope_leaf(proof)
 	_entry_checks = proof.remaining
@@ -1110,7 +1217,7 @@ func _timber_bearing(proof: TimberClearance, row: int, space_token: int, staging
 		_entry_bearing[field] = _entry_frontier._bearing[field * _entry_frontier._capacities[Frontier.BEARING] + row]
 	var code: StringName = _timber_source_box(Frontier.BEARING, row, 3, _cube)
 	if code != &"": return code
-	if _entry_bearing[0] == Frontier.NATURAL:
+	if _entry_bearing[0] == Frontier.NATURAL or _entry_bearing[0] == Frontier.STRIP: # Decision 2044: a strip too.
 		code = _timber_virgin_keys(proof, _cube)
 		if code == &"": code = _timber_natural_rows(proof, _cube)
 		if code == &"" and not staging: code = _timber_terrain(proof, _cube, Terrain.FOOTING, space_token)
@@ -1142,7 +1249,10 @@ func _timber_virgin_keys(proof: TimberClearance, bounds: PackedInt32Array) -> St
 func _timber_natural_rows(proof: TimberClearance, bounds: PackedInt32Array) -> StringName:
 	"""Retained geometry can invalidate original matter even while the immutable terrain survey is unchanged."""
 	var owner: Owner = _entry_placements._space
-	for row: int in owner._region_capacity:
+	var row: int = -1
+	while true:
+		row = _next_region_row(owner, row + 1, false)
+		if row >= owner._region_capacity: break
 		if not proof.spend(): return REFUSE_MASK_BUDGET
 		if owner._r_present[row] != 1 or owner._r_role[row] == Space.FLOOR_DATUM or _timber_claim(row, false): continue
 		if not proof.spend(12): return REFUSE_MASK_BUDGET
@@ -1164,7 +1274,10 @@ func _timber_installed_bearing(proof: TimberClearance, bounds: PackedInt32Array)
 	if code != &"" or not Space.contains_box(proof.cover, bounds): return REFUSE_TIMBER_BEARING
 	proof.start(bounds)
 	var owner: Owner = _entry_placements._space
-	for row: int in owner._region_capacity:
+	var row: int = -1
+	while true:
+		row = _next_region_row(owner, row + 1, false)
+		if row >= owner._region_capacity: break
 		if not proof.spend(): return REFUSE_MASK_BUDGET
 		if owner._r_present[row] != 1 or owner._r_role[row] == Space.FLOOR_DATUM or _timber_claim(row, false): continue
 		if not proof.spend(12): return REFUSE_MASK_BUDGET
@@ -1183,13 +1296,13 @@ func _timber_terrain(proof: TimberClearance, bounds: PackedInt32Array, purpose: 
 		var x: int = bounds[0]
 		var next_z: int = z
 		while x < bounds[3]:
-			if not proof.spend(Terrain.LOCAL_QUERY_CHECKS): return REFUSE_MASK_BUDGET
 			_region.box[0] = x
 			_region.box[1] = bounds[1]
 			_region.box[2] = z
 			_region.box[3] = mini(bounds[3], (Locations._floor_div(x, World.TILE_SIZE_UNITS) + 8) * World.TILE_SIZE_UNITS)
 			_region.box[4] = bounds[4]
 			_region.box[5] = mini(bounds[5], (Locations._floor_div(z, World.TILE_SIZE_UNITS) + 8) * World.TILE_SIZE_UNITS)
+			if not proof.spend(_entry_window_checks(_region.box)): return REFUSE_MASK_BUDGET
 			x = _region.box[3]
 			next_z = _region.box[5]
 			var terrain: Terrain = (_provider.get_ref() as WorldBindings)._terrain
@@ -1243,14 +1356,44 @@ func _timber_parts(proof: TimberClearance, token: int, staging: bool) -> StringN
 		if code == &"": code = _timber_part_clearance(proof, token, staging)
 		if code == &"" and staging: code = _stage_timber_part(proof, part, token)
 		if code != &"": return code
-	return _stage_timber_datums(proof, token) if staging else &""
+	if not staging: return &""
+	var datums: StringName = _stage_timber_datums(proof, token)
+	return _stage_strips(proof, token) if datums == &"" else datums
+
+
+func _stage_strips(proof: TimberClearance, token: int) -> StringName:
+	"""Decision 2044 (P-2044-3 (a)): a sill retains, as its Room's SUPPORT, the floor strips its Frontier row names
+	(the stop footprints and walk strips of the landing it makes, proved natural with its other bearings): one row of
+	floor each, whole, so the entry structure's hook can retire one exactly (P-2044-12 (a))."""
+	_read_timber_install()
+	for row: int in range(_entry_row[5], _entry_row[5] + _entry_row[6]):
+		if not proof.spend(12): return REFUSE_MASK_BUDGET
+		if _entry_frontier._field(Frontier.BEARING, row, 0) != Frontier.STRIP: continue
+		var code: StringName = _timber_source_box(Frontier.BEARING, row, 3, _cube)
+		if code == &"": code = _timber_support_residual(proof, _cube)
+		for fragment: int in proof.count:
+			if code != &"": break
+			if not proof.spend(_entry_placements._space._source_capacity + 16): return REFUSE_MASK_BUDGET
+			_region.owner = _timber_room()
+			_region.section = NULL_REF
+			_region.level = _entry_placements._get32(_entry_placements._live, Placements.LEVEL, _timber_placement.x)
+			_region.role = Space.SUPPORT
+			_region.claim_kind = Owner.CLAIM_NONE
+			_region.claim_ref = NULL_REF
+			for axis: int in 6: _region.box[axis] = proof.fragments[fragment * 6 + axis]
+			code = _entry_placements._space.stage_add(token, _region).error
+		if code != &"": return code
+	return _timber_scope_leaf(proof) # Decision 2044 (P-2044-15): once per staging loop, not per fragment.
 
 
 func _timber_part_clearance(proof: TimberClearance, token: int, staging: bool) -> StringName:
 	"""Paid cavities or positively observed exterior are required for all timber, including buried bearers."""
 	var owner: Owner = _entry_placements._space
 	proof.start(_cube)
-	for row: int in owner._region_capacity:
+	var row: int = -1
+	while true:
+		row = _next_region_row(owner, row + 1, false)
+		if row >= owner._region_capacity: break
 		if not proof.spend(): return REFUSE_MASK_BUDGET
 		if owner._r_present[row] != 1 or owner._r_role[row] == Space.FLOOR_DATUM or _timber_claim(row, false) \
 				or _workpiece_live_row(row): continue
@@ -1260,9 +1403,9 @@ func _timber_part_clearance(proof: TimberClearance, token: int, staging: bool) -
 		if not _timber_void_row(row, false): return REFUSE_TIMBER_CUT
 		if not proof.subtract_cover(): return REFUSE_MASK_BUDGET
 	if staging: return &""
-	for row: int in proof.count:
+	for fragment_row: int in proof.count:
 		if not proof.spend(): return REFUSE_MASK_BUDGET
-		for axis: int in 6: proof.box[axis] = proof.fragments[row * 6 + axis]
+		for axis: int in 6: proof.box[axis] = proof.fragments[fragment_row * 6 + axis]
 		var code: StringName = _timber_terrain(proof, proof.box, Terrain.EXTERIOR, token)
 		if code != &"": return REFUSE_TIMBER_CUT
 	return &""
@@ -1295,7 +1438,10 @@ func _stage_timber(placement: Vector2i, project: Vector2i, assembly: int, token:
 func _stage_timber_part(proof: TimberClearance, part: int, token: int) -> StringName:
 	"""Remove only the exact new solid from retained air, emitting disjoint residual slabs with original identities."""
 	var owner: Owner = _entry_placements._space
-	for row: int in owner._region_capacity:
+	var row: int = -1
+	while true:
+		row = _next_region_row(owner, row + 1, true)
+		if row >= owner._region_capacity: break
 		if not proof.spend(): return REFUSE_MASK_BUDGET
 		if owner._s_r_present[row] != 1 or not _timber_void_row(row, true): continue
 		if not proof.spend(12): return REFUSE_MASK_BUDGET
@@ -1379,6 +1525,7 @@ func _timber_connections(proof: TimberClearance) -> StringName:
 	var end: int = start + _entry_row[6]
 	for index: int in 16: _entry_row[index] = 0 #256 parts, sixteen safe low bits per reusedI32.
 	for bearing: int in range(start, end):
+		if _entry_frontier._field(Frontier.BEARING, bearing, 0) == Frontier.STRIP: continue # Decision 2044: floor.
 		var bearing_code: StringName = _timber_connect_bearing(proof, bearing)
 		if bearing_code != &"": return bearing_code
 	return _timber_connect_parts(proof)
@@ -1485,7 +1632,10 @@ func _timber_datum_ref() -> Vector2i:
 	"""Reuse exactly equal same-source metadata or reject ambiguity; nearby rectangles are not interchangeable."""
 	var owner: Owner = _entry_placements._space
 	var found: Vector2i = NULL_REF
-	for row: int in owner._region_capacity:
+	var row: int = -1
+	while true:
+		row = _next_region_row(owner, row + 1, true)
+		if row >= owner._region_capacity: break
 		if not _entry_spend(): return Vector2i(-3, 0)
 		if owner._s_r_present[row] != 1: continue
 		if not _entry_spend(12): return Vector2i(-3, 0)
@@ -1512,10 +1662,19 @@ func _stage_timber_datums(proof: TimberClearance, token: int) -> StringName:
 		for axis: int in 6: proof.box[axis] = _cube[axis]
 		proof.box[4] = _cube[1]
 		proof.box[1] = int(_cube[1]) - 1
-		code = _timber_staged_support(proof, proof.box)
+		if not _floor_landing(endpoint): # Decision 2044: a floor landing's footing is its strips (`_stage_strips`).
+			code = _timber_staged_support(proof, proof.box)
+			if code == &"": code = _stage_natural_support(proof, token)
 		if code == &"": code = _timber_create_datum(proof, token)
 		if code != &"": return code
 	return _timber_contact_air(proof, token, true)
+
+
+func _floor_landing(endpoint: int) -> bool:
+	"""Decision 2044: a selector on a landing's floor (M5's natural landings, below the stair top on a cube floor)
+	rather than on installed timber."""
+	var y: int = _entry_frontier._field(Frontier.ENDPOINT, endpoint, 5)
+	return y < 0 and y % 1024 == 0
 
 
 func _timber_prior_landing(proof: TimberClearance, endpoint: int) -> int:
@@ -1531,17 +1690,133 @@ func _timber_prior_landing(proof: TimberClearance, endpoint: int) -> int:
 
 
 func _timber_staged_support(proof: TimberClearance, bounds: PackedInt32Array) -> StringName:
-	"""Metadata cannot enlarge a platform: the complete declared landing must have actual installed solid under it."""
+	"""Metadata cannot enlarge a platform: the complete declared landing must have actual solid under it, installed
+	(the installation's own SUPPORT) or, decision 1972 (P-1972-7, Brendan: "Natural earth counts"), natural earth.
+	This step only leaves what the installation does not cover in the proof's fragments and refuses nothing itself;
+	`_stage_natural_support` then proves that residual natural, or refuses."""
+	return _timber_support_residual(proof, bounds)
+
+
+func _timber_support_residual(proof: TimberClearance, bounds: PackedInt32Array) -> StringName:
+	"""What of `bounds` the installation's own staged SUPPORT does not cover, left in the proof's fragments."""
 	proof.start(bounds)
 	var owner: Owner = _entry_placements._space
-	for row: int in owner._region_capacity:
+	var row: int = -1
+	while true:
+		row = _next_region_row(owner, row + 1, true)
+		if row >= owner._region_capacity: break
 		if not proof.spend(): return REFUSE_MASK_BUDGET
 		if owner._s_r_present[row] != 1 or owner._s_r_role[row] != Space.SUPPORT \
 				or owner._s_r_claim_kind[row] != Owner.CLAIM_NONE or not _timber_owned(row, true): continue
 		if not proof.spend(12): return REFUSE_MASK_BUDGET
 		_timber_region_box(row, true, proof.cover)
 		if not proof.subtract_cover(): return REFUSE_MASK_BUDGET
-	return &"" if proof.count == 0 else REFUSE_TIMBER_CONTACT
+	return &""
+
+
+func _timber_natural_support(proof: TimberClearance, bounds: PackedInt32Array) -> StringName:
+	"""Decision 1971's natural-earth test, as a natural bearing is proved, on one region to be retained while staging:
+	no Site ever cut a quantum it meets and only unclaimed natural matter or support stands in it. Its dry original
+	footing is a terrain fact, observed under the sealed candidate (`_timber_landing_footing`), as a natural
+	bearing's is. So never a dug void, backfill or another installation."""
+	var code: StringName = _timber_virgin_keys(proof, bounds)
+	if code == &"": code = _timber_natural_rows(proof, bounds)
+	if code != &"": return REFUSE_MASK_BUDGET if code == REFUSE_MASK_BUDGET else REFUSE_TIMBER_CONTACT
+	return &""
+
+
+func _stage_natural_support(proof: TimberClearance, token: int) -> StringName:
+	"""Decision 1972 (P-1972-7, Brendan: "Natural earth counts"): when a landing stands partly on natural earth, the
+	natural earth under its footprint, to `NATURAL_DEPTH_U`, is proved (cut history and matter) and retained as the
+	Room's SUPPORT, as a natural bearing is, so the Space records the floor a stop stands on. No mounted landing does
+	so: the floor end that needs it waits for slice D's F40 (Brendan, 2026-10-17, "Switch on without floor end"); the
+	trench-floor retention P-1972-9 added for it is not kept (decision 1972 records it as F40's inventory)."""
+	if proof.count == 0: return &""
+	return _retain_natural(proof, token, _natural_box(NATURAL_DEPTH_U))
+
+
+func _retain_natural(proof: TimberClearance, token: int, bounds: PackedInt32Array) -> StringName:
+	"""Prove what staged SUPPORT leaves of `bounds` natural earth, fragment by fragment (a landing's footprint may hold
+	timber in a dug cube), then stage it as the Room's SUPPORT."""
+	var code: StringName = _timber_support_residual(proof, bounds)
+	if code == &"" and proof.count > 0: code = _natural_fragments(proof)
+	for fragment: int in proof.count:
+		if code != &"": return code
+		if not proof.spend(_entry_placements._space._source_capacity + 16): return REFUSE_MASK_BUDGET
+		_region.owner = _timber_room()
+		_region.section = NULL_REF
+		_region.level = _entry_contact.level
+		_region.role = Space.SUPPORT
+		_region.claim_kind = Owner.CLAIM_NONE
+		_region.claim_ref = NULL_REF
+		for axis: int in 6: _region.box[axis] = proof.fragments[fragment * 6 + axis]
+		code = _entry_placements._space.stage_add(token, _region).error
+		if code == &"": code = _timber_scope_leaf(proof)
+	return code
+
+
+func _natural_fragments(proof: TimberClearance) -> StringName:
+	"""The natural-earth proof over each residual fragment."""
+	var box: PackedInt32Array = PackedInt32Array()
+	box.resize(6)
+	for fragment: int in proof.count:
+		for axis: int in 6: box[axis] = proof.fragments[fragment * 6 + axis]
+		var code: StringName = _timber_natural_support(proof, box)
+		if code != &"": return code
+	return &""
+
+
+func _natural_box(depth: int) -> PackedInt32Array:
+	"""The current landing's footprint (`_cube`), from `depth` below its floor up to the floor."""
+	var box: PackedInt32Array = _cube.duplicate()
+	box[4] = _cube[1]
+	box[1] = int(_cube[1]) - depth
+	return box
+
+
+func _timber_landing_footing(proof: TimberClearance, token: int) -> StringName:
+	"""Decision 1972: under the sealed candidate, every landing of this group that stands partly on natural earth
+	stands on the terrain's dry original footing there (no water), to the retained depth; a landing on installed
+	timber alone has no natural strip under it and is not observed."""
+	for endpoint: int in _entry_frontier._header[8 + Frontier.ENDPOINT]:
+		if not proof.spend(32): return REFUSE_MASK_BUDGET
+		if _entry_frontier._field(Frontier.ENDPOINT, endpoint, 0) != Frontier.INSTALLED_CONTACT \
+				or _entry_frontier._field(Frontier.ENDPOINT, endpoint, 1) != _timber_assembly: continue
+		var prior: int = _timber_prior_landing(proof, endpoint)
+		if prior < 0: return REFUSE_MASK_BUDGET
+		if prior > 0 or _floor_landing(endpoint): continue # Decision 2044: its strips' footing is proved as bearings.
+		var code: StringName = _timber_landing_into(endpoint)
+		if code == &"": code = _timber_prism_residual(proof, _natural_box(1))
+		if code != &"": return code
+		if proof.count == 0: continue
+		code = _timber_prism_residual(proof, _natural_box(NATURAL_DEPTH_U))
+		if code == &"": code = _timber_residual_footing(proof, token)
+		if code != &"": return code
+	return &""
+
+
+func _timber_prism_residual(proof: TimberClearance, bounds: PackedInt32Array) -> StringName:
+	"""What of `bounds` no installed timber prism of this Placement's groups up to this one covers: natural earth,
+	whether retained by staging or as a natural bearing (both are SUPPORT rows, so only the prisms tell them apart)."""
+	proof.start(bounds)
+	var groups: Placements.Assemblies = _entry_placements._assemblies
+	for group: int in _timber_assembly + 1:
+		for part: int in range(groups._first_part[group], groups._first_part[group] + groups._part_count[group]):
+			if not proof.spend(96): return REFUSE_MASK_BUDGET
+			if Locations.installed_prism_into(_entry_placements, _timber_placement.x, part, proof.cover) != &"": continue
+			if not proof.subtract_cover(): return REFUSE_MASK_BUDGET
+	return &""
+
+
+func _timber_residual_footing(proof: TimberClearance, token: int) -> StringName:
+	"""The terrain's dry footing under each residual fragment, from the sealed candidate's facts."""
+	var box: PackedInt32Array = PackedInt32Array()
+	box.resize(6)
+	for fragment: int in proof.count:
+		for axis: int in 6: box[axis] = proof.fragments[fragment * 6 + axis]
+		var code: StringName = _timber_terrain(proof, box, Terrain.FOOTING, token)
+		if code != &"": return REFUSE_MASK_BUDGET if code == REFUSE_MASK_BUDGET else REFUSE_TIMBER_CONTACT
+	return &""
 
 
 func _timber_create_datum(proof: TimberClearance, token: int) -> StringName:
@@ -1600,7 +1875,8 @@ func _timber_profile_envelope(endpoint: int) -> StringName:
 
 static func _stair_stop(profiles: Profiles, profile: int) -> bool:
 	"""ADR1229: a stop of content 10's source-proved stair and tread rows (steps, descent, ascent, half-turn, the tread
-	fitting tap). Their bounding boxes enclose whole motions over two decks or reach among the tread fixture's timber,
+	fitting tap), and decision 1972: of content 12's rooted rows (the stair carry). Their bounding boxes enclose whole
+	motions over two decks or reach among the tread fixture's timber,
 	so they size no stop; each motion is proved per edge and per station against its installed fixture."""
 	return Routes.Stair.owns(profiles, profile) \
 		or (profile == Routes.Stair.Pins.CLAW_TREAD_TAP_ROW and Routes.Claw2.owns(profiles, profile))
@@ -1609,11 +1885,12 @@ static func _stair_stop(profiles: Profiles, profile: int) -> bool:
 func _stair_stop_bounds(profiles: Profiles, profile: int) -> StringName:
 	"""ADR1229: the stop's footing is the claw READY stance of the tread fitting row (row 64's STANCE box: the tread
 	station's footing, 169 u ahead and 175 u behind the root), turned to face up the stair for an ascent stop; its own
-	air is that footing's column one unit high. The motions leaving it carry their own proofs."""
+	air is that footing's column one unit high. The motions leaving it carry their own proofs. Decision 1972: any stair
+	row facing up the stair (yaw 32768: the ascents and the rooted retreats) turns the footing."""
 	var tap: int = Routes.Stair.Pins.CLAW_TREAD_TAP_ROW
 	var first: int = profiles._live.fields[Profiles.F_FIRST_BOX * profiles._profile_capacity + tap]
 	var count: int = profiles._live.fields[Profiles.F_BOX_COUNT * profiles._profile_capacity + tap]
-	var up: bool = profile == Routes.Stair.Pins.CLAW_ASCENT_ROW
+	var up: bool = Routes.Stair.owns(profiles, profile) and Routes.Stair.yaw_of(profile) == 32768
 	var point: Vector3i = _entry_contact.point
 	for box: int in range(first, first + count):
 		if not _entry_spend(24): return REFUSE_MASK_BUDGET
@@ -1717,7 +1994,10 @@ func _timber_air_box(proof: TimberClearance, token: int, staging: bool) -> Strin
 		if code != &"": return code
 	var owner: Owner = _entry_placements._space
 	proof.start(_entry_contact.envelope)
-	for row: int in owner._region_capacity:
+	var row: int = -1
+	while true:
+		row = _next_region_row(owner, row + 1, staging)
+		if row >= owner._region_capacity: break
 		if not proof.spend(): return REFUSE_MASK_BUDGET
 		if (owner._s_r_present[row] if staging else owner._r_present[row]) != 1: continue
 		var role: int = owner._s_r_role[row] if staging else owner._r_role[row]
@@ -1728,8 +2008,8 @@ func _timber_air_box(proof: TimberClearance, token: int, staging: bool) -> Strin
 		if not Space.overlaps(_entry_contact.envelope, proof.cover): continue
 		if role != Space.SUPPORTED_VOID or not _timber_void_row(row, staging): return REFUSE_TIMBER_CONTACT
 		if not proof.subtract_cover(): return REFUSE_MASK_BUDGET
-	for row: int in proof.count:
-		for axis: int in 6: proof.box[axis] = proof.fragments[row * 6 + axis]
+	for fragment_row: int in proof.count:
+		for axis: int in 6: proof.box[axis] = proof.fragments[fragment_row * 6 + axis]
 		var code: StringName = _stage_timber_exterior(proof, token) if staging \
 			else _timber_terrain(proof, proof.box, Terrain.EXTERIOR, token)
 		if code != &"": return code
@@ -1772,9 +2052,7 @@ func _timber_refresh_locations(token: int) -> StringName:
 		var ref: Vector2i = Vector2i(row, locations._live.i32[row])
 		var code: StringName = locations.stage_refresh(token, ref)
 		if code != &"": return code
-		code = _timber_scope_leaf()
-		if code != &"": return code
-	return &""
+	return _timber_scope_leaf() # Decision 2044 (P-2044-15): once per refresh loop, not per row.
 
 
 func _timber_new_locations(token: int) -> StringName:
@@ -1797,9 +2075,8 @@ func _timber_new_locations(token: int) -> StringName:
 		if code != &"" or _entry_contact.section.x < 0: return REFUSE_TIMBER_CONTACT
 		code = _timber_profile_envelope(endpoint)
 		if code == &"": code = _entry_placements._locations.stage_add(token, _entry_contact).error
-		if code == &"": code = _timber_scope_leaf()
 		if code != &"": return code
-	return &""
+	return _timber_scope_leaf() # Decision 2044 (P-2044-15): once per staging loop, not per Location.
 
 
 func _timber_selector_due(assembly: int) -> bool:
@@ -1853,8 +2130,8 @@ func _stage_timber_routes(placement: Vector2i, project: Vector2i, assembly: int,
 			break
 		if routes._live.present[row] != 1: continue
 		code = routes.stage_refresh(token, Vector2i(row, routes._live.fields[row]))
-		if code == &"": code = _timber_scope_leaf()
 		if code != &"": break
+	if code == &"": code = _timber_scope_leaf() # Decision 2044 (P-2044-15): once per refresh loop, not per row.
 	_reading = false
 	_entry_busy = false
 	return code

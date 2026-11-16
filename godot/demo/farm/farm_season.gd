@@ -40,6 +40,7 @@ const SimClock := preload("res://scripts/core/sim_clock.gd")
 const FuelScript := preload("res://demo/winter/hearth_fuel.gd")
 const WinterText := preload("res://demo/winter/winter_text.gd")
 const WinterRules := preload("res://demo/winter/winter_rules.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 const SCHEDULED: int = 0
 const RECORDED: int = 1
@@ -342,15 +343,15 @@ func _add_fuel() -> void:
 
 
 func _fuel_rule() -> String:
-	"""The season's hearth rule, in words (§5.8)."""
+	"""The season's hearth rule, in words (§5.8): the rules' own rates, in logs ("every hearth burns 4 logs a day")."""
 	if season == WeatherScript.SEASON_WINTER:
-		return "every hearth burns %s a day, a great hall's %s (1 U heats a hearth 6 hours)" % [
-			WinterText.units(WinterRules.WINTER_DAY_MILLI), WinterText.units(WinterRules.day_demand_milli(
+		return "every hearth burns %s a day, a great hall's %s (a log heats a hearth 6 hours)" % [
+			Measures.exact(&"wood", WinterRules.WINTER_DAY_MILLI), Measures.exact(&"wood", WinterRules.day_demand_milli(
 			WeatherScript.SEASON_WINTER, 0, WinterRules.TIER2_FUEL_PERMILLE))]
 	if season == WeatherScript.SEASON_SUMMER:
 		return "no hearth is lit for heat in summer"
 	return "a hearth burns %s a day on a day whose mean is under %s, else nothing" % [
-		WinterText.units(WinterRules.SHOULDER_DAY_MILLI), WinterText.degrees(WinterRules.SHOULDER_BELOW_TENTHS)]
+		Measures.exact(&"wood", WinterRules.SHOULDER_DAY_MILLI), WinterText.degrees(WinterRules.SHOULDER_BELOW_TENTHS)]
 
 
 func _add_runway(kitchen: KitchenScript, _sim: SimScript) -> void:

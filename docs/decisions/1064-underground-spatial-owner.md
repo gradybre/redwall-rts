@@ -443,3 +443,48 @@ AGENTS.md; systems_architecture.md ARCH-ID-002, ARCH-MEM-001/006/010 and
 ARCH-SAVE-001/003/004; decision 1058 B2; SET-MOVE-001 and SET-MOVE-ECON-001;
 the recorded UG21 file lease at integration `82084569`; the user's approved
 underground plan and D29 world-drawing clarification.
+
+## Recovery audit — production inputs still absent (2026-11-16)
+
+The current integration head `115cc191` contains the later DEC-059 and ADR1229
+increments: the live host test constructs the authored L0/T0 prefix, descends,
+and installs T1–T6. This supersedes the earlier progress notes above that say
+the stair source and T1–T6 runtime do not exist. It does not close UG21's
+production acceptance. ADR1229 records the tested host-chain increment, while
+ADR1080 states that its source catalog emits zero production-qualified
+profiles and that the native profile-admission witness is synthetic.
+`test_underground_world_routes.gd` also retains the guard that fixed connector
+data cannot authorize an unbuilt stair.
+
+The following concrete inputs remain unavailable to this owner, so no production
+permission or connector dimensions can safely be inferred from the component
+work:
+
+1. An approved, complete numerical connector catalog and level/section datum
+   contract covering the D03–D07 families and raised/sunken sections. The
+   accepted first-entry fixture has exact source-derived dimensions, but is not
+   authority to extend those dimensions to other connector families or adopt a
+   general underground level spacing.
+2. A production-qualified profile/World binding that joins current source
+   profile rows to actual Resident, gear/load, pose, support, contact and route
+   facts, with the required native and composed-memory qualification. Source
+   geometry and the live host test are not that binding.
+3. Actual composed phase acceptance using the same live World, Space, Sites,
+   Construction, Inventory, Work and route owners through paid CUT/FINISH,
+   abort/retry, retained claims, last-exit protection and publication. The
+   existing phase adapter's synthetic movement/profile/structure/service
+   provider fixtures cannot establish those production facts.
+4. A milestone test environment that can satisfy the repository's strict
+   zero-unexpected-diagnostic gate. The focused recovery run completed 343
+   tests / 28,144 assertions with zero test failures, warnings or leaks, but
+   Godot 4.7.2 emitted an undeclared macOS
+   `get_system_ca_certificates` error (`ret != noErr`,
+   `platform/macos/os_macos.mm:1035`), so the guarded runner correctly rejected
+   the run. This environment result is not evidence against or in favor of
+   production behavior.
+
+Until these inputs are supplied or separately accepted, the sparse owner and
+phase components remain engineering components. Do not copy the first-entry
+measurements into a general catalog, replace the concrete owners with synthetic
+ones, suppress the diagnostic, or mark UG21 complete based on the host-chain
+test. This audit records a blocker; it makes no gameplay decision.

@@ -168,18 +168,30 @@ func test_exact_adopted_prices_keep_fractional_quantities_and_refuse_invalid_ope
 	_assert_total_work(Tips.RECLAIM, 3, 2)
 	_assert_total_work(Tips.COMPACT, 400000, 100000)
 	_assert_total_work(Tips.RECLAIM, 400000, 200000)
-	var result: IntMath.IntResult = IntMath.IntResult.new()
-	for operation: int in [-1, Tips.OP_COUNT]:
-		assert_false(Tips.total_work_mwu_into(operation, 1000, result), "invalid operation refuses")
-		assert_false(result.ok, "refusal is explicit")
-		assert_equal(result.value, 0, "refusal has no in-band number")
-		assert_true(not result.error.is_empty(), "refusal names the contract")
+
+
+func test_invalid_operations_clear_a_previous_success_result() -> void:
+	"""Each invalid operation clears a previously successful result instead of leaving stale work."""
+	_assert_refusal_after_success(Tips.COMPACT, 1000, -1, 1000)
+	_assert_refusal_after_success(Tips.COMPACT, 1000, Tips.OP_COUNT, 1000)
+
+
+func test_invalid_quantities_clear_previous_success_results() -> void:
+	"""Variable and fixed-operation quantity refusals clear the same caller-owned result."""
 	for quantity: int in [-1, 0, 400001]:
-		assert_false(Tips.total_work_mwu_into(Tips.COMPACT, quantity, result), "invalid quantity refuses")
-		assert_false(result.ok, "quantity refusal is explicit")
-		assert_equal(result.value, 0, "quantity refusal has no sentinel")
-	assert_false(Tips.total_work_mwu_into(Tips.PREPARE, 1, result), "fixed operation forbids q")
-	assert_equal(result.value, 0, "fixed quantity refusal has no sentinel")
+		_assert_refusal_after_success(Tips.COMPACT, 1, Tips.COMPACT, quantity)
+	_assert_refusal_after_success(Tips.PREPARE, 0, Tips.PREPARE, 1)
+
+
+func _assert_refusal_after_success(valid_operation: int, valid_quantity: int,
+		invalid_operation: int, invalid_quantity: int) -> void:
+	"""Prove one refusal overwrites a real successful outcome in the same caller-owned result."""
+	var result: IntMath.IntResult = IntMath.IntResult.new()
+	assert_true(Tips.total_work_mwu_into(valid_operation, valid_quantity, result), "valid result first")
+	assert_false(Tips.total_work_mwu_into(invalid_operation, invalid_quantity, result), "invalid result second")
+	assert_false(result.ok, "refusal clears success flag")
+	assert_equal(result.value, 0, "refusal clears stale price")
+	assert_true(not result.error.is_empty(), "refusal names its contract")
 
 
 func _assert_total_work(operation: int, quantity: int, expected: int) -> void:
